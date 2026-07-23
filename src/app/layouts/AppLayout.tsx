@@ -1,9 +1,9 @@
 import type { CSSProperties, PropsWithChildren } from 'react'
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
-import { Sidebar } from '@/shared/ui'
-import type { SidebarItemId } from '@/shared/ui/sidebar'
+import type { SidebarItemId } from '@/shared/constants/sidebar'
 import * as token from '@/shared/styles/values/token'
+import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 
 const FIGMA_CANVAS_WIDTH = 1440
 const FIGMA_SIDEBAR_HEIGHT = 922

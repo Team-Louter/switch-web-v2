@@ -2,7 +2,7 @@ import styled, { css } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
-import type { IconFrame } from './Sidebar.model'
+import type { IconFrame } from './SidebarIcon'
 
 export const Aside = styled.aside`
   ${token.flexColumnStart}
@@ -80,38 +80,6 @@ export const IconSvg = styled.span<{ $active: boolean; $frame: IconFrame }>`
   top: ${({ $frame }) => $frame.top}px;
   width: ${({ $frame }) => $frame.width}px;
   height: ${({ $frame }) => $frame.height}px;
-  color: ${({ $active }) =>
-    $active ? token.colors.gray.gray70 : token.colors.gray.gray30};
-  transition: color 120ms ease;
-
-  svg {
-    width: 100%;
-    height: 100%;
-  }
-`
-
-export const CommunityIconBack = styled.span<{ $active: boolean }>`
-  position: absolute;
-  right: 0.88px;
-  top: 3.37px;
-  width: 13.4px;
-  height: 13.19px;
-  color: ${({ $active }) =>
-    $active ? token.colors.gray.gray70 : token.colors.gray.gray30};
-  transition: color 120ms ease;
-
-  svg {
-    width: 100%;
-    height: 100%;
-  }
-`
-
-export const CommunityIconFront = styled.span<{ $active: boolean }>`
-  position: absolute;
-  left: 0.88px;
-  bottom: 3.37px;
-  width: 7.68px;
-  height: 9.17px;
   color: ${({ $active }) =>
     $active ? token.colors.gray.gray70 : token.colors.gray.gray30};
   transition: color 120ms ease;

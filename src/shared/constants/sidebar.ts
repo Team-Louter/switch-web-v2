@@ -13,20 +13,7 @@ export type SidebarMenuItem = {
   label: string
 }
 
-export type IconFrame = {
-  svg: string
-  width: number
-  height: number
-  top: number
-  left: number
-}
-
-export type SidebarProps = {
-  activeItemId?: SidebarItemId
-  onItemSelect?: (itemId: SidebarItemId) => void
-}
-
-export const primaryMenu: SidebarMenuItem[] = [
+export const PRIMARY_SIDEBAR_MENU: SidebarMenuItem[] = [
   { id: 'home', label: '홈' },
   { id: 'community', label: '커뮤니티' },
   { id: 'calendar', label: '캘린더' },
@@ -35,7 +22,7 @@ export const primaryMenu: SidebarMenuItem[] = [
   { id: 'typing', label: '타자연습' },
 ]
 
-export const utilityMenu: SidebarMenuItem[] = [
+export const UTILITY_SIDEBAR_MENU: SidebarMenuItem[] = [
   { id: 'notification', label: '알림' },
   { id: 'store', label: '상점' },
 ]

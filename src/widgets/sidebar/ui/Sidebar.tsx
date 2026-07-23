@@ -1,6 +1,11 @@
 import dividerImage from '@/shared/assets/sidebar/divider.svg'
 import profileImage from '@/shared/assets/sidebar/profile.png'
 import switchLogo from '@/shared/assets/sidebar/switch-logo.svg'
+import {
+  PRIMARY_SIDEBAR_MENU,
+  UTILITY_SIDEBAR_MENU,
+} from '@/shared/constants/sidebar'
+import type { SidebarItemId } from '@/shared/constants/sidebar'
 
 import {
   Aside,
@@ -19,8 +24,11 @@ import {
   Spacer,
 } from './Sidebar.style'
 import { SidebarIcon } from './SidebarIcon'
-import { primaryMenu, utilityMenu } from './Sidebar.model'
-import type { SidebarProps } from './Sidebar.model'
+
+type SidebarProps = {
+  activeItemId?: SidebarItemId
+  onItemSelect?: (itemId: SidebarItemId) => void
+}
 
 export function Sidebar({ activeItemId = 'home', onItemSelect }: SidebarProps) {
   return (
@@ -30,7 +38,7 @@ export function Sidebar({ activeItemId = 'home', onItemSelect }: SidebarProps) {
       </LogoArea>
 
       <MenuList>
-        {primaryMenu.map((item) => (
+        {PRIMARY_SIDEBAR_MENU.map((item) => (
           <MenuButton
             key={item.id}
             type="button"
@@ -47,7 +55,7 @@ export function Sidebar({ activeItemId = 'home', onItemSelect }: SidebarProps) {
       <Divider src={dividerImage} alt="" aria-hidden="true" />
 
       <MenuList>
-        {utilityMenu.map((item) => (
+        {UTILITY_SIDEBAR_MENU.map((item) => (
           <MenuButton
             key={item.id}
             type="button"
