@@ -1,0 +1,186 @@
+import styled, { css } from 'styled-components'
+
+import * as token from '@/shared/styles/values/token'
+
+import type { IconFrame } from './Sidebar.model'
+
+export const Aside = styled.aside`
+  ${token.flexColumnStart}
+  flex: 0 0 249px;
+  width: 249px;
+  height: 922px;
+  transform: scale(var(--sidebar-scale, 1));
+  transform-origin: top left;
+  gap: 40px;
+  overflow: hidden;
+  padding: 36px 20px;
+  border-radius: ${token.shapes.xlarge};
+  background: ${token.colors.gray.gray0};
+`
+
+export const LogoArea = styled.div`
+  ${token.flexLeft}
+  width: 100%;
+  padding: 0 10px;
+`
+
+export const Logo = styled.img`
+  width: 91.667px;
+  height: 25px;
+`
+
+export const MenuList = styled.div`
+  ${token.flexColumnStart}
+  width: 100%;
+  gap: 15px;
+`
+
+export const MenuButton = styled.button<{ $active?: boolean }>`
+  ${token.flexLeft}
+  width: 100%;
+  gap: 15px;
+  overflow: hidden;
+  padding: 13px 10px;
+  border-radius: ${token.shapes.medium};
+  background: ${({ $active }) => ($active ? token.colors.white : 'transparent')};
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+
+  &:hover,
+  &:focus-visible {
+    background: ${({ $active }) =>
+      $active ? token.colors.white : token.colors.gray.gray10};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary40};
+    outline-offset: 2px;
+  }
+`
+
+export const IconBox = styled.span<{ $wide?: boolean }>`
+  position: relative;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  overflow: hidden;
+
+  ${({ $wide }) =>
+    $wide &&
+    css`
+      overflow: visible;
+    `}
+`
+
+export const IconSvg = styled.span<{ $active: boolean; $frame: IconFrame }>`
+  display: block;
+  position: absolute;
+  left: ${({ $frame }) => $frame.left}px;
+  top: ${({ $frame }) => $frame.top}px;
+  width: ${({ $frame }) => $frame.width}px;
+  height: ${({ $frame }) => $frame.height}px;
+  color: ${({ $active }) =>
+    $active ? token.colors.gray.gray70 : token.colors.gray.gray30};
+  transition: color 120ms ease;
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+`
+
+export const CommunityIconBack = styled.span<{ $active: boolean }>`
+  position: absolute;
+  right: 0.88px;
+  top: 3.37px;
+  width: 13.4px;
+  height: 13.19px;
+  color: ${({ $active }) =>
+    $active ? token.colors.gray.gray70 : token.colors.gray.gray30};
+  transition: color 120ms ease;
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+`
+
+export const CommunityIconFront = styled.span<{ $active: boolean }>`
+  position: absolute;
+  left: 0.88px;
+  bottom: 3.37px;
+  width: 7.68px;
+  height: 9.17px;
+  color: ${({ $active }) =>
+    $active ? token.colors.gray.gray70 : token.colors.gray.gray30};
+  transition: color 120ms ease;
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+`
+
+export const MenuLabel = styled.span<{ $active?: boolean }>`
+  color: ${({ $active }) =>
+    $active ? token.colors.gray.gray90 : token.colors.gray.gray50};
+  line-height: 1;
+  white-space: nowrap;
+  ${token.typography('body', 'md', 'semibold')}
+`
+
+export const Divider = styled.img`
+  width: 100%;
+  height: 1px;
+`
+
+export const Spacer = styled.div`
+  flex: 1 1 0;
+  min-height: 1px;
+`
+
+export const Profile = styled.div`
+  ${token.flexLeft}
+  width: 100%;
+  gap: 10px;
+  overflow: hidden;
+  padding: 13px 10px;
+`
+
+export const AvatarWrap = styled.div`
+  position: relative;
+  flex: 0 0 43px;
+  width: 43px;
+  height: 43px;
+  overflow: hidden;
+  border-radius: ${token.shapes.circle};
+  background: ${token.colors.primary.primary10};
+`
+
+export const Avatar = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`
+
+export const ProfileText = styled.div`
+  ${token.flexColumn}
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  white-space: nowrap;
+`
+
+export const ProfileName = styled.span`
+  color: ${token.colors.gray.gray100};
+  line-height: 1;
+  ${token.typography('body', 'lg', 'semibold')}
+`
+
+export const ProfileMeta = styled.span`
+  color: ${token.colors.gray.gray70};
+  line-height: 1;
+  ${token.typography('caption', 'sm', 'regular')}
+`

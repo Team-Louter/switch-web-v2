@@ -1,8 +1,8 @@
 import type { CSSProperties, PropsWithChildren } from 'react'
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
-
 import { Sidebar } from '@/shared/ui'
+import type { SidebarItemId } from '@/shared/ui/sidebar'
 import * as token from '@/shared/styles/values/token'
 
 const FIGMA_CANVAS_WIDTH = 1440
@@ -12,6 +12,8 @@ const FIGMA_SIDE_PADDING = 30
 
 export function AppLayout({ children }: PropsWithChildren) {
   const sidebarScale = useSidebarScale()
+  const [activeSidebarItemId, setActiveSidebarItemId] =
+    useState<SidebarItemId>('home')
   const sideStyle = {
     '--sidebar-scale': sidebarScale,
     flexBasis: FIGMA_SIDE_WIDTH * sidebarScale,
@@ -22,7 +24,10 @@ export function AppLayout({ children }: PropsWithChildren) {
   return (
     <Layout>
       <Side style={sideStyle}>
-        <Sidebar />
+        <Sidebar
+          activeItemId={activeSidebarItemId}
+          onItemSelect={setActiveSidebarItemId}
+        />
       </Side>
       <Body>{children}</Body>
     </Layout>
