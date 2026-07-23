@@ -6,11 +6,10 @@ import type { IconFrame } from './SidebarIcon'
 
 export const Aside = styled.aside`
   ${token.flexColumnStart}
-  flex: 0 0 249px;
-  width: 249px;
-  height: 922px;
-  transform: scale(var(--sidebar-scale, 1));
-  transform-origin: top left;
+  width: 100%;
+  min-width: 220px;
+  height: calc(100vh - clamp(40px, 4vw, 60px));
+  min-height: 600px;
   gap: 40px;
   overflow: hidden;
   padding: 36px 20px;

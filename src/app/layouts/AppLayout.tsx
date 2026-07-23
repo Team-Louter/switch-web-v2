@@ -1,29 +1,17 @@
-import type { CSSProperties, PropsWithChildren } from 'react'
-import { useEffect, useState } from 'react'
+import type { PropsWithChildren } from 'react'
+import { useState } from 'react'
 import styled from 'styled-components'
 import type { SidebarItemId } from '@/shared/constants/sidebar'
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 
-const FIGMA_CANVAS_WIDTH = 1440
-const FIGMA_SIDEBAR_HEIGHT = 922
-const FIGMA_SIDE_WIDTH = 309
-const FIGMA_SIDE_PADDING = 30
-
 export function AppLayout({ children }: PropsWithChildren) {
-  const sidebarScale = useSidebarScale()
   const [activeSidebarItemId, setActiveSidebarItemId] =
     useState<SidebarItemId>('home')
-  const sideStyle = {
-    '--sidebar-scale': sidebarScale,
-    flexBasis: FIGMA_SIDE_WIDTH * sidebarScale,
-    width: FIGMA_SIDE_WIDTH * sidebarScale,
-    padding: FIGMA_SIDE_PADDING * sidebarScale,
-  } as CSSProperties
 
   return (
     <Layout>
-      <Side style={sideStyle}>
+      <Side>
         <Sidebar
           activeItemId={activeSidebarItemId}
           onItemSelect={setActiveSidebarItemId}
@@ -32,32 +20,6 @@ export function AppLayout({ children }: PropsWithChildren) {
       <Body>{children}</Body>
     </Layout>
   )
-}
-
-function useSidebarScale() {
-  const [scale, setScale] = useState(getSidebarScale)
-
-  useEffect(() => {
-    const updateScale = () => {
-      setScale(getSidebarScale())
-    }
-
-    window.addEventListener('resize', updateScale)
-    return () => window.removeEventListener('resize', updateScale)
-  }, [])
-
-  return scale
-}
-
-function getSidebarScale() {
-  if (typeof window === 'undefined') {
-    return 1
-  }
-
-  const heightScale = (window.innerHeight - FIGMA_SIDE_PADDING * 2) / FIGMA_SIDEBAR_HEIGHT
-  const widthScale = window.innerWidth / FIGMA_CANVAS_WIDTH
-
-  return Math.max(0.6, Math.min(heightScale, widthScale))
 }
 
 const Layout = styled.main`
@@ -71,7 +33,10 @@ const Layout = styled.main`
 const Side = styled.div`
   ${token.flexLeft}
   align-items: flex-start;
+  flex: 0 0 clamp(260px, 21.5vw, 309px);
+  width: clamp(260px, 21.5vw, 309px);
   min-height: 100vh;
+  padding: clamp(20px, 2vw, 30px);
 `
 
 const Body = styled.section`
