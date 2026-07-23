@@ -1,20 +1,25 @@
 import type { PropsWithChildren } from 'react'
-import { useState } from 'react'
 import styled from 'styled-components'
 import type { SidebarItemId } from '@/shared/constants/sidebar'
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 
-export function AppLayout({ children }: PropsWithChildren) {
-  const [activeSidebarItemId, setActiveSidebarItemId] =
-    useState<SidebarItemId>('home')
+type AppLayoutProps = PropsWithChildren<{
+  activeSidebarItemId: SidebarItemId
+  onSidebarItemSelect: (itemId: SidebarItemId) => void
+}>
 
+export function AppLayout({
+  activeSidebarItemId,
+  children,
+  onSidebarItemSelect,
+}: AppLayoutProps) {
   return (
     <Layout>
       <Side>
         <Sidebar
           activeItemId={activeSidebarItemId}
-          onItemSelect={setActiveSidebarItemId}
+          onItemSelect={onSidebarItemSelect}
         />
       </Side>
       <Body>{children}</Body>
