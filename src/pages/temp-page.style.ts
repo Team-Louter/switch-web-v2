@@ -4,7 +4,8 @@ import * as token from '@/shared/styles/values/token'
 
 export const Container = styled.section`
   ${token.flexCenter}
-  min-height: 100vh;
+  box-sizing: border-box;
+  min-height: 100dvh;
   padding: 48px;
   background: ${token.colors.white};
 `

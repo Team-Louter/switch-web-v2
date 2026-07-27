@@ -8,10 +8,8 @@ export const Aside = styled.aside`
   ${token.flexColumnStart}
   width: 100%;
   min-width: 220px;
-  height: 100%;
-  min-height: 0;
+  min-height: calc(100dvh - clamp(40px, 4vw, 60px));
   gap: clamp(24px, 3.25dvh, 40px);
-  overflow: hidden;
   padding: 36px 20px;
   border-radius: ${token.shapes.xlarge};
   background: ${token.colors.gray.gray0};
