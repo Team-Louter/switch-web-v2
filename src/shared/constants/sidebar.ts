@@ -7,6 +7,7 @@ export type SidebarItemId =
   | 'typing'
   | 'notification'
   | 'store'
+  | 'my'
 
 export type SidebarMenuItem = {
   id: SidebarItemId

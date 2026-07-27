@@ -7,6 +7,7 @@ import {
   HomePage,
   LearningPage,
   MentoringPage,
+  MyPage,
   NotificationPage,
   StorePage,
   TypingPage,
@@ -25,11 +26,12 @@ const pageBySidebarItem = {
   typing: TypingPage,
   notification: NotificationPage,
   store: StorePage,
+  my: MyPage,
 } satisfies Record<SidebarItemId, ComponentType>
 
 export function App() {
   const [activeSidebarItemId, setActiveSidebarItemId] =
-    useState<SidebarItemId>('home')
+    useState<SidebarItemId>('my')
   const ActivePage = pageBySidebarItem[activeSidebarItemId]
 
   return (

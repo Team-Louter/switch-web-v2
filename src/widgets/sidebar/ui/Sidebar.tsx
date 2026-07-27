@@ -17,7 +17,7 @@ import {
   MenuButton,
   MenuLabel,
   MenuList,
-  Profile,
+  ProfileButton,
   ProfileMeta,
   ProfileName,
   ProfileText,
@@ -71,7 +71,11 @@ export function Sidebar({ activeItemId = 'home', onItemSelect }: SidebarProps) {
 
       <Spacer />
 
-      <Profile>
+      <ProfileButton
+        type="button"
+        aria-current={activeItemId === 'my' ? 'page' : undefined}
+        onClick={() => onItemSelect?.('my')}
+      >
         <AvatarWrap>
           <Avatar src={profileImage} alt="" />
         </AvatarWrap>
@@ -79,7 +83,7 @@ export function Sidebar({ activeItemId = 'home', onItemSelect }: SidebarProps) {
           <ProfileName>라우터</ProfileName>
           <ProfileMeta>2학년 0반 0번</ProfileMeta>
         </ProfileText>
-      </Profile>
+      </ProfileButton>
     </Aside>
   )
 }
