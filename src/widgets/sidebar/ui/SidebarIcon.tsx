@@ -19,7 +19,9 @@ type SidebarIconProps = {
   active: boolean
 }
 
-const sidebarIcons: Record<SidebarItemId, IconFrame> = {
+type SidebarIconItemId = Exclude<SidebarItemId, 'my'>
+
+const sidebarIcons: Record<SidebarIconItemId, IconFrame> = {
   home: { Icon: HomeIcon, width: 16.374, height: 16.931, top: 1.058, left: 1.812 },
   community: { Icon: CommunityIcon, width: 20, height: 20, top: 0, left: 0 },
   calendar: { Icon: CalendarIcon, width: 16.15, height: 17.877, top: 0.216, left: 1.924 },
@@ -31,7 +33,7 @@ const sidebarIcons: Record<SidebarItemId, IconFrame> = {
 }
 
 export function SidebarIcon({ item, active }: SidebarIconProps) {
-  const icon = sidebarIcons[item.id]
+  const icon = sidebarIcons[item.id as SidebarIconItemId]
   const { Icon } = icon
 
   return (

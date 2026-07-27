@@ -2,6 +2,7 @@ import dividerImage from '@/shared/assets/sidebar/divider.svg'
 import profileImage from '@/shared/assets/sidebar/profile.png'
 import switchLogo from '@/shared/assets/sidebar/switch-logo.svg'
 import {
+  MY_SIDEBAR_ITEM,
   PRIMARY_SIDEBAR_MENU,
   UTILITY_SIDEBAR_MENU,
 } from '@/shared/constants/sidebar'
@@ -17,7 +18,7 @@ import {
   MenuButton,
   MenuLabel,
   MenuList,
-  Profile,
+  ProfileButton,
   ProfileMeta,
   ProfileName,
   ProfileText,
@@ -71,7 +72,11 @@ export function Sidebar({ activeItemId = 'home', onItemSelect }: SidebarProps) {
 
       <Spacer />
 
-      <Profile>
+      <ProfileButton
+        type="button"
+        aria-current={activeItemId === MY_SIDEBAR_ITEM.id ? 'page' : undefined}
+        onClick={() => onItemSelect?.(MY_SIDEBAR_ITEM.id)}
+      >
         <AvatarWrap>
           <Avatar src={profileImage} alt="" />
         </AvatarWrap>
@@ -79,7 +84,7 @@ export function Sidebar({ activeItemId = 'home', onItemSelect }: SidebarProps) {
           <ProfileName>라우터</ProfileName>
           <ProfileMeta>2학년 0반 0번</ProfileMeta>
         </ProfileText>
-      </Profile>
+      </ProfileButton>
     </Aside>
   )
 }

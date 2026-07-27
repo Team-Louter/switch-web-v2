@@ -12,6 +12,7 @@
   "dependencies": {
     "react": "latest",
     "react-dom": "latest",
+    "react-router-dom": "^7.18.1",
     "styled-components": "^6.4.4"
   },
   "devDependencies": {

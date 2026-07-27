@@ -1,25 +1,40 @@
 import type { PropsWithChildren } from 'react'
+import { useMemo } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
-import type { SidebarItemId } from '@/shared/constants/sidebar'
+import {
+  SIDEBAR_MENU,
+  type SidebarItemId,
+} from '@/shared/constants/sidebar'
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 
-type AppLayoutProps = PropsWithChildren<{
-  activeSidebarItemId: SidebarItemId
-  onSidebarItemSelect: (itemId: SidebarItemId) => void
-}>
+type AppLayoutProps = PropsWithChildren
 
-export function AppLayout({
-  activeSidebarItemId,
-  children,
-  onSidebarItemSelect,
-}: AppLayoutProps) {
+export function AppLayout({ children }: AppLayoutProps) {
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  const activeSidebarItemId = useMemo(() => {
+    return (
+      SIDEBAR_MENU.find((item) => item.path === location.pathname)?.id ?? 'home'
+    )
+  }, [location.pathname])
+
+  const handleSidebarItemSelect = (itemId: SidebarItemId) => {
+    const path = SIDEBAR_MENU.find((item) => item.id === itemId)?.path
+
+    if (path) {
+      navigate(path)
+    }
+  }
+
   return (
     <Layout>
       <Side>
         <Sidebar
           activeItemId={activeSidebarItemId}
-          onItemSelect={onSidebarItemSelect}
+          onItemSelect={handleSidebarItemSelect}
         />
       </Side>
       <Body>{children}</Body>

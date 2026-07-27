@@ -1,5 +1,4 @@
-import type { ComponentType } from 'react'
-import { useState } from 'react'
+import { Navigate, Route, Routes } from 'react-router-dom'
 
 import {
   CalendarPage,
@@ -7,38 +6,31 @@ import {
   HomePage,
   LearningPage,
   MentoringPage,
+  MyPage,
   NotificationPage,
   StorePage,
   TypingPage,
 } from '@/pages'
-import type { SidebarItemId } from '@/shared/constants/sidebar'
 
 import { AppLayout } from './layouts'
 import { AppProvider } from './providers'
 
-const pageBySidebarItem = {
-  home: HomePage,
-  community: CommunityPage,
-  calendar: CalendarPage,
-  learning: LearningPage,
-  mentoring: MentoringPage,
-  typing: TypingPage,
-  notification: NotificationPage,
-  store: StorePage,
-} satisfies Record<SidebarItemId, ComponentType>
-
 export function App() {
-  const [activeSidebarItemId, setActiveSidebarItemId] =
-    useState<SidebarItemId>('home')
-  const ActivePage = pageBySidebarItem[activeSidebarItemId]
-
   return (
     <AppProvider>
-      <AppLayout
-        activeSidebarItemId={activeSidebarItemId}
-        onSidebarItemSelect={setActiveSidebarItemId}
-      >
-        <ActivePage />
+      <AppLayout>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/community" element={<CommunityPage />} />
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/learning" element={<LearningPage />} />
+          <Route path="/mentoring" element={<MentoringPage />} />
+          <Route path="/typing" element={<TypingPage />} />
+          <Route path="/notification" element={<NotificationPage />} />
+          <Route path="/store" element={<StorePage />} />
+          <Route path="/my" element={<MyPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </AppLayout>
     </AppProvider>
   )

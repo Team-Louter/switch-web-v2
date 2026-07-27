@@ -108,13 +108,19 @@ export const Spacer = styled.div`
   min-height: 0;
 `
 
-export const Profile = styled.div`
+export const ProfileButton = styled.button`
   ${token.flexLeft}
   flex: 0 0 auto;
   width: 100%;
   gap: 10px;
   overflow: hidden;
   padding: 13px 10px;
+  border-radius: ${token.shapes.medium};
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary40};
+    outline-offset: 2px;
+  }
 `
 
 export const AvatarWrap = styled.div`
