@@ -30,7 +30,7 @@ export function AppLayout({
 const Layout = styled.main`
   ${token.flexRow}
   align-items: flex-start;
-  min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   background: ${token.colors.white};
 `
@@ -40,13 +40,14 @@ const Side = styled.div`
   align-items: flex-start;
   flex: 0 0 clamp(260px, 21.5vw, 309px);
   width: clamp(260px, 21.5vw, 309px);
-  min-height: 100vh;
+  height: 100dvh;
+  min-height: 0;
   padding: clamp(20px, 2vw, 30px);
 `
 
 const Body = styled.section`
   flex: 1 1 0;
   min-width: 0;
-  min-height: 100vh;
+  min-height: 100dvh;
   background: ${token.colors.white};
 `

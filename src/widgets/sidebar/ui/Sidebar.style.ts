@@ -8,9 +8,9 @@ export const Aside = styled.aside`
   ${token.flexColumnStart}
   width: 100%;
   min-width: 220px;
-  height: calc(100vh - clamp(40px, 4vw, 60px));
-  min-height: 600px;
-  gap: 40px;
+  height: 100%;
+  min-height: 0;
+  gap: clamp(24px, 3.25dvh, 40px);
   overflow: hidden;
   padding: 36px 20px;
   border-radius: ${token.shapes.xlarge};
@@ -19,6 +19,7 @@ export const Aside = styled.aside`
 
 export const LogoArea = styled.div`
   ${token.flexLeft}
+  flex: 0 0 auto;
   width: 100%;
   padding: 0 10px;
 `
@@ -30,6 +31,7 @@ export const Logo = styled.img`
 
 export const MenuList = styled.div`
   ${token.flexColumnStart}
+  flex: 0 0 auto;
   width: 100%;
   gap: 15px;
 `
@@ -98,17 +100,19 @@ export const MenuLabel = styled.span<{ $active?: boolean }>`
 `
 
 export const Divider = styled.img`
+  flex: 0 0 auto;
   width: 100%;
   height: 1px;
 `
 
 export const Spacer = styled.div`
   flex: 1 1 0;
-  min-height: 1px;
+  min-height: 0;
 `
 
 export const Profile = styled.div`
   ${token.flexLeft}
+  flex: 0 0 auto;
   width: 100%;
   gap: 10px;
   overflow: hidden;
@@ -137,17 +141,24 @@ export const ProfileText = styled.div`
   justify-content: center;
   gap: 5px;
   min-width: 0;
+  overflow: hidden;
   white-space: nowrap;
 `
 
 export const ProfileName = styled.span`
+  max-width: 100%;
+  overflow: hidden;
   color: ${token.colors.gray.gray100};
   line-height: 1;
+  text-overflow: ellipsis;
   ${token.typography('body', 'lg', 'semibold')}
 `
 
 export const ProfileMeta = styled.span`
+  max-width: 100%;
+  overflow: hidden;
   color: ${token.colors.gray.gray70};
   line-height: 1;
+  text-overflow: ellipsis;
   ${token.typography('caption', 'sm', 'regular')}
 `
