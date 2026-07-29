@@ -51,6 +51,7 @@ export function LearningPage() {
                   <S.Week>3주차 학습일지</S.Week>
                   <S.WriteButton
                     type="button"
+                    disabled={monthState === 'future'}
                     onClick={() => setIsWriteModalOpen(true)}
                   >
                     작성하기

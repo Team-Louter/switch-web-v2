@@ -135,9 +135,14 @@ export const WriteButton = styled.button`
   padding: 5px 35px;
   cursor: pointer;
 
-  &:hover {
-      background-color: ${token.colors.gray.gray80};
-    }
+  &:not(:disabled):hover {
+    background-color: ${token.colors.gray.gray80};
+  }
+
+  &:disabled {
+    background-color: ${token.colors.gray.gray50};
+    cursor: not-allowed;
+  }
 `;
 
 export const DecoImg2 = styled.img`
