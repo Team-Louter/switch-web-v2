@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import * as S from './LearningPage.style.ts'
 import { PercentageBar } from './PercentageBar/PercentageBar.tsx'
 import { MonthlyJournalWeeks } from './MonthlyJournalWeeks/MonthlyJournalWeeks.tsx'
+import { WriteModal } from './WriteModal/WriteModal.tsx'
 import decoImg1 from '../assets/deco1.svg'
 import decoImg2 from '../assets/spring.svg'
 import {
@@ -12,6 +14,7 @@ import {
 export function LearningPage() {
   const submitRate = 0
   const currentMonth = getCurrentMonth()
+  const [isWriteModalOpen, setIsWriteModalOpen] = useState(false)
 
   return (
     <S.PageContainer>
@@ -46,7 +49,10 @@ export function LearningPage() {
                 <S.ButtonContent>
                   <S.Name>2213 최현수</S.Name>
                   <S.Week>3주차 학습일지</S.Week>
-                  <S.WriteButton type="button">
+                  <S.WriteButton
+                    type="button"
+                    onClick={() => setIsWriteModalOpen(true)}
+                  >
                     작성하기
                   </S.WriteButton>
                 </S.ButtonContent>
@@ -57,6 +63,10 @@ export function LearningPage() {
           )
         })}
       </S.ScrollArea>
+      <WriteModal
+        isOpen={isWriteModalOpen}
+        onClose={() => setIsWriteModalOpen(false)}
+      />
     </S.PageContainer>
   )
 }
