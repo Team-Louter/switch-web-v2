@@ -134,6 +134,10 @@ export const WriteButton = styled.button`
   border-radius: ${token.shapes.xsmall};
   padding: 5px 35px;
   cursor: pointer;
+
+  &:hover {
+      background-color: ${token.colors.gray.gray80};
+    }
 `;
 
 export const DecoImg2 = styled.img`
