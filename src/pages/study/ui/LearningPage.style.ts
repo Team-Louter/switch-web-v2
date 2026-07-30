@@ -1,7 +1,8 @@
 import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
-import type { MonthState } from '../lib/getMonthsFromCurrentMonth'
+
+type PeriodState = 'past' | 'current' | 'future'
 
 export const PageContainer = styled.section`
   width: 100%;
@@ -21,7 +22,7 @@ export const ScrollArea = styled.div`
   overflow-y: auto;
 `
 
-export const Column = styled.div<{ $state: MonthState }>`
+export const Column = styled.div<{ $state: PeriodState }>`
   ${token.flexColumn};
   width: 100%;
   flex: 0 0 auto;
@@ -50,7 +51,7 @@ export const Now = styled.span`
   color: ${token.colors.primary.text};
 `;
 
-export const Card = styled.div<{ $state: MonthState }>`
+export const Card = styled.div<{ $state: PeriodState }>`
   background-color: white;
   border: 2px solid
     ${({ $state }) =>
