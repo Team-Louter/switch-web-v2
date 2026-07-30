@@ -1,8 +1,9 @@
 import { useState } from 'react'
+import { WriteModal } from '@/features/study'
+
 import * as S from './LearningPage.style.ts'
+import { MonthlyJournalWeeks } from './MonthlyStudyWeeks/MonthlyJournalWeeks.tsx'
 import { PercentageBar } from './PercentageBar/PercentageBar.tsx'
-import { MonthlyJournalWeeks } from './MonthlyJournalWeeks/MonthlyJournalWeeks.tsx'
-import { WriteModal } from './WriteModal/WriteModal.tsx'
 import decoImg1 from '../assets/deco1.svg'
 import decoImg2 from '../assets/spring.svg'
 import {
