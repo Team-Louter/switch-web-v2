@@ -43,12 +43,41 @@ export const Month = styled.span`
 export const MonthRow = styled.div`
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
+`;
+
+export const MonthHeading = styled.div`
+  display: flex;
+  align-items: center;
   gap: 10px;
 `;
 
 export const Now = styled.span`
   ${token.typography('body', 'sm', 'medium')};
   color: ${token.colors.primary.text};
+`;
+
+export const TotalJournalButton = styled.button`
+  ${token.typography('body', 'sm', 'medium')};
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 0;
+  border: 0;
+  color: ${token.colors.primary.text};
+  background: transparent;
+  cursor: pointer;
+
+  svg {
+    flex: 0 0 auto;
+  }
+
+  &:focus-visible {
+    border-radius: ${token.shapes.xsmall};
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
 `;
 
 export const Card = styled.div<{ $state: PeriodState }>`

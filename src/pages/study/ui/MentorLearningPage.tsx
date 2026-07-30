@@ -1,3 +1,5 @@
+import { PiPencilSimpleLine } from 'react-icons/pi'
+
 import { CLUB_MEMBER } from '@/shared/constants/clubMember'
 
 import * as S from './LearningPage.style'
@@ -17,17 +19,25 @@ export function MentorLearningPage() {
           ({ id, month, weekNumber, state }) => (
             <S.Column key={id} $state={state}>
               <S.MonthRow>
-                <S.Month>
-                  {month}월 {weekNumber}주차
-                </S.Month>
-                {state === 'current' && <S.Now>Now</S.Now>}
+                <S.MonthHeading>
+                  <S.Month>
+                    {month}월 {weekNumber}주차
+                  </S.Month>
+                  {state === 'current' && <S.Now>Now</S.Now>}
+                </S.MonthHeading>
+                {state === 'current' && (
+                  <S.TotalJournalButton type="button">
+                    <PiPencilSimpleLine aria-hidden="true" />
+                    종합 학습 일지 작성하기
+                  </S.TotalJournalButton>
+                )}
               </S.MonthRow>
               <S.Card $state={state}>
                 <S.ProgressContent>
-                  <S.SubmitLabel>멘티 제출</S.SubmitLabel>
+                  <S.SubmitLabel>제출률</S.SubmitLabel>
                   <S.SubmitRate>{submitRate}%</S.SubmitRate>
                   <PercentageBar value={submitRate} label="멘티 과제 제출률" />
-                  <S.Status>멘티 학습 현황</S.Status>
+                  <S.Status>진행중</S.Status>
                 </S.ProgressContent>
                 <S.DiaryContent>
                   <MonthlyStudyWeeks
@@ -43,14 +53,14 @@ export function MentorLearningPage() {
                     }))}
                   />
                   <S.DecoImg src={decoImg1} alt="" />
-                  <S.ButtonContent>
-                    <S.Name>2213 최현수 멘티</S.Name>
-                    <S.Week>3주차 학습일지</S.Week>
+                  <S.ButtonContent style={{ width: 200 }}>
+                    <S.Name>Louter</S.Name>
+                    <S.Week>{month}월 {weekNumber}주차 학습일지</S.Week>
                     <S.WriteButton
                       type="button"
                       disabled={state === 'future'}
                     >
-                      확인하기
+                      전체 보기
                     </S.WriteButton>
                   </S.ButtonContent>
                 </S.DiaryContent>

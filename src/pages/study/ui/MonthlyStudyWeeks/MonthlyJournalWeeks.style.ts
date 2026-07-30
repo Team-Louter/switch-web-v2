@@ -12,16 +12,18 @@ const statusColor: Record<WeekStatus, string> = {
 }
 
 export const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  width: 100%;
-  max-width: 280px;
-  gap: 10px 0px;
+  display: flex;
+  flex: 1 1 auto;
+  flex-flow: column wrap;
+  align-content: flex-start;
+  height: 100%;
+  gap: 10px 16px;
 `
 
-export const WeekItem = styled.div<{ $status: WeekStatus }>`
+export const StudyItem = styled.div<{ $status: WeekStatus }>`
   ${token.typography('heading', 'sm', 'semibold')};
   display: flex;
+  flex: 0 0 25px;
   align-items: center;
   width: 130px;
   height: 25px;
@@ -54,7 +56,10 @@ export const LeadingIcon = styled.span<{ $locked: boolean }>`
 
 export const Label = styled.span`
   ${token.typography('caption', 'sm', 'semibold')};
+  overflow: hidden;
   color: ${token.colors.gray.gray70};
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `
 
 export const StatusMark = styled.span<{

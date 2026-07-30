@@ -10,13 +10,14 @@ import * as S from './MonthlyJournalWeeks.style'
 
 export type WeekStatus = 'submitted' | 'due' | 'overdue' | 'locked'
 
-export interface JournalWeek {
-  week: number
+export interface MonthlyStudyItem {
+  id: string | number
+  label: string
   status: WeekStatus
 }
 
-interface MonthlyJournalWeeksProps {
-  weeks: JournalWeek[]
+interface MonthlyStudyWeeksProps {
+  items: MonthlyStudyItem[]
 }
 
 function StatusIcon({ status }: { status: Exclude<WeekStatus, 'locked'> }) {
@@ -29,12 +30,12 @@ function StatusIcon({ status }: { status: Exclude<WeekStatus, 'locked'> }) {
   return <Icon aria-hidden="true" />
 }
 
-export function MonthlyJournalWeeks({ weeks }: MonthlyJournalWeeksProps) {
+export function MonthlyStudyWeeks({ items }: MonthlyStudyWeeksProps) {
   return (
     <S.Grid>
-      {weeks.map(({ week, status }) => {
+      {items.map(({ id, label, status }) => {
         return (
-          <S.WeekItem key={week} $status={status}>
+          <S.StudyItem key={id} $status={status}>
             <S.LeadingIcon $locked={status === 'locked'}>
               {status === 'locked' ? (
                 <RiLock2Fill aria-hidden="true" />
@@ -42,13 +43,13 @@ export function MonthlyJournalWeeks({ weeks }: MonthlyJournalWeeksProps) {
                 <FiEdit aria-hidden="true" />
               )}
             </S.LeadingIcon>
-            <S.Label>{week}주차</S.Label>
+            <S.Label>{label}</S.Label>
             {status !== 'locked' && (
               <S.StatusMark $status={status}>
                 <StatusIcon status={status} />
               </S.StatusMark>
             )}
-          </S.WeekItem>
+          </S.StudyItem>
         )
       })}
     </S.Grid>
