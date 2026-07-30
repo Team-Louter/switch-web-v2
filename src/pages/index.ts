@@ -1,7 +1,7 @@
 export { CalendarPage } from './calendar'
 export { CommunityPage } from './community'
 export { HomePage } from './home'
-export { LearningPage } from './learning'
+export { LearningPage } from './study'
 export { MentoringPage } from './mentoring'
 export { MyPage } from './my'
 export { NotificationPage } from './notification'
