@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { PiPencilSimpleLine } from 'react-icons/pi'
 
 import { CLUB_MEMBER } from '@/shared/constants/clubMember'
@@ -8,9 +9,11 @@ import { PercentageBar } from './PercentageBar/PercentageBar'
 import decoImg1 from '../assets/deco1.svg'
 import decoImg2 from '../assets/spring.svg'
 import { getWeeksForCurrentYear } from '../lib/getWeeksForCurrentYear'
+import { MentorJournalModal } from './MentorJournalModal/MentorJournalModal'
 
 export function MentorLearningPage() {
   const submitRate = 40
+  const [isJournalModalOpen, setIsJournalModalOpen] = useState(false)
 
   return (
     <S.PageContainer>
@@ -59,6 +62,7 @@ export function MentorLearningPage() {
                     <S.WriteButton
                       type="button"
                       disabled={state === 'future'}
+                      onClick={() => setIsJournalModalOpen(true)}
                     >
                       전체 보기
                     </S.WriteButton>
@@ -70,6 +74,10 @@ export function MentorLearningPage() {
           ),
         )}
       </S.ScrollArea>
+      <MentorJournalModal
+        isOpen={isJournalModalOpen}
+        onClose={() => setIsJournalModalOpen(false)}
+      />
     </S.PageContainer>
   )
 }
