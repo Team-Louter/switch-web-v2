@@ -15,6 +15,7 @@ export const Backdrop = styled.div`
 export const Modal = styled.div`
   --modal-height: 450px;
 
+  position: relative;
   width: min(500px, calc(100vw - 48px));
   height: var(--modal-height);
   border-radius: ${token.shapes.small};
@@ -26,9 +27,60 @@ export const Modal = styled.div`
   gap: 14px;
 `;
 
+export const NavigationButton = styled.button<{
+  $direction: 'previous' | 'next'
+}>`
+  position: absolute;
+  top: 50%;
+  ${({ $direction }) =>
+    $direction === 'previous' ? 'left: -68px;' : 'right: -68px;'}
+  transform: translateY(-50%);
+  display: flex;
+  width: 50px;
+  height: 50px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: ${token.shapes.xsmall};
+  background-color: ${token.colors.white};
+  color: ${token.colors.gray.gray50};
+  cursor: pointer;
+
+  svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  &:hover {
+    color: ${token.colors.gray.gray80};
+    background-color: ${token.colors.gray.gray10};
+  }
+
+  @media (max-width: 680px) {
+    ${({ $direction }) =>
+      $direction === 'previous' ? 'left: 12px;' : 'right: 12px;'}
+    top: auto;
+    bottom: 28px;
+    transform: none;
+  }
+`;
+
+export const Header = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+`;
+
 export const Title = styled.h2`
   ${token.typography('heading', 'md', 'semibold')};
+  margin: 0;
   color: ${token.colors.info.info40};
+`;
+
+export const Author = styled.span`
+  ${token.typography('caption', 'sm', 'medium')};
+  color: ${token.colors.gray.gray40};
 `;
 
 export const Div = styled.div`
@@ -71,6 +123,10 @@ export const Input = styled.input`
     border-color: ${token.colors.primary.primary50};
     outline: none;
   }
+
+  &:read-only {
+    cursor: default;
+  }
 `;
 
 export const LearningInput = styled.textarea`
@@ -92,6 +148,10 @@ export const LearningInput = styled.textarea`
     border-color: ${token.colors.primary.primary50};
     outline: none;
   }
+
+  &:read-only {
+    cursor: default;
+  }
 `;
 
 export const LetterCount = styled.span`
@@ -104,6 +164,7 @@ export const ButtonContainer = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+  margin-top: auto;
 `;
 
 export const CancelButton = styled.button`

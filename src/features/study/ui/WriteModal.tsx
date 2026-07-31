@@ -1,10 +1,23 @@
-import { useState } from 'react';
-import { createStudy } from '../api/createStudy';
+import { useState } from 'react'
+import { PiCaretLeft, PiCaretRight } from 'react-icons/pi'
+
+import { createStudy } from '../api/createStudy'
 import * as S from './WriteModal.style.ts'
 
+export interface StudyJournal {
+  title: string
+  author?: string
+  ownContent: string
+  clubContent: string
+}
+
 interface WriteModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
+  journal?: StudyJournal
+  readOnly?: boolean
+  onPrevious?: () => void
+  onNext?: () => void
 }
 
 const handleSubmit = async (month: number, weekNumber: number, title: string, ownContent: string, clubContent: string) => {
@@ -14,9 +27,16 @@ const handleSubmit = async (month: number, weekNumber: number, title: string, ow
   } catch (e) {
     console.error('Error creating study:', e);
   }
-}
+};
 
-export function WriteModal({ isOpen, onClose }: WriteModalProps) {
+export function WriteModal({
+  isOpen,
+  onClose,
+  journal,
+  readOnly = false,
+  onPrevious,
+  onNext,
+}: WriteModalProps) {
   const month = new Date().getMonth() + 1;
   const weekNumber = Math.ceil(new Date().getDate() / 7);
   const [title, setTitle] = useState('');
@@ -25,47 +45,102 @@ export function WriteModal({ isOpen, onClose }: WriteModalProps) {
 
   if (!isOpen) return null
 
+  const displayedTitle = readOnly ? (journal?.title ?? '') : title
+  const displayedOwnContent = readOnly ? (journal?.ownContent ?? '') : ownContent
+  const displayedClubContent = readOnly
+    ? (journal?.clubContent ?? '')
+    : clubContent
+
   return (
     <S.Backdrop>
       <S.Modal>
-        <S.Title>6월 1주차 학습일지</S.Title>
+        {readOnly && onPrevious && (
+          <S.NavigationButton
+            type="button"
+            $direction="previous"
+            onClick={onPrevious}
+            aria-label="이전 멘티 학습일지 보기"
+          >
+            <PiCaretLeft aria-hidden="true" />
+          </S.NavigationButton>
+        )}
+        {readOnly && onNext && (
+          <S.NavigationButton
+            type="button"
+            $direction="next"
+            onClick={onNext}
+            aria-label="다음 멘티 학습일지 보기"
+          >
+            <PiCaretRight aria-hidden="true" />
+          </S.NavigationButton>
+        )}
+        <S.Header>
+          <S.Title>6월 1주차 학습일지</S.Title>
+          {readOnly && journal?.author && <S.Author>{journal.author}</S.Author>}
+        </S.Header>
         <S.Column>
           <S.Div>
-            <S.Label>제목 <S.Required>*</S.Required></S.Label>
+            <S.Label>
+              제목 {!readOnly && <S.Required>*</S.Required>}
+            </S.Label>
             <S.Input
               type="text"
               placeholder="제목을 입력해주세요."
-              value={title}
+              value={displayedTitle}
               onChange={(e) => setTitle(e.target.value)}
+              readOnly={readOnly}
             />
           </S.Div>
-          <S.LetterCount>{title.length}/50</S.LetterCount>
+          {!readOnly && (
+            <S.LetterCount>{displayedTitle.length}/50</S.LetterCount>
+          )}
         </S.Column>
         <S.Column>
           <S.Div>
-            <S.Label>개인 학습 <S.Required>*</S.Required></S.Label>
+            <S.Label>
+              개인 학습 {!readOnly && <S.Required>*</S.Required>}
+            </S.Label>
             <S.LearningInput
               placeholder="내용을 입력해주세요."
-              value={ownContent}
+              value={displayedOwnContent}
               onChange={(e) => setOwnContent(e.target.value)}
+              readOnly={readOnly}
             />
           </S.Div>
-          <S.LetterCount>{ownContent.length}/1000</S.LetterCount>
+          {!readOnly && (
+            <S.LetterCount>{displayedOwnContent.length}/1000</S.LetterCount>
+          )}
         </S.Column>
         <S.Column>
           <S.Div>
-            <S.Label>동아리 학습 <S.Required>*</S.Required></S.Label>
+            <S.Label>
+              동아리 학습 {!readOnly && <S.Required>*</S.Required>}
+            </S.Label>
             <S.LearningInput
               placeholder="내용을 입력해주세요."
-              value={clubContent}
+              value={displayedClubContent}
               onChange={(e) => setClubContent(e.target.value)}
+              readOnly={readOnly}
             />
           </S.Div>
-          <S.LetterCount>{clubContent.length}/1000</S.LetterCount>
+          {!readOnly && (
+            <S.LetterCount>{displayedClubContent.length}/1000</S.LetterCount>
+          )}
         </S.Column>
         <S.ButtonContainer>
-          <S.CancelButton type="button" onClick={onClose}>취소</S.CancelButton>
-          <S.SubmitButton type="submit" onClick={() => handleSubmit(month, weekNumber, title, ownContent, clubContent)}>제출</S.SubmitButton>
+          <S.CancelButton type="button" onClick={onClose}>
+            {readOnly ? '닫기' : '취소'}
+          </S.CancelButton>
+          {!readOnly && (
+            <S.SubmitButton
+              type="submit"
+              onClick={() =>
+                handleSubmit(month, weekNumber, title, ownContent, clubContent)
+              }
+            >
+              제출
+            </S.SubmitButton>
+          )}
         </S.ButtonContainer>
       </S.Modal>
     </S.Backdrop>
