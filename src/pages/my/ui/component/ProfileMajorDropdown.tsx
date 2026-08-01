@@ -1,3 +1,4 @@
+import { ProfileInputIcon } from './icons/ProfileInputIcon'
 import * as S from './ProfileMajorDropdown.style'
 
 export type MajorOption = {
@@ -35,7 +36,9 @@ export function ProfileMajorDropdown({
           onClick={onToggleOpen}
         >
           <S.SelectedText>{selectedLabels}</S.SelectedText>
-          <S.ArrowSlot aria-hidden="true" />
+          <S.ArrowIcon aria-hidden="true">
+            <ProfileInputIcon type="arrowDown" />
+          </S.ArrowIcon>
         </S.DropdownButton>
         {isOpen && (
           <S.OptionList>
