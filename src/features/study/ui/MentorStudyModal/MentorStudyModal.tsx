@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react'
 
-import { CLUB_MEMBER } from '@/shared/constants/clubMember'
-
 import type { StudyRecord } from '../../model/types'
 import { WriteModal } from '../WriteModal'
 import * as S from './MentorStudyModal.style'
@@ -10,24 +8,23 @@ import { Modal } from './SummaryModal/SummaryModal'
 interface MentorStudyModalProps {
   isOpen: boolean
   onClose: () => void
+  month?: number
+  weekNumber?: number
+  studies: StudyRecord[]
+  isLoading: boolean
 }
-
-const STUDY_SUMMARY =
-  'AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약AI요약'
 
 export function MentorStudyModal({
   isOpen,
   onClose,
+  month,
+  weekNumber,
+  studies,
+  isLoading,
 }: MentorStudyModalProps) {
   const [selectedStudyIndex, setSelectedStudyIndex] = useState<
     number | null
   >(null)
-  const studies: StudyRecord[] = CLUB_MEMBER.slice(0, -2).map((member) => ({
-    title: '디자인 끝내줘',
-    author: `2213 ${member}`,
-    ownContent: '디자인 실력을 다시 알 수 있었다',
-    clubContent: '오늘은 깃허브를 배웠다',
-  }))
   const selectedStudy =
     selectedStudyIndex === null ? undefined : studies[selectedStudyIndex]
 
@@ -68,24 +65,24 @@ export function MentorStudyModal({
         >
           <S.Content>
             <S.Title id="mentor-study-modal-title">
-              6월 1주차 학습일지
+              {month}월 {weekNumber}주차 학습일지
             </S.Title>
             <S.Grid>
-              {CLUB_MEMBER.map((member, index) => {
-                const summary =
-                  index === 6 || index === 7 ? undefined : STUDY_SUMMARY
-
-                return (
-                  <Modal
-                    key={member}
-                    title="디자인 끝내줘"
-                    author={`2213 ${member}`}
-                    summary={summary}
-                    onClick={() => setSelectedStudyIndex(index)}
-                  />
-                )
-              })}
+              {studies.map((study, index) => (
+                <Modal
+                  key={study.studyId}
+                  title={study.title}
+                  author={study.authorName}
+                  summary={study.summary}
+                  onClick={() => setSelectedStudyIndex(index)}
+                />
+              ))}
             </S.Grid>
+            {!isLoading && studies.length === 0 && (
+              <S.EmptyMessage>
+                아직 아무도 학습일지를 작성하지 않았습니다
+              </S.EmptyMessage>
+            )}
           </S.Content>
         </S.Backdrop>
       )}

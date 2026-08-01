@@ -2,17 +2,18 @@ import { useEffect, useMemo, useState } from 'react'
 import { PiPencilSimpleLine } from 'react-icons/pi'
 
 import {
+  getAllStudies,
   getWeekStatus,
   MentorStudyModal,
   MentorTotalStudyModal,
   MonthlyStudyWeeks,
 } from '@/features/study'
-import type { StudyStatus } from '@/features/study'
+import type { StudyRecord, StudyStatus } from '@/features/study'
 import { CLUB_MEMBER } from '@/shared/constants/clubMember'
 import { PercentageBar } from '@/shared/ui'
 
-import decoImg1 from '../../assets/deco1.svg'
-import decoImg2 from '../../assets/spring.svg'
+import decoImg1 from '../assets/deco1.svg'
+import decoImg2 from '../assets/spring.svg'
 import { getWeeksForCurrentYear } from '../lib/getWeeksForCurrentYear'
 import * as S from './LearningPage.style'
 
@@ -23,6 +24,12 @@ export function MentorLearningPage() {
   >({})
   const [isStudyModalOpen, setIsStudyModalOpen] = useState(false)
   const [isTotalStudyModalOpen, setIsTotalStudyModalOpen] = useState(false)
+  const [selectedWeek, setSelectedWeek] = useState<{
+    month: number
+    weekNumber: number
+  } | null>(null)
+  const [studies, setStudies] = useState<StudyRecord[]>([])
+  const [isStudiesLoading, setIsStudiesLoading] = useState(false)
 
   useEffect(() => {
     let isCancelled = false
@@ -45,10 +52,44 @@ export function MentorLearningPage() {
     }
   }, [weeks])
 
+  const isStudyInWeek = (
+    study: StudyRecord,
+    year: number,
+    month: number,
+    weekNumber: number,
+  ) =>
+    study.year === year &&
+    study.month === month &&
+    study.weekNumber === weekNumber
+
+  const handleOpenStudyModal = async (
+    year: number,
+    month: number,
+    weekNumber: number,
+  ) => {
+    setSelectedWeek({ month, weekNumber })
+    setStudies([])
+    setIsStudiesLoading(true)
+    setIsStudyModalOpen(true)
+
+    try {
+      const allStudies = await getAllStudies()
+      setStudies(
+        allStudies.filter((study) =>
+          isStudyInWeek(study, year, month, weekNumber),
+        ),
+      )
+    } catch (error) {
+      console.error('학습일지를 불러오지 못했습니다.', error)
+    } finally {
+      setIsStudiesLoading(false)
+    }
+  }
+
   return (
     <S.PageContainer>
       <S.ScrollArea>
-        {weeks.map(({ id, month, weekNumber, state }) => {
+        {weeks.map(({ id, year, month, weekNumber, state }) => {
           const weekStatuses = statusesByWeek[id] ?? []
           const submitRate = weekStatuses.length
             ? Math.round(
@@ -102,7 +143,9 @@ export function MentorLearningPage() {
                   <S.Status>진행중</S.Status>
                 </S.ProgressContent>
                 <S.DiaryContent>
-                  <MonthlyStudyWeeks items={items} />
+                  <MonthlyStudyWeeks
+                    items={items}
+                  />
                   <S.DecoImg src={decoImg1} alt="" />
                   <S.ButtonContent style={{ width: 200 }}>
                     <S.Name>Louter</S.Name>
@@ -110,7 +153,9 @@ export function MentorLearningPage() {
                     <S.WriteButton
                       type="button"
                       disabled={state === 'future'}
-                      onClick={() => setIsStudyModalOpen(true)}
+                      onClick={() =>
+                        void handleOpenStudyModal(year, month, weekNumber)
+                      }
                     >
                       전체 보기
                     </S.WriteButton>
@@ -125,6 +170,10 @@ export function MentorLearningPage() {
       <MentorStudyModal
         isOpen={isStudyModalOpen}
         onClose={() => setIsStudyModalOpen(false)}
+        month={selectedWeek?.month}
+        weekNumber={selectedWeek?.weekNumber}
+        studies={studies}
+        isLoading={isStudiesLoading}
       />
       <MentorTotalStudyModal
         isOpen={isTotalStudyModalOpen}

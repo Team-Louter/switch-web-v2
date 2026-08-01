@@ -35,3 +35,10 @@ export const Grid = styled.div`
   grid-template-columns: repeat(4, minmax(0, 300px));
   gap: 44px;
 `
+
+export const EmptyMessage = styled.p`
+  ${token.typography('body', 'lg', 'medium')};
+  margin: 0;
+  color: ${token.colors.white};
+  text-align: center;
+`
