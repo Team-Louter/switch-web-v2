@@ -13,10 +13,10 @@ export const Backdrop = styled.div`
 `;
 
 export const Modal = styled.div`
-  --modal-height: 450px;
+  --modal-height: 650px;
 
   position: relative;
-  width: min(500px, calc(100vw - 48px));
+  width: 50%;
   height: var(--modal-height);
   border-radius: ${token.shapes.small};
   background-color: ${token.colors.white};
@@ -55,14 +55,6 @@ export const NavigationButton = styled.button<{
   &:hover {
     color: ${token.colors.gray.gray80};
     background-color: ${token.colors.gray.gray10};
-  }
-
-  @media (max-width: 680px) {
-    ${({ $direction }) =>
-      $direction === 'previous' ? 'left: 12px;' : 'right: 12px;'}
-    top: auto;
-    bottom: 28px;
-    transform: none;
   }
 `;
 
@@ -131,7 +123,7 @@ export const Input = styled.input`
 
 export const LearningInput = styled.textarea`
   width: 70%;
-  height: calc(var(--modal-height) * 0.2);
+  height: calc(var(--modal-height) * 0.3);
   padding: 10px;
   resize: none;
 
