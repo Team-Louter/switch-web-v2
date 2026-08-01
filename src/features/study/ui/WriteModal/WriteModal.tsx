@@ -70,7 +70,9 @@ export function WriteModal({
         )}
         <S.Header>
           <S.Title>6월 1주차 학습일지</S.Title>
-          {readOnly && study?.author && <S.Author>{study.author}</S.Author>}
+          {readOnly && study?.authorName && (
+            <S.Author>{study.authorName}</S.Author>
+          )}
         </S.Header>
         <S.Column>
           <S.Div>
@@ -85,9 +87,7 @@ export function WriteModal({
               readOnly={readOnly}
             />
           </S.Div>
-          {!readOnly && (
-            <S.LetterCount>{displayedTitle.length}/50</S.LetterCount>
-          )}
+          <S.LetterCount>{displayedTitle.length}/50</S.LetterCount>
         </S.Column>
         <S.Column>
           <S.Div>
@@ -101,9 +101,7 @@ export function WriteModal({
               readOnly={readOnly}
             />
           </S.Div>
-          {!readOnly && (
-            <S.LetterCount>{displayedOwnContent.length}/1000</S.LetterCount>
-          )}
+          <S.LetterCount>{displayedOwnContent.length}/1000</S.LetterCount>
         </S.Column>
         <S.Column>
           <S.Div>
@@ -117,9 +115,7 @@ export function WriteModal({
               readOnly={readOnly}
             />
           </S.Div>
-          {!readOnly && (
-            <S.LetterCount>{displayedClubContent.length}/1000</S.LetterCount>
-          )}
+          <S.LetterCount>{displayedClubContent.length}/1000</S.LetterCount>
         </S.Column>
         <S.ButtonContainer>
           <S.CancelButton type="button" onClick={onClose}>
