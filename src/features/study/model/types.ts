@@ -7,10 +7,17 @@ export interface CreateStudyRequest {
 }
 
 export interface StudyRecord {
+  studyId: number
+  authorName: string
+  year: number
+  month: number
+  weekNumber: number
   title: string
-  author?: string
   ownContent: string
   clubContent: string
+  fullContent: string
+  summary: string
+  createdAt: string
 }
 
 export interface StudyStatus {
