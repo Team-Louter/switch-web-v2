@@ -10,10 +10,12 @@ import decoImg1 from '../assets/deco1.svg'
 import decoImg2 from '../assets/spring.svg'
 import { getWeeksForCurrentYear } from '../lib/getWeeksForCurrentYear'
 import { MentorJournalModal } from './MentorJournalModal/MentorJournalModal'
+import { MentorTotalJournalModal } from './MentorTotalJournalModal/MentorTotalJournalModal'
 
 export function MentorLearningPage() {
   const submitRate = 40
   const [isJournalModalOpen, setIsJournalModalOpen] = useState(false)
+  const [isTotalJournalModalOpen, setIsTotalJournalModalOpen] = useState(false)
 
   return (
     <S.PageContainer>
@@ -29,7 +31,10 @@ export function MentorLearningPage() {
                   {state === 'current' && <S.Now>Now</S.Now>}
                 </S.MonthHeading>
                 {state === 'current' && (
-                  <S.TotalJournalButton type="button">
+                  <S.TotalJournalButton
+                    type="button"
+                    onClick={() => setIsTotalJournalModalOpen(true)}
+                  >
                     <PiPencilSimpleLine aria-hidden="true" />
                     종합 학습 일지 작성하기
                   </S.TotalJournalButton>
@@ -77,6 +82,10 @@ export function MentorLearningPage() {
       <MentorJournalModal
         isOpen={isJournalModalOpen}
         onClose={() => setIsJournalModalOpen(false)}
+      />
+      <MentorTotalJournalModal
+        isOpen={isTotalJournalModalOpen}
+        onClose={() => setIsTotalJournalModalOpen(false)}
       />
     </S.PageContainer>
   )
