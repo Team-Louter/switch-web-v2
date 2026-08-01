@@ -1,14 +1,11 @@
-import badgeIcon from '@/shared/assets/my/badge-icon.svg'
 import commentIcon from '@/shared/assets/my/comment-icon.svg'
 import eyeIcon from '@/shared/assets/my/eye-icon.svg'
 import heartIcon from '@/shared/assets/my/heart-icon.svg'
-import pointIcon from '@/shared/assets/my/point-icon.svg'
-import viewFootLeftIcon from '@/shared/assets/my/view-foot-left.svg'
-import viewFootRightIcon from '@/shared/assets/my/view-foot-right.svg'
 import profileImage from '@/shared/assets/sidebar/profile.png'
 
 import { useMyPage } from '../model/useMyPage'
-import type { MyPost, MyStat } from '../types'
+import type { MyPost } from '../types'
+import { MyStatIcon } from './icons/MyStatIcon'
 import {
   ActionButton,
   ActivityHeader,
@@ -26,9 +23,6 @@ import {
   FooterActions,
   FooterButton,
   FooterDivider,
-  FootIcon,
-  FootImage,
-  IconImage,
   MaskIcon,
   Metric,
   Metrics,
@@ -49,6 +43,7 @@ import {
   ProfileTextGroup,
   SectionTitle,
   StatBar,
+  StatIcon,
   StatItem,
   StatLabel,
   StatLabelGroup,
@@ -56,12 +51,6 @@ import {
   TabButton,
   TabList,
 } from './MyPage.style'
-
-const statIconById: Record<MyStat['id'], string> = {
-  point: pointIcon,
-  badge: badgeIcon,
-  view: '',
-}
 
 export function MyPage() {
   const {
@@ -107,14 +96,9 @@ export function MyPage() {
           {stats.map((stat) => (
             <StatItem key={stat.id}>
               <StatLabelGroup>
-                {stat.id === 'view' ? (
-                  <FootIcon aria-hidden="true">
-                    <FootImage src={viewFootRightIcon} alt="" $side="right" />
-                    <FootImage src={viewFootLeftIcon} alt="" $side="left" />
-                  </FootIcon>
-                ) : (
-                  <IconImage src={statIconById[stat.id]} alt="" />
-                )}
+                <StatIcon aria-hidden="true">
+                  <MyStatIcon type={stat.id} />
+                </StatIcon>
                 <StatLabel>{stat.label}</StatLabel>
               </StatLabelGroup>
               <StatValue>{stat.value}</StatValue>
