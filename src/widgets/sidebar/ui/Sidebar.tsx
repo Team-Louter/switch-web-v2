@@ -2,6 +2,7 @@ import dividerImage from '@/shared/assets/sidebar/divider.svg'
 import profileImage from '@/shared/assets/sidebar/profile.png'
 import switchLogo from '@/shared/assets/sidebar/switch-logo.svg'
 import {
+  MY_SIDEBAR_ITEM,
   PRIMARY_SIDEBAR_MENU,
   UTILITY_SIDEBAR_MENU,
 } from '@/shared/constants/sidebar'
@@ -73,8 +74,8 @@ export function Sidebar({ activeItemId = 'home', onItemSelect }: SidebarProps) {
 
       <ProfileButton
         type="button"
-        aria-current={activeItemId === 'my' ? 'page' : undefined}
-        onClick={() => onItemSelect?.('my')}
+        aria-current={activeItemId === MY_SIDEBAR_ITEM.id ? 'page' : undefined}
+        onClick={() => onItemSelect?.(MY_SIDEBAR_ITEM.id)}
       >
         <AvatarWrap>
           <Avatar src={profileImage} alt="" />
