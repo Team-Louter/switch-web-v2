@@ -1,4 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+
+import { getAllSchedules } from '@/features/schedule'
+import type { Schedule } from '@/features/schedule'
 
 import { ScheduleDropdown } from './ScheduleDropdown/ScheduleDropdown'
 import type { ScheduleOption } from './ScheduleDropdown/ScheduleDropdown'
@@ -9,23 +12,63 @@ interface MentorTotalStudyModalProps {
   onClose: () => void
 }
 
-const SCHEDULES: ScheduleOption[] = [
-  { id: 1, title: '테스트', date: '6월 1일' },
-  { id: 2, title: '테스트2', date: '6월 1일 ~ 6월 4일' },
-  { id: 3, title: '테스트3', date: '6월 2일' },
-  { id: 4, title: '테스트4', date: '6월 7일' },
-  { id: 5, title: '테스트5', date: '6월 7일 ~ 6월 18일' },
-]
-
 const GENERATED_CONTENT = '내용'.repeat(180)
+
+const formatScheduleDate = (date: string) => {
+  const parsedDate = new Date(date)
+  return `${parsedDate.getMonth() + 1}월 ${parsedDate.getDate()}일`
+}
+
+const toScheduleOption = (schedule: Schedule): ScheduleOption => {
+  const startDate = formatScheduleDate(schedule.startDate)
+  const endDate = formatScheduleDate(schedule.endDate)
+
+  return {
+    id: schedule.scheduleId,
+    title: schedule.title,
+    date: startDate === endDate ? startDate : `${startDate} ~ ${endDate}`,
+  }
+}
+
+const isInCurrentMonth = (schedule: Schedule) => {
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+
+  return (
+    new Date(schedule.startDate) < nextMonthStart &&
+    new Date(schedule.endDate) >= monthStart
+  )
+}
 
 export function MentorTotalStudyModal({
   isOpen,
   onClose,
 }: MentorTotalStudyModalProps) {
-  const [selectedScheduleIds, setSelectedScheduleIds] = useState<number[]>([1, 5,])
+  const [schedules, setSchedules] = useState<ScheduleOption[]>([])
+  const [selectedScheduleIds, setSelectedScheduleIds] = useState<number[]>([])
   const [isGenerated, setIsGenerated] = useState(false)
   const [content, setContent] = useState('')
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    let isCancelled = false
+
+    getAllSchedules()
+      .then((allSchedules) => {
+        if (!isCancelled) {
+          setSchedules(allSchedules.filter(isInCurrentMonth).map(toScheduleOption))
+        }
+      })
+      .catch((error) => {
+        console.error('일정을 불러오지 못했습니다.', error)
+      })
+
+    return () => {
+      isCancelled = true
+    }
+  }, [isOpen])
 
   if (!isOpen) return null
 
@@ -49,7 +92,7 @@ export function MentorTotalStudyModal({
             <S.GeneratedFormRow>
               <S.Label>관련 일정</S.Label>
               <ScheduleDropdown
-                options={SCHEDULES}
+                options={schedules}
                 selectedIds={selectedScheduleIds}
                 onChange={setSelectedScheduleIds}
               />
@@ -89,7 +132,7 @@ export function MentorTotalStudyModal({
           <S.FormRow>
             <S.Label>관련 일정</S.Label>
             <ScheduleDropdown
-              options={SCHEDULES}
+              options={schedules}
               selectedIds={selectedScheduleIds}
               onChange={setSelectedScheduleIds}
             />
