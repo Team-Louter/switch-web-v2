@@ -10,6 +10,7 @@ import {
 } from './component/ProfileMajorDropdown'
 import { ProfileCropModal } from './component/ProfileCropModal'
 import { ProfileFormField } from './component/ProfileFormField'
+import { ProfileInputIcon } from './component/icons/ProfileInputIcon'
 import * as S from './ProfileEditPage.style'
 
 const majorOptions: MajorOption[] = [
@@ -75,12 +76,20 @@ export function ProfileEditPage() {
             <ProfileFormField
               label="Github"
               placeholder="깃허브 링크를 입력해 주세요"
-              iconSlot={<S.IconSlot aria-hidden="true" />}
+              iconSlot={
+                <S.IconSlot aria-hidden="true">
+                  <ProfileInputIcon type="github" />
+                </S.IconSlot>
+              }
             />
             <ProfileFormField
               label="LinkedIn"
               placeholder="링크드인 링크를 입력해 주세요"
-              iconSlot={<S.IconSlot aria-hidden="true" />}
+              iconSlot={
+                <S.IconSlot aria-hidden="true">
+                  <ProfileInputIcon type="linkedin" />
+                </S.IconSlot>
+              }
             />
           </S.FieldRow>
         </S.FormRows>

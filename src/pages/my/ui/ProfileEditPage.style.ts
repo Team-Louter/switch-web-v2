@@ -83,11 +83,15 @@ export const FieldRow = styled.div`
 `
 
 export const IconSlot = styled.span`
+  display: inline-flex;
   flex: 0 0 auto;
   width: 22px;
   height: 21px;
-  border-radius: 4px;
-  background: ${token.colors.gray.gray30};
+  color: ${token.colors.gray.gray40};
+
+  svg {
+    display: block;
+  }
 `
 
 export const SaveButtonWrap = styled.div`

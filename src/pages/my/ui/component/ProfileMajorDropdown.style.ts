@@ -40,12 +40,16 @@ export const SelectedText = styled.span`
   ${token.typography('body', 'md', 'medium')}
 `
 
-export const ArrowSlot = styled.span`
+export const ArrowIcon = styled.span`
+  display: inline-flex;
   flex: 0 0 auto;
   width: 15px;
   height: 9px;
-  border-radius: 2px;
-  background: ${token.colors.gray.gray30};
+  color: ${token.colors.gray.gray50};
+
+  svg {
+    display: block;
+  }
 `
 
 export const OptionList = styled.div`
