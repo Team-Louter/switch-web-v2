@@ -11,7 +11,16 @@ import {
 import { ProfileCropModal } from './component/ProfileCropModal'
 import { ProfileFormField } from './component/ProfileFormField'
 import { ProfileInputIcon } from './icons/ProfileInputIcon'
+import type { ProfileCropState } from '../model/useProfileCropModal'
 import * as S from './ProfileEditPage.style'
+
+const defaultProfileCropState: ProfileCropState = {
+  position: {
+    x: 0,
+    y: 0,
+  },
+  zoomValue: 0,
+}
 
 const majorOptions: MajorOption[] = [
   { id: 'frontend', label: '프론트엔드' },
@@ -27,6 +36,10 @@ export function ProfileEditPage() {
     'frontend',
     'design',
   ])
+  const [profileImageSrc, setProfileImageSrc] = useState(profileImage)
+  const [profileCropState, setProfileCropState] = useState(
+    defaultProfileCropState,
+  )
   const [isMajorOpen, setIsMajorOpen] = useState(false)
   const [isCropModalOpen, setIsCropModalOpen] = useState(false)
 
@@ -43,7 +56,7 @@ export function ProfileEditPage() {
       <S.Content>
         <S.ProfileImageSection>
           <S.ProfileImageWrap>
-            <S.ProfileImage src={profileImage} alt="" />
+            <S.ProfileImage src={profileImageSrc} alt="" />
           </S.ProfileImageWrap>
           <S.ImageActions>
             <S.LineButton type="button" onClick={() => setIsCropModalOpen(true)}>
@@ -103,8 +116,14 @@ export function ProfileEditPage() {
 
       {isCropModalOpen && (
         <ProfileCropModal
+          imageSrc={profileImage}
+          initialState={profileCropState}
           onCancel={() => setIsCropModalOpen(false)}
-          onComplete={() => setIsCropModalOpen(false)}
+          onComplete={(croppedImageSrc, nextCropState) => {
+            setProfileImageSrc(croppedImageSrc)
+            setProfileCropState(nextCropState)
+            setIsCropModalOpen(false)
+          }}
         />
       )}
     </S.Page>
