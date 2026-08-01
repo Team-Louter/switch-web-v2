@@ -38,10 +38,8 @@ export const ProfileImageWrap = styled.div`
 `
 
 export const ProfileImage = styled.img`
-  width: 212px;
-  height: 212px;
-  margin-top: -1px;
-  margin-left: -7px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 `
 

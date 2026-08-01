@@ -31,35 +31,53 @@ export const Title = styled.h2`
 export const CropArea = styled.div`
   position: relative;
   width: 100%;
-  height: 350px;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   border-radius: ${token.shapes.small};
   background: ${token.colors.gray.gray10};
+  cursor: grab;
+  touch-action: none;
+
+  &:active {
+    cursor: grabbing;
+  }
 `
 
-export const CropImage = styled.img`
+export const CropImage = styled.img<{
+  $height: number
+  $left: number
+  $top: number
+  $width: number
+}>`
   position: absolute;
-  top: -120px;
-  left: 0;
-  width: 100%;
-  height: 590px;
+  top: ${({ $top }) => $top}px;
+  left: ${({ $left }) => $left}px;
+  width: ${({ $width }) => $width}px;
+  height: ${({ $height }) => $height}px;
+  max-width: none;
+  max-height: none;
   object-fit: cover;
-`
-
-export const CropShade = styled.div`
-  position: absolute;
-  inset: 0;
-  background: rgb(14 13 12 / 45%);
+  pointer-events: none;
+  user-select: none;
 `
 
 export const CropFrame = styled.div`
   position: absolute;
-  top: 6px;
-  left: 151px;
-  width: 338px;
-  height: 338px;
+  inset: 0;
   box-sizing: border-box;
   border: 1px solid ${token.colors.white};
+  pointer-events: none;
+
+  &::before {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 24%) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 24%) 1px, transparent 1px);
+    background-size: calc(100% / 3) calc(100% / 3);
+    content: '';
+    pointer-events: none;
+  }
 `
 
 export const SliderTrack = styled.div`
@@ -70,15 +88,32 @@ export const SliderTrack = styled.div`
   background: ${token.colors.gray.gray80};
 `
 
-export const SliderThumb = styled.span`
+export const SliderInput = styled.input`
   position: absolute;
-  top: 50%;
-  left: 0;
-  width: 16px;
-  height: 16px;
-  border-radius: ${token.shapes.circle};
-  background: ${token.colors.primary.primary40};
-  transform: translateY(-50%);
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+
+  &::-webkit-slider-thumb {
+    width: 16px;
+    height: 16px;
+    appearance: none;
+    border: 0;
+    border-radius: ${token.shapes.circle};
+    background: ${token.colors.primary.primary40};
+  }
+
+  &::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border: 0;
+    border-radius: ${token.shapes.circle};
+    background: ${token.colors.primary.primary40};
+  }
 `
 
 export const Actions = styled.div`
