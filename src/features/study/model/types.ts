@@ -12,3 +12,10 @@ export interface StudyRecord {
   ownContent: string
   clubContent: string
 }
+
+export interface StudyStatus {
+  userId: number
+  userName: string
+  studyId: number
+  status: 'SUBMITTED' | 'PENDING' | 'OVERDUE'
+}
