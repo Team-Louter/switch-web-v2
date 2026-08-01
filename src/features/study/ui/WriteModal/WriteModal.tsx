@@ -1,20 +1,14 @@
 import { useState } from 'react'
 import { PiCaretLeft, PiCaretRight } from 'react-icons/pi'
 
-import { createStudy } from '../api/createStudy'
-import * as S from './WriteModal.style.ts'
-
-export interface StudyJournal {
-  title: string
-  author?: string
-  ownContent: string
-  clubContent: string
-}
+import { createStudy } from '../../api/createStudy'
+import type { StudyRecord } from '../../model/types'
+import * as S from './WriteModal.style'
 
 interface WriteModalProps {
   isOpen: boolean
   onClose: () => void
-  journal?: StudyJournal
+  study?: StudyRecord
   readOnly?: boolean
   onPrevious?: () => void
   onNext?: () => void
@@ -32,7 +26,7 @@ const handleSubmit = async (month: number, weekNumber: number, title: string, ow
 export function WriteModal({
   isOpen,
   onClose,
-  journal,
+  study,
   readOnly = false,
   onPrevious,
   onNext,
@@ -45,10 +39,10 @@ export function WriteModal({
 
   if (!isOpen) return null
 
-  const displayedTitle = readOnly ? (journal?.title ?? '') : title
-  const displayedOwnContent = readOnly ? (journal?.ownContent ?? '') : ownContent
+  const displayedTitle = readOnly ? (study?.title ?? '') : title
+  const displayedOwnContent = readOnly ? (study?.ownContent ?? '') : ownContent
   const displayedClubContent = readOnly
-    ? (journal?.clubContent ?? '')
+    ? (study?.clubContent ?? '')
     : clubContent
 
   return (
@@ -76,7 +70,7 @@ export function WriteModal({
         )}
         <S.Header>
           <S.Title>6월 1주차 학습일지</S.Title>
-          {readOnly && journal?.author && <S.Author>{journal.author}</S.Author>}
+          {readOnly && study?.author && <S.Author>{study.author}</S.Author>}
         </S.Header>
         <S.Column>
           <S.Div>

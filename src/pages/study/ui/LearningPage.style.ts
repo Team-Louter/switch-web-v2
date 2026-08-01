@@ -58,7 +58,7 @@ export const Now = styled.span`
   color: ${token.colors.primary.text};
 `;
 
-export const TotalJournalButton = styled.button`
+export const TotalStudyButton = styled.button`
   ${token.typography('body', 'sm', 'medium')};
   display: inline-flex;
   align-items: center;

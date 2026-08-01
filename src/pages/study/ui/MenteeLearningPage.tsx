@@ -1,17 +1,16 @@
 import { useState } from 'react'
 
-import { WriteModal } from '@/features/study'
+import { MonthlyStudyWeeks, WriteModal } from '@/features/study'
+import { PercentageBar } from '@/shared/ui'
 
-import decoImg1 from '../assets/deco1.svg'
-import decoImg2 from '../assets/spring.svg'
+import decoImg1 from '../../assets/deco1.svg'
+import decoImg2 from '../../assets/spring.svg'
 import {
   getCurrentMonth,
   getMonthsFromCurrentMonth,
   getMonthState,
-} from '../lib/getMonthsFromCurrentMonth'
+} from '../../lib/getMonthsFromCurrentMonth'
 import * as S from './LearningPage.style'
-import { MonthlyStudyWeeks } from './MonthlyStudyWeeks/MonthlyJournalWeeks'
-import { PercentageBar } from './PercentageBar/PercentageBar'
 
 export function MenteeLearningPage() {
   const submitRate = 0

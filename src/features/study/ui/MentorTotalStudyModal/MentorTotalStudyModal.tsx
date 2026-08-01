@@ -2,9 +2,9 @@ import { useState } from 'react'
 
 import { ScheduleDropdown } from './ScheduleDropdown/ScheduleDropdown'
 import type { ScheduleOption } from './ScheduleDropdown/ScheduleDropdown'
-import * as S from './MentorTotalJournalModal.style'
+import * as S from './MentorTotalStudyModal.style'
 
-interface MentorTotalJournalModalProps {
+interface MentorTotalStudyModalProps {
   isOpen: boolean
   onClose: () => void
 }
@@ -19,10 +19,10 @@ const SCHEDULES: ScheduleOption[] = [
 
 const GENERATED_CONTENT = '내용'.repeat(180)
 
-export function MentorTotalJournalModal({
+export function MentorTotalStudyModal({
   isOpen,
   onClose,
-}: MentorTotalJournalModalProps) {
+}: MentorTotalStudyModalProps) {
   const [selectedScheduleIds, setSelectedScheduleIds] = useState<number[]>([1, 5,])
   const [isGenerated, setIsGenerated] = useState(false)
   const [content, setContent] = useState('')
@@ -55,9 +55,9 @@ export function MentorTotalJournalModal({
               />
             </S.GeneratedFormRow>
             <S.GeneratedFormRow $align="center">
-              <S.Label htmlFor="total-journal-content">내용</S.Label>
+              <S.Label htmlFor="total-study-content">내용</S.Label>
               <S.ContentTextarea
-                id="total-journal-content"
+                id="total-study-content"
                 value={content}
                 onChange={(event) => setContent(event.target.value)}
               />
@@ -81,9 +81,9 @@ export function MentorTotalJournalModal({
         <S.Modal
           role="dialog"
           aria-modal="true"
-          aria-labelledby="total-journal-create-title"
+          aria-labelledby="total-study-create-title"
         >
-          <S.Title id="total-journal-create-title">
+          <S.Title id="total-study-create-title">
             6월 1주차 종합 학습일지 생성
           </S.Title>
           <S.FormRow>

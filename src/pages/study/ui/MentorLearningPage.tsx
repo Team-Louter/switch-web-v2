@@ -1,21 +1,23 @@
 import { useState } from 'react'
 import { PiPencilSimpleLine } from 'react-icons/pi'
 
+import {
+  MentorStudyModal,
+  MentorTotalStudyModal,
+  MonthlyStudyWeeks,
+} from '@/features/study'
 import { CLUB_MEMBER } from '@/shared/constants/clubMember'
+import { PercentageBar } from '@/shared/ui'
 
-import * as S from './LearningPage.style'
-import { MonthlyStudyWeeks } from './MonthlyStudyWeeks/MonthlyJournalWeeks'
-import { PercentageBar } from './PercentageBar/PercentageBar'
-import decoImg1 from '../assets/deco1.svg'
-import decoImg2 from '../assets/spring.svg'
+import decoImg1 from '../../assets/deco1.svg'
+import decoImg2 from '../../assets/spring.svg'
 import { getWeeksForCurrentYear } from '../lib/getWeeksForCurrentYear'
-import { MentorJournalModal } from './MentorJournalModal/MentorJournalModal'
-import { MentorTotalJournalModal } from './MentorTotalJournalModal/MentorTotalJournalModal'
+import * as S from './LearningPage.style'
 
 export function MentorLearningPage() {
   const submitRate = 40
-  const [isJournalModalOpen, setIsJournalModalOpen] = useState(false)
-  const [isTotalJournalModalOpen, setIsTotalJournalModalOpen] = useState(false)
+  const [isStudyModalOpen, setIsStudyModalOpen] = useState(false)
+  const [isTotalStudyModalOpen, setIsTotalStudyModalOpen] = useState(false)
 
   return (
     <S.PageContainer>
@@ -31,13 +33,13 @@ export function MentorLearningPage() {
                   {state === 'current' && <S.Now>Now</S.Now>}
                 </S.MonthHeading>
                 {state === 'current' && (
-                  <S.TotalJournalButton
+                  <S.TotalStudyButton
                     type="button"
-                    onClick={() => setIsTotalJournalModalOpen(true)}
+                    onClick={() => setIsTotalStudyModalOpen(true)}
                   >
                     <PiPencilSimpleLine aria-hidden="true" />
                     종합 학습 일지 작성하기
-                  </S.TotalJournalButton>
+                  </S.TotalStudyButton>
                 )}
               </S.MonthRow>
               <S.Card $state={state}>
@@ -67,7 +69,7 @@ export function MentorLearningPage() {
                     <S.WriteButton
                       type="button"
                       disabled={state === 'future'}
-                      onClick={() => setIsJournalModalOpen(true)}
+                      onClick={() => setIsStudyModalOpen(true)}
                     >
                       전체 보기
                     </S.WriteButton>
@@ -79,13 +81,13 @@ export function MentorLearningPage() {
           ),
         )}
       </S.ScrollArea>
-      <MentorJournalModal
-        isOpen={isJournalModalOpen}
-        onClose={() => setIsJournalModalOpen(false)}
+      <MentorStudyModal
+        isOpen={isStudyModalOpen}
+        onClose={() => setIsStudyModalOpen(false)}
       />
-      <MentorTotalJournalModal
-        isOpen={isTotalJournalModalOpen}
-        onClose={() => setIsTotalJournalModalOpen(false)}
+      <MentorTotalStudyModal
+        isOpen={isTotalStudyModalOpen}
+        onClose={() => setIsTotalStudyModalOpen(false)}
       />
     </S.PageContainer>
   )
