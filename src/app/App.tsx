@@ -11,6 +11,7 @@ import {
   MentoringPage,
   MyPage,
   NotificationPage,
+  ProfileEditPage,
   StorePage,
   CodeTypingPage,
   DailyTypingPage,
@@ -47,6 +48,7 @@ export function App() {
             <Route path="/notification" element={<NotificationPage />} />
             <Route path="/store" element={<StorePage />} />
             <Route path="/my" element={<MyPage />} />
+            <Route path="/my/edit" element={<ProfileEditPage />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -11,7 +11,10 @@ import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 export function AppLayout() {
   const location = useLocation()
   const navigate = useNavigate()
-  const isTypingPractice = location.pathname === '/typing/daily' || location.pathname.startsWith('/typing/code/')
+  const shouldShowSidebar =
+    !location.pathname.startsWith('/my/edit') &&
+    location.pathname !== '/typing/daily' &&
+    !location.pathname.startsWith('/typing/code/')
 
   const activeSidebarItemId = useMemo(() => {
     return (
@@ -33,12 +36,14 @@ export function AppLayout() {
 
   return (
     <Layout>
-      <Side>
-        <Sidebar
-          activeItemId={activeSidebarItemId}
-          onItemSelect={handleSidebarItemSelect}
-        />
-      </Side>
+      {shouldShowSidebar && (
+        <Side>
+          <Sidebar
+            activeItemId={activeSidebarItemId}
+            onItemSelect={handleSidebarItemSelect}
+          />
+        </Side>
+      )}
       <Body>
         <Outlet />
       </Body>
