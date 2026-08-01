@@ -1,11 +1,14 @@
+import { useNavigate } from 'react-router-dom'
+
 import profileImage from '@/shared/assets/sidebar/profile.png'
 
 import { useMyPage } from '../model/useMyPage'
+import { ActivityFilterBar } from './component/ActivityFilterBar'
 import { MyStatIcon } from './icons/MyStatIcon'
 import * as S from './MyPage.style'
-import { ActivityFilterBar } from './component/ActivityFilterBar'
 
 export function MyPage() {
+  const navigate = useNavigate()
   const {
     activeTabId,
     activityTabs,
@@ -38,7 +41,11 @@ export function MyPage() {
 
             <S.ProfileActions>
               <S.ActionButton type="button">프로필 꾸미기</S.ActionButton>
-              <S.ActionButton type="button" $variant="outline">
+              <S.ActionButton
+                type="button"
+                $variant="outline"
+                onClick={() => navigate('/my/edit')}
+              >
                 프로필 수정
               </S.ActionButton>
             </S.ProfileActions>

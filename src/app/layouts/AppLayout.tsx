@@ -14,6 +14,7 @@ type AppLayoutProps = PropsWithChildren
 export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
+  const shouldShowSidebar = !location.pathname.startsWith('/my/edit')
 
   const activeSidebarItemId = useMemo(() => {
     return (
@@ -31,12 +32,14 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <Layout>
-      <Side>
-        <Sidebar
-          activeItemId={activeSidebarItemId}
-          onItemSelect={handleSidebarItemSelect}
-        />
-      </Side>
+      {shouldShowSidebar && (
+        <Side>
+          <Sidebar
+            activeItemId={activeSidebarItemId}
+            onItemSelect={handleSidebarItemSelect}
+          />
+        </Side>
+      )}
       <Body>{children}</Body>
     </Layout>
   )

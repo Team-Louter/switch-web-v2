@@ -8,6 +8,7 @@ import {
   MentoringPage,
   MyPage,
   NotificationPage,
+  ProfileEditPage,
   StorePage,
   TypingPage,
 } from '@/pages'
@@ -29,6 +30,7 @@ export function App() {
           <Route path="/notification" element={<NotificationPage />} />
           <Route path="/store" element={<StorePage />} />
           <Route path="/my" element={<MyPage />} />
+          <Route path="/my/edit" element={<ProfileEditPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AppLayout>
