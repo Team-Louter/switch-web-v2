@@ -6,51 +6,7 @@ import profileImage from '@/shared/assets/sidebar/profile.png'
 import { useMyPage } from '../model/useMyPage'
 import type { MyPost } from '../types'
 import { MyStatIcon } from './icons/MyStatIcon'
-import {
-  ActionButton,
-  ActivityHeader,
-  ActivitySection,
-  AuthorAvatar,
-  AuthorCell,
-  AuthorName,
-  CategoryBadge,
-  CommentPostRow,
-  CommentPreview,
-  Content,
-  DateCell,
-  Divider,
-  EmptyState,
-  FooterActions,
-  FooterButton,
-  FooterDivider,
-  MaskIcon,
-  Metric,
-  Metrics,
-  Page,
-  PostList,
-  PostMainLine,
-  PostRow,
-  PostTitle,
-  ProfileActions,
-  ProfileDescription,
-  ProfileEmail,
-  ProfileIdentity,
-  ProfileImage,
-  ProfileImageWrap,
-  ProfileInfo,
-  ProfileName,
-  ProfileSection,
-  ProfileTextGroup,
-  SectionTitle,
-  StatBar,
-  StatIcon,
-  StatItem,
-  StatLabel,
-  StatLabelGroup,
-  StatValue,
-  TabButton,
-  TabList,
-} from './MyPage.style'
+import * as S from './MyPage.style'
 
 export function MyPage() {
   const {
@@ -66,67 +22,67 @@ export function MyPage() {
   const hasPosts = posts.length > 0
 
   return (
-    <Page>
-      <Content>
-        <ProfileSection>
-          <ProfileImageWrap>
-            <ProfileImage src={profileImage} alt="" />
-          </ProfileImageWrap>
+    <S.Page>
+      <S.Content>
+        <S.ProfileSection>
+          <S.ProfileImageWrap>
+            <S.ProfileImage src={profileImage} alt="" />
+          </S.ProfileImageWrap>
 
-          <ProfileInfo>
-            <ProfileTextGroup>
-              <ProfileIdentity>
-                <ProfileName>{profile.name}</ProfileName>
-                <ProfileDescription>{profile.classInfo}</ProfileDescription>
-                <ProfileDescription>{profile.role}</ProfileDescription>
-              </ProfileIdentity>
-              <ProfileEmail>{profile.email}</ProfileEmail>
-            </ProfileTextGroup>
+          <S.ProfileInfo>
+            <S.ProfileTextGroup>
+              <S.ProfileIdentity>
+                <S.ProfileName>{profile.name}</S.ProfileName>
+                <S.ProfileDescription>{profile.classInfo}</S.ProfileDescription>
+                <S.ProfileDescription>{profile.role}</S.ProfileDescription>
+              </S.ProfileIdentity>
+              <S.ProfileEmail>{profile.email}</S.ProfileEmail>
+            </S.ProfileTextGroup>
 
-            <ProfileActions>
-              <ActionButton type="button">프로필 꾸미기</ActionButton>
-              <ActionButton type="button" $variant="outline">
+            <S.ProfileActions>
+              <S.ActionButton type="button">프로필 꾸미기</S.ActionButton>
+              <S.ActionButton type="button" $variant="outline">
                 프로필 수정
-              </ActionButton>
-            </ProfileActions>
-          </ProfileInfo>
-        </ProfileSection>
+              </S.ActionButton>
+            </S.ProfileActions>
+          </S.ProfileInfo>
+        </S.ProfileSection>
 
-        <StatBar>
+        <S.StatBar>
           {stats.map((stat) => (
-            <StatItem key={stat.id}>
-              <StatLabelGroup>
-                <StatIcon aria-hidden="true">
+            <S.StatItem key={stat.id}>
+              <S.StatLabelGroup>
+                <S.StatIcon aria-hidden="true">
                   <MyStatIcon type={stat.id} />
-                </StatIcon>
-                <StatLabel>{stat.label}</StatLabel>
-              </StatLabelGroup>
-              <StatValue>{stat.value}</StatValue>
-            </StatItem>
+                </S.StatIcon>
+                <S.StatLabel>{stat.label}</S.StatLabel>
+              </S.StatLabelGroup>
+              <S.StatValue>{stat.value}</S.StatValue>
+            </S.StatItem>
           ))}
-        </StatBar>
+        </S.StatBar>
 
-        <Divider />
+        <S.Divider />
 
-        <ActivitySection>
-          <ActivityHeader>
-            <SectionTitle>내 활동</SectionTitle>
-            <TabList>
+        <S.ActivitySection>
+          <S.ActivityHeader>
+            <S.SectionTitle>내 활동</S.SectionTitle>
+            <S.TabList>
               {activityTabs.map((tab) => (
-                <TabButton
+                <S.TabButton
                   key={tab.id}
                   type="button"
                   $active={activeTabId === tab.id}
                   onClick={() => setActiveTabId(tab.id)}
                 >
                   {tab.label} ({tab.count})
-                </TabButton>
+                </S.TabButton>
               ))}
-            </TabList>
-          </ActivityHeader>
+            </S.TabList>
+          </S.ActivityHeader>
 
           {hasPosts ? (
-            <PostList>
+            <S.PostList>
               {posts.map((post) => (
                 <ActivityPost
                   key={post.id}
@@ -135,23 +91,23 @@ export function MyPage() {
                   isLiked={activeTabId === 'likes'}
                 />
               ))}
-            </PostList>
+            </S.PostList>
           ) : (
-            <EmptyState>{emptyMessage}</EmptyState>
+            <S.EmptyState>{emptyMessage}</S.EmptyState>
           )}
-        </ActivitySection>
+        </S.ActivitySection>
 
-        <Divider />
+        <S.Divider />
 
-        <FooterActions>
-          <FooterButton type="button">로그아웃</FooterButton>
-          <FooterDivider />
-          <FooterButton type="button" $danger>
+        <S.FooterActions>
+          <S.FooterButton type="button">로그아웃</S.FooterButton>
+          <S.FooterDivider />
+          <S.FooterButton type="button" $danger>
             회원 탈퇴
-          </FooterButton>
-        </FooterActions>
-      </Content>
-    </Page>
+          </S.FooterButton>
+        </S.FooterActions>
+      </S.Content>
+    </S.Page>
   )
 }
 
@@ -163,39 +119,39 @@ type ActivityPostProps = {
 
 function ActivityPost({ post, isComment, isLiked }: ActivityPostProps) {
   const content = (
-    <PostMainLine>
-      <CategoryBadge>{post.category}</CategoryBadge>
-      <PostTitle>{post.title}</PostTitle>
-      <AuthorCell>
-        <AuthorAvatar src={profileImage} alt="" />
-        <AuthorName>{post.author}</AuthorName>
-      </AuthorCell>
-      <DateCell>{post.createdAt}</DateCell>
-      <Metrics>
-        <Metric>
-          <MaskIcon $src={heartIcon} $active={isLiked} aria-hidden="true" />
+    <S.PostMainLine>
+      <S.CategoryBadge>{post.category}</S.CategoryBadge>
+      <S.PostTitle>{post.title}</S.PostTitle>
+      <S.AuthorCell>
+        <S.AuthorAvatar src={profileImage} alt="" />
+        <S.AuthorName>{post.author}</S.AuthorName>
+      </S.AuthorCell>
+      <S.DateCell>{post.createdAt}</S.DateCell>
+      <S.Metrics>
+        <S.Metric>
+          <S.MaskIcon $src={heartIcon} $active={isLiked} aria-hidden="true" />
           {post.likes}
-        </Metric>
-        <Metric>
-          <MaskIcon $src={commentIcon} aria-hidden="true" />
+        </S.Metric>
+        <S.Metric>
+          <S.MaskIcon $src={commentIcon} aria-hidden="true" />
           {post.comments}
-        </Metric>
-        <Metric>
-          <MaskIcon $src={eyeIcon} aria-hidden="true" />
+        </S.Metric>
+        <S.Metric>
+          <S.MaskIcon $src={eyeIcon} aria-hidden="true" />
           {post.views}
-        </Metric>
-      </Metrics>
-    </PostMainLine>
+        </S.Metric>
+      </S.Metrics>
+    </S.PostMainLine>
   )
 
   if (isComment) {
     return (
-      <CommentPostRow>
+      <S.CommentPostRow>
         {content}
-        <CommentPreview>{post.commentPreview}</CommentPreview>
-      </CommentPostRow>
+        <S.CommentPreview>{post.commentPreview}</S.CommentPreview>
+      </S.CommentPostRow>
     )
   }
 
-  return <PostRow>{content}</PostRow>
+  return <S.PostRow>{content}</S.PostRow>
 }
