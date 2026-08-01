@@ -1,18 +1,9 @@
-import commentIcon from '@/shared/assets/my/comment-icon.svg'
-import eyeIcon from '@/shared/assets/my/eye-icon.svg'
-import heartIcon from '@/shared/assets/my/heart-icon.svg'
 import profileImage from '@/shared/assets/sidebar/profile.png'
 
 import { useMyPage } from '../model/useMyPage'
-import type { MyPost } from '../types'
 import { MyStatIcon } from './icons/MyStatIcon'
 import * as S from './MyPage.style'
-
-type ActivityPostProps = {
-  post: MyPost
-  isComment: boolean
-  isLiked: boolean
-}
+import { ActivityFilterBar } from './component/ActivityFilterBar'
 
 export function MyPage() {
   const {
@@ -71,31 +62,16 @@ export function MyPage() {
         <S.Divider />
 
         <S.ActivitySection>
-          <S.ActivityHeader>
-            <S.SectionTitle>내 활동</S.SectionTitle>
-            <S.TabList>
-              {activityTabs.map((tab) => (
-                <S.TabButton
-                  key={tab.id}
-                  type="button"
-                  $active={activeTabId === tab.id}
-                  onClick={() => setActiveTabId(tab.id)}
-                >
-                  {tab.label} ({tab.count})
-                </S.TabButton>
-              ))}
-            </S.TabList>
-          </S.ActivityHeader>
+          <ActivityFilterBar
+            tabs={activityTabs}
+            activeTabId={activeTabId}
+            onChange={setActiveTabId}
+          />
 
           {hasPosts ? (
             <S.PostList>
               {posts.map((post) => (
-                <ActivityPost
-                  key={post.id}
-                  post={post}
-                  isComment={activeTabId === 'comments'}
-                  isLiked={activeTabId === 'likes'}
-                />
+                <S.PostPlaceholder key={post.id} />
               ))}
             </S.PostList>
           ) : (
@@ -115,43 +91,4 @@ export function MyPage() {
       </S.Content>
     </S.Page>
   )
-}
-
-function ActivityPost({ post, isComment, isLiked }: ActivityPostProps) {
-  const content = (
-    <S.PostMainLine>
-      <S.CategoryBadge>{post.category}</S.CategoryBadge>
-      <S.PostTitle>{post.title}</S.PostTitle>
-      <S.AuthorCell>
-        <S.AuthorAvatar src={profileImage} alt="" />
-        <S.AuthorName>{post.author}</S.AuthorName>
-      </S.AuthorCell>
-      <S.DateCell>{post.createdAt}</S.DateCell>
-      <S.Metrics>
-        <S.Metric>
-          <S.MaskIcon $src={heartIcon} $active={isLiked} aria-hidden="true" />
-          {post.likes}
-        </S.Metric>
-        <S.Metric>
-          <S.MaskIcon $src={commentIcon} aria-hidden="true" />
-          {post.comments}
-        </S.Metric>
-        <S.Metric>
-          <S.MaskIcon $src={eyeIcon} aria-hidden="true" />
-          {post.views}
-        </S.Metric>
-      </S.Metrics>
-    </S.PostMainLine>
-  )
-
-  if (isComment) {
-    return (
-      <S.CommentPostRow>
-        {content}
-        <S.CommentPreview>{post.commentPreview}</S.CommentPreview>
-      </S.CommentPostRow>
-    )
-  }
-
-  return <S.PostRow>{content}</S.PostRow>
 }
