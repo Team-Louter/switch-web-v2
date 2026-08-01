@@ -1,14 +1,23 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import profileImage from '@/shared/assets/sidebar/profile.png'
 
 import { useMyPage } from '../model/useMyPage'
 import { ActivityFilterBar } from './component/ActivityFilterBar'
+import {
+  type WithdrawModalStep,
+  WithdrawModal,
+} from './component/WithdrawModal'
 import { MyStatIcon } from './icons/MyStatIcon'
 import * as S from './MyPage.style'
 
 export function MyPage() {
   const navigate = useNavigate()
+  const [withdrawStep, setWithdrawStep] = useState<WithdrawModalStep | null>(
+    null,
+  )
+  const [verifyText, setVerifyText] = useState('')
   const {
     activeTabId,
     activityTabs,
@@ -91,11 +100,26 @@ export function MyPage() {
         <S.FooterActions>
           <S.FooterButton type="button">로그아웃</S.FooterButton>
           <S.FooterDivider />
-          <S.FooterButton type="button" $danger>
+          <S.FooterButton
+            type="button"
+            $danger
+            onClick={() => setWithdrawStep('verify')}
+          >
             회원 탈퇴
           </S.FooterButton>
         </S.FooterActions>
       </S.Content>
+
+      {withdrawStep && (
+        <WithdrawModal
+          step={withdrawStep}
+          verifyText={verifyText}
+          onVerifyTextChange={setVerifyText}
+          onCancel={() => setWithdrawStep(null)}
+          onNext={() => setWithdrawStep('confirm')}
+          onWithdraw={() => navigate('/my/withdraw-complete')}
+        />
+      )}
     </S.Page>
   )
 }

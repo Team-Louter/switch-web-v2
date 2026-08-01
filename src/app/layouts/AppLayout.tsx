@@ -13,6 +13,7 @@ export function AppLayout() {
   const navigate = useNavigate()
   const shouldShowSidebar =
     !location.pathname.startsWith('/my/edit') &&
+    !location.pathname.startsWith('/my/withdraw-complete') &&
     location.pathname !== '/typing/daily' &&
     !location.pathname.startsWith('/typing/code/')
 
