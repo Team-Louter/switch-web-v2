@@ -1,4 +1,4 @@
-import { ProfileInputIcon } from './icons/ProfileInputIcon'
+import { ProfileInputIcon } from '../icons/ProfileInputIcon'
 import * as S from './ProfileMajorDropdown.style'
 
 export type MajorOption = {
