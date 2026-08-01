@@ -13,7 +13,7 @@ export const Field = styled.label`
 export const Label = styled.span`
   color: ${token.colors.gray.gray80};
   line-height: 1;
-  ${token.typography('body', 'lg', 'medium')}
+  ${token.typography('body', 'md', 'medium')}
 `
 
 export const InputBox = styled.div<{ $disabled: boolean }>`
@@ -37,7 +37,7 @@ export const Input = styled.input`
   color: ${token.colors.gray.gray100};
   background: transparent;
   line-height: 1;
-  ${token.typography('body', 'lg', 'medium')}
+  ${token.typography('body', 'md', 'medium')}
 
   &::placeholder {
     color: ${token.colors.gray.gray40};

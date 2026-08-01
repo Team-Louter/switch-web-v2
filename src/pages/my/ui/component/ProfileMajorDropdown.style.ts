@@ -13,7 +13,7 @@ export const Field = styled.div`
 export const Label = styled.span`
   color: ${token.colors.gray.gray80};
   line-height: 1;
-  ${token.typography('body', 'lg', 'medium')}
+  ${token.typography('body', 'md', 'medium')}
 `
 
 export const DropdownWrap = styled.div`
@@ -37,7 +37,7 @@ export const SelectedText = styled.span`
   line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
-  ${token.typography('body', 'lg', 'medium')}
+  ${token.typography('body', 'md', 'medium')}
 `
 
 export const ArrowSlot = styled.span`
