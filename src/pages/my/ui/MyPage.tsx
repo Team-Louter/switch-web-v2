@@ -8,6 +8,12 @@ import type { MyPost } from '../types'
 import { MyStatIcon } from './icons/MyStatIcon'
 import * as S from './MyPage.style'
 
+type ActivityPostProps = {
+  post: MyPost
+  isComment: boolean
+  isLiked: boolean
+}
+
 export function MyPage() {
   const {
     activeTabId,
@@ -109,12 +115,6 @@ export function MyPage() {
       </S.Content>
     </S.Page>
   )
-}
-
-type ActivityPostProps = {
-  post: MyPost
-  isComment: boolean
-  isLiked: boolean
 }
 
 function ActivityPost({ post, isComment, isLiked }: ActivityPostProps) {
