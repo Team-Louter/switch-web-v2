@@ -14,7 +14,9 @@ type AppLayoutProps = PropsWithChildren
 export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
-  const shouldShowSidebar = !location.pathname.startsWith('/my/edit')
+  const shouldShowSidebar =
+    !location.pathname.startsWith('/my/edit') &&
+    !location.pathname.startsWith('/my/withdraw-complete')
 
   const activeSidebarItemId = useMemo(() => {
     return (

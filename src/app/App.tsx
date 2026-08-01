@@ -11,6 +11,7 @@ import {
   ProfileEditPage,
   StorePage,
   TypingPage,
+  WithdrawCompletePage,
 } from '@/pages'
 
 import { AppLayout } from './layouts'
@@ -31,6 +32,10 @@ export function App() {
           <Route path="/store" element={<StorePage />} />
           <Route path="/my" element={<MyPage />} />
           <Route path="/my/edit" element={<ProfileEditPage />} />
+          <Route
+            path="/my/withdraw-complete"
+            element={<WithdrawCompletePage />}
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AppLayout>
