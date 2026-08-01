@@ -10,7 +10,7 @@ interface ModalProps {
 export function Modal({ title, author, summary, onClick }: ModalProps) {
   return (
     <S.Container
-      data-journal-modal-card
+      data-study-modal-card
       onClick={summary ? onClick : undefined}
       onKeyDown={(event) => {
         if (summary && (event.key === 'Enter' || event.key === ' ')) {

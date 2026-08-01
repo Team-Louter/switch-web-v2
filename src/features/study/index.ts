@@ -1,4 +1,6 @@
 export { createStudy } from './api/createStudy'
-export type { CreateStudyRequest } from './model/types'
+export type { CreateStudyRequest, StudyRecord } from './model/types'
+export { MentorStudyModal } from './ui/MentorStudyModal/MentorStudyModal'
+export { MentorTotalStudyModal } from './ui/MentorTotalStudyModal/MentorTotalStudyModal'
+export { MonthlyStudyWeeks } from './ui/MonthlyStudyWeeks/MonthlyStudyWeeks'
 export { WriteModal } from './ui/WriteModal'
-export type { StudyJournal } from './ui/WriteModal'

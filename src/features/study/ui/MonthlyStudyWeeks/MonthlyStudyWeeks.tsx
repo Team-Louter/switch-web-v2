@@ -6,7 +6,7 @@ import {
 } from 'react-icons/io5'
 import { RiLock2Fill } from 'react-icons/ri'
 
-import * as S from './MonthlyJournalWeeks.style'
+import * as S from './MonthlyStudyWeeks.style'
 
 export type WeekStatus = 'submitted' | 'due' | 'overdue' | 'locked'
 
