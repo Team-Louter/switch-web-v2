@@ -59,6 +59,19 @@ const getBaseImageSize = (imageSize: ImageSize, cropAreaSize: ImageSize) => {
   }
 }
 
+const getDisplayedImageSize = (
+  imageSize: ImageSize,
+  cropAreaSize: ImageSize,
+  zoomScale: number,
+) => {
+  const baseImageSize = getBaseImageSize(imageSize, cropAreaSize)
+
+  return {
+    width: baseImageSize.width * zoomScale,
+    height: baseImageSize.height * zoomScale,
+  }
+}
+
 const getBoundedImagePosition = (
   nextPosition: ProfileCropPosition,
   displayedImageSize: ImageSize,
@@ -95,14 +108,10 @@ export function useProfileCropModal({
   })
   const [zoomValue, setZoomValue] = useState(initialState.zoomValue)
   const zoomScale = getZoomScale(zoomValue)
-  const displayedImageSize = useMemo(() => {
-    const baseImageSize = getBaseImageSize(imageSize, cropAreaSize)
-
-    return {
-      width: baseImageSize.width * zoomScale,
-      height: baseImageSize.height * zoomScale,
-    }
-  }, [cropAreaSize, imageSize, zoomScale])
+  const displayedImageSize = useMemo(
+    () => getDisplayedImageSize(imageSize, cropAreaSize, zoomScale),
+    [cropAreaSize, imageSize, zoomScale],
+  )
   const boundedImagePosition = useMemo(
     () =>
       getBoundedImagePosition(imagePosition, displayedImageSize, cropAreaSize),
@@ -161,11 +170,11 @@ export function useProfileCropModal({
       width: image.naturalWidth,
       height: image.naturalHeight,
     }
-    const baseImageSize = getBaseImageSize(nextImageSize, cropAreaSize)
-    const nextDisplayedImageSize = {
-      width: baseImageSize.width * zoomScale,
-      height: baseImageSize.height * zoomScale,
-    }
+    const nextDisplayedImageSize = getDisplayedImageSize(
+      nextImageSize,
+      cropAreaSize,
+      zoomScale,
+    )
 
     setImageSize(nextImageSize)
     setImagePosition((prevPosition) =>
@@ -220,11 +229,11 @@ export function useProfileCropModal({
     const nextZoomValue = Number(event.target.value)
     const nextZoomScale = getZoomScale(nextZoomValue)
     const zoomRatio = nextZoomScale / zoomScale
-    const baseImageSize = getBaseImageSize(imageSize, cropAreaSize)
-    const nextDisplayedImageSize = {
-      width: baseImageSize.width * nextZoomScale,
-      height: baseImageSize.height * nextZoomScale,
-    }
+    const nextDisplayedImageSize = getDisplayedImageSize(
+      imageSize,
+      cropAreaSize,
+      nextZoomScale,
+    )
 
     setZoomValue(nextZoomValue)
     setImagePosition(
