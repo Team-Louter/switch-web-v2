@@ -126,35 +126,17 @@ export const StatLabelGroup = styled.div`
   gap: 5px;
 `
 
-export const IconImage = styled.img`
+export const StatIcon = styled.span`
+  ${token.flexCenter}
   flex: 0 0 auto;
-  width: 22px;
+  width: 24px;
   height: 22px;
-  object-fit: contain;
-`
+  color: ${token.colors.primary.primary60};
 
-export const FootIcon = styled.span`
-  position: relative;
-  flex: 0 0 22px;
-  width: 22px;
-  height: 22px;
-`
-
-export const FootImage = styled.img<{ $side: 'left' | 'right' }>`
-  position: absolute;
-  width: 9.927px;
-  height: 17.693px;
-
-  ${({ $side }) =>
-    $side === 'left'
-      ? css`
-          left: 0;
-          top: 2.2px;
-        `
-      : css`
-          right: 0;
-          top: 0;
-        `}
+  svg {
+    display: block;
+    flex: 0 0 auto;
+  }
 `
 
 export const StatLabel = styled.span`
