@@ -10,7 +10,7 @@ import {
 } from './component/ProfileMajorDropdown'
 import { ProfileCropModal } from './component/ProfileCropModal'
 import { ProfileFormField } from './component/ProfileFormField'
-import { ProfileInputIcon } from './component/icons/ProfileInputIcon'
+import { ProfileInputIcon } from './icons/ProfileInputIcon'
 import * as S from './ProfileEditPage.style'
 
 const majorOptions: MajorOption[] = [
