@@ -22,6 +22,7 @@ export const Content = styled.div`
 
 export const ProfileSection = styled.section`
   ${token.flexLeft}
+  align-items: center;
   width: 100%;
   gap: 40px;
 `
@@ -84,6 +85,7 @@ export const ProfileEmail = styled.p`
 
 export const ProfileActions = styled.div`
   ${token.flexLeft}
+  flex: 0 0 auto;
   gap: 10px;
 `
 
@@ -164,157 +166,18 @@ export const ActivitySection = styled.section`
   gap: 20px;
 `
 
-export const ActivityHeader = styled.div`
-  ${token.flexColumn}
-  align-items: flex-start;
-  gap: 10px;
-`
-
-export const SectionTitle = styled.h2`
-  margin: 0;
-  color: ${token.colors.gray.gray80};
-  line-height: 1;
-  ${token.typography('heading', 'sm', 'medium')}
-`
-
-export const TabList = styled.div`
-  ${token.flexLeft}
-  gap: 10px;
-`
-
-export const TabButton = styled.button<{ $active: boolean }>`
-  ${token.flexCenter}
-  padding: 10px 20px;
-  border-radius: ${token.shapes.small};
-  background: ${({ $active }) =>
-    $active ? token.colors.gray.gray10 : token.colors.white};
-  color: ${token.colors.gray.gray100};
-  line-height: 1;
-  ${token.typography('body', 'sm', 'medium')}
-`
-
 export const PostList = styled.div`
   ${token.flexColumn}
   width: 100%;
   gap: 0;
 `
 
-export const PostRow = styled.article`
-  ${token.flexLeft}
+export const PostPlaceholder = styled.div`
   width: 100%;
   height: 72px;
   box-sizing: border-box;
-  gap: 10px;
-  padding: 10px;
-  background: ${token.colors.white};
-`
-
-export const CommentPostRow = styled(PostRow)`
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 4px;
-`
-
-export const PostMainLine = styled.div`
-  ${token.flexLeft}
-  width: 100%;
-  gap: 10px;
-`
-
-export const CategoryBadge = styled.span`
-  ${token.flexCenter}
-  flex: 0 0 80px;
-  width: 80px;
-  box-sizing: border-box;
-  padding: 6px 12px;
   border-radius: ${token.shapes.small};
-  background: ${token.colors.primary.primary40};
-  color: ${token.colors.gray.gray100};
-  line-height: 1;
-  ${token.typography('caption', 'lg', 'bold')}
-`
-
-export const PostTitle = styled.p`
-  flex: 0 0 348px;
-  width: 348px;
-  min-width: 0;
-  margin: 0;
-  overflow: hidden;
-  color: ${token.colors.gray.gray100};
-  line-height: 1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  ${token.typography('body', 'md', 'semibold')}
-`
-
-export const AuthorCell = styled.div`
-  ${token.flexCenter}
-  flex: 0 0 120px;
-  width: 120px;
-  gap: 8px;
-`
-
-export const AuthorAvatar = styled.img`
-  width: 32px;
-  height: 32px;
-  border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.circle};
-  object-fit: cover;
-`
-
-export const AuthorName = styled.span`
-  width: 72px;
-  color: ${token.colors.gray.gray80};
-  line-height: 1;
-  ${token.typography('body', 'md', 'medium')}
-`
-
-export const DateCell = styled.span`
-  ${token.flexCenter}
-  flex: 0 0 176px;
-  width: 176px;
-  color: ${token.colors.gray.gray80};
-  line-height: 1;
-  white-space: nowrap;
-  ${token.typography('body', 'md', 'medium')}
-`
-
-export const Metrics = styled.div`
-  ${token.flexCenter}
-  flex: 0 0 214px;
-  width: 214px;
-  gap: 12px;
-`
-
-export const Metric = styled.span`
-  ${token.flexLeft}
-  width: 53px;
-  gap: 4px;
-  color: ${token.colors.gray.gray80};
-  line-height: 1;
-  ${token.typography('body', 'md', 'medium')}
-`
-
-export const MaskIcon = styled.span<{ $src: string; $active?: boolean }>`
-  display: inline-block;
-  flex: 0 0 24px;
-  width: 24px;
-  height: 24px;
-  background: ${({ $active }) =>
-    $active ? token.colors.danger.danger20 : token.colors.gray.gray30};
-  mask-image: url(${({ $src }) => $src});
-  mask-position: center;
-  mask-repeat: no-repeat;
-  mask-size: contain;
-`
-
-export const CommentPreview = styled.p`
-  margin: 0 0 0 89px;
-  color: ${token.colors.gray.gray50};
-  line-height: 1;
-  white-space: nowrap;
-  ${token.typography('caption', 'md', 'medium')}
+  background: ${token.colors.gray.gray10};
 `
 
 export const EmptyState = styled.div`
