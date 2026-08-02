@@ -24,6 +24,11 @@ export function MentorLearningPage() {
   >({})
   const [isStudyModalOpen, setIsStudyModalOpen] = useState(false)
   const [isTotalStudyModalOpen, setIsTotalStudyModalOpen] = useState(false)
+  const [selectedTotalStudyWeek, setSelectedTotalStudyWeek] = useState<{
+    year: number
+    month: number
+    weekNumber: number
+  } | null>(null)
   const [selectedWeek, setSelectedWeek] = useState<{
     month: number
     weekNumber: number
@@ -128,7 +133,10 @@ export function MentorLearningPage() {
                 {state === 'current' && (
                   <S.TotalStudyButton
                     type="button"
-                    onClick={() => setIsTotalStudyModalOpen(true)}
+                    onClick={() => {
+                      setSelectedTotalStudyWeek({ year, month, weekNumber })
+                      setIsTotalStudyModalOpen(true)
+                    }}
                   >
                     <PiPencilSimpleLine aria-hidden="true" />
                     종합 학습 일지 작성하기
@@ -176,8 +184,11 @@ export function MentorLearningPage() {
         isLoading={isStudiesLoading}
       />
       <MentorTotalStudyModal
-        isOpen={isTotalStudyModalOpen}
+        isOpen={isTotalStudyModalOpen && selectedTotalStudyWeek !== null}
         onClose={() => setIsTotalStudyModalOpen(false)}
+        year={selectedTotalStudyWeek?.year ?? 0}
+        month={selectedTotalStudyWeek?.month ?? 0}
+        weekNumber={selectedTotalStudyWeek?.weekNumber ?? 0}
       />
     </S.PageContainer>
   )
