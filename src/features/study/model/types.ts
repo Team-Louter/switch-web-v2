@@ -26,3 +26,20 @@ export interface StudyStatus {
   studyId: number
   status: 'SUBMITTED' | 'PENDING' | 'OVERDUE'
 }
+
+export interface StudyRequest {
+  scheduleIds: number[]
+  year: number
+  month: number
+  weekNumber: number
+}
+
+export interface StudyResponse {
+  clubReportId: number
+  scheduleIds: number[]
+  scheduleTitles: string[]
+  month: number
+  weekNumber: number
+  activityContent: string
+  createdAt: string
+}

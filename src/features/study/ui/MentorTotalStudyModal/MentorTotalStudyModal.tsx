@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { getAllSchedules } from '@/features/schedule'
 import type { Schedule } from '@/features/schedule'
 
+import { createTotalStudy } from '../../api/createtotalStudy'
+
 import { ScheduleDropdown } from './ScheduleDropdown/ScheduleDropdown'
 import type { ScheduleOption } from './ScheduleDropdown/ScheduleDropdown'
 import * as S from './MentorTotalStudyModal.style'
@@ -10,9 +12,10 @@ import * as S from './MentorTotalStudyModal.style'
 interface MentorTotalStudyModalProps {
   isOpen: boolean
   onClose: () => void
+  year: number
+  month: number
+  weekNumber: number
 }
-
-const GENERATED_CONTENT = '내용'.repeat(180)
 
 const formatScheduleDate = (date: string) => {
   const parsedDate = new Date(date)
@@ -44,10 +47,14 @@ const isInCurrentMonth = (schedule: Schedule) => {
 export function MentorTotalStudyModal({
   isOpen,
   onClose,
+  year,
+  month,
+  weekNumber,
 }: MentorTotalStudyModalProps) {
   const [schedules, setSchedules] = useState<ScheduleOption[]>([])
   const [selectedScheduleIds, setSelectedScheduleIds] = useState<number[]>([])
   const [isGenerated, setIsGenerated] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
   const [content, setContent] = useState('')
 
   useEffect(() => {
@@ -74,20 +81,36 @@ export function MentorTotalStudyModal({
 
   const handleClose = () => {
     setIsGenerated(false)
+    setSelectedScheduleIds([])
     setContent('')
     onClose()
   }
 
-  const handleGenerate = () => {
-    setContent(GENERATED_CONTENT)
-    setIsGenerated(true)
+  const handleGenerate = async () => {
+    setIsGenerating(true)
+
+    try {
+      const totalStudy = await createTotalStudy({
+        scheduleIds: selectedScheduleIds,
+        year,
+        month,
+        weekNumber,
+      })
+
+      setContent(totalStudy.activityContent)
+      setIsGenerated(true)
+    } catch (error) {
+      console.error('종합 학습일지를 생성하지 못했습니다.', error)
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   return (
     <S.Backdrop>
       {isGenerated ? (
         <S.GeneratedModal>
-          <S.Title>6월 1주차 종합 학습일지</S.Title>
+          <S.Title>{month}월 {weekNumber}주차 종합 학습일지</S.Title>
           <S.GeneratedContent>
             <S.GeneratedFormRow>
               <S.Label>관련 일정</S.Label>
@@ -107,8 +130,12 @@ export function MentorTotalStudyModal({
             </S.GeneratedFormRow>
           </S.GeneratedContent>
           <S.GeneratedButtonContainer>
-            <S.SubmitButton type="button" onClick={handleGenerate}>
-              재생성
+            <S.SubmitButton
+              type="button"
+              disabled={isGenerating || selectedScheduleIds.length === 0}
+              onClick={() => void handleGenerate()}
+            >
+              {isGenerating ? '생성 중...' : '재생성'}
             </S.SubmitButton>
             <S.RightButtonGroup>
               <S.CancelButton type="button" onClick={handleClose}>
@@ -127,7 +154,7 @@ export function MentorTotalStudyModal({
           aria-labelledby="total-study-create-title"
         >
           <S.Title id="total-study-create-title">
-            6월 1주차 종합 학습일지 생성
+            {month}월 {weekNumber}주차 종합 학습일지 생성
           </S.Title>
           <S.FormRow>
             <S.Label>관련 일정</S.Label>
@@ -143,10 +170,10 @@ export function MentorTotalStudyModal({
             </S.CancelButton>
             <S.SubmitButton
               type="button"
-              disabled={selectedScheduleIds.length === 0}
-              onClick={handleGenerate}
+              disabled={isGenerating || selectedScheduleIds.length === 0}
+              onClick={() => void handleGenerate()}
             >
-              생성
+              {isGenerating ? '생성 중...' : '생성'}
             </S.SubmitButton>
           </S.ButtonContainer>
         </S.Modal>
