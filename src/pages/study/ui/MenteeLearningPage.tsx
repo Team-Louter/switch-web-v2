@@ -1,6 +1,17 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
-import { MonthlyStudyWeeks, WriteModal } from '@/features/study'
+import {
+  getMyStatus,
+  getStudy,
+  MonthlyStudyWeeks,
+  WriteModal,
+} from '@/features/study'
+import type { StudyRecord, StudyStatus, WeekStatus } from '@/features/study'
+import {
+  getCurrentKoreaDate,
+  getMonthWeekCount,
+  getMonthWeekNumber,
+} from '@/shared/lib/studyWeek'
 import { PercentageBar } from '@/shared/ui'
 
 import decoImg1 from '../assets/deco1.svg'
@@ -13,19 +24,118 @@ import {
 import * as S from './LearningPage.style'
 
 export function MenteeLearningPage() {
-  const submitRate = 0
+  const currentDate = useMemo(() => getCurrentKoreaDate(), [])
   const currentMonth = getCurrentMonth()
+  const months = useMemo(() => getMonthsFromCurrentMonth(), [])
+  const currentYear = currentDate.year
+  const currentWeekNumber = getMonthWeekNumber(
+    currentDate.year,
+    currentDate.month,
+    currentDate.day,
+  )
+  const [statusesByMonth, setStatusesByMonth] = useState<
+    Record<string, StudyStatus[]>
+  >({})
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false)
+  const [modalStudy, setModalStudy] = useState<StudyRecord>()
+  const [selectedWeeks, setSelectedWeeks] = useState<
+    Record<number, { weekNumber: number; status: WeekStatus }>
+  >({})
+  const [modalWeek, setModalWeek] = useState<{
+    month: number
+    weekNumber: number
+  } | null>(null)
+
+  useEffect(() => {
+    let isCancelled = false
+
+    Promise.all(
+      months.map(async (month) => {
+        const statuses = await getMyStatus(currentYear, month)
+
+        return [`${currentYear}-${month}`, statuses] as const
+      }),
+    )
+      .then((monthStatuses) => {
+        if (!isCancelled) {
+          setStatusesByMonth(Object.fromEntries(monthStatuses))
+        }
+      })
+      .catch((error) => {
+        console.error('월별 학습일지 제출 상태를 불러오지 못했습니다.', error)
+      })
+
+    return () => {
+      isCancelled = true
+    }
+  }, [currentMonth, currentYear, months])
+
+  const refreshMonthStatuses = async (month: number) => {
+    try {
+      const statuses = await getMyStatus(currentYear, month)
+
+      setStatusesByMonth((previous) => ({
+        ...previous,
+        [`${currentYear}-${month}`]: statuses,
+      }))
+      setSelectedWeeks((previous) => {
+        const next = { ...previous }
+        delete next[month]
+        return next
+      })
+    } catch (error) {
+      console.error('학습일지 제출 상태를 다시 불러오지 못했습니다.', error)
+    }
+  }
 
   return (
     <S.PageContainer>
       <S.ScrollArea>
-        {getMonthsFromCurrentMonth().map((month) => {
+        {months.map((month) => {
           const monthState = getMonthState(month, currentMonth)
+          const weekCount = getMonthWeekCount(currentYear, month)
+          const statuses = (
+            statusesByMonth[`${currentYear}-${month}`] ?? []
+          ).slice(
+            0,
+            weekCount,
+          )
+          const submitRate = statuses.length
+            ? Math.round(
+                (statuses.filter(({ status }) => status === 'SUBMITTED')
+                  .length /
+                  weekCount) *
+                  100,
+              )
+            : 0
+          const items = Array.from({ length: weekCount }, (_, index) => {
+            const status = statuses[index]?.status
+
+            return {
+              id: `${currentYear}-${month}-${index + 1}`,
+              label: `${index + 1}주차`,
+              status:
+                monthState === 'future' || status === undefined
+                  ? ('locked' as const)
+                  : ({
+                      SUBMITTED: 'submitted',
+                      PENDING: 'due',
+                      OVERDUE: 'overdue',
+                    }[status] as 'submitted' | 'due' | 'overdue'),
+            }
+          })
+          const defaultWeekNumber =
+            monthState === 'current' ? currentWeekNumber : 1
+          const selectedWeek =
+            selectedWeeks[month] ??
+            {
+              weekNumber: defaultWeekNumber,
+              status: items[defaultWeekNumber - 1].status,
+            }
 
           return (
             <S.Column key={month} $state={monthState}>
-              <S.MonthRow>
+              <S.MonthRow style={{ justifyContent: 'flex-start', gap: 10 }}>
                 <S.Month>{month}월</S.Month>
                 {monthState === 'current' && <S.Now>Now</S.Now>}
               </S.MonthRow>
@@ -34,28 +144,77 @@ export function MenteeLearningPage() {
                   <S.SubmitLabel>제출</S.SubmitLabel>
                   <S.SubmitRate>{submitRate}%</S.SubmitRate>
                   <PercentageBar value={submitRate} label="과제 제출률" />
-                  <S.Status>진행중</S.Status>
+                  <S.Status>
+                    {
+                      {
+                        past: '진행 완료',
+                        current: '진행중',
+                        future: '잠김',
+                      }[monthState]
+                    }
+                  </S.Status>
                 </S.ProgressContent>
                 <S.DiaryContent>
                   <MonthlyStudyWeeks
-                    items={[
-                      { id: 1, label: '1주차', status: 'submitted' },
-                      { id: 2, label: '2주차', status: 'overdue' },
-                      { id: 3, label: '3주차', status: 'due' },
-                      { id: 4, label: '4주차', status: 'locked' },
-                      { id: 5, label: '5주차', status: 'locked' },
-                    ]}
+                    items={items}
+                    onItemClick={(item) => {
+                      setSelectedWeeks((previous) => ({
+                        ...previous,
+                        [month]: {
+                          weekNumber:
+                            items.findIndex(({ id }) => id === item.id) + 1,
+                          status: item.status,
+                        },
+                      }))
+                    }}
                   />
                   <S.DecoImg src={decoImg1} alt="" />
                   <S.ButtonContent>
                     <S.Name>2213 최현수</S.Name>
-                    <S.Week>3주차 학습일지</S.Week>
+                    <S.Week>
+                      {selectedWeek
+                        ? `${selectedWeek.weekNumber}주차 학습일지`
+                        : '주차를 선택해주세요'}
+                    </S.Week>
                     <S.WriteButton
                       type="button"
-                      disabled={monthState === 'future'}
-                      onClick={() => setIsWriteModalOpen(true)}
+                      disabled={
+                        monthState === 'future' ||
+                        !selectedWeek ||
+                        selectedWeek.status === 'locked'
+                      }
+                      onClick={async () => {
+                        if (!selectedWeek) return
+
+                        setModalWeek({
+                          month,
+                          weekNumber: selectedWeek.weekNumber,
+                        })
+                        setModalStudy(undefined)
+
+                        if (selectedWeek.status === 'submitted') {
+                          try {
+                            const study = await getStudy(
+                              currentYear,
+                              month,
+                              selectedWeek.weekNumber,
+                            )
+                            setModalStudy(study)
+                          } catch (error) {
+                            console.error(
+                              '학습일지를 불러오지 못했습니다.',
+                              error,
+                            )
+                            return
+                          }
+                        }
+
+                        setIsWriteModalOpen(true)
+                      }}
                     >
-                      작성하기
+                      {selectedWeek?.status === 'submitted'
+                        ? '수정하기'
+                        : '작성하기'}
                     </S.WriteButton>
                   </S.ButtonContent>
                 </S.DiaryContent>
@@ -68,6 +227,17 @@ export function MenteeLearningPage() {
       <WriteModal
         isOpen={isWriteModalOpen}
         onClose={() => setIsWriteModalOpen(false)}
+        onCreateSuccess={() => {
+          if (!modalWeek) return
+          return refreshMonthStatuses(modalWeek.month)
+        }}
+        onDeleteSuccess={() => {
+          if (!modalWeek) return
+          return refreshMonthStatuses(modalWeek.month)
+        }}
+        month={modalWeek?.month}
+        weekNumber={modalWeek?.weekNumber}
+        study={modalStudy}
       />
     </S.PageContainer>
   )
