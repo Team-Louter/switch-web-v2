@@ -75,6 +75,35 @@ export const Author = styled.span`
   color: ${token.colors.gray.gray40};
 `;
 
+export const DeleteButton = styled.button`
+  display: flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  margin-right: auto;
+  padding: 0;
+  border: 0;
+  border-radius: ${token.shapes.xsmall};
+  background-color: transparent;
+  color: ${token.colors.danger.danger10};
+  cursor: pointer;
+
+  svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  &:hover {
+    color: ${token.colors.danger.danger20};
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+`;
+
 export const Div = styled.div`
   display: flex;
   justify-content: space-between;
