@@ -15,3 +15,14 @@ export const getWeekStatus = async (
 
   return response.data
 }
+
+export const getMyStatus = async (
+  year: number,
+  month: number,
+): Promise<StudyStatus[]> => {
+  const response = await apiClient.get<StudyStatus[]>('/studies/me/statuses', {
+    params: { year, month },
+  })
+  console.log(`Fetched my study statuses for Year: ${year}, Month: ${month}`, response.data)
+  return response.data
+}
