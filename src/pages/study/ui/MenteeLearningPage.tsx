@@ -110,12 +110,16 @@ export function MenteeLearningPage() {
             : 0
           const items = Array.from({ length: weekCount }, (_, index) => {
             const status = statuses[index]?.status
+            const weekNumber = index + 1
+            const isFutureWeek =
+              monthState === 'future' ||
+              (monthState === 'current' && weekNumber > currentWeekNumber)
 
             return {
-              id: `${currentYear}-${month}-${index + 1}`,
-              label: `${index + 1}주차`,
+              id: `${currentYear}-${month}-${weekNumber}`,
+              label: `${weekNumber}주차`,
               status:
-                monthState === 'future' || status === undefined
+                isFutureWeek || status === undefined
                   ? ('locked' as const)
                   : ({
                       SUBMITTED: 'submitted',
