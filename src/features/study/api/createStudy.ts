@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api'
 
-import type { CreateStudyRequest, StudyRecord } from '../model/types'
+import type { CreateStudyRequest, StudyRecord } from '@/entities/study'
 
 export const createStudy = async (data: CreateStudyRequest): Promise<void> => {
   await apiClient.post<void>('/studies', data);

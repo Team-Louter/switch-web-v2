@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api'
 
-import type { StudyRequest, StudyResponse } from '../model/types'
+import type { StudyRequest, StudyResponse } from '@/entities/study'
 
 export const createTotalStudy = async (
   data: StudyRequest,

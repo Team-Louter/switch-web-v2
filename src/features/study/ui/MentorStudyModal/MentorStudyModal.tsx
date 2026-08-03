@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
-import type { StudyRecord } from '../../model/types'
+import type { StudyRecord } from '@/entities/study'
+
 import { WriteModal } from '../WriteModal'
 import * as S from './MentorStudyModal.style'
 import { Modal } from './SummaryModal/SummaryModal'

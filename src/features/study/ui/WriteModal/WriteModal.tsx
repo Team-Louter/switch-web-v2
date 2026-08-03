@@ -5,10 +5,10 @@ import {
   getCurrentKoreaDate,
   getMonthWeekNumber,
 } from '@/shared/lib/studyWeek'
+import type { StudyRecord } from '@/entities/study'
 
 import { createStudy, modifyStudy } from '../../api/createStudy'
 import { deleteStudy } from '../../api/deleteStudy'
-import type { StudyRecord } from '../../model/types'
 import * as S from './WriteModal.style'
 
 interface WriteModalProps {

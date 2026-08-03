@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 
-import { getAllSchedules } from '@/features/schedule'
-import type { Schedule } from '@/features/schedule'
+import type { StudyResponse } from '@/entities/study'
+import { getAllSchedules } from '@/entities/schedule'
+import type { Schedule } from '@/entities/schedule'
 
 import {
   createTotalStudy,
   modifyTotalStudy,
 } from '../../api/createTotalStudy'
-import type { StudyResponse } from '../../model/types'
 
 import { ScheduleDropdown } from './ScheduleDropdown/ScheduleDropdown'
 import type { ScheduleOption } from './ScheduleDropdown/ScheduleDropdown'
