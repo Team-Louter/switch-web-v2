@@ -3,7 +3,11 @@ import { useEffect, useState } from 'react'
 import { getAllSchedules } from '@/features/schedule'
 import type { Schedule } from '@/features/schedule'
 
-import { createTotalStudy } from '../../api/createTotalStudy'
+import {
+  createTotalStudy,
+  modifyTotalStudy,
+} from '../../api/createTotalStudy'
+import type { StudyResponse } from '../../model/types'
 
 import { ScheduleDropdown } from './ScheduleDropdown/ScheduleDropdown'
 import type { ScheduleOption } from './ScheduleDropdown/ScheduleDropdown'
@@ -15,6 +19,8 @@ interface MentorTotalStudyModalProps {
   year: number
   month: number
   weekNumber: number
+  totalStudy?: StudyResponse
+  onGenerated?: (totalStudy: StudyResponse) => void
 }
 
 const formatScheduleDate = (date: string) => {
@@ -50,12 +56,16 @@ export function MentorTotalStudyModal({
   year,
   month,
   weekNumber,
+  totalStudy,
+  onGenerated,
 }: MentorTotalStudyModalProps) {
   const [schedules, setSchedules] = useState<ScheduleOption[]>([])
-  const [selectedScheduleIds, setSelectedScheduleIds] = useState<number[]>([])
-  const [isGenerated, setIsGenerated] = useState(false)
+  const [selectedScheduleIds, setSelectedScheduleIds] = useState<number[]>(
+    totalStudy?.scheduleIds ?? [],
+  )
+  const [isGenerated, setIsGenerated] = useState(totalStudy !== undefined)
   const [isGenerating, setIsGenerating] = useState(false)
-  const [content, setContent] = useState('')
+  const [content, setContent] = useState(totalStudy?.activityContent ?? '')
 
   useEffect(() => {
     if (!isOpen) return
@@ -99,8 +109,26 @@ export function MentorTotalStudyModal({
 
       setContent(totalStudy.activityContent)
       setIsGenerated(true)
+      onGenerated?.(totalStudy)
     } catch (error) {
       console.error('종합 학습일지를 생성하지 못했습니다.', error)
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  const handleRegenerate = async () => {
+    if (!totalStudy) return
+
+    setIsGenerating(true)
+
+    try {
+      const regeneratedStudy = await modifyTotalStudy(totalStudy.clubReportId)
+      setContent(regeneratedStudy.activityContent)
+      setSelectedScheduleIds(regeneratedStudy.scheduleIds)
+      onGenerated?.(regeneratedStudy)
+    } catch (error) {
+      console.error('종합 학습일지를 재생성하지 못했습니다.', error)
     } finally {
       setIsGenerating(false)
     }
@@ -132,8 +160,8 @@ export function MentorTotalStudyModal({
           <S.GeneratedButtonContainer>
             <S.SubmitButton
               type="button"
-              disabled={isGenerating || selectedScheduleIds.length === 0}
-              onClick={() => void handleGenerate()}
+              disabled={isGenerating || !totalStudy}
+              onClick={() => void handleRegenerate()}
             >
               {isGenerating ? '생성 중...' : '재생성'}
             </S.SubmitButton>
