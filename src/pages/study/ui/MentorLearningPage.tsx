@@ -159,7 +159,7 @@ export function MentorLearningPage() {
                   </S.Month>
                   {state === 'current' && <S.Now>Now</S.Now>}
                 </S.MonthHeading>
-                {state === 'current' && (
+                {state !== 'future' && (
                   <S.TotalStudyButton
                     $hasTotalStudy={totalStudy !== undefined}
                     type="button"
@@ -236,7 +236,12 @@ export function MentorLearningPage() {
           onGenerated={(totalStudy) => {
             setTotalStudies((current) => [
               ...current.filter(
-                (report) => report.clubReportId !== totalStudy.clubReportId,
+                (report) =>
+                  report.clubReportId !== totalStudy.clubReportId &&
+                  !(
+                    report.month === totalStudy.month &&
+                    report.weekNumber === totalStudy.weekNumber
+                  ),
               ),
               totalStudy,
             ])

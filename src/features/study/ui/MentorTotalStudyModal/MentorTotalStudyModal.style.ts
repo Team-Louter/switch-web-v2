@@ -36,7 +36,6 @@ export const GeneratedModal = styled.div`
   flex-direction: column;
   justify-content: space-between;
   padding: 40px;
-  overflow-y: auto;
   border-radius: ${token.shapes.xlarge};
   background-color: ${token.colors.white};
   box-shadow: 0 16px 48px rgb(0 0 0 / 20%);

@@ -39,10 +39,9 @@ const toScheduleOption = (schedule: Schedule): ScheduleOption => {
   }
 }
 
-const isInCurrentMonth = (schedule: Schedule) => {
-  const now = new Date()
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-  const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+const isInMonth = (schedule: Schedule, year: number, month: number) => {
+  const monthStart = new Date(year, month - 1, 1)
+  const nextMonthStart = new Date(year, month, 1)
 
   return (
     new Date(schedule.startDate) < nextMonthStart &&
@@ -75,7 +74,11 @@ export function MentorTotalStudyModal({
     getAllSchedules()
       .then((allSchedules) => {
         if (!isCancelled) {
-          setSchedules(allSchedules.filter(isInCurrentMonth).map(toScheduleOption))
+          setSchedules(
+            allSchedules
+              .filter((schedule) => isInMonth(schedule, year, month))
+              .map(toScheduleOption),
+          )
         }
       })
       .catch((error) => {
@@ -85,7 +88,7 @@ export function MentorTotalStudyModal({
     return () => {
       isCancelled = true
     }
-  }, [isOpen])
+  }, [isOpen, month, year])
 
   if (!isOpen) return null
 
