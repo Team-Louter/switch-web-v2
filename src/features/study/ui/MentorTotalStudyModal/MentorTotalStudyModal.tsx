@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { getAllSchedules } from '@/features/schedule'
 import type { Schedule } from '@/features/schedule'
 
-import { createTotalStudy } from '../../api/createtotalStudy'
+import { createTotalStudy } from '../../api/createTotalStudy'
 
 import { ScheduleDropdown } from './ScheduleDropdown/ScheduleDropdown'
 import type { ScheduleOption } from './ScheduleDropdown/ScheduleDropdown'
