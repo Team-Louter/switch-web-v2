@@ -33,9 +33,11 @@ export const OptionList = styled.div`
   left: 0;
   z-index: 1;
   display: flex;
+  max-height: 240px;
   flex-direction: column;
   gap: 6px;
   padding: 16px;
+  overflow-y: auto;
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.xsmall};
   background-color: ${token.colors.white};
