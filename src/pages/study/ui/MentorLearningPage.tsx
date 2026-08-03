@@ -2,14 +2,16 @@ import { useEffect, useMemo, useState } from 'react'
 import { PiPencilSimpleLine } from 'react-icons/pi'
 
 import {
-  getAllStudies,
-  getAllTotalStudies,
-  getWeekStatus,
   MentorStudyModal,
   MentorTotalStudyModal,
   MonthlyStudyWeeks,
 } from '@/features/study'
-import type { StudyRecord, StudyResponse, StudyStatus } from '@/features/study'
+import {
+  getAllStudies,
+  getAllTotalStudies,
+  getWeekStatus,
+} from '@/entities/study'
+import type { StudyRecord, StudyResponse, StudyStatus } from '@/entities/study'
 import { CLUB_MEMBER } from '@/shared/constants/clubMember'
 import { PercentageBar } from '@/shared/ui'
 

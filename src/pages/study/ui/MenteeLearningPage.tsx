@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import {
-  getMyStatus,
-  getStudy,
   MonthlyStudyWeeks,
   WriteModal,
 } from '@/features/study'
-import type { StudyRecord, StudyStatus, WeekStatus } from '@/features/study'
+import type { WeekStatus } from '@/features/study'
+import { getMyStatus, getStudy } from '@/entities/study'
+import type { StudyRecord, StudyStatus } from '@/entities/study'
 import {
   getCurrentKoreaDate,
   getMonthWeekCount,
