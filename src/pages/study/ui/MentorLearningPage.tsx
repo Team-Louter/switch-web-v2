@@ -19,6 +19,7 @@ import * as S from './LearningPage.style'
 
 export function MentorLearningPage() {
   const weeks = useMemo(() => getWeeksForCurrentYear(), [])
+  const currentMonth = weeks.find(({ state }) => state === 'current')?.month
   const [statusesByWeek, setStatusesByWeek] = useState<
     Record<string, StudyStatus[]>
   >({})
@@ -95,6 +96,12 @@ export function MentorLearningPage() {
     <S.PageContainer>
       <S.ScrollArea>
         {weeks.map(({ id, year, month, weekNumber, state }) => {
+          const monthState =
+            currentMonth === undefined || month === currentMonth
+              ? 'current'
+              : month < currentMonth
+                ? 'past'
+                : 'future'
           const weekStatuses = statusesByWeek[id] ?? []
           const submitRate = weekStatuses.length
             ? Math.round(
@@ -148,7 +155,15 @@ export function MentorLearningPage() {
                   <S.SubmitLabel>제출률</S.SubmitLabel>
                   <S.SubmitRate>{submitRate}%</S.SubmitRate>
                   <PercentageBar value={submitRate} label="멘티 과제 제출률" />
-                  <S.Status>진행중</S.Status>
+                  <S.Status>
+                    {
+                      {
+                        past: '진행 완료',
+                        current: '진행 중',
+                        future: '잠김',
+                      }[monthState]
+                    }
+                  </S.Status>
                 </S.ProgressContent>
                 <S.DiaryContent>
                   <MonthlyStudyWeeks
