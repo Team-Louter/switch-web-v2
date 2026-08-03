@@ -1,4 +1,5 @@
 export interface CreateStudyRequest {
+  year: number
   month: number
   weekNumber: number
   title: string
