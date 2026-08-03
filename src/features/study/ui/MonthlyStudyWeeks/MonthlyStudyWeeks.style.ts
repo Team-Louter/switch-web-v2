@@ -20,7 +20,7 @@ export const Grid = styled.div`
   gap: 10px 16px;
 `
 
-export const StudyItem = styled.div<{ $status: WeekStatus }>`
+export const StudyItem = styled.button<{ $status: WeekStatus }>`
   ${token.typography('heading', 'sm', 'semibold')};
   display: flex;
   flex: 0 0 25px;
@@ -33,6 +33,8 @@ export const StudyItem = styled.div<{ $status: WeekStatus }>`
   background: ${token.colors.white};
   color: ${({ $status }) =>
     $status === 'locked' ? token.colors.gray.gray20 : token.colors.gray.gray70};
+  cursor: ${({ $status }) => ($status === 'locked' ? 'not-allowed' : 'pointer')};
+  text-align: left;
 `
 
 export const LeadingIcon = styled.span<{ $locked: boolean }>`
