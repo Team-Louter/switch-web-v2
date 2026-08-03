@@ -1,43 +1,96 @@
 import { useState } from 'react'
-import { PiCaretLeft, PiCaretRight } from 'react-icons/pi'
+import { PiCaretLeft, PiCaretRight, PiTrash } from 'react-icons/pi'
 
-import { createStudy } from '../../api/createStudy'
+import {
+  getCurrentKoreaDate,
+  getMonthWeekNumber,
+} from '@/shared/lib/studyWeek'
+
+import { createStudy, modifyStudy } from '../../api/createStudy'
+import { deleteStudy } from '../../api/deleteStudy'
 import type { StudyRecord } from '../../model/types'
 import * as S from './WriteModal.style'
 
 interface WriteModalProps {
   isOpen: boolean
   onClose: () => void
+  onCreateSuccess?: () => void | Promise<void>
+  onDeleteSuccess?: () => void | Promise<void>
+  month?: number
+  weekNumber?: number
   study?: StudyRecord
   readOnly?: boolean
   onPrevious?: () => void
   onNext?: () => void
 }
 
-const handleSubmit = async (month: number, weekNumber: number, title: string, ownContent: string, clubContent: string) => {
-  try {
-    await createStudy({ month, weekNumber, title, ownContent, clubContent });
-    console.log('Study created successfully');
-  } catch (e) {
-    console.error('Error creating study:', e);
-  }
-};
-
-export function WriteModal({
-  isOpen,
+function WriteModalContent({
   onClose,
+  onCreateSuccess,
+  onDeleteSuccess,
+  month: providedMonth,
+  weekNumber: providedWeekNumber,
   study,
   readOnly = false,
   onPrevious,
   onNext,
 }: WriteModalProps) {
-  const month = new Date().getMonth() + 1;
-  const weekNumber = Math.ceil(new Date().getDate() / 7);
-  const [title, setTitle] = useState('');
-  const [ownContent, setOwnContent] = useState('');
-  const [clubContent, setClubContent] = useState('');
+  const currentDate = getCurrentKoreaDate()
+  const month = providedMonth ?? currentDate.month
+  const weekNumber =
+    providedWeekNumber ??
+    getMonthWeekNumber(currentDate.year, currentDate.month, currentDate.day)
+  const [title, setTitle] = useState(study?.title ?? '')
+  const [ownContent, setOwnContent] = useState(study?.ownContent ?? '')
+  const [clubContent, setClubContent] = useState(study?.clubContent ?? '')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  if (!isOpen) return null
+  const handleSubmit = async () => {
+    const data = {
+      year: currentDate.year,
+      month,
+      weekNumber,
+      title,
+      ownContent,
+      clubContent,
+    }
+
+    try {
+      setIsSubmitting(true)
+
+      if (study) {
+        await modifyStudy(study.studyId, data)
+        onClose()
+        return
+      }
+
+      await createStudy(data)
+      onClose()
+      void onCreateSuccess?.()
+    } catch (error) {
+      console.error(
+        study ? '학습일지를 수정하지 못했습니다.' : '학습일지를 작성하지 못했습니다.',
+        error,
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!study) return
+
+    try {
+      setIsSubmitting(true)
+      await deleteStudy(study.studyId)
+      onClose()
+      void onDeleteSuccess?.()
+    } catch (error) {
+      console.error('학습일지를 삭제하지 못했습니다.', error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const displayedTitle = readOnly ? (study?.title ?? '') : title
   const displayedOwnContent = readOnly ? (study?.ownContent ?? '') : ownContent
@@ -69,7 +122,7 @@ export function WriteModal({
           </S.NavigationButton>
         )}
         <S.Header>
-          <S.Title>6월 1주차 학습일지</S.Title>
+          <S.Title>{month}월 {weekNumber}주차 학습일지</S.Title>
           {readOnly && study?.authorName && (
             <S.Author>{study.authorName}</S.Author>
           )}
@@ -118,15 +171,25 @@ export function WriteModal({
           <S.LetterCount>{displayedClubContent.length}/1000</S.LetterCount>
         </S.Column>
         <S.ButtonContainer>
+          {!readOnly && study && (
+            <S.DeleteButton
+              type="button"
+              aria-label="학습일지 삭제"
+              title="삭제"
+              disabled={isSubmitting}
+              onClick={handleDelete}
+            >
+              <PiTrash aria-hidden="true" />
+            </S.DeleteButton>
+          )}
           <S.CancelButton type="button" onClick={onClose}>
             {readOnly ? '닫기' : '취소'}
           </S.CancelButton>
           {!readOnly && (
             <S.SubmitButton
-              type="submit"
-              onClick={() =>
-                handleSubmit(month, weekNumber, title, ownContent, clubContent)
-              }
+              type="button"
+              disabled={isSubmitting}
+              onClick={handleSubmit}
             >
               제출
             </S.SubmitButton>
@@ -135,4 +198,10 @@ export function WriteModal({
       </S.Modal>
     </S.Backdrop>
   )
+}
+
+export function WriteModal(props: WriteModalProps) {
+  if (!props.isOpen) return null
+
+  return <WriteModalContent {...props} />
 }
