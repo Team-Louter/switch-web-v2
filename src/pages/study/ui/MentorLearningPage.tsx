@@ -3,12 +3,13 @@ import { PiPencilSimpleLine } from 'react-icons/pi'
 
 import {
   getAllStudies,
+  getAllTotalStudies,
   getWeekStatus,
   MentorStudyModal,
   MentorTotalStudyModal,
   MonthlyStudyWeeks,
 } from '@/features/study'
-import type { StudyRecord, StudyStatus } from '@/features/study'
+import type { StudyRecord, StudyResponse, StudyStatus } from '@/features/study'
 import { CLUB_MEMBER } from '@/shared/constants/clubMember'
 import { PercentageBar } from '@/shared/ui'
 
@@ -36,6 +37,7 @@ export function MentorLearningPage() {
   } | null>(null)
   const [studies, setStudies] = useState<StudyRecord[]>([])
   const [isStudiesLoading, setIsStudiesLoading] = useState(false)
+  const [totalStudies, setTotalStudies] = useState<StudyResponse[]>([])
 
   useEffect(() => {
     let isCancelled = false
@@ -57,6 +59,22 @@ export function MentorLearningPage() {
       isCancelled = true
     }
   }, [weeks])
+
+  useEffect(() => {
+    let isCancelled = false
+
+    getAllTotalStudies()
+      .then((reports) => {
+        if (!isCancelled) setTotalStudies(reports)
+      })
+      .catch((error) => {
+        console.error('종합 학습일지를 불러오지 못했습니다.', error)
+      })
+
+    return () => {
+      isCancelled = true
+    }
+  }, [])
 
   const isStudyInWeek = (
     study: StudyRecord,
@@ -96,6 +114,10 @@ export function MentorLearningPage() {
     <S.PageContainer>
       <S.ScrollArea>
         {weeks.map(({ id, year, month, weekNumber, state }) => {
+          const totalStudy = totalStudies.find(
+            (report) =>
+              report.month === month && report.weekNumber === weekNumber,
+          )
           const monthState =
             currentMonth === undefined || month === currentMonth
               ? 'current'
@@ -139,6 +161,7 @@ export function MentorLearningPage() {
                 </S.MonthHeading>
                 {state === 'current' && (
                   <S.TotalStudyButton
+                    $hasTotalStudy={totalStudy !== undefined}
                     type="button"
                     onClick={() => {
                       setSelectedTotalStudyWeek({ year, month, weekNumber })
@@ -198,13 +221,28 @@ export function MentorLearningPage() {
         studies={studies}
         isLoading={isStudiesLoading}
       />
-      <MentorTotalStudyModal
-        isOpen={isTotalStudyModalOpen && selectedTotalStudyWeek !== null}
-        onClose={() => setIsTotalStudyModalOpen(false)}
-        year={selectedTotalStudyWeek?.year ?? 0}
-        month={selectedTotalStudyWeek?.month ?? 0}
-        weekNumber={selectedTotalStudyWeek?.weekNumber ?? 0}
-      />
+      {isTotalStudyModalOpen && selectedTotalStudyWeek !== null && (
+        <MentorTotalStudyModal
+          isOpen
+          onClose={() => setIsTotalStudyModalOpen(false)}
+          year={selectedTotalStudyWeek.year}
+          month={selectedTotalStudyWeek.month}
+          weekNumber={selectedTotalStudyWeek.weekNumber}
+          totalStudy={totalStudies.find(
+            (report) =>
+              report.month === selectedTotalStudyWeek.month &&
+              report.weekNumber === selectedTotalStudyWeek.weekNumber,
+          )}
+          onGenerated={(totalStudy) => {
+            setTotalStudies((current) => [
+              ...current.filter(
+                (report) => report.clubReportId !== totalStudy.clubReportId,
+              ),
+              totalStudy,
+            ])
+          }}
+        />
+      )}
     </S.PageContainer>
   )
 }

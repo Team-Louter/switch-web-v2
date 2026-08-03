@@ -58,14 +58,17 @@ export const Now = styled.span`
   color: ${token.colors.primary.text};
 `;
 
-export const TotalStudyButton = styled.button`
+export const TotalStudyButton = styled.button<{ $hasTotalStudy: boolean }>`
   ${token.typography('body', 'sm', 'medium')};
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 4px 0;
   border: 0;
-  color: ${token.colors.primary.text};
+  color: ${({ $hasTotalStudy }) =>
+    $hasTotalStudy
+      ? token.colors.success.success20
+      : token.colors.primary.text};
   background: transparent;
   cursor: pointer;
 
