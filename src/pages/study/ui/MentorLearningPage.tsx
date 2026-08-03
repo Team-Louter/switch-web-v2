@@ -13,7 +13,7 @@ import {
 } from '@/entities/study'
 import type { StudyRecord, StudyResponse, StudyStatus } from '@/entities/study'
 import { CLUB_MEMBER } from '@/shared/constants/clubMember'
-import { PercentageBar } from '@/shared/ui'
+import { PercentBar } from '@/features/study'
 
 import decoImg1 from '../assets/deco1.svg'
 import decoImg2 from '../assets/spring.svg'
@@ -179,7 +179,7 @@ export function MentorLearningPage() {
                 <S.ProgressContent>
                   <S.SubmitLabel>제출률</S.SubmitLabel>
                   <S.SubmitRate>{submitRate}%</S.SubmitRate>
-                  <PercentageBar value={submitRate} label="멘티 과제 제출률" />
+                  <PercentBar value={submitRate} label="멘티 과제 제출률" />
                   <S.Status>
                     {
                       {

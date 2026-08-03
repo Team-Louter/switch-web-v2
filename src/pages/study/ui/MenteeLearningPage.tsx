@@ -12,7 +12,7 @@ import {
   getMonthWeekCount,
   getMonthWeekNumber,
 } from '@/shared/lib/studyWeek'
-import { PercentageBar } from '@/shared/ui'
+import { PercentBar } from '@/features/study'
 
 import decoImg1 from '../assets/deco1.svg'
 import decoImg2 from '../assets/spring.svg'
@@ -147,7 +147,7 @@ export function MenteeLearningPage() {
                 <S.ProgressContent>
                   <S.SubmitLabel>제출</S.SubmitLabel>
                   <S.SubmitRate>{submitRate}%</S.SubmitRate>
-                  <PercentageBar value={submitRate} label="과제 제출률" />
+                  <PercentBar value={submitRate} label="과제 제출률" />
                   <S.Status>
                     {
                       {

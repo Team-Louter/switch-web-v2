@@ -1,20 +1,20 @@
 import type { CSSProperties } from 'react'
 
-import * as S from './PercentageBar.style'
+import * as S from './PercentBar.style'
 
-interface PercentageBarProps {
+interface PercentBarProps {
   value: number
   label?: string
   className?: string
   style?: CSSProperties
 }
 
-export function PercentageBar({
+export function PercentBar({
   value,
   label = '진행률',
   className,
   style,
-}: PercentageBarProps) {
+}: PercentBarProps) {
   const normalizedValue = Math.min(100, Math.max(0, value))
 
   return (
