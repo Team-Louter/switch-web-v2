@@ -1,6 +1,10 @@
-const KOREA_TIME_ZONE = 'Asia/Seoul'
+import {
+  getCurrentKoreaDate,
+  getMonthWeekCount,
+  getMonthWeekNumber,
+} from '@/shared/lib/studyWeek'
+
 const MONTHS_IN_YEAR = 12
-const WEEKS_IN_MONTH = 5
 
 export type WeekState = 'past' | 'current' | 'future'
 
@@ -12,55 +16,41 @@ export interface StudyWeek {
   state: WeekState
 }
 
-interface CalendarDate {
-  year: number
-  month: number
-  day: number
-}
-
-function getCurrentKoreaDate(): CalendarDate {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: KOREA_TIME_ZONE,
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-  }).formatToParts(new Date())
-
-  const getPart = (type: Intl.DateTimeFormatPartTypes) =>
-    Number(parts.find((part) => part.type === type)?.value)
-
-  return {
-    year: getPart('year'),
-    month: getPart('month'),
-    day: getPart('day'),
-  }
-}
-
 export function getWeeksForCurrentYear(): StudyWeek[] {
   const currentDate = getCurrentKoreaDate()
-  const currentWeekNumber = Math.ceil(currentDate.day / 7)
-  const currentWeekIndex =
-    (currentDate.month - 1) * WEEKS_IN_MONTH + currentWeekNumber - 1
+  const currentWeekNumber = getMonthWeekNumber(
+    currentDate.year,
+    currentDate.month,
+    currentDate.day,
+  )
 
   const weeks: StudyWeek[] = Array.from(
-    { length: MONTHS_IN_YEAR * WEEKS_IN_MONTH },
-    (_, index) => {
-      const month = Math.floor(index / WEEKS_IN_MONTH) + 1
-      const weekNumber = (index % WEEKS_IN_MONTH) + 1
-      const isPast =
-        month < currentDate.month ||
-        (month === currentDate.month && weekNumber < currentWeekNumber)
-      const isCurrent =
-        month === currentDate.month && weekNumber === currentWeekNumber
+    { length: MONTHS_IN_YEAR },
+    (_, index) => index + 1,
+  ).flatMap((month) =>
+    Array.from(
+      { length: getMonthWeekCount(currentDate.year, month) },
+      (_, index) => {
+        const weekNumber = index + 1
+        const isPast =
+          month < currentDate.month ||
+          (month === currentDate.month && weekNumber < currentWeekNumber)
+        const isCurrent =
+          month === currentDate.month && weekNumber === currentWeekNumber
 
-      return {
-        id: `${currentDate.year}-${month}-${weekNumber}`,
-        year: currentDate.year,
-        month,
-        weekNumber,
-        state: isPast ? 'past' : isCurrent ? 'current' : 'future',
-      }
-    },
+        return {
+          id: `${currentDate.year}-${month}-${weekNumber}`,
+          year: currentDate.year,
+          month,
+          weekNumber,
+          state: isPast ? 'past' : isCurrent ? 'current' : 'future',
+        }
+      },
+    ),
+  )
+  const currentWeekIndex = weeks.findIndex(
+    ({ month, weekNumber }) =>
+      month === currentDate.month && weekNumber === currentWeekNumber,
   )
 
   return [
