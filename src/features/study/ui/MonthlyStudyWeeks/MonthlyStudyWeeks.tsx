@@ -18,6 +18,7 @@ export interface MonthlyStudyItem {
 
 interface MonthlyStudyWeeksProps {
   items: MonthlyStudyItem[]
+  onItemClick?: (item: MonthlyStudyItem) => void
 }
 
 function StatusIcon({ status }: { status: Exclude<WeekStatus, 'locked'> }) {
@@ -30,12 +31,21 @@ function StatusIcon({ status }: { status: Exclude<WeekStatus, 'locked'> }) {
   return <Icon aria-hidden="true" />
 }
 
-export function MonthlyStudyWeeks({ items }: MonthlyStudyWeeksProps) {
+export function MonthlyStudyWeeks({
+  items,
+  onItemClick,
+}: MonthlyStudyWeeksProps) {
   return (
     <S.Grid>
       {items.map(({ id, label, status }) => {
         return (
-          <S.StudyItem key={id} $status={status}>
+          <S.StudyItem
+            key={id}
+            type="button"
+            $status={status}
+            disabled={status === 'locked'}
+            onClick={() => onItemClick?.({ id, label, status })}
+          >
             <S.LeadingIcon $locked={status === 'locked'}>
               {status === 'locked' ? (
                 <RiLock2Fill aria-hidden="true" />
