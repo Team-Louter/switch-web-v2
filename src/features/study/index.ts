@@ -1,5 +1,5 @@
 export { createStudy } from './api/createStudy'
-export { getAllStudies } from './api/getStudy'
+export { getAllStudies, getStudy } from './api/getStudy'
 export { getMyStatus, getWeekStatus } from './api/getStatus'
 export type {
   CreateStudyRequest,
