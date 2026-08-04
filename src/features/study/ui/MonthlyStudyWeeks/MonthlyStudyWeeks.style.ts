@@ -30,11 +30,12 @@ export const StudyItem = styled.button<{ $status: WeekStatus }>`
   padding: 0 10px;
   border: 1px solid ${({ $status }) => statusColor[$status]};
   border-radius: ${token.shapes.xsmall};
-  background: ${token.colors.white};
+  background-color: ${token.colors.white};
   color: ${({ $status }) =>
     $status === 'locked' ? token.colors.gray.gray20 : token.colors.gray.gray70};
   cursor: ${({ $status }) => ($status === 'locked' ? 'not-allowed' : 'pointer')};
   text-align: left;
+  z-index: 1;
 `
 
 export const LeadingIcon = styled.span<{ $locked: boolean }>`

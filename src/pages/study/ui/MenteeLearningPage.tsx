@@ -14,7 +14,6 @@ import {
 } from '@/shared/lib/studyWeek'
 import { PercentBar } from '@/features/study'
 
-import decoImg1 from '../assets/deco1.svg'
 import decoImg2 from '../assets/spring.svg'
 import {
   getCurrentMonth,
@@ -172,7 +171,7 @@ export function MenteeLearningPage() {
                       }))
                     }}
                   />
-                  <S.DecoImg src={decoImg1} alt="" />
+                  <S.DecoImg aria-hidden="true" />
                   <S.ButtonContent>
                     <S.Name>2213 최현수</S.Name>
                     <S.Week>
