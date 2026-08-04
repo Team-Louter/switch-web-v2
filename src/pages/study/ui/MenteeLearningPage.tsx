@@ -12,6 +12,7 @@ import {
   getMonthWeekCount,
   getMonthWeekNumber,
 } from '@/shared/lib/studyWeek'
+import { tokens } from '@/shared/styles'
 import { PercentBar } from '@/features/study'
 
 import decoImg2 from '../assets/spring.svg'
@@ -171,7 +172,14 @@ export function MenteeLearningPage() {
                       }))
                     }}
                   />
-                  <S.DecoImg aria-hidden="true" />
+                  <S.DecoImg
+                    aria-hidden="true"
+                    color={
+                      monthState === 'future'
+                        ? tokens.colors.gray.gray50
+                        : undefined
+                    }
+                  />
                   <S.ButtonContent>
                     <S.Name>2213 최현수</S.Name>
                     <S.Week>

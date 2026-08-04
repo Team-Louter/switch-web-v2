@@ -161,19 +161,18 @@ export function MentorLearningPage() {
                   </S.Month>
                   {state === 'current' && <S.Now>Now</S.Now>}
                 </S.MonthHeading>
-                {state !== 'future' && (
-                  <S.TotalStudyButton
-                    $hasTotalStudy={totalStudy !== undefined}
-                    type="button"
-                    onClick={() => {
-                      setSelectedTotalStudyWeek({ year, month, weekNumber })
-                      setIsTotalStudyModalOpen(true)
-                    }}
-                  >
-                    <PiPencilSimpleLine aria-hidden="true" />
-                    종합학습일지 작성하기
-                  </S.TotalStudyButton>
-                )}
+                <S.TotalStudyButton
+                  $hasTotalStudy={totalStudy !== undefined}
+                  $isFuture={state === 'future'}
+                  type="button"
+                  onClick={() => {
+                    setSelectedTotalStudyWeek({ year, month, weekNumber })
+                    setIsTotalStudyModalOpen(true)
+                  }}
+                >
+                  <PiPencilSimpleLine aria-hidden="true" />
+                  종합학습일지 작성하기
+                </S.TotalStudyButton>
               </S.MonthRow>
               <S.Card $state={state}>
                 <S.ProgressContent>
@@ -184,7 +183,7 @@ export function MentorLearningPage() {
                     {
                       {
                         past: '진행 완료',
-                        current: '진행 중',
+                        current: '진행중',
                         future: '잠김',
                       }[monthState]
                     }
@@ -196,7 +195,11 @@ export function MentorLearningPage() {
                   />
                   <S.DecoImg
                     aria-hidden="true"
-                    color={tokens.colors.primary.primary50}
+                    color={
+                      state === 'future'
+                        ? tokens.colors.gray.gray50
+                        : tokens.colors.primary.primary50
+                    }
                     style={{ right: -38 }}
                   />
                   <S.ButtonContent style={{ width: 200 }}>

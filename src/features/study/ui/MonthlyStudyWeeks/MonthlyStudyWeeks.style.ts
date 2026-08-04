@@ -27,7 +27,7 @@ export const StudyItem = styled.button<{ $status: WeekStatus }>`
   align-items: center;
   width: 130px;
   height: 25px;
-  padding: 0 10px;
+  padding: 0 5px 0px 10px;
   border: 1px solid ${({ $status }) => statusColor[$status]};
   border-radius: ${token.shapes.xsmall};
   background-color: ${token.colors.white};
@@ -40,6 +40,7 @@ export const StudyItem = styled.button<{ $status: WeekStatus }>`
 
 export const LeadingIcon = styled.span<{ $locked: boolean }>`
   display: inline-flex;
+  flex-shrink: 0;
   width: 12px;
   height: 12px;
   margin-right: 10px;
@@ -59,6 +60,7 @@ export const LeadingIcon = styled.span<{ $locked: boolean }>`
 
 export const Label = styled.span`
   ${token.typography('caption', 'sm', 'semibold')};
+  min-width: 0;
   overflow: hidden;
   color: ${token.colors.gray.gray70};
   text-overflow: ellipsis;
@@ -69,8 +71,9 @@ export const StatusMark = styled.span<{
   $status: Exclude<WeekStatus, 'locked'>
 }>`
   display: inline-flex;
-  width: 12px;
-  height: 12px;
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
   margin-left: auto;
   color: ${({ $status }) => statusColor[$status]};
 
