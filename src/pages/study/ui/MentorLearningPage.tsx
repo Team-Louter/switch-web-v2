@@ -15,10 +15,10 @@ import type { StudyRecord, StudyResponse, StudyStatus } from '@/entities/study'
 import { CLUB_MEMBER } from '@/shared/constants/clubMember'
 import { PercentBar } from '@/features/study'
 
-import decoImg1 from '../assets/deco1.svg'
 import decoImg2 from '../assets/spring.svg'
 import { getWeeksForCurrentYear } from '../lib/getWeeksForCurrentYear'
 import * as S from './LearningPage.style'
+import { tokens } from '@/shared/styles'
 
 export function MentorLearningPage() {
   const weeks = useMemo(() => getWeeksForCurrentYear(), [])
@@ -171,7 +171,7 @@ export function MentorLearningPage() {
                     }}
                   >
                     <PiPencilSimpleLine aria-hidden="true" />
-                    종합 학습 일지 작성하기
+                    종합학습일지 작성하기
                   </S.TotalStudyButton>
                 )}
               </S.MonthRow>
@@ -194,7 +194,11 @@ export function MentorLearningPage() {
                   <MonthlyStudyWeeks
                     items={items}
                   />
-                  <S.DecoImg src={decoImg1} alt="" />
+                  <S.DecoImg
+                    aria-hidden="true"
+                    color={tokens.colors.primary.primary50}
+                    style={{ right: -38 }}
+                  />
                   <S.ButtonContent style={{ width: 200 }}>
                     <S.Name>Louter</S.Name>
                     <S.Week>{month}월 {weekNumber}주차 학습일지</S.Week>

@@ -1,6 +1,7 @@
 import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
+import DecoSvg from '../assets/deco1.svg?react'
 
 type PeriodState = 'past' | 'current' | 'future'
 
@@ -32,7 +33,7 @@ export const Column = styled.div<{ $state: PeriodState }>`
 
 export const ProgressContent = styled.div`
   ${token.flexColumn};
-  width: 144px;
+  width: 100px;
   height: 100%;
 `
 
@@ -59,11 +60,11 @@ export const Now = styled.span`
 `;
 
 export const TotalStudyButton = styled.button<{ $hasTotalStudy: boolean }>`
-  ${token.typography('body', 'sm', 'medium')};
+  ${token.typography('caption', 'lg', 'semibold')};
   display: inline-flex;
   align-items: center;
+  align-self: flex-end;
   gap: 5px;
-  padding: 4px 0;
   border: 0;
   color: ${({ $hasTotalStudy }) =>
     $hasTotalStudy
@@ -130,12 +131,13 @@ export const DiaryContent = styled.div`
   flex-direction: row;
 `;
 
-export const DecoImg = styled.img`
+export const DecoImg = styled(DecoSvg)`
   position: absolute;
   top: 0;
   right: 170px;
   width: auto;
   height: 100%;
+  color: ${({ color }) => color ?? '#CCA700'};
   object-fit: contain;
   pointer-events: none;
 `;
@@ -148,6 +150,7 @@ export const ButtonContent = styled.div`
   justify-content: space-between;
   margin-left: auto;
   align-items: flex-end;
+  z-index: 1;
 `;
 
 export const Name = styled.span`

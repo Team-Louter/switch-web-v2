@@ -30,6 +30,7 @@
     "globals": "latest",
     "typescript": "latest",
     "typescript-eslint": "latest",
-    "vite": "latest"
+    "vite": "latest",
+    "vite-plugin-svgr": "^5.2.0"
   }
 }
