@@ -184,6 +184,9 @@ export function MentoringPage() {
     (total, mentor) => total + getQuestionCount(mentor.totalQuestions),
     0,
   )
+  const attentionNeededMentorCount = mentors.filter(
+    (mentor) => mentor.status !== '원활',
+  ).length
   const mentorKeyword = mentorSearchKeyword.trim().toLowerCase()
   const questionKeyword = questionSearchKeyword.trim().toLowerCase()
   const filteredMentors = mentors
@@ -251,7 +254,8 @@ export function MentoringPage() {
               <StatCard $tone="danger">
                 <StatLabel>주의 필요 멘토</StatLabel>
                 <StatValue>
-                  5<StatUnit>명</StatUnit>
+                  {attentionNeededMentorCount}
+                  <StatUnit>명</StatUnit>
                 </StatValue>
               </StatCard>
               <StatCard>
