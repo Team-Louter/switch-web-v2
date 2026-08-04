@@ -8,15 +8,16 @@ type PeriodState = 'past' | 'current' | 'future'
 export const PageContainer = styled.section`
   width: 100%;
   height: 100vh;
-  padding: 48px;
+  padding: clamp(20px, 2vw, 30px);
   overflow: hidden;
   background: ${token.colors.white};
+  padding-bottom: 0;
 `
 
 export const ScrollArea = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 28px;
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -59,19 +60,25 @@ export const Now = styled.span`
   color: ${token.colors.primary.text};
 `;
 
-export const TotalStudyButton = styled.button<{ $hasTotalStudy: boolean }>`
+export const TotalStudyButton = styled.button<{
+  $hasTotalStudy: boolean
+  $isFuture: boolean
+}>`
   ${token.typography('caption', 'lg', 'semibold')};
   display: inline-flex;
   align-items: center;
   align-self: flex-end;
   gap: 5px;
   border: 0;
-  color: ${({ $hasTotalStudy }) =>
-    $hasTotalStudy
+  color: ${({ $hasTotalStudy, $isFuture }) =>
+    $isFuture
+      ? token.colors.gray.gray50
+      : $hasTotalStudy
       ? token.colors.success.success20
       : token.colors.primary.text};
   background: transparent;
   cursor: pointer;
+  margin-right: 16px;
 
   svg {
     flex: 0 0 auto;
@@ -168,7 +175,7 @@ export const WriteButton = styled.button`
   color: ${token.colors.white};
   background-color: ${token.colors.gray.gray70};
   border-radius: ${token.shapes.xsmall};
-  padding: 5px 35px;
+  padding: 5px 30px;
   cursor: pointer;
 
   &:not(:disabled):hover {
