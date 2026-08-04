@@ -5,6 +5,7 @@ import {
   CommunityPage,
   HomePage,
   LearningPage,
+  MentoringEntryPage,
   MentoringPage,
   MyPage,
   NotificationPage,
@@ -24,7 +25,8 @@ export function App() {
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/learning" element={<LearningPage />} />
-          <Route path="/mentoring" element={<MentoringPage />} />
+          <Route path="/mentoring" element={<MentoringEntryPage />} />
+          <Route path="/mentoring/dashboard" element={<MentoringPage />} />
           <Route path="/typing" element={<TypingPage />} />
           <Route path="/notification" element={<NotificationPage />} />
           <Route path="/store" element={<StorePage />} />

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import profileImage from '@/shared/assets/sidebar/profile.png'
 
@@ -166,6 +167,7 @@ const getQuestionCount = (questionCountText: string) => {
 }
 
 export function MentoringPage() {
+  const navigate = useNavigate()
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard')
   const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null)
   const [selectedMentorFilter, setSelectedMentorFilter] = useState<MentorFilter>('전체')
@@ -244,12 +246,21 @@ export function MentoringPage() {
     setSelectedQuestionId(null)
   }
 
+  const handleDashboardBack = () => {
+    navigate('/mentoring')
+  }
+
   return (
     <MentoringLayout>
       <Content $withPanel={shouldShowChatPanel}>
         {viewMode === 'dashboard' ? (
           <>
-            <PageHeader title="멘토링 관리" />
+            <Header>
+              <BackButton type="button" aria-label="멘토링으로 돌아가기" onClick={handleDashboardBack}>
+                ‹
+              </BackButton>
+              <PageHeader title="멘토링 관리" />
+            </Header>
             <DashboardGrid>
               <StatCard $tone="danger">
                 <StatLabel>주의 필요 멘토</StatLabel>

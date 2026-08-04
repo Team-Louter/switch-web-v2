@@ -17,7 +17,12 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   const activeSidebarItemId = useMemo(() => {
     return (
-      SIDEBAR_MENU.find((item) => item.path === location.pathname)?.id ?? 'home'
+      SIDEBAR_MENU.find((item) =>
+        item.path === '/'
+          ? location.pathname === item.path
+          : location.pathname === item.path ||
+            location.pathname.startsWith(`${item.path}/`),
+      )?.id ?? 'home'
     )
   }, [location.pathname])
 
