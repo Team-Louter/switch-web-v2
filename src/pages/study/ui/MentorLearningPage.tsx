@@ -53,9 +53,7 @@ export function MentorLearningPage() {
       .then((weekStatuses) => {
         if (!isCancelled) setStatusesByWeek(Object.fromEntries(weekStatuses))
       })
-      .catch((error) => {
-        console.error('주차별 제출 상태를 불러오지 못했습니다.', error)
-      })
+      .catch(() => {})
 
     return () => {
       isCancelled = true
@@ -69,9 +67,7 @@ export function MentorLearningPage() {
       .then((reports) => {
         if (!isCancelled) setTotalStudies(reports)
       })
-      .catch((error) => {
-        console.error('종합 학습일지를 불러오지 못했습니다.', error)
-      })
+      .catch(() => {})
 
     return () => {
       isCancelled = true
@@ -105,8 +101,8 @@ export function MentorLearningPage() {
           isStudyInWeek(study, year, month, weekNumber),
         ),
       )
-    } catch (error) {
-      console.error('학습일지를 불러오지 못했습니다.', error)
+    } catch {
+      // 조회 실패 시 빈 목록을 표시한다.
     } finally {
       setIsStudiesLoading(false)
     }

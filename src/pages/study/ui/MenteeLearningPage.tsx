@@ -61,9 +61,7 @@ export function MenteeLearningPage() {
           setStatusesByMonth(Object.fromEntries(monthStatuses))
         }
       })
-      .catch((error) => {
-        console.error('월별 학습일지 제출 상태를 불러오지 못했습니다.', error)
-      })
+      .catch(() => {})
 
     return () => {
       isCancelled = true
@@ -83,8 +81,8 @@ export function MenteeLearningPage() {
         delete next[month]
         return next
       })
-    } catch (error) {
-      console.error('학습일지 제출 상태를 다시 불러오지 못했습니다.', error)
+    } catch {
+      // 갱신 실패 시 현재 제출 상태를 유지한다.
     }
   }
 
@@ -211,11 +209,7 @@ export function MenteeLearningPage() {
                               selectedWeek.weekNumber,
                             )
                             setModalStudy(study)
-                          } catch (error) {
-                            console.error(
-                              '학습일지를 불러오지 못했습니다.',
-                              error,
-                            )
+                          } catch {
                             return
                           }
                         }

@@ -67,11 +67,8 @@ function WriteModalContent({
       await createStudy(data)
       onClose()
       void onCreateSuccess?.()
-    } catch (error) {
-      console.error(
-        study ? '학습일지를 수정하지 못했습니다.' : '학습일지를 작성하지 못했습니다.',
-        error,
-      )
+    } catch {
+      // 실패 시 모달을 유지해 사용자가 다시 시도할 수 있게 한다.
     } finally {
       setIsSubmitting(false)
     }
@@ -85,8 +82,8 @@ function WriteModalContent({
       await deleteStudy(study.studyId)
       onClose()
       void onDeleteSuccess?.()
-    } catch (error) {
-      console.error('학습일지를 삭제하지 못했습니다.', error)
+    } catch {
+      // 실패 시 모달을 유지해 사용자가 다시 시도할 수 있게 한다.
     } finally {
       setIsSubmitting(false)
     }

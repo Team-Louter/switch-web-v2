@@ -81,9 +81,7 @@ export function MentorTotalStudyModal({
           )
         }
       })
-      .catch((error) => {
-        console.error('일정을 불러오지 못했습니다.', error)
-      })
+      .catch(() => {})
 
     return () => {
       isCancelled = true
@@ -113,8 +111,8 @@ export function MentorTotalStudyModal({
       setContent(totalStudy.activityContent)
       setIsGenerated(true)
       onGenerated?.(totalStudy)
-    } catch (error) {
-      console.error('종합 학습일지를 생성하지 못했습니다.', error)
+    } catch {
+      // 실패 시 현재 입력값을 유지해 사용자가 다시 시도할 수 있게 한다.
     } finally {
       setIsGenerating(false)
     }
@@ -130,8 +128,8 @@ export function MentorTotalStudyModal({
       setContent(regeneratedStudy.activityContent)
       setSelectedScheduleIds(regeneratedStudy.scheduleIds)
       onGenerated?.(regeneratedStudy)
-    } catch (error) {
-      console.error('종합 학습일지를 재생성하지 못했습니다.', error)
+    } catch {
+      // 실패 시 기존 학습일지를 유지해 사용자가 다시 시도할 수 있게 한다.
     } finally {
       setIsGenerating(false)
     }
