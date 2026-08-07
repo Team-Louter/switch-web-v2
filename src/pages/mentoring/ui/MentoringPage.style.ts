@@ -272,7 +272,7 @@ export const SearchIcon = styled.span`
 `
 
 const tableColumns = {
-  mentor: 'minmax(210px, 1.55fr) repeat(5, minmax(88px, 1fr))',
+  mentor: 'minmax(210px, 1.55fr) repeat(4, minmax(88px, 1fr))',
   question: 'minmax(280px, 1.8fr) repeat(4, minmax(110px, 1fr))',
 }
 
@@ -406,7 +406,7 @@ export const DetailHeader = styled.section`
 
 export const DetailMetrics = styled.div`
   display: grid;
-  grid-template-columns: repeat(5, minmax(96px, 1fr));
+  grid-template-columns: repeat(4, minmax(96px, 1fr));
   flex: 1 1 auto;
   align-items: center;
   min-width: 0;

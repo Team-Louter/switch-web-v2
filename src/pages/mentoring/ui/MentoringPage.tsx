@@ -67,7 +67,6 @@ const mentors: MentorSummary[] = [
     recentActivityOrder: 0,
     totalQuestions: '18건',
     pendingQuestions: '4건',
-    averageReply: '12시간',
     recentActivity: '오늘',
     status: '원활',
   },
@@ -78,7 +77,6 @@ const mentors: MentorSummary[] = [
     recentActivityOrder: 0,
     totalQuestions: '18건',
     pendingQuestions: '4건',
-    averageReply: '12시간',
     recentActivity: '오늘',
     status: '원활',
   },
@@ -89,7 +87,6 @@ const mentors: MentorSummary[] = [
     recentActivityOrder: 0,
     totalQuestions: '18건',
     pendingQuestions: '4건',
-    averageReply: '12시간',
     recentActivity: '오늘',
     status: '원활',
   },
@@ -100,7 +97,6 @@ const mentors: MentorSummary[] = [
     recentActivityOrder: 0,
     totalQuestions: '18건',
     pendingQuestions: '4건',
-    averageReply: '12시간',
     recentActivity: '오늘',
     status: '원활',
   },
@@ -111,7 +107,6 @@ const mentors: MentorSummary[] = [
     recentActivityOrder: 3,
     totalQuestions: '18건',
     pendingQuestions: '5건',
-    averageReply: '2일',
     recentActivity: '3일 전',
     status: '답변 지연',
   },
@@ -122,7 +117,6 @@ const mentors: MentorSummary[] = [
     recentActivityOrder: 8,
     totalQuestions: '18건',
     pendingQuestions: '4건',
-    averageReply: '18시간',
     recentActivity: '8일 전',
     status: '비활성',
   },
@@ -202,7 +196,6 @@ export function MentoringPage() {
           mentor.role,
           mentor.totalQuestions,
           mentor.pendingQuestions,
-          mentor.averageReply,
           mentor.recentActivity,
           mentor.status,
         ].some((value) => value.toLowerCase().includes(mentorKeyword))
@@ -445,7 +438,6 @@ function MentorTable({
         <span>멘토 정보</span>
         <span>전체 질문</span>
         <span>답변 대기</span>
-        <span>평균 답변</span>
         <span>최근 활동</span>
         <span>상태</span>
       </TableHeader>
@@ -477,10 +469,6 @@ function DetailSummary() {
         <DetailMetric>
           <DetailMetricLabel>답변 대기</DetailMetricLabel>
           <DetailMetricValue>4건</DetailMetricValue>
-        </DetailMetric>
-        <DetailMetric>
-          <DetailMetricLabel>평균 답변</DetailMetricLabel>
-          <DetailMetricValue>12시간</DetailMetricValue>
         </DetailMetric>
         <DetailMetric>
           <DetailMetricLabel>최근 활동</DetailMetricLabel>

@@ -37,7 +37,6 @@ export function MentorStatsRow({ mentor, onClick, active = false }: MentorStatsR
       </MentorCell>
       <TableCell>{mentor.totalQuestions}</TableCell>
       <TableCell>{mentor.pendingQuestions}</TableCell>
-      <TableCell>{mentor.averageReply}</TableCell>
       <TableCell>{mentor.recentActivity}</TableCell>
       <StatusText $status={mentor.status}>{mentor.status}</StatusText>
     </TableRow>

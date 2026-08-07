@@ -9,7 +9,6 @@ export type MentorSummary = {
   recentActivityOrder: number
   totalQuestions: string
   pendingQuestions: string
-  averageReply: string
   recentActivity: string
   status: MentorStatus
 }
