@@ -266,9 +266,17 @@ export const SearchField = styled.input`
 `
 
 export const SearchIcon = styled.span`
-  flex: 0 0 auto;
+  display: inline-flex;
+  flex: 0 0 18px;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
   color: ${token.colors.gray.gray40};
-  font-size: 18px;
+
+  svg {
+    display: block;
+  }
 `
 
 const tableColumns = {
