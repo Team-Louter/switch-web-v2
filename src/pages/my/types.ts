@@ -5,6 +5,7 @@ export type MyProfile = {
   classInfo: string
   role: string
   email: string
+  imageUrl?: string
 }
 
 export type MyStat = {
