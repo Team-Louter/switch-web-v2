@@ -1,4 +1,4 @@
-import styled, { css } from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
@@ -13,6 +13,30 @@ const statusColor: Record<Status, string> = {
   완료: token.colors.gray.gray50,
 }
 
+const slideInFromRight = keyframes`
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+`
+
+const slideOutToRight = keyframes`
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+`
+
 export const MentoringLayout = styled.section`
   position: relative;
   display: flex;
@@ -22,29 +46,16 @@ export const MentoringLayout = styled.section`
   background: ${token.colors.white};
 `
 
-export const Content = styled.div<{ $withPanel?: boolean }>`
+export const Content = styled.div`
   ${token.flexColumnStart}
   flex: 1 1 auto;
   gap: 40px;
   min-width: 0;
   min-height: 100dvh;
   padding: 80px 100px;
-  transition: padding-right 160ms ease;
-
-  ${({ $withPanel }) =>
-    $withPanel &&
-    css`
-      padding-right: 560px;
-    `}
 
   @media (max-width: 1180px) {
     padding: 56px 48px;
-
-    ${({ $withPanel }) =>
-      $withPanel &&
-      css`
-        padding-right: 48px;
-      `}
   }
 `
 
@@ -459,7 +470,7 @@ export const QuestionAuthor = styled.span`
   ${token.typography('body', 'sm', 'medium')}
 `
 
-export const ChatPanel = styled.aside`
+export const ChatPanel = styled.aside<{ $isClosing?: boolean }>`
   ${token.flexColumnStart}
   position: absolute;
   top: 0;
@@ -471,6 +482,9 @@ export const ChatPanel = styled.aside`
   overflow: hidden;
   background: ${token.colors.gray.gray0};
   box-shadow: 0 4px 12.6px rgb(0 0 0 / 12%);
+  animation: ${({ $isClosing }) =>
+    $isClosing ? slideOutToRight : slideInFromRight}
+    180ms ease both;
   z-index: 2;
 
   @media (max-width: 1180px) {

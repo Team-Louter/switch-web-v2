@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import profileImage from '@/shared/assets/sidebar/profile.png'
@@ -154,6 +154,7 @@ const questions: QuestionSummary[] = [
 
 const mentorFilters = ['전체', '원활', '답변 지연', '비활성'] as const
 const questionFilters = ['전체', '대기', '진행', '완료'] as const
+const CHAT_PANEL_ANIMATION_MS = 180
 
 // "18건"처럼 단위가 붙은 표시값에서 숫자만 추출해 합산용 값으로 변환한다.
 const getQuestionCount = (questionCountText: string) => {
@@ -162,8 +163,12 @@ const getQuestionCount = (questionCountText: string) => {
 
 export function MentoringPage() {
   const navigate = useNavigate()
+  const closeChatPanelTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  )
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard')
   const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null)
+  const [isChatPanelClosing, setIsChatPanelClosing] = useState(false)
   const [selectedMentorFilter, setSelectedMentorFilter] = useState<MentorFilter>('전체')
   const [selectedQuestionFilter, setSelectedQuestionFilter] =
     useState<QuestionFilter>('전체')
@@ -174,8 +179,26 @@ export function MentoringPage() {
 
   const selectedQuestion =
     questions.find((question) => question.id === selectedQuestionId) ?? questions[1]
-  const shouldShowChatPanel =
-    viewMode === 'mentor-detail' && selectedQuestionId !== null
+  const shouldRenderChatPanel =
+    viewMode === 'mentor-detail' &&
+    (selectedQuestionId !== null || isChatPanelClosing)
+
+  useEffect(() => {
+    return () => {
+      if (closeChatPanelTimeoutRef.current) {
+        clearTimeout(closeChatPanelTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  const clearCloseChatPanelTimer = () => {
+    if (!closeChatPanelTimeoutRef.current) {
+      return
+    }
+
+    clearTimeout(closeChatPanelTimeoutRef.current)
+    closeChatPanelTimeoutRef.current = null
+  }
   const completedQuestionCount = mentors.reduce(
     (total, mentor) => total + getQuestionCount(mentor.totalQuestions),
     0,
@@ -237,11 +260,15 @@ export function MentoringPage() {
     )
 
   const handleMentorSelect = () => {
+    clearCloseChatPanelTimer()
+    setIsChatPanelClosing(false)
     setViewMode('mentor-detail')
     setSelectedQuestionId(null)
   }
 
   const handleBack = () => {
+    clearCloseChatPanelTimer()
+    setIsChatPanelClosing(false)
     setViewMode('dashboard')
     setSelectedQuestionId(null)
   }
@@ -250,9 +277,29 @@ export function MentoringPage() {
     navigate('/mentoring')
   }
 
+  const handleQuestionSelect = (question: QuestionSummary) => {
+    clearCloseChatPanelTimer()
+    setIsChatPanelClosing(false)
+    setSelectedQuestionId(question.id)
+  }
+
+  const handleCloseChatPanel = () => {
+    if (selectedQuestionId === null || isChatPanelClosing) {
+      return
+    }
+
+    setIsChatPanelClosing(true)
+    clearCloseChatPanelTimer()
+    closeChatPanelTimeoutRef.current = setTimeout(() => {
+      setSelectedQuestionId(null)
+      setIsChatPanelClosing(false)
+      closeChatPanelTimeoutRef.current = null
+    }, CHAT_PANEL_ANIMATION_MS)
+  }
+
   return (
     <MentoringLayout>
-      <Content $withPanel={shouldShowChatPanel}>
+      <Content>
         {viewMode === 'dashboard' ? (
           <>
             <Header>
@@ -323,15 +370,15 @@ export function MentoringPage() {
               onSortOrderChange={setQuestionSortOrder}
               onFilterChange={setSelectedQuestionFilter}
               onSearchKeywordChange={setQuestionSearchKeyword}
-              onQuestionSelect={(question) => setSelectedQuestionId(question.id)}
+              onQuestionSelect={handleQuestionSelect}
             />
           </>
         )}
       </Content>
 
-      {shouldShowChatPanel && (
-        <ChatPanel aria-label="질문 상세">
-          <ClosePanelButton type="button" aria-label="질문 상세 닫기" onClick={() => setSelectedQuestionId(null)}>
+      {shouldRenderChatPanel && (
+        <ChatPanel aria-label="질문 상세" $isClosing={isChatPanelClosing}>
+          <ClosePanelButton type="button" aria-label="질문 상세 닫기" onClick={handleCloseChatPanel}>
             »
           </ClosePanelButton>
           <ChatPanelHeader>
