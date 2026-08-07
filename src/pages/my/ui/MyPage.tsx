@@ -5,6 +5,7 @@ import profileImage from '@/shared/assets/sidebar/profile.png'
 
 import { useMyPage } from '../model/useMyPage'
 import { ActivityFilterBar } from './component/ActivityFilterBar'
+import { ActivityPost } from './component/ActivityPost'
 import {
   type WithdrawModalStep,
   WithdrawModal,
@@ -17,7 +18,7 @@ export function MyPage() {
   const [withdrawStep, setWithdrawStep] = useState<WithdrawModalStep | null>(
     null,
   )
-  const [verifyText, setVerifyText] = useState('')
+  const [verificationCode, setVerificationCode] = useState('')
   const {
     activeTabId,
     activityTabs,
@@ -87,7 +88,7 @@ export function MyPage() {
           {hasPosts ? (
             <S.PostList>
               {posts.map((post) => (
-                <S.PostPlaceholder key={post.id} />
+                <ActivityPost key={post.id} post={post} />
               ))}
             </S.PostList>
           ) : (
@@ -113,8 +114,8 @@ export function MyPage() {
       {withdrawStep && (
         <WithdrawModal
           step={withdrawStep}
-          verifyText={verifyText}
-          onVerifyTextChange={setVerifyText}
+          verificationCode={verificationCode}
+          onVerificationCodeChange={setVerificationCode}
           onCancel={() => setWithdrawStep(null)}
           onNext={() => setWithdrawStep('confirm')}
           onWithdraw={() => navigate('/my/withdraw-complete')}
