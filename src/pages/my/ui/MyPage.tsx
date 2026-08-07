@@ -2,18 +2,21 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import profileImage from '@/shared/assets/sidebar/profile.png'
+import { hasApiAccessToken } from '@/shared/api'
 
+import {
+  sendWithdrawalVerificationCode,
+  verifyWithdrawalCode,
+} from '../model/myApi'
 import { useMyPage } from '../model/useMyPage'
 import { ActivityFilterBar } from './component/ActivityFilterBar'
 import { ActivityPost } from './component/ActivityPost'
 import { MemberActionToast } from './component/MemberActionToast'
 import { MemberManagementModal } from './component/MemberManagementModal'
-import {
-  type WithdrawModalStep,
-  WithdrawModal,
-} from './component/WithdrawModal'
+import { WithdrawModal } from './component/WithdrawModal'
 import { MyStatIcon } from './icons/MyStatIcon'
 import * as S from './MyPage.style'
+import type { WithdrawModalStep } from './component/WithdrawModal'
 
 export function MyPage() {
   const navigate = useNavigate()
@@ -34,13 +37,38 @@ export function MyPage() {
   } = useMyPage()
 
   const hasPosts = posts.length > 0
+  const profileImageSrc = profile.imageUrl || profileImage
+
+  const handleOpenWithdrawModal = async () => {
+    if (!hasApiAccessToken()) {
+      window.alert('로그인 기능이 연결된 뒤 사용할 수 있어요')
+      return
+    }
+
+    setWithdrawStep('verify')
+
+    try {
+      await sendWithdrawalVerificationCode()
+    } catch {
+      window.alert('인증 코드를 발송하지 못했어요')
+    }
+  }
+
+  const handleVerifyWithdrawalCode = async () => {
+    try {
+      await verifyWithdrawalCode(verificationCode)
+      setWithdrawStep('confirm')
+    } catch {
+      window.alert('인증 코드가 올바르지 않아요')
+    }
+  }
 
   return (
     <S.Page>
       <S.Content>
         <S.ProfileSection>
           <S.ProfileImageWrap>
-            <S.ProfileImage src={profileImage} alt="" />
+            <S.ProfileImage src={profileImageSrc} alt="" />
           </S.ProfileImageWrap>
 
           <S.ProfileInfo>
@@ -115,7 +143,7 @@ export function MyPage() {
           <S.FooterButton
             type="button"
             $danger
-            onClick={() => setWithdrawStep('verify')}
+            onClick={handleOpenWithdrawModal}
           >
             회원 탈퇴
           </S.FooterButton>
@@ -128,7 +156,7 @@ export function MyPage() {
           verificationCode={verificationCode}
           onVerificationCodeChange={setVerificationCode}
           onCancel={() => setWithdrawStep(null)}
-          onNext={() => setWithdrawStep('confirm')}
+          onNext={handleVerifyWithdrawalCode}
           onWithdraw={() => navigate('/my/withdraw-complete')}
         />
       )}
