@@ -1,18 +1,19 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import profileImage from '@/shared/assets/sidebar/profile.png'
+import { hasApiAccessToken } from '@/shared/api'
 import { Button } from '@/shared/ui'
 
-import {
-  type MajorOption,
-  ProfileMajorDropdown,
-} from './component/ProfileMajorDropdown'
+import { getMyProfile, updateMyProfile } from '../model/myApi'
 import { ProfileCropModal } from './component/ProfileCropModal'
 import { ProfileFormField } from './component/ProfileFormField'
+import { ProfileMajorDropdown } from './component/ProfileMajorDropdown'
 import { ProfileInputIcon } from './icons/ProfileInputIcon'
-import type { ProfileCropState } from '../model/useProfileCropModal'
 import * as S from './ProfileEditPage.style'
+import type { MajorOption } from './component/ProfileMajorDropdown'
+import type { ProfileCropState } from '../model/useProfileCropModal'
+import type { ProfileMajor } from '../model/myApi'
 
 const defaultProfileCropState: ProfileCropState = {
   position: {
@@ -23,32 +24,124 @@ const defaultProfileCropState: ProfileCropState = {
 }
 
 const majorOptions: MajorOption[] = [
-  { id: 'frontend', label: '프론트엔드' },
-  { id: 'backend', label: '백엔드' },
-  { id: 'design', label: '디자인' },
-  { id: 'ios', label: 'ios' },
-  { id: 'android', label: '안드로이드' },
+  { id: 'FRONTEND', label: '프론트엔드' },
+  { id: 'BACKEND', label: '백엔드' },
+  { id: 'DESIGN', label: '디자인' },
+  { id: 'IOS', label: 'ios' },
+  { id: 'ANDROID', label: '안드로이드' },
 ]
+
+const createStudentId = (grade?: number, classRoom?: number, number?: number) => {
+  if (!grade || !classRoom || !number) {
+    return ''
+  }
+
+  return `${grade}${classRoom}${number}`
+}
 
 export function ProfileEditPage() {
   const navigate = useNavigate()
-  const [selectedMajorIds, setSelectedMajorIds] = useState([
-    'frontend',
-    'design',
-  ])
+  const [selectedMajorIds, setSelectedMajorIds] = useState<ProfileMajor[]>([])
+  const [userName, setUserName] = useState('')
+  const [studentId, setStudentId] = useState('')
+  const [email, setEmail] = useState('')
+  const [githubId, setGithubId] = useState('')
+  const [linkedinId, setLinkedinId] = useState('')
+  const [profileImageUrl, setProfileImageUrl] = useState('')
   const [profileImageSrc, setProfileImageSrc] = useState(profileImage)
   const [profileCropState, setProfileCropState] = useState(
     defaultProfileCropState,
   )
   const [isMajorOpen, setIsMajorOpen] = useState(false)
   const [isCropModalOpen, setIsCropModalOpen] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+
+  useEffect(() => {
+    let shouldIgnore = false
+
+    const fetchProfile = async () => {
+      if (!hasApiAccessToken()) {
+        return
+      }
+
+      try {
+        const profile = await getMyProfile()
+
+        if (shouldIgnore) {
+          return
+        }
+
+        setUserName(profile.userName)
+        setStudentId(
+          createStudentId(profile.grade, profile.classRoom, profile.number),
+        )
+        setEmail(profile.userEmail)
+        setGithubId(profile.githubUrl ?? '')
+        setLinkedinId(profile.linkedinUrl ?? '')
+        setProfileImageUrl(profile.profileImageUrl ?? '')
+        setProfileImageSrc(profile.profileImageUrl || profileImage)
+        setSelectedMajorIds(profile.majors ?? [])
+      } catch {
+        window.alert('프로필 정보를 불러오지 못했어요')
+      }
+    }
+
+    fetchProfile()
+
+    return () => {
+      shouldIgnore = true
+    }
+  }, [])
 
   const handleMajorToggle = (optionId: string) => {
+    const nextOptionId = optionId as ProfileMajor
+
     setSelectedMajorIds((prevIds) =>
-      prevIds.includes(optionId)
-        ? prevIds.filter((id) => id !== optionId)
-        : [...prevIds, optionId],
+      prevIds.includes(nextOptionId)
+        ? prevIds.filter((id) => id !== nextOptionId)
+        : [...prevIds, nextOptionId],
     )
+  }
+
+  const handleStudentIdChange = (value: string) => {
+    setStudentId(value.replace(/\D/g, '').slice(0, 4))
+  }
+
+  const handleSaveProfile = async () => {
+    if (!hasApiAccessToken()) {
+      window.alert('로그인 기능이 연결된 뒤 저장할 수 있어요')
+      return
+    }
+
+    const nextUserName = userName.trim()
+    const nextStudentId = Number(studentId)
+
+    if (!nextUserName) {
+      window.alert('성명을 입력해 주세요')
+      return
+    }
+
+    if (!studentId || Number.isNaN(nextStudentId)) {
+      window.alert('학번을 입력해 주세요')
+      return
+    }
+
+    try {
+      setIsSaving(true)
+      await updateMyProfile({
+        githubId,
+        linkedinId,
+        majors: selectedMajorIds,
+        profileImageUrl,
+        studentId: nextStudentId,
+        userName: nextUserName,
+      })
+      navigate('/my')
+    } catch {
+      window.alert('프로필을 저장하지 못했어요')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -68,13 +161,23 @@ export function ProfileEditPage() {
 
         <S.FormRows>
           <S.FieldRow>
-            <ProfileFormField label="성명" defaultValue="ㅇㅇ" />
-            <ProfileFormField label="학번" defaultValue="2202" />
+            <ProfileFormField
+              label="성명"
+              value={userName}
+              onChange={(event) => setUserName(event.target.value)}
+            />
+            <ProfileFormField
+              label="학번"
+              value={studentId}
+              inputMode="numeric"
+              maxLength={4}
+              onChange={(event) => handleStudentIdChange(event.target.value)}
+            />
           </S.FieldRow>
           <S.FieldRow>
             <ProfileFormField
               label="이메일"
-              defaultValue="djfnskdjsdhkg@dgsw.hs.kr"
+              value={email}
               disabled
             />
             <ProfileMajorDropdown
@@ -88,7 +191,9 @@ export function ProfileEditPage() {
           <S.FieldRow>
             <ProfileFormField
               label="Github"
+              value={githubId}
               placeholder="깃허브 링크를 입력해 주세요"
+              onChange={(event) => setGithubId(event.target.value)}
               iconSlot={
                 <S.IconSlot aria-hidden="true">
                   <ProfileInputIcon type="github" />
@@ -97,7 +202,9 @@ export function ProfileEditPage() {
             />
             <ProfileFormField
               label="LinkedIn"
+              value={linkedinId}
               placeholder="링크드인 링크를 입력해 주세요"
+              onChange={(event) => setLinkedinId(event.target.value)}
               iconSlot={
                 <S.IconSlot aria-hidden="true">
                   <ProfileInputIcon type="linkedin" />
@@ -108,8 +215,8 @@ export function ProfileEditPage() {
         </S.FormRows>
 
         <S.SaveButtonWrap>
-          <Button size="lg" onClick={() => navigate('/my')}>
-            저장
+          <Button size="lg" disabled={isSaving} onClick={handleSaveProfile}>
+            {isSaving ? '저장 중' : '저장'}
           </Button>
         </S.SaveButtonWrap>
       </S.Content>
