@@ -89,7 +89,9 @@ export const ProfileActions = styled.div`
   gap: 10px;
 `
 
-export const ActionButton = styled.button<{ $variant?: 'primary' | 'outline' }>`
+export const ActionButton = styled.button<{
+  $variant?: 'primary' | 'secondary' | 'outline'
+}>`
   ${token.flexCenter}
   padding: 10px 20px;
   border-radius: ${token.shapes.small};
@@ -102,11 +104,15 @@ export const ActionButton = styled.button<{ $variant?: 'primary' | 'outline' }>`
       ? css`
           background: ${token.colors.primary.primary50};
         `
-      : css`
-          border: 1px solid ${token.colors.gray.gray80};
-          color: ${token.colors.gray.gray80};
-          background: ${token.colors.white};
-        `}
+      : $variant === 'secondary'
+        ? css`
+            background: ${token.colors.gray.gray10};
+          `
+        : css`
+            border: 1px solid ${token.colors.gray.gray80};
+            color: ${token.colors.gray.gray80};
+            background: ${token.colors.white};
+          `}
 `
 
 export const StatBar = styled.section`

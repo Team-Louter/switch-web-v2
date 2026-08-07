@@ -6,6 +6,8 @@ import profileImage from '@/shared/assets/sidebar/profile.png'
 import { useMyPage } from '../model/useMyPage'
 import { ActivityFilterBar } from './component/ActivityFilterBar'
 import { ActivityPost } from './component/ActivityPost'
+import { MemberActionToast } from './component/MemberActionToast'
+import { MemberManagementModal } from './component/MemberManagementModal'
 import {
   type WithdrawModalStep,
   WithdrawModal,
@@ -18,6 +20,8 @@ export function MyPage() {
   const [withdrawStep, setWithdrawStep] = useState<WithdrawModalStep | null>(
     null,
   )
+  const [isMemberManagementOpen, setIsMemberManagementOpen] = useState(false)
+  const [memberActionToastMessage, setMemberActionToastMessage] = useState('')
   const [verificationCode, setVerificationCode] = useState('')
   const {
     activeTabId,
@@ -50,6 +54,13 @@ export function MyPage() {
             </S.ProfileTextGroup>
 
             <S.ProfileActions>
+              <S.ActionButton
+                type="button"
+                $variant="secondary"
+                onClick={() => setIsMemberManagementOpen(true)}
+              >
+                멤버 관리
+              </S.ActionButton>
               <S.ActionButton type="button">프로필 꾸미기</S.ActionButton>
               <S.ActionButton
                 type="button"
@@ -119,6 +130,20 @@ export function MyPage() {
           onCancel={() => setWithdrawStep(null)}
           onNext={() => setWithdrawStep('confirm')}
           onWithdraw={() => navigate('/my/withdraw-complete')}
+        />
+      )}
+
+      {isMemberManagementOpen && (
+        <MemberManagementModal
+          onClose={() => setIsMemberManagementOpen(false)}
+          onComplete={setMemberActionToastMessage}
+        />
+      )}
+
+      {memberActionToastMessage && (
+        <MemberActionToast
+          message={memberActionToastMessage}
+          onClose={() => setMemberActionToastMessage('')}
         />
       )}
     </S.Page>
