@@ -169,15 +169,7 @@ export const ActivitySection = styled.section`
 export const PostList = styled.div`
   ${token.flexColumn}
   width: 100%;
-  gap: 0;
-`
-
-export const PostPlaceholder = styled.div`
-  width: 100%;
-  height: 72px;
-  box-sizing: border-box;
-  border-radius: ${token.shapes.small};
-  background: ${token.colors.gray.gray10};
+  gap: 20px;
 `
 
 export const EmptyState = styled.div`

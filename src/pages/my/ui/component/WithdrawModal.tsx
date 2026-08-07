@@ -1,12 +1,13 @@
 import { MyDialog } from './MyDialog'
+import { WithdrawCodeInput } from './WithdrawCodeInput'
 import * as S from './WithdrawModal.style'
 
 export type WithdrawModalStep = 'verify' | 'confirm'
 
 type WithdrawModalProps = {
   step: WithdrawModalStep
-  verifyText: string
-  onVerifyTextChange: (value: string) => void
+  verificationCode: string
+  onVerificationCodeChange: (value: string) => void
   onCancel: () => void
   onNext: () => void
   onWithdraw: () => void
@@ -14,8 +15,8 @@ type WithdrawModalProps = {
 
 export function WithdrawModal({
   step,
-  verifyText,
-  onVerifyTextChange,
+  verificationCode,
+  onVerificationCodeChange,
   onCancel,
   onNext,
   onWithdraw,
@@ -54,7 +55,7 @@ export function WithdrawModal({
           </S.SecondaryButton>
           <S.PrimaryButton
             type="button"
-            disabled={verifyText.trim().length === 0}
+            disabled={verificationCode.length < 6}
             onClick={onNext}
           >
             다음
@@ -62,10 +63,9 @@ export function WithdrawModal({
         </>
       }
     >
-      <S.Input
-        value={verifyText}
-        placeholder="확인했습니다"
-        onChange={(event) => onVerifyTextChange(event.target.value)}
+      <WithdrawCodeInput
+        value={verificationCode}
+        onChange={onVerificationCodeChange}
       />
     </MyDialog>
   )
