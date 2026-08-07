@@ -180,6 +180,13 @@ export function MentoringPage() {
     (total, mentor) => total + getQuestionCount(mentor.totalQuestions),
     0,
   )
+  const pendingQuestionCount = mentors.reduce(
+    (total, mentor) => total + getQuestionCount(mentor.pendingQuestions),
+    0,
+  )
+  const inProgressQuestionCount = questions.filter(
+    (question) => question.status === '진행',
+  ).length
   const attentionNeededMentorCount = mentors.filter(
     (mentor) => mentor.status !== '원활',
   ).length
@@ -265,13 +272,15 @@ export function MentoringPage() {
               <StatCard>
                 <StatLabel>답변 대기 질문</StatLabel>
                 <StatValue>
-                  24<StatUnit>건</StatUnit>
+                  {pendingQuestionCount}
+                  <StatUnit>건</StatUnit>
                 </StatValue>
               </StatCard>
               <StatCard>
                 <StatLabel>진행중인 질문</StatLabel>
                 <StatValue>
-                  5<StatUnit>건</StatUnit>
+                  {inProgressQuestionCount}
+                  <StatUnit>건</StatUnit>
                 </StatValue>
               </StatCard>
               <StatCard>
