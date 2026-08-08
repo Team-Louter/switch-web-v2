@@ -15,6 +15,9 @@ import { useState } from "react";
 
 export function TypingPage() {
   const [selectedMode, setSelectedMode] = useState<string>("DAILY");
+  const selectedModeName = TYPING_MODES.find(
+    (mode) => mode.serverValue === selectedMode,
+  )?.mode;
 
   return (
     <S.TypingContainer>
@@ -58,7 +61,7 @@ export function TypingPage() {
             />
           </S.SummaryContainer>
           <S.RankingContainer>
-            <S.RankingTitle>일상 영어 현재 순위</S.RankingTitle>
+            <S.RankingTitle>{selectedModeName} 현재 순위</S.RankingTitle>
             <S.Top>
               <TopItem medal={secondMedal} name="전수안" value="300"/>
               <TopItem medal={firstMedal} name="전수안" value="300"/>
