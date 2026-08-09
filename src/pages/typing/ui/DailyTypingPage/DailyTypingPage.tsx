@@ -1,9 +1,11 @@
 import * as S from './DailyTypingPage.style'
+import { TypingCountdown } from '../TypingCountdown/TypingCountdown'
 import { TypingPracticeHeader } from '../TypingPracticeHeader/TypingPracticeHeader'
 
 export function DailyTypingPage() {
   return (
     <S.Page>
+      <TypingCountdown />
       <S.PracticeFrame>
         <TypingPracticeHeader category="일상 영어" time="00:00" typingSpeed="200타" accuracy="100%" />
 

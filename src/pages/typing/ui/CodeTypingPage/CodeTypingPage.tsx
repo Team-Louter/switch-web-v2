@@ -4,6 +4,7 @@ import { useRef } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 
 import * as S from './CodeTypingPage.style'
+import { TypingCountdown } from '../TypingCountdown/TypingCountdown'
 import { TypingPracticeHeader } from '../TypingPracticeHeader/TypingPracticeHeader'
 
 const LANGUAGE_NAMES = { java: 'Java', javascript: 'JavaScript' } as const
@@ -134,6 +135,7 @@ export function CodeTypingPage() {
 
   return (
     <S.Page>
+      <TypingCountdown />
       <S.PracticeFrame>
         <TypingPracticeHeader category={languageName} time="3:50" typingSpeed="370타" accuracy="100%" />
         <S.Workspace>
