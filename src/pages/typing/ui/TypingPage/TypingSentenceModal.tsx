@@ -1,0 +1,225 @@
+import MonacoEditor, { loader } from '@monaco-editor/react'
+import * as monaco from 'monaco-editor'
+import { type MouseEvent, useState } from 'react'
+import {
+  IoChevronDown,
+  IoClose,
+  IoPencil,
+  IoTrashOutline,
+} from 'react-icons/io5'
+import { LuPlus } from 'react-icons/lu'
+
+import * as S from './TypingSentenceModal.style'
+
+export type TypingSentenceModalType = 'settings' | 'editor' | 'delete' | null
+
+type SentenceCategory = 'DAILY' | 'CODE'
+
+type SentenceItem = {
+  category: SentenceCategory
+  label: string
+  sentence: string
+}
+
+type TypingSentenceModalProps = {
+  editingItem: SentenceItem | null
+  modalType: TypingSentenceModalType
+  onBackToSettings: () => void
+  onClose: () => void
+  onDelete: (item: SentenceItem) => void
+  onEdit: (item: SentenceItem) => void
+  onOpenEditor: () => void
+}
+
+const SENTENCES: SentenceItem[] = [
+  { category: 'DAILY', label: '일상', sentence: 'This is VERY VERY VERY VERY VERY loooooooooon' },
+  { category: 'DAILY', label: '일상', sentence: 'This is VERY VERY VERY VERY VERY loooooooooon' },
+  { category: 'DAILY', label: '일상', sentence: 'This is VERY VERY VERY VERY VERY loooooooooon' },
+  { category: 'CODE', label: 'JS', sentence: 'This is VERY VERY VERY VERY VERY loooooooooon' },
+  { category: 'CODE', label: 'JS', sentence: 'This is VERY VERY VERY VERY VERY loooooooooon' },
+  { category: 'CODE', label: 'JS', sentence: 'This is VERY VERY VERY VERY VERY loooooooooon' },
+  { category: 'CODE', label: 'Java', sentence: 'This is VERY VERY VERY VERY VERY loooooooooon' },
+  { category: 'CODE', label: 'Java', sentence: 'This is VERY VERY VERY VERY VERY loooooooooon' },
+]
+
+const CODE_SAMPLE = `function transform(arr) {
+  let sum = 0;
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] % 2 === 0) {
+      const squared = arr[i] * arr[i];
+      sum += squared;
+    }
+  }
+  return sum;
+}`
+
+loader.config({ monaco })
+
+export function TypingSentenceModal({
+  editingItem,
+  modalType,
+  onBackToSettings,
+  onClose,
+  onDelete,
+  onEdit,
+  onOpenEditor,
+}: TypingSentenceModalProps) {
+  if (!modalType) {
+    return null
+  }
+
+  const handleOverlayClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (modalType === 'settings' && event.target === event.currentTarget) {
+      onClose()
+    }
+  }
+
+  return (
+    <S.Overlay onClick={handleOverlayClick}>
+      {modalType === 'settings' && (
+        <SettingsModal onDelete={onDelete} onEdit={onEdit} onOpenEditor={onOpenEditor} />
+      )}
+      {modalType === 'editor' && <SentenceEditor editingItem={editingItem} onBackToSettings={onBackToSettings} onClose={onClose} />}
+      {modalType === 'delete' && editingItem && <DeleteModal item={editingItem} onClose={onClose} />}
+    </S.Overlay>
+  )
+}
+
+type SettingsModalProps = Pick<TypingSentenceModalProps, 'onDelete' | 'onEdit' | 'onOpenEditor'>
+
+function SettingsModal({ onDelete, onEdit, onOpenEditor }: SettingsModalProps) {
+  return (
+    <S.SettingsDialog aria-modal="true" role="dialog">
+      <S.ModalHeader>
+        <S.ModalTitle>문장 설정</S.ModalTitle>
+        <S.IconButton aria-label="문장 추가" type="button" onClick={onOpenEditor}>
+          <LuPlus size={24} />
+        </S.IconButton>
+      </S.ModalHeader>
+      <S.SentenceList>
+        {SENTENCES.map((item, index) => (
+          <S.SentenceItem key={`${item.label}-${index}`}>
+            <S.CategoryBadge>{item.label}</S.CategoryBadge>
+            <S.SentenceText>{item.sentence}</S.SentenceText>
+            <S.RowActions>
+              <S.RowAction aria-label={`${item.label} 문장 수정`} type="button" onClick={() => onEdit(item)}>
+                <IoPencil size={24} />
+              </S.RowAction>
+              <S.RowAction $danger aria-label={`${item.label} 문장 삭제`} type="button" onClick={() => onDelete(item)}>
+                <IoTrashOutline size={24} />
+              </S.RowAction>
+            </S.RowActions>
+          </S.SentenceItem>
+        ))}
+      </S.SentenceList>
+    </S.SettingsDialog>
+  )
+}
+
+type SentenceEditorProps = Pick<TypingSentenceModalProps, 'editingItem' | 'onBackToSettings' | 'onClose'>
+
+function SentenceEditor({ editingItem, onBackToSettings, onClose }: SentenceEditorProps) {
+  const [category, setCategory] = useState<SentenceCategory>(editingItem?.category ?? 'CODE')
+  const [language, setLanguage] = useState(editingItem?.label === 'Java' ? 'java' : 'javascript')
+  const [sentence, setSentence] = useState(editingItem?.sentence ?? CODE_SAMPLE)
+  const isCode = category === 'CODE'
+
+  const handleCategoryChange = (nextCategory: SentenceCategory) => {
+    setCategory(nextCategory)
+
+    if (editingItem?.category === nextCategory) {
+      setSentence(editingItem.sentence)
+      return
+    }
+
+    setSentence(nextCategory === 'CODE' ? CODE_SAMPLE : '')
+  }
+
+  return (
+    <S.EditorDialog aria-modal="true" role="dialog">
+      <S.ModalHeader>
+        <S.ModalTitle>{editingItem ? '문장 수정' : '문장 추가'}</S.ModalTitle>
+        <S.IconButton aria-label="문장 설정으로 돌아가기" type="button" onClick={onBackToSettings}>
+          <IoClose size={24} />
+        </S.IconButton>
+      </S.ModalHeader>
+      <S.EditorForm onSubmit={(event) => { event.preventDefault(); onClose() }}>
+        <S.Field>
+          <S.FieldLabel htmlFor="sentence-category">카테고리</S.FieldLabel>
+          <S.SelectWrap>
+            <S.Select id="sentence-category" value={category} onChange={(event) => handleCategoryChange(event.target.value as SentenceCategory)}>
+              <option value="CODE">개발 언어</option>
+              <option value="DAILY">일상 영어</option>
+            </S.Select>
+            <IoChevronDown aria-hidden size={20} />
+          </S.SelectWrap>
+        </S.Field>
+        {isCode && (
+          <S.Field>
+            <S.FieldLabel htmlFor="sentence-language">언어 선택</S.FieldLabel>
+            <S.SelectWrap>
+              <S.Select id="sentence-language" value={language} onChange={(event) => setLanguage(event.target.value)}>
+                <option value="javascript">Javascript</option>
+                <option value="java">Java</option>
+              </S.Select>
+              <IoChevronDown aria-hidden size={20} />
+            </S.SelectWrap>
+          </S.Field>
+        )}
+        <S.Field $grow>
+          <S.FieldLabel htmlFor="sentence-content">문장</S.FieldLabel>
+          {isCode ? (
+            <S.CodeEditorWrap>
+              <MonacoEditor
+                language={language}
+                value={sentence}
+                onChange={(value) => setSentence(value ?? '')}
+                theme="vs-dark"
+                options={{
+                  ariaLabel: '개발 언어 문장 에디터',
+                  automaticLayout: true,
+                  autoClosingBrackets: 'always',
+                  autoClosingQuotes: 'always',
+                  editContext: false,
+                  folding: false,
+                  fontFamily: "'Roboto Mono', monospace",
+                  fontSize: 14,
+                  glyphMargin: false,
+                  lineDecorationsWidth: 18,
+                  lineHeight: 20,
+                  lineNumbers: 'on',
+                  lineNumbersMinChars: 2,
+                  minimap: { enabled: false },
+                  padding: { top: 8, bottom: 8 },
+                  renderLineHighlight: 'none',
+                  scrollBeyondLastLine: false,
+                  tabSize: 2,
+                  wordWrap: 'on',
+                  wrappingIndent: 'indent',
+                }}
+              />
+            </S.CodeEditorWrap>
+          ) : (
+            <S.Textarea id="sentence-content" value={sentence} onChange={(event) => setSentence(event.target.value)} />
+          )}
+        </S.Field>
+        <S.SubmitButton type="submit">{editingItem ? '수정' : '추가'}</S.SubmitButton>
+      </S.EditorForm>
+    </S.EditorDialog>
+  )
+}
+
+type DeleteModalProps = Pick<TypingSentenceModalProps, 'onClose'> & { item: SentenceItem }
+
+function DeleteModal({ item, onClose }: DeleteModalProps) {
+  return (
+    <S.DeleteDialog aria-modal="true" role="alertdialog">
+      <S.DeleteTitle>문장을 삭제하시겠습니까?</S.DeleteTitle>
+      <S.DeleteSentence>{item.sentence}</S.DeleteSentence>
+      <S.DeleteActions>
+        <S.CancelButton type="button" onClick={onClose}>취소</S.CancelButton>
+        <S.DeleteButton type="button" onClick={onClose}>삭제</S.DeleteButton>
+      </S.DeleteActions>
+    </S.DeleteDialog>
+  )
+}
