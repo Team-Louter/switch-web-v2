@@ -1,8 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-
 import profileImage from '@/shared/assets/sidebar/profile.png'
 
+import { useMentoringPage } from '../model/useMentoringPage'
 import {
   BackButton,
   ChatCard,
@@ -38,6 +36,7 @@ import {
   StatLabel,
   StatUnit,
   StatValue,
+  StatusMessage,
   StatusText,
   Table,
   TableHeader,
@@ -53,249 +52,45 @@ import {
   SortSelect,
   type SortOrder,
 } from './components'
-import type { MentorStatus, MentorSummary, QuestionStatus, QuestionSummary } from './types'
-
-type ViewMode = 'dashboard' | 'mentor-detail'
-
-type MentorFilter = '전체' | MentorStatus
-type QuestionFilter = '전체' | QuestionStatus
-const mentors: MentorSummary[] = [
-  {
-    id: 1,
-    name: '이윤지',
-    role: '프론트엔드 · 디자이너',
-    recentActivityOrder: 0,
-    totalQuestions: '18건',
-    pendingQuestions: '4건',
-    recentActivity: '오늘',
-    status: '원활',
-  },
-  {
-    id: 2,
-    name: '이윤지',
-    role: '프론트엔드 · 디자이너',
-    recentActivityOrder: 0,
-    totalQuestions: '18건',
-    pendingQuestions: '4건',
-    recentActivity: '오늘',
-    status: '원활',
-  },
-  {
-    id: 3,
-    name: '이윤지',
-    role: '프론트엔드 · 디자이너',
-    recentActivityOrder: 0,
-    totalQuestions: '18건',
-    pendingQuestions: '4건',
-    recentActivity: '오늘',
-    status: '원활',
-  },
-  {
-    id: 4,
-    name: '이윤지',
-    role: '프론트엔드 · 디자이너',
-    recentActivityOrder: 0,
-    totalQuestions: '18건',
-    pendingQuestions: '4건',
-    recentActivity: '오늘',
-    status: '원활',
-  },
-  {
-    id: 5,
-    name: '이윤지',
-    role: '프론트엔드 · 디자이너',
-    recentActivityOrder: 3,
-    totalQuestions: '18건',
-    pendingQuestions: '5건',
-    recentActivity: '3일 전',
-    status: '답변 지연',
-  },
-  {
-    id: 6,
-    name: '이윤지',
-    role: '프론트엔드 · 디자이너',
-    recentActivityOrder: 8,
-    totalQuestions: '18건',
-    pendingQuestions: '4건',
-    recentActivity: '8일 전',
-    status: '비활성',
-  },
-]
-
-const questions: QuestionSummary[] = [
-  {
-    id: 1,
-    title: '어떻게 하면 대회 수상을 많이 할 수 있을까요...',
-    mentee: '멘티',
-    createdAtOrder: 20260715,
-    createdAt: '26.07.15',
-    lastRepliedAt: '-',
-    status: '대기',
-  },
-  {
-    id: 2,
-    title: '어떻게 하면 대회 수상을 많이 할 수 있을까요...',
-    mentee: '멘티',
-    createdAtOrder: 20260715,
-    createdAt: '26.07.15',
-    lastRepliedAt: '26.07.16',
-    status: '진행',
-  },
-  {
-    id: 3,
-    title: '어떻게 하면 대회 수상을 많이 할 수 있을까요...',
-    mentee: '멘티',
-    createdAtOrder: 20260715,
-    createdAt: '26.07.15',
-    lastRepliedAt: '26.07.16',
-    status: '완료',
-  },
-]
-
-const mentorFilters = ['전체', '원활', '답변 지연', '비활성'] as const
-const questionFilters = ['전체', '대기', '진행', '완료'] as const
-const CHAT_PANEL_ANIMATION_MS = 180
-
-// "18건"처럼 단위가 붙은 표시값에서 숫자만 추출해 합산용 값으로 변환한다.
-const getQuestionCount = (questionCountText: string) => {
-  return Number(questionCountText.replace(/[^0-9]/g, '')) || 0
-}
+import type { ChatMessageSummary, MentorSummary, QuestionSummary } from './types'
 
 export function MentoringPage() {
-  const navigate = useNavigate()
-  const closeChatPanelTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  )
-  const [viewMode, setViewMode] = useState<ViewMode>('dashboard')
-  const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null)
-  const [isChatPanelClosing, setIsChatPanelClosing] = useState(false)
-  const [selectedMentorFilter, setSelectedMentorFilter] = useState<MentorFilter>('전체')
-  const [selectedQuestionFilter, setSelectedQuestionFilter] =
-    useState<QuestionFilter>('전체')
-  const [mentorSearchKeyword, setMentorSearchKeyword] = useState('')
-  const [questionSearchKeyword, setQuestionSearchKeyword] = useState('')
-  const [mentorSortOrder, setMentorSortOrder] = useState<SortOrder>('latest')
-  const [questionSortOrder, setQuestionSortOrder] = useState<SortOrder>('latest')
-
-  const selectedQuestion =
-    questions.find((question) => question.id === selectedQuestionId) ?? questions[1]
-  const shouldRenderChatPanel =
-    viewMode === 'mentor-detail' &&
-    (selectedQuestionId !== null || isChatPanelClosing)
-
-  useEffect(() => {
-    return () => {
-      if (closeChatPanelTimeoutRef.current) {
-        clearTimeout(closeChatPanelTimeoutRef.current)
-      }
-    }
-  }, [])
-
-  const clearCloseChatPanelTimer = () => {
-    if (!closeChatPanelTimeoutRef.current) {
-      return
-    }
-
-    clearTimeout(closeChatPanelTimeoutRef.current)
-    closeChatPanelTimeoutRef.current = null
-  }
-  const completedQuestionCount = mentors.reduce(
-    (total, mentor) => total + getQuestionCount(mentor.totalQuestions),
-    0,
-  )
-  const pendingQuestionCount = mentors.reduce(
-    (total, mentor) => total + getQuestionCount(mentor.pendingQuestions),
-    0,
-  )
-  const inProgressQuestionCount = questions.filter(
-    (question) => question.status === '진행',
-  ).length
-  const attentionNeededMentorCount = mentors.filter(
-    (mentor) => mentor.status !== '원활',
-  ).length
-  const mentorKeyword = mentorSearchKeyword.trim().toLowerCase()
-  const questionKeyword = questionSearchKeyword.trim().toLowerCase()
-  const filteredMentors = mentors
-    .filter((mentor) => {
-      const matchesStatus =
-        selectedMentorFilter === '전체' || mentor.status === selectedMentorFilter
-      const matchesKeyword =
-        mentorKeyword.length === 0 ||
-        [
-          mentor.name,
-          mentor.role,
-          mentor.totalQuestions,
-          mentor.pendingQuestions,
-          mentor.recentActivity,
-          mentor.status,
-        ].some((value) => value.toLowerCase().includes(mentorKeyword))
-
-      return matchesStatus && matchesKeyword
-    })
-    .sort((a, b) =>
-      mentorSortOrder === 'latest'
-        ? a.recentActivityOrder - b.recentActivityOrder
-        : b.recentActivityOrder - a.recentActivityOrder,
-    )
-  const filteredQuestions = questions
-    .filter((question) => {
-      const matchesStatus =
-        selectedQuestionFilter === '전체' || question.status === selectedQuestionFilter
-      const matchesKeyword =
-        questionKeyword.length === 0 ||
-        [
-          question.title,
-          question.mentee,
-          question.createdAt,
-          question.lastRepliedAt,
-          question.status,
-        ].some((value) => value.toLowerCase().includes(questionKeyword))
-
-      return matchesStatus && matchesKeyword
-    })
-    .sort((a, b) =>
-      questionSortOrder === 'latest'
-        ? b.createdAtOrder - a.createdAtOrder
-        : a.createdAtOrder - b.createdAtOrder,
-    )
-
-  const handleMentorSelect = () => {
-    clearCloseChatPanelTimer()
-    setIsChatPanelClosing(false)
-    setViewMode('mentor-detail')
-    setSelectedQuestionId(null)
-  }
-
-  const handleBack = () => {
-    clearCloseChatPanelTimer()
-    setIsChatPanelClosing(false)
-    setViewMode('dashboard')
-    setSelectedQuestionId(null)
-  }
-
-  const handleDashboardBack = () => {
-    navigate('/mentoring')
-  }
-
-  const handleQuestionSelect = (question: QuestionSummary) => {
-    clearCloseChatPanelTimer()
-    setIsChatPanelClosing(false)
-    setSelectedQuestionId(question.id)
-  }
-
-  const handleCloseChatPanel = () => {
-    if (selectedQuestionId === null || isChatPanelClosing) {
-      return
-    }
-
-    setIsChatPanelClosing(true)
-    clearCloseChatPanelTimer()
-    closeChatPanelTimeoutRef.current = setTimeout(() => {
-      setSelectedQuestionId(null)
-      setIsChatPanelClosing(false)
-      closeChatPanelTimeoutRef.current = null
-    }, CHAT_PANEL_ANIMATION_MS)
-  }
+  const {
+    attentionNeededMentorCount,
+    completedQuestionCount,
+    errorMessage,
+    filteredMentors,
+    filteredQuestions,
+    handleBack,
+    handleCloseChatPanel,
+    handleDashboardBack,
+    handleMentorSelect,
+    handleQuestionSelect,
+    inProgressQuestionCount,
+    isChatPanelClosing,
+    isLoading,
+    mentorFilters,
+    mentorSearchKeyword,
+    mentorSortOrder,
+    pendingQuestionCount,
+    questionFilters,
+    questionSearchKeyword,
+    questionSortOrder,
+    selectedMentor,
+    selectedMentorFilter,
+    selectedMessages,
+    selectedQuestion,
+    selectedQuestionFilter,
+    selectedQuestionId,
+    setMentorSearchKeyword,
+    setMentorSortOrder,
+    setQuestionSearchKeyword,
+    setQuestionSortOrder,
+    setSelectedMentorFilter,
+    setSelectedQuestionFilter,
+    shouldRenderChatPanel,
+    viewMode,
+  } = useMentoringPage()
 
   return (
     <MentoringLayout>
@@ -343,6 +138,9 @@ export function MentoringPage() {
               sortOrder={mentorSortOrder}
               selectedFilter={selectedMentorFilter}
               searchKeyword={mentorSearchKeyword}
+              filterOptions={mentorFilters}
+              isLoading={isLoading}
+              errorMessage={errorMessage}
               onSortOrderChange={setMentorSortOrder}
               onFilterChange={setSelectedMentorFilter}
               onSearchKeywordChange={setMentorSearchKeyword}
@@ -357,70 +155,57 @@ export function MentoringPage() {
               </BackButton>
               <PageHeader title="멘토링 상세 관리" />
             </Header>
-            <DetailSummary />
-            <QuestionList
-              title="질문"
-              searchPlaceholder="검색어 입력"
-              questions={filteredQuestions}
-              sortOrder={questionSortOrder}
-              filterOptions={questionFilters}
-              selectedFilter={selectedQuestionFilter}
-              selectedQuestionId={selectedQuestionId}
-              searchKeyword={questionSearchKeyword}
-              onSortOrderChange={setQuestionSortOrder}
-              onFilterChange={setSelectedQuestionFilter}
-              onSearchKeywordChange={setQuestionSearchKeyword}
-              onQuestionSelect={handleQuestionSelect}
-            />
+            <DetailSummary mentor={selectedMentor} />
+            {isLoading || errorMessage || filteredQuestions.length === 0 ? (
+              <StatusMessage>
+                {isLoading && '질문 데이터를 불러오는 중이에요'}
+                {!isLoading && errorMessage && errorMessage}
+                {!isLoading && !errorMessage && '질문이 아직 없어요'}
+              </StatusMessage>
+            ) : (
+              <QuestionList
+                title="질문"
+                searchPlaceholder="검색어 입력"
+                questions={filteredQuestions}
+                sortOrder={questionSortOrder}
+                filterOptions={questionFilters}
+                selectedFilter={selectedQuestionFilter}
+                selectedQuestionId={selectedQuestionId}
+                searchKeyword={questionSearchKeyword}
+                onSortOrderChange={setQuestionSortOrder}
+                onFilterChange={setSelectedQuestionFilter}
+                onSearchKeywordChange={setQuestionSearchKeyword}
+                onQuestionSelect={handleQuestionSelect}
+              />
+            )}
           </>
         )}
       </Content>
 
-      {shouldRenderChatPanel && (
+      {shouldRenderChatPanel && selectedQuestion && (
         <ChatPanel aria-label="질문 상세" $isClosing={isChatPanelClosing}>
           <ClosePanelButton type="button" aria-label="질문 상세 닫기" onClick={handleCloseChatPanel}>
             »
           </ClosePanelButton>
           <ChatPanelHeader>
             <StatusText $status={selectedQuestion.status}>{selectedQuestion.status}</StatusText>
-            <ChatPanelTitle>어떻게 하면 대회 수상을 많이할 수 있을까요?</ChatPanelTitle>
+            <ChatPanelTitle>{selectedQuestion.title}</ChatPanelTitle>
           </ChatPanelHeader>
-          <ChatTimestamp>2026. 7. 15. 12:02</ChatTimestamp>
+          <ChatTimestamp>{selectedQuestion.createdAt}</ChatTimestamp>
           <ChatCard>
             <ChatLog>
-              <MessageGroup>
-                <MentorProfile $size="sm">
-                  <img src={profileImage} alt="" />
-                </MentorProfile>
-                <MessageStack>
-                  <MessageAuthor>멘티</MessageAuthor>
-                  <MessageBubble $fromMentee>수상을 많이 하고 싶어요.</MessageBubble>
-                  <ChatMeta>2026. 7. 15. 12:02</ChatMeta>
-                </MessageStack>
-              </MessageGroup>
-              <MessageGroup $align="right">
-                <MessageStack>
-                  <MessageBubble>대회에 많이 나가시면 됩니다</MessageBubble>
-                  <ChatMeta $align="right">2026. 7. 16. 12:02</ChatMeta>
-                </MessageStack>
-              </MessageGroup>
-              <MessageGroup>
-                <MentorProfile $size="sm">
-                  <img src={profileImage} alt="" />
-                </MentorProfile>
-                <MessageStack>
-                  <MessageAuthor>멘티</MessageAuthor>
-                  <MessageBubble $fromMentee>네?</MessageBubble>
-                  <MessageBubble $fromMentee>그게 맞나요</MessageBubble>
-                  <ChatMeta>2026. 7. 15. 12:02</ChatMeta>
-                </MessageStack>
-              </MessageGroup>
-              <MessageGroup $align="right">
-                <MessageStack>
-                  <MessageBubble>ㄹㅇ 맞긴 함</MessageBubble>
-                  <ChatMeta $align="right">2026. 7. 16. 12:02</ChatMeta>
-                </MessageStack>
-              </MessageGroup>
+              <QuestionMessage question={selectedQuestion} />
+              {selectedMessages.length === 0 ? (
+                <StatusMessage>아직 답변 메시지가 없어요</StatusMessage>
+              ) : (
+                selectedMessages.map((message) => (
+                  <ChatMessage
+                    key={message.id}
+                    message={message}
+                    question={selectedQuestion}
+                  />
+                ))
+              )}
             </ChatLog>
           </ChatCard>
         </ChatPanel>
@@ -445,19 +230,27 @@ function PageHeader({ title }: PageHeaderProps) {
 type MentorTableProps = {
   mentors: MentorSummary[]
   sortOrder: SortOrder
-  selectedFilter: MentorFilter
+  selectedFilter: MentorTableFilter
   searchKeyword: string
+  filterOptions: readonly MentorTableFilter[]
+  isLoading: boolean
+  errorMessage: string
   onSortOrderChange: (sortOrder: SortOrder) => void
-  onFilterChange: (filter: MentorFilter) => void
+  onFilterChange: (filter: MentorTableFilter) => void
   onSearchKeywordChange: (keyword: string) => void
   onMentorSelect: (mentor: MentorSummary) => void
 }
+
+type MentorTableFilter = '전체' | MentorSummary['status']
 
 function MentorTable({
   mentors,
   sortOrder,
   selectedFilter,
   searchKeyword,
+  filterOptions,
+  isLoading,
+  errorMessage,
   onSortOrderChange,
   onFilterChange,
   onSearchKeywordChange,
@@ -478,7 +271,7 @@ function MentorTable({
         </ToolbarLeft>
         <RadioFilterGroup
           name="mentor-status-filter"
-          options={mentorFilters}
+          options={filterOptions}
           value={selectedFilter}
           onChange={onFilterChange}
         />
@@ -498,14 +291,26 @@ function MentorTable({
         <span>상태</span>
       </TableHeader>
 
-      {mentors.map((mentor) => (
-        <MentorStatsRow key={mentor.id} mentor={mentor} onClick={onMentorSelect} />
-      ))}
+      {isLoading || errorMessage || mentors.length === 0 ? (
+        <StatusMessage>
+          {isLoading && '멘토링 데이터를 불러오는 중이에요'}
+          {!isLoading && errorMessage && errorMessage}
+          {!isLoading && !errorMessage && '멘토링 데이터가 아직 없어요'}
+        </StatusMessage>
+      ) : (
+        mentors.map((mentor) => (
+          <MentorStatsRow key={mentor.id} mentor={mentor} onClick={onMentorSelect} />
+        ))
+      )}
     </Table>
   )
 }
 
-function DetailSummary() {
+type DetailSummaryProps = {
+  mentor?: MentorSummary
+}
+
+function DetailSummary({ mentor }: DetailSummaryProps) {
   return (
     <DetailHeader>
       <MentorCell>
@@ -513,28 +318,75 @@ function DetailSummary() {
           <img src={profileImage} alt="" />
         </MentorProfile>
         <MentorInfo>
-          <MentorName>이윤지</MentorName>
-          <MentorMeta>프론트엔드 · 디자이너</MentorMeta>
+          <MentorName>{mentor?.name ?? '-'}</MentorName>
+          <MentorMeta>{mentor?.role ?? '-'}</MentorMeta>
         </MentorInfo>
       </MentorCell>
       <DetailMetrics>
         <DetailMetric>
           <DetailMetricLabel>전체 질문</DetailMetricLabel>
-          <DetailMetricValue>18건</DetailMetricValue>
+          <DetailMetricValue>{mentor?.totalQuestions ?? '0건'}</DetailMetricValue>
         </DetailMetric>
         <DetailMetric>
           <DetailMetricLabel>답변 대기</DetailMetricLabel>
-          <DetailMetricValue>4건</DetailMetricValue>
+          <DetailMetricValue>{mentor?.pendingQuestions ?? '0건'}</DetailMetricValue>
         </DetailMetric>
         <DetailMetric>
           <DetailMetricLabel>최근 활동</DetailMetricLabel>
-          <DetailMetricValue>오늘</DetailMetricValue>
+          <DetailMetricValue>{mentor?.recentActivity ?? '-'}</DetailMetricValue>
         </DetailMetric>
         <DetailMetric>
           <DetailMetricLabel>상태</DetailMetricLabel>
-          <StatusText $status="원활">원활</StatusText>
+          <StatusText $status={mentor?.status ?? '비활성'}>
+            {mentor?.status ?? '비활성'}
+          </StatusText>
         </DetailMetric>
       </DetailMetrics>
     </DetailHeader>
+  )
+}
+
+type QuestionMessageProps = {
+  question: QuestionSummary
+}
+
+function QuestionMessage({ question }: QuestionMessageProps) {
+  return (
+    <MessageGroup>
+      <MentorProfile $size="sm">
+        <img src={profileImage} alt="" />
+      </MentorProfile>
+      <MessageStack>
+        <MessageAuthor>{question.mentee}</MessageAuthor>
+        <MessageBubble $fromMentee>{question.content}</MessageBubble>
+        <ChatMeta>{question.createdAt}</ChatMeta>
+      </MessageStack>
+    </MessageGroup>
+  )
+}
+
+type ChatMessageProps = {
+  message: ChatMessageSummary
+  question: QuestionSummary
+}
+
+function ChatMessage({ message, question }: ChatMessageProps) {
+  const isMenteeMessage = message.userId === question.userId
+
+  return (
+    <MessageGroup $align={isMenteeMessage ? undefined : 'right'}>
+      {isMenteeMessage && (
+        <MentorProfile $size="sm">
+          <img src={profileImage} alt="" />
+        </MentorProfile>
+      )}
+      <MessageStack>
+        {isMenteeMessage && <MessageAuthor>{question.mentee}</MessageAuthor>}
+        <MessageBubble $fromMentee={isMenteeMessage}>{message.content}</MessageBubble>
+        <ChatMeta $align={isMenteeMessage ? undefined : 'right'}>
+          {message.createdAt}
+        </ChatMeta>
+      </MessageStack>
+    </MessageGroup>
   )
 }

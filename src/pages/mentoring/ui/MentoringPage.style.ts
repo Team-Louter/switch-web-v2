@@ -355,6 +355,15 @@ export const TableCell = styled.span`
   ${token.typography('body', 'sm', 'medium')}
 `
 
+export const StatusMessage = styled.p`
+  width: 100%;
+  padding: 24px 12px;
+  color: ${token.colors.gray.gray50};
+  line-height: 1;
+  text-align: center;
+  ${token.typography('body', 'sm', 'medium')}
+`
+
 export const MentorCell = styled.span`
   ${token.flexLeft}
   gap: 10px;
