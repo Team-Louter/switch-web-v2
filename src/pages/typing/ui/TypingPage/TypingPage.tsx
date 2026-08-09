@@ -13,10 +13,17 @@ import { ModeButton } from "../ModeButton/ModeButton";
 import { TYPING_MODES } from "@/shared/constants/typing";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { TypingSentenceModal, type TypingSentenceModalType } from "./TypingSentenceModal";
 
 export function TypingPage() {
   const navigate = useNavigate();
   const [selectedMode, setSelectedMode] = useState<string>("DAILY");
+  const [sentenceModal, setSentenceModal] = useState<TypingSentenceModalType>(null);
+  const [editingSentence, setEditingSentence] = useState<{
+    category: 'DAILY' | 'CODE'
+    label: string
+    sentence: string
+  } | null>(null);
   const selectedModeName = TYPING_MODES.find(
     (mode) => mode.serverValue === selectedMode,
   )?.mode;
@@ -30,6 +37,21 @@ export function TypingPage() {
     navigate(`/typing/code/${selectedMode.toLowerCase()}`);
   };
 
+  const handleOpenEditor = () => {
+    setEditingSentence(null);
+    setSentenceModal('editor');
+  };
+
+  const handleEditSentence = (item: NonNullable<typeof editingSentence>) => {
+    setEditingSentence(item);
+    setSentenceModal('editor');
+  };
+
+  const handleDeleteSentence = (item: NonNullable<typeof editingSentence>) => {
+    setEditingSentence(item);
+    setSentenceModal('delete');
+  };
+
   return (
     <S.TypingContainer>
       <S.PageContainer>
@@ -37,7 +59,9 @@ export function TypingPage() {
           <S.TitleContainer>
             <S.Title>타자 연습</S.Title>
             <S.Description>타자 실력을 길러요!</S.Description>
-            <IoSettingsOutline color={tokens.colors.gray.gray50} style={{ marginLeft: 'auto', cursor: 'pointer' }} size={30}/>
+            <S.SettingsButton aria-label="문장 설정" type="button" onClick={() => setSentenceModal(sentenceModal === 'settings' ? null : 'settings')}>
+              <IoSettingsOutline color={tokens.colors.gray.gray50} size={30}/>
+            </S.SettingsButton>
           </S.TitleContainer>
           <S.SummaryContainer>
             <SummaryCard
@@ -116,6 +140,15 @@ export function TypingPage() {
           </S.StartButton>
         </S.Column>
       </S.PageContainer>
+      <TypingSentenceModal
+        editingItem={editingSentence}
+        modalType={sentenceModal}
+        onBackToSettings={() => setSentenceModal('settings')}
+        onClose={() => setSentenceModal(null)}
+        onDelete={handleDeleteSentence}
+        onEdit={handleEditSentence}
+        onOpenEditor={handleOpenEditor}
+      />
     </S.TypingContainer>
   )
 }
