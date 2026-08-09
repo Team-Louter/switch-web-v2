@@ -38,6 +38,14 @@ export const Description = styled.p`
   margin-left: 16px;
 `; 
 
+export const SettingsButton = styled.button`
+  ${token.flexCenter};
+  width: 30px;
+  height: 30px;
+  margin-left: auto;
+  cursor: pointer;
+`;
+
 export const SummaryContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
