@@ -4,20 +4,31 @@ import * as S from "./TypingPage.style"
 import { FaBullseye, FaRankingStar, FaTrophy } from "react-icons/fa6";
 import { IoSettingsOutline } from "react-icons/io5";
 import { LuClock3, LuTimer } from "react-icons/lu";
-import { SummaryCard } from "./SummaryCard/SummaryCard";
-import { TopItem } from "./TopItem/TopItem";
+import { SummaryCard } from "../SummaryCard/SummaryCard";
+import { TopItem } from "../TopItem/TopItem";
 import firstMedal from "@/shared/assets/1st.svg";
 import secondMedal from "@/shared/assets/2nd.svg";
 import thirdMedal from "@/shared/assets/3rd.svg";
-import { ModeButton } from "./ModeButton/ModeButton";
+import { ModeButton } from "../ModeButton/ModeButton";
 import { TYPING_MODES } from "@/shared/constants/typing";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function TypingPage() {
+  const navigate = useNavigate();
   const [selectedMode, setSelectedMode] = useState<string>("DAILY");
   const selectedModeName = TYPING_MODES.find(
     (mode) => mode.serverValue === selectedMode,
   )?.mode;
+
+  const handleStart = () => {
+    if (selectedMode === "DAILY") {
+      navigate("/typing/daily");
+      return;
+    }
+
+    navigate(`/typing/code/${selectedMode.toLowerCase()}`);
+  };
 
   return (
     <S.TypingContainer>
@@ -100,7 +111,9 @@ export function TypingPage() {
               )
             })}
           </S.ModeContainer>
-          <S.StartButton>시작하기</S.StartButton>
+          <S.StartButton type="button" onClick={handleStart}>
+            시작하기
+          </S.StartButton>
         </S.Column>
       </S.PageContainer>
     </S.TypingContainer>

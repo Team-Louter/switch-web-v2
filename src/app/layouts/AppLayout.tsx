@@ -14,10 +14,15 @@ type AppLayoutProps = PropsWithChildren
 export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
+  const isTypingPractice = location.pathname === '/typing/daily' || location.pathname.startsWith('/typing/code/')
 
   const activeSidebarItemId = useMemo(() => {
     return (
-      SIDEBAR_MENU.find((item) => item.path === location.pathname)?.id ?? 'home'
+      SIDEBAR_MENU.find((item) =>
+        item.path === '/'
+          ? location.pathname === '/'
+          : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`),
+      )?.id ?? 'home'
     )
   }, [location.pathname])
 
@@ -31,12 +36,14 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <Layout>
-      <Side>
-        <Sidebar
-          activeItemId={activeSidebarItemId}
-          onItemSelect={handleSidebarItemSelect}
-        />
-      </Side>
+      {!isTypingPractice && (
+        <Side>
+          <Sidebar
+            activeItemId={activeSidebarItemId}
+            onItemSelect={handleSidebarItemSelect}
+          />
+        </Side>
+      )}
       <Body>{children}</Body>
     </Layout>
   )

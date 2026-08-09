@@ -9,6 +9,8 @@ import {
   MyPage,
   NotificationPage,
   StorePage,
+  CodeTypingPage,
+  DailyTypingPage,
   TypingPage,
 } from '@/pages'
 
@@ -26,6 +28,8 @@ export function App() {
           <Route path="/learning" element={<LearningPage />} />
           <Route path="/mentoring" element={<MentoringPage />} />
           <Route path="/typing" element={<TypingPage />} />
+          <Route path="/typing/daily" element={<DailyTypingPage />} />
+          <Route path="/typing/code/:language" element={<CodeTypingPage />} />
           <Route path="/notification" element={<NotificationPage />} />
           <Route path="/store" element={<StorePage />} />
           <Route path="/my" element={<MyPage />} />
