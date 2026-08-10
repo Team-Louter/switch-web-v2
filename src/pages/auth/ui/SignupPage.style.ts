@@ -112,13 +112,6 @@ export const Input = styled(EmailInput)`
   padding: 0 14px;
 `
 
-export const PasswordError = styled.p`
-  margin-top: -4px;
-  color: ${token.colors.danger.danger20};
-  line-height: 1.3;
-  ${token.typography('caption', 'md', 'medium')}
-`
-
 export const TurnstileConfigMessage = styled.p`
   ${token.flexCenter}
   width: 100%;
