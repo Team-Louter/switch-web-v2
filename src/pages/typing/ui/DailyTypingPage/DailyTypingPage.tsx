@@ -6,6 +6,7 @@ import { TypingPracticeHeader } from '../TypingPracticeHeader/TypingPracticeHead
 
 export function DailyTypingPage() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
+  const [typedSentence, setTypedSentence] = useState('')
   const startTimeRef = useRef<number | null>(null)
 
   const handleCountdownComplete = useCallback(() => {
@@ -22,6 +23,7 @@ export function DailyTypingPage() {
     return () => window.clearInterval(intervalId)
   }, [])
 
+  const typingSpeed = elapsedSeconds === 0 ? 0 : Math.round(typedSentence.length / (elapsedSeconds / 60))
   const minutes = Math.floor(elapsedSeconds / 60)
   const seconds = elapsedSeconds % 60
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`
@@ -30,7 +32,7 @@ export function DailyTypingPage() {
     <S.Page>
       <TypingCountdown onComplete={handleCountdownComplete} />
       <S.PracticeFrame>
-        <TypingPracticeHeader category="일상 영어" time={formattedTime} typingSpeed="200타" accuracy="100%" />
+        <TypingPracticeHeader category="일상 영어" time={formattedTime} typingSpeed={`${typingSpeed}타`} accuracy="100%" />
 
         <S.Workspace>
           <S.Paper>
@@ -46,7 +48,7 @@ export function DailyTypingPage() {
               <S.Label $current>현재 문장</S.Label>
               <S.SentenceBlock>
                 <S.Sentence>I want to go home!! Let me go!!</S.Sentence>
-                <S.TypedLine aria-label="문장 입력" />
+                <S.TypedLine aria-label="문장 입력" value={typedSentence} onChange={event => setTypedSentence(event.target.value)} />
               </S.SentenceBlock>
             </S.SentenceRow>
 

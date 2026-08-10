@@ -22,8 +22,6 @@ const CODE_LINES = [
   '}',
 ]
 
-const TYPED_CODE_LINES = CODE_LINES.slice(0, 6)
-
 loader.config({ monaco })
 
 interface CodeEditorProps {
@@ -31,9 +29,10 @@ interface CodeEditorProps {
   lines: string[]
   language: string
   editable?: boolean
+  onChange?: (value: string) => void
 }
 
-function CodeEditor({ title, lines, language, editable }: CodeEditorProps) {
+function CodeEditor({ title, lines, language, editable, onChange }: CodeEditorProps) {
   const errorDecorations = useRef<monaco.editor.IEditorDecorationsCollection | null>(null)
 
   const handleMount: OnMount = editor => {
@@ -47,6 +46,8 @@ function CodeEditor({ title, lines, language, editable }: CodeEditorProps) {
       const typedCode = model.getValue()
       const referenceCode = CODE_LINES.join('\n')
       const decorations: monaco.editor.IModelDeltaDecoration[] = []
+
+      onChange?.(typedCode)
 
       for (let index = 0; index < typedCode.length; index += 1) {
         const typedCharacter = typedCode[index]
@@ -126,6 +127,7 @@ function CodeEditor({ title, lines, language, editable }: CodeEditorProps) {
 export function CodeTypingPage() {
   const { language } = useParams()
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
+  const [typedCode, setTypedCode] = useState('')
   const startTimeRef = useRef<number | null>(null)
 
   const handleCountdownComplete = useCallback(() => {
@@ -148,6 +150,7 @@ export function CodeTypingPage() {
 
   const languageName = LANGUAGE_NAMES[language as keyof typeof LANGUAGE_NAMES]
   const editorLanguage = language === 'java' ? 'java' : 'javascript'
+  const typingSpeed = elapsedSeconds === 0 ? 0 : Math.round(typedCode.length / (elapsedSeconds / 60))
   const minutes = Math.floor(elapsedSeconds / 60)
   const seconds = elapsedSeconds % 60
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`
@@ -156,12 +159,12 @@ export function CodeTypingPage() {
     <S.Page>
       <TypingCountdown onComplete={handleCountdownComplete} />
       <S.PracticeFrame>
-        <TypingPracticeHeader category={languageName} time={formattedTime} typingSpeed="370타" accuracy="100%" />
+        <TypingPracticeHeader category={languageName} time={formattedTime} typingSpeed={`${typingSpeed}타`} accuracy="100%" />
         <S.Workspace>
           <S.Monitor>
             <S.Screen>
               <CodeEditor title="따라 칠 코드" lines={CODE_LINES} language={editorLanguage} />
-              <CodeEditor title="내가 쓴 코드" lines={TYPED_CODE_LINES} language={editorLanguage} editable />
+              <CodeEditor title="내가 쓴 코드" lines={[]} language={editorLanguage} editable onChange={setTypedCode} />
             </S.Screen>
             <S.MonitorNeck aria-hidden="true" />
             <S.MonitorBase aria-hidden="true" />
