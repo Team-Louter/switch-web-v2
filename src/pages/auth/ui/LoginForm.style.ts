@@ -1,4 +1,4 @@
-import styled, { css, keyframes } from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 import { Button } from '@/shared/ui'
@@ -65,7 +65,6 @@ export const DividerText = styled.span`
 
 export const EmailGroup = styled.div`
   ${token.flexColumn}
-  position: relative;
   align-items: stretch;
   gap: 10px;
   width: 100%;
@@ -169,18 +168,6 @@ export const TurnstileConfigMessage = styled.p`
   ${token.typography('caption', 'md', 'medium')}
 `
 
-export const EmailCheckError = styled.p`
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  margin-top: 4px;
-  color: ${token.colors.danger.danger20};
-  line-height: 1.3;
-  text-align: center;
-  ${token.typography('caption', 'md', 'medium')}
-`
-
 export const ActionArea = styled.div`
   position: relative;
   width: 100%;
@@ -188,7 +175,7 @@ export const ActionArea = styled.div`
   margin-top: -9px;
 `
 
-export const ContinueButton = styled(Button)<{ $isLoading: boolean }>`
+export const ContinueButton = styled(Button)`
   width: 100%;
   height: 38px;
   border-radius: ${token.shapes.small};
@@ -203,17 +190,6 @@ export const ContinueButton = styled(Button)<{ $isLoading: boolean }>`
     cursor: not-allowed;
     opacity: 0.5;
   }
-
-  ${({ $isLoading }) =>
-    $isLoading &&
-    css`
-      &:disabled {
-        color: ${token.colors.white};
-        background: ${token.colors.gray.gray20};
-        cursor: wait;
-        opacity: 1;
-      }
-    `}
 `
 
 export const ButtonContent = styled.span`
@@ -225,8 +201,8 @@ export const ButtonContent = styled.span`
 export const LoadingSpinner = styled.span`
   width: 18px;
   height: 18px;
-  border: 2px solid rgb(255 255 255 / 45%);
-  border-top-color: ${token.colors.white};
+  border: 2px solid rgb(14 13 12 / 25%);
+  border-top-color: ${token.colors.gray.gray100};
   border-radius: ${token.shapes.circle};
   animation: ${rotate} 700ms linear infinite;
 
