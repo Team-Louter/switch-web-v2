@@ -14,7 +14,6 @@ export interface SignupFormValues {
 
 export interface SignupFormController {
   values: SignupFormValues
-  passwordError: string
   isContinueDisabled: boolean
   turnstileSiteKey: string
   handleInputChange: (event: ChangeEvent<HTMLInputElement>) => void
@@ -46,9 +45,6 @@ export function useSignupForm(initialEmail: string): SignupFormController {
   const hasPasswordMismatch =
     Boolean(values.passwordConfirmation) &&
     values.password !== values.passwordConfirmation
-  const passwordError = hasPasswordMismatch
-    ? '비밀번호가 일치하지 않습니다.'
-    : ''
   const hasEmptyField = Object.values(values).some(
     (value) => !value.trim(),
   )
@@ -81,7 +77,6 @@ export function useSignupForm(initialEmail: string): SignupFormController {
 
   return {
     values,
-    passwordError,
     isContinueDisabled,
     turnstileSiteKey: TURNSTILE_SITE_KEY,
     handleInputChange,
