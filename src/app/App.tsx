@@ -8,6 +8,8 @@ import {
   MentoringPage,
   MyPage,
   NotificationPage,
+  PostDetailPage,
+  PostWritePage,
   StorePage,
   TypingPage,
 } from '@/pages'
@@ -22,6 +24,8 @@ export function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/community" element={<CommunityPage />} />
+          <Route path="/community/write" element={<PostWritePage />} />
+          <Route path="/community/:postId" element={<PostDetailPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/learning" element={<LearningPage />} />
           <Route path="/mentoring" element={<MentoringPage />} />

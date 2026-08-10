@@ -1,5 +1,5 @@
 export { CalendarPage } from './calendar'
-export { CommunityPage } from './community'
+export { CommunityPage, PostDetailPage, PostWritePage } from './community'
 export { HomePage } from './home'
 export { LearningPage } from './study'
 export { MentoringPage } from './mentoring'

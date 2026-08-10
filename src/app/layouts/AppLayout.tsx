@@ -16,9 +16,15 @@ export function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate()
 
   const activeSidebarItemId = useMemo(() => {
-    return (
-      SIDEBAR_MENU.find((item) => item.path === location.pathname)?.id ?? 'home'
-    )
+    // 상세 / 작성 화면(Ex. /community/1)에서도 상위 메뉴가 선택되도록 하위 경로까지 본다.
+    const matchedItem =
+      SIDEBAR_MENU.find((item) => item.path === location.pathname) ??
+      SIDEBAR_MENU.find(
+        (item) =>
+          item.path !== '/' && location.pathname.startsWith(`${item.path}/`),
+      )
+
+    return matchedItem?.id ?? 'home'
   }, [location.pathname])
 
   const handleSidebarItemSelect = (itemId: SidebarItemId) => {
