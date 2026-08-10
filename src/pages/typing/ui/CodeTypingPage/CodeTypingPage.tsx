@@ -1,26 +1,15 @@
 import MonacoEditor, { loader, type OnMount } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Navigate, useParams } from 'react-router-dom'
+import { Navigate, useNavigate, useParams } from 'react-router-dom'
+
+import { getProblemsForPractice, type TypingProblem } from '@/entities/typing'
 
 import * as S from './CodeTypingPage.style'
 import { TypingCountdown } from '../TypingCountdown/TypingCountdown'
 import { TypingPracticeHeader } from '../TypingPracticeHeader/TypingPracticeHeader'
 
 const LANGUAGE_NAMES = { java: 'Java', javascript: 'JavaScript' } as const
-
-const CODE_LINES = [
-  'function transform(arr) {',
-  '  let sum = 0;',
-  '  for (let i = 0; i < arr.length; i++) {',
-  '    if (arr[i] % 2 === 0) {',
-  '      const squared = arr[i] * arr[i];',
-  '      sum += squared;',
-  '    }',
-  '  }',
-  '  return sum;',
-  '}',
-]
 
 loader.config({ monaco })
 
@@ -30,9 +19,10 @@ interface CodeEditorProps {
   language: string
   editable?: boolean
   onChange?: (value: string) => void
+  onComplete?: () => void
 }
 
-function CodeEditor({ title, lines, language, editable, onChange }: CodeEditorProps) {
+function CodeEditor({ title, lines, language, editable, onChange, onComplete }: CodeEditorProps) {
   const errorDecorations = useRef<monaco.editor.IEditorDecorationsCollection | null>(null)
 
   const handleMount: OnMount = editor => {
@@ -44,7 +34,7 @@ function CodeEditor({ title, lines, language, editable, onChange }: CodeEditorPr
 
     const updateErrorDecorations = () => {
       const typedCode = model.getValue()
-      const referenceCode = CODE_LINES.join('\n')
+      const referenceCode = lines.join('\n')
       const decorations: monaco.editor.IModelDeltaDecoration[] = []
 
       onChange?.(typedCode)
@@ -73,6 +63,14 @@ function CodeEditor({ title, lines, language, editable, onChange }: CodeEditorPr
 
     updateErrorDecorations()
     editor.onDidChangeModelContent(updateErrorDecorations)
+    editor.focus()
+    editor.onKeyDown(event => {
+      if (event.keyCode !== monaco.KeyCode.Enter || model.getValue().length !== lines.join('\n').length) return
+
+      event.preventDefault()
+      event.stopPropagation()
+      onComplete?.()
+    })
   }
 
   return (
@@ -84,7 +82,7 @@ function CodeEditor({ title, lines, language, editable, onChange }: CodeEditorPr
       <S.EditorBody>
         <MonacoEditor
           defaultLanguage={language}
-          defaultValue={lines.join('\n')}
+          defaultValue={editable ? '' : lines.join('\n')}
           onMount={editable ? handleMount : undefined}
           theme="vs-dark"
           options={{
@@ -126,9 +124,30 @@ function CodeEditor({ title, lines, language, editable, onChange }: CodeEditorPr
 
 export function CodeTypingPage() {
   const { language } = useParams()
+  const navigate = useNavigate()
+  const [problems, setProblems] = useState<TypingProblem[]>([])
+  const [currentProblemIndex, setCurrentProblemIndex] = useState(0)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [typedCode, setTypedCode] = useState('')
   const startTimeRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (!language || !(language in LANGUAGE_NAMES)) return
+
+    let isMounted = true
+
+    const fetchProblems = async () => {
+      const data = await getProblemsForPractice(language.toUpperCase())
+
+      if (isMounted) setProblems(data)
+    }
+
+    void fetchProblems()
+
+    return () => {
+      isMounted = false
+    }
+  }, [language])
 
   const handleCountdownComplete = useCallback(() => {
     startTimeRef.current = performance.now()
@@ -150,13 +169,27 @@ export function CodeTypingPage() {
 
   const languageName = LANGUAGE_NAMES[language as keyof typeof LANGUAGE_NAMES]
   const editorLanguage = language === 'java' ? 'java' : 'javascript'
-  const referenceCode = CODE_LINES.join('\n')
+  const currentProblem = problems[currentProblemIndex]
+  const referenceCode = currentProblem?.content ?? ''
+  const codeLines = referenceCode.split('\n')
   const correctCharacterCount = [...typedCode].filter((character, index) => character === referenceCode[index]).length
   const typingSpeed = elapsedSeconds === 0 ? 0 : Math.round(typedCode.length / (elapsedSeconds / 60))
   const accuracy = typedCode.length === 0 ? 100 : Math.round((correctCharacterCount / typedCode.length) * 100)
   const minutes = Math.floor(elapsedSeconds / 60)
   const seconds = elapsedSeconds % 60
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`
+
+  const handleComplete = () => {
+    if (!currentProblem) return
+
+    if (!problems[currentProblemIndex + 1]) {
+      navigate('/typing')
+      return
+    }
+
+    setCurrentProblemIndex(currentIndex => currentIndex + 1)
+    setTypedCode('')
+  }
 
   return (
     <S.Page>
@@ -166,8 +199,16 @@ export function CodeTypingPage() {
         <S.Workspace>
           <S.Monitor>
             <S.Screen>
-              <CodeEditor title="따라 칠 코드" lines={CODE_LINES} language={editorLanguage} />
-              <CodeEditor title="내가 쓴 코드" lines={[]} language={editorLanguage} editable onChange={setTypedCode} />
+              <CodeEditor key={`reference-${currentProblem?.problemId ?? 0}`} title="따라 칠 코드" lines={codeLines} language={editorLanguage} />
+              <CodeEditor
+                key={`editable-${currentProblem?.problemId ?? 0}`}
+                title="내가 쓴 코드"
+                lines={codeLines}
+                language={editorLanguage}
+                editable
+                onChange={setTypedCode}
+                onComplete={handleComplete}
+              />
             </S.Screen>
             <S.MonitorNeck aria-hidden="true" />
             <S.MonitorBase aria-hidden="true" />
