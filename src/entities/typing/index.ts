@@ -1,2 +1,3 @@
 export { getProblems } from './api/getProblem'
-export type { TypingProblem } from './model/types'
+export { getPreviousResult } from './api/getResult'
+export type { TypingProblem, TypingResult } from './model/types'

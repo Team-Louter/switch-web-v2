@@ -11,10 +11,10 @@ import secondMedal from "@/shared/assets/2nd.svg";
 import thirdMedal from "@/shared/assets/3rd.svg";
 import { ModeButton } from "../ModeButton/ModeButton";
 import { TYPING_MODES } from "../../model/typingModes";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TypingSentenceModal, type TypingSentenceModalType } from "@/features/typing";
-import type { TypingProblem } from "@/entities/typing";
+import { getPreviousResult, type TypingProblem, type TypingResult } from "@/entities/typing";
 
 export function TypingPage() {
   const navigate = useNavigate();
@@ -24,6 +24,12 @@ export function TypingPage() {
   const selectedModeName = TYPING_MODES.find(
     (mode) => mode.serverValue === selectedMode,
   )?.mode;
+  const [previousResult, setPreviousResult] = useState<TypingResult>({
+    resultId: 0,
+    accuracy: 0,
+    elapsedTime: 0,
+    averageSpeed: 0
+  });
 
   const handleStart = () => {
     if (selectedMode === "DAILY") {
@@ -49,6 +55,15 @@ export function TypingPage() {
     setSentenceModal('delete');
   };
 
+  useEffect(() => {
+    const getPrevious = async () => {
+      const data = await getPreviousResult();
+      setPreviousResult(data);
+    }
+
+    void getPrevious();
+  }, [])
+
   return (
     <S.TypingContainer>
       <S.PageContainer>
@@ -64,31 +79,31 @@ export function TypingPage() {
             <SummaryCard
               icon={<FaTrophy color={tokens.colors.primary.primary50} size={36} />}
               label="이전 타수"
-              value="350"
+              value={previousResult.averageSpeed}
               unit="타"
             />
             <SummaryCard
               icon={<FaBullseye color="#F0310B" size={36} />}
               label="이전 정확도"
-              value="96"
+              value={previousResult.accuracy}
               unit="%"
             />
             <SummaryCard
               icon={<LuClock3 color="#0E90F2" size={38} />}
               label="이전 소요 시간"
-              value="1:30"
+              value={previousResult.elapsedTime}
               unit=""
             />
             <SummaryCard
               icon={<FaRankingStar color="#29C54B" size={38} />}
               label="내 랭킹"
-              value="16"
+              value={16}
               unit="등"
             />
             <SummaryCard
               icon={<LuTimer color="#898989" size={40} />}
               label="총 훈련 횟수"
-              value="3"
+              value={3}
               unit="회"
             />
           </S.SummaryContainer>
