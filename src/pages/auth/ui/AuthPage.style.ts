@@ -1,7 +1,19 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 import { Button } from '@/shared/ui'
+
+const revealField = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`
 
 export const Page = styled.div`
   min-width: 320px;
@@ -57,6 +69,11 @@ export const LoginCard = styled.section<{ $isPasswordStep: boolean }>`
   height: ${({ $isPasswordStep }) => ($isPasswordStep ? '597px' : '549px')};
   border-radius: 20px;
   box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
+  transition: height 220ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 
   @media (max-width: 900px) {
     width: 369px;
@@ -75,13 +92,18 @@ export const Hero = styled.div<{ $isPasswordStep: boolean }>`
   height: ${({ $isPasswordStep }) => ($isPasswordStep ? '597px' : '549px')};
   overflow: hidden;
   border-radius: 20px 0 0 20px;
+  transition: height 220ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 
   @media (max-width: 900px) {
     display: none;
   }
 `
 
-export const HeroImage = styled.img`
+export const HeroImage = styled.img<{ $isVisible: boolean }>`
   position: absolute;
   top: -12px;
   left: -18px;
@@ -89,6 +111,12 @@ export const HeroImage = styled.img`
   height: calc(100% + 36px);
   max-width: none;
   object-fit: fill;
+  opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
+  transition: opacity 180ms ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 `
 
 export const LoginPanel = styled.div<{ $isPasswordStep: boolean }>`
@@ -100,6 +128,11 @@ export const LoginPanel = styled.div<{ $isPasswordStep: boolean }>`
   border-radius: 0 20px 20px 0;
   padding: 39px 27px;
   background: ${token.colors.white};
+  transition: height 220ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 
   @media (max-width: 900px) {
     border-radius: 20px;
@@ -250,6 +283,11 @@ export const EmailSummary = styled.div`
   border-radius: ${token.shapes.xsmall};
   padding: 0 14px;
   background: ${token.colors.white};
+  animation: ${revealField} 180ms ease-out both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 export const EmailValue = styled.span`
@@ -269,7 +307,13 @@ export const ChangeEmailButton = styled.button`
   ${token.typography('caption', 'md', 'medium')}
 `
 
-export const PasswordInput = styled(EmailInput)``
+export const PasswordInput = styled(EmailInput)`
+  animation: ${revealField} 220ms 30ms ease-out both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
 
 export const TurnstileConfigMessage = styled.p`
   ${token.flexCenter}
