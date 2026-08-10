@@ -12,7 +12,8 @@ import {
   getWeekStatus,
 } from '@/entities/study'
 import type { StudyRecord, StudyResponse, StudyStatus } from '@/entities/study'
-import { CLUB_MEMBER } from '@/shared/constants/clubMember'
+import { getMember } from '@/entities/member/getMember'
+import type { Member } from '@/entities/member/model/types'
 import { PercentBar } from '@/features/study'
 
 import decoImg2 from '../assets/spring.svg'
@@ -40,6 +41,23 @@ export function MentorLearningPage() {
   const [studies, setStudies] = useState<StudyRecord[]>([])
   const [isStudiesLoading, setIsStudiesLoading] = useState(false)
   const [totalStudies, setTotalStudies] = useState<StudyResponse[]>([])
+  const [mentees, setMentees] = useState<Member[]>([])
+
+  useEffect(() => {
+    let isCancelled = false
+
+    getMember()
+      .then((members) => {
+        if (!isCancelled) {
+          setMentees(members.filter(({ role }) => role === 'mentee'))
+        }
+      })
+      .catch(() => {})
+
+    return () => {
+      isCancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     let isCancelled = false
@@ -133,9 +151,9 @@ export function MentorLearningPage() {
             : 0
           const items =
             state === 'future' || weekStatuses.length === 0
-              ? CLUB_MEMBER.map((name) => ({
-                  id: name,
-                  label: name,
+              ? mentees.map(({ userId, userName }) => ({
+                  id: userId,
+                  label: userName,
                   status: 'locked' as const,
                 }))
               : weekStatuses.map(({ userId, userName, status }) => ({
