@@ -150,7 +150,10 @@ export function CodeTypingPage() {
 
   const languageName = LANGUAGE_NAMES[language as keyof typeof LANGUAGE_NAMES]
   const editorLanguage = language === 'java' ? 'java' : 'javascript'
+  const referenceCode = CODE_LINES.join('\n')
+  const correctCharacterCount = [...typedCode].filter((character, index) => character === referenceCode[index]).length
   const typingSpeed = elapsedSeconds === 0 ? 0 : Math.round(typedCode.length / (elapsedSeconds / 60))
+  const accuracy = typedCode.length === 0 ? 100 : Math.round((correctCharacterCount / typedCode.length) * 100)
   const minutes = Math.floor(elapsedSeconds / 60)
   const seconds = elapsedSeconds % 60
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`
@@ -159,7 +162,7 @@ export function CodeTypingPage() {
     <S.Page>
       <TypingCountdown onComplete={handleCountdownComplete} />
       <S.PracticeFrame>
-        <TypingPracticeHeader category={languageName} time={formattedTime} typingSpeed={`${typingSpeed}타`} accuracy="100%" />
+        <TypingPracticeHeader category={languageName} time={formattedTime} typingSpeed={`${typingSpeed}타`} accuracy={`${accuracy}%`} />
         <S.Workspace>
           <S.Monitor>
             <S.Screen>

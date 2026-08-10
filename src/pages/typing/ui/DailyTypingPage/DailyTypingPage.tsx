@@ -4,6 +4,8 @@ import * as S from './DailyTypingPage.style'
 import { TypingCountdown } from '../TypingCountdown/TypingCountdown'
 import { TypingPracticeHeader } from '../TypingPracticeHeader/TypingPracticeHeader'
 
+const CURRENT_SENTENCE = 'I want to go home!! Let me go!!'
+
 export function DailyTypingPage() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [typedSentence, setTypedSentence] = useState('')
@@ -23,7 +25,9 @@ export function DailyTypingPage() {
     return () => window.clearInterval(intervalId)
   }, [])
 
+  const correctCharacterCount = [...typedSentence].filter((character, index) => character === CURRENT_SENTENCE[index]).length
   const typingSpeed = elapsedSeconds === 0 ? 0 : Math.round(typedSentence.length / (elapsedSeconds / 60))
+  const accuracy = typedSentence.length === 0 ? 100 : Math.round((correctCharacterCount / typedSentence.length) * 100)
   const minutes = Math.floor(elapsedSeconds / 60)
   const seconds = elapsedSeconds % 60
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`
@@ -32,7 +36,7 @@ export function DailyTypingPage() {
     <S.Page>
       <TypingCountdown onComplete={handleCountdownComplete} />
       <S.PracticeFrame>
-        <TypingPracticeHeader category="일상 영어" time={formattedTime} typingSpeed={`${typingSpeed}타`} accuracy="100%" />
+        <TypingPracticeHeader category="일상 영어" time={formattedTime} typingSpeed={`${typingSpeed}타`} accuracy={`${accuracy}%`} />
 
         <S.Workspace>
           <S.Paper>
@@ -47,7 +51,7 @@ export function DailyTypingPage() {
             <S.SentenceRow $current>
               <S.Label $current>현재 문장</S.Label>
               <S.SentenceBlock>
-                <S.Sentence>I want to go home!! Let me go!!</S.Sentence>
+                <S.Sentence>{CURRENT_SENTENCE}</S.Sentence>
                 <S.TypedLine aria-label="문장 입력" value={typedSentence} onChange={event => setTypedSentence(event.target.value)} />
               </S.SentenceBlock>
             </S.SentenceRow>
