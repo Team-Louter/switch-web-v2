@@ -11,9 +11,9 @@ import switchLogo from '../assets/svg/switch-logo.svg'
 import * as S from './AuthPage.style'
 
 const TURNSTILE_TEST_SITE_KEY = '1x00000000000000000000AA'
-const TURNSTILE_SITE_KEY =
-  import.meta.env.VITE_TURNSTILE_SITE_KEY ||
-  (import.meta.env.DEV ? TURNSTILE_TEST_SITE_KEY : '')
+const TURNSTILE_SITE_KEY = import.meta.env.DEV
+  ? TURNSTILE_TEST_SITE_KEY
+  : import.meta.env.VITE_TURNSTILE_SITE_KEY || ''
 
 type LoginStep = 'email' | 'password'
 
