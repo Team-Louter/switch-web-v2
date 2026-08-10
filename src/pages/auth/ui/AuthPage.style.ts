@@ -113,7 +113,7 @@ export const LoginPanel = styled.div<{ $isPasswordStep: boolean }>`
   overflow: hidden;
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: 0 20px 20px 0;
-  padding: 39px 27px;
+  padding: 39px 27px 32px;
   background: ${token.colors.white};
   transition: height 320ms cubic-bezier(0.22, 1, 0.36, 1);
 
