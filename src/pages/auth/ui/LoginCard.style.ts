@@ -2,13 +2,12 @@ import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
-export const Card = styled.section<{ $isPasswordStep: boolean }>`
+export const Card = styled.section<{ $heightOffset: number }>`
   ${token.flexRow}
   align-items: stretch;
   width: min(969px, 100%);
-  height: ${({ $isPasswordStep }) => ($isPasswordStep ? '597px' : '549px')};
-  margin-bottom: ${({ $isPasswordStep }) =>
-    $isPasswordStep ? '-48px' : '0'};
+  height: ${({ $heightOffset }) => 549 + $heightOffset}px;
+  margin-bottom: ${({ $heightOffset }) => -$heightOffset}px;
   border-radius: 20px;
   box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
   transition:
@@ -30,11 +29,11 @@ export const Card = styled.section<{ $isPasswordStep: boolean }>`
   }
 `
 
-export const Hero = styled.div<{ $isPasswordStep: boolean }>`
+export const Hero = styled.div<{ $heightOffset: number }>`
   position: relative;
   flex: 0 0 600px;
   width: 600px;
-  height: ${({ $isPasswordStep }) => ($isPasswordStep ? '597px' : '549px')};
+  height: ${({ $heightOffset }) => 549 + $heightOffset}px;
   overflow: hidden;
   border-radius: 20px 0 0 20px;
   transition: height 320ms cubic-bezier(0.22, 1, 0.36, 1);
