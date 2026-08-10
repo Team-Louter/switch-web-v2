@@ -108,9 +108,8 @@ export const HeroImage = styled.img<{ $isVisible: boolean }>`
   top: -12px;
   left: -18px;
   width: calc(100% + 36px);
-  height: calc(100% + 36px);
+  height: auto;
   max-width: none;
-  object-fit: fill;
   opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
   transition: opacity 180ms ease-out;
 
