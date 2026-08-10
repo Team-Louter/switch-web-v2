@@ -9,6 +9,13 @@ const rotate = keyframes`
   }
 `
 
+export const Form = styled.form`
+  ${token.flexColumn}
+  align-items: stretch;
+  gap: 20px;
+  width: 100%;
+`
+
 export const Options = styled.div`
   ${token.flexColumn}
   align-items: stretch;
