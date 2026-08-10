@@ -2,10 +2,13 @@ import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
+const TURNSTILE_HEIGHT = '65px'
+
 export const WidgetShell = styled.div`
   position: relative;
+  flex: 0 0 ${TURNSTILE_HEIGHT};
   width: 100%;
-  min-height: 65px;
+  height: ${TURNSTILE_HEIGHT};
   overflow: hidden;
   border-radius: ${token.shapes.xsmall};
   background: ${token.colors.white};
@@ -13,10 +16,12 @@ export const WidgetShell = styled.div`
 
 export const WidgetContainer = styled.div`
   width: 100%;
-  min-height: 65px;
+  height: 100%;
 
   iframe {
     display: block;
+    width: 100%;
+    height: 100%;
     max-width: 100%;
   }
 `
