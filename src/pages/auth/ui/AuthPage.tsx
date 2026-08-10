@@ -4,6 +4,7 @@ import type { ChangeEvent } from 'react'
 import { Turnstile } from '@/features/auth'
 
 import loginHeroImage from '../assets/images/login-hero.png'
+import loginPasswordHeroImage from '../assets/images/login-password-hero.png'
 import louterLogoImage from '../assets/images/louter-logo.png'
 import googleLogo from '../assets/svg/google-logo.svg'
 import switchLogo from '../assets/svg/switch-logo.svg'
@@ -14,14 +15,35 @@ const TURNSTILE_SITE_KEY =
   import.meta.env.VITE_TURNSTILE_SITE_KEY ||
   (import.meta.env.DEV ? TURNSTILE_TEST_SITE_KEY : '')
 
+type LoginStep = 'email' | 'password'
+
 export function AuthPage() {
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loginStep, setLoginStep] = useState<LoginStep>('email')
   const [turnstileToken, setTurnstileToken] = useState('')
-  const isContinueDisabled =
-    !email.trim() || !turnstileToken || !TURNSTILE_SITE_KEY
+  const isPasswordStep = loginStep === 'password'
+  const isContinueDisabled = isPasswordStep
+    ? !password || !turnstileToken || !TURNSTILE_SITE_KEY
+    : !email.trim() || !turnstileToken || !TURNSTILE_SITE_KEY
 
   function handleEmailChange(event: ChangeEvent<HTMLInputElement>) {
     setEmail(event.target.value)
+  }
+
+  function handlePasswordChange(event: ChangeEvent<HTMLInputElement>) {
+    setPassword(event.target.value)
+  }
+
+  function handleContinue() {
+    if (!isContinueDisabled && !isPasswordStep) {
+      setLoginStep('password')
+    }
+  }
+
+  function handleChangeEmail() {
+    setLoginStep('email')
+    setPassword('')
   }
 
   const handleTurnstileVerify = useCallback((token: string) => {
@@ -43,15 +65,18 @@ export function AuthPage() {
       </S.Header>
 
       <S.Content>
-        <S.LoginCard aria-labelledby="login-title">
-          <S.Hero>
+        <S.LoginCard
+          $isPasswordStep={isPasswordStep}
+          aria-labelledby="login-title"
+        >
+          <S.Hero $isPasswordStep={isPasswordStep}>
             <S.HeroImage
-              src={loginHeroImage}
+              src={isPasswordStep ? loginPasswordHeroImage : loginHeroImage}
               alt="Louter 캐릭터들이 함께 노는 모습"
             />
           </S.Hero>
 
-          <S.LoginPanel>
+          <S.LoginPanel $isPasswordStep={isPasswordStep}>
             <S.PanelContent>
               <S.Intro>
                 <S.PartnerLogo src={louterLogoImage} alt="" />
@@ -74,17 +99,41 @@ export function AuthPage() {
                 </S.Divider>
 
                 <S.EmailGroup>
-                  <S.EmailInput
-                    type="email"
-                    name="email"
-                    value={email}
-                    onChange={handleEmailChange}
-                    aria-label="이메일"
-                    placeholder="이메일을 입력해주세요"
-                    autoComplete="email"
-                  />
+                  {isPasswordStep ? (
+                    <>
+                      <S.EmailSummary>
+                        <S.EmailValue>{email}</S.EmailValue>
+                        <S.ChangeEmailButton
+                          type="button"
+                          onClick={handleChangeEmail}
+                        >
+                          변경
+                        </S.ChangeEmailButton>
+                      </S.EmailSummary>
+                      <S.PasswordInput
+                        type="password"
+                        name="password"
+                        value={password}
+                        onChange={handlePasswordChange}
+                        aria-label="비밀번호"
+                        placeholder="비밀번호를 입력해주세요"
+                        autoComplete="current-password"
+                      />
+                    </>
+                  ) : (
+                    <S.EmailInput
+                      type="email"
+                      name="email"
+                      value={email}
+                      onChange={handleEmailChange}
+                      aria-label="이메일"
+                      placeholder="이메일을 입력해주세요"
+                      autoComplete="email"
+                    />
+                  )}
                   {TURNSTILE_SITE_KEY ? (
                     <Turnstile
+                      key="turnstile"
                       siteKey={TURNSTILE_SITE_KEY}
                       onVerify={handleTurnstileVerify}
                       onExpire={handleTurnstileReset}
@@ -99,7 +148,11 @@ export function AuthPage() {
               </S.LoginOptions>
 
               <S.ActionArea>
-                <S.ContinueButton type="button" disabled={isContinueDisabled}>
+                <S.ContinueButton
+                  type="button"
+                  disabled={isContinueDisabled}
+                  onClick={handleContinue}
+                >
                   계속
                 </S.ContinueButton>
                 <S.Footer>
