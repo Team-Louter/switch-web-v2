@@ -13,7 +13,9 @@ export function LoginForm({ controller }: LoginFormProps) {
     email,
     password,
     isPasswordStep,
+    isCheckingEmail,
     isContinueDisabled,
+    emailCheckError,
     turnstileSiteKey,
     handleEmailChange,
     handlePasswordChange,
@@ -48,7 +50,7 @@ export function LoginForm({ controller }: LoginFormProps) {
                 aria-label="이메일"
                 placeholder="이메일을 입력해주세요"
                 autoComplete="email"
-                readOnly={isPasswordStep}
+                readOnly={isPasswordStep || isCheckingEmail}
               />
               <S.ChangeEmailButton
                 type="button"
@@ -94,16 +96,26 @@ export function LoginForm({ controller }: LoginFormProps) {
               보안 인증 설정이 필요합니다
             </S.TurnstileConfigMessage>
           )}
+          {emailCheckError && (
+            <S.EmailCheckError role="alert">
+              {emailCheckError}
+            </S.EmailCheckError>
+          )}
         </S.EmailGroup>
       </S.Options>
 
       <S.ActionArea>
         <S.ContinueButton
           type="button"
+          $isLoading={isCheckingEmail}
           disabled={isContinueDisabled}
           onClick={handleContinue}
+          aria-busy={isCheckingEmail}
         >
-          계속
+          <S.ButtonContent>
+            {isCheckingEmail && <S.LoadingSpinner aria-hidden="true" />}
+            <span>계속</span>
+          </S.ButtonContent>
         </S.ContinueButton>
         <S.Footer>
           <S.PolicyLinks>
