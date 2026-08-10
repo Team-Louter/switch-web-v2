@@ -96,6 +96,20 @@ export const EmailInput = styled.input`
     border-color: ${token.colors.gray.gray60};
     outline: none;
   }
+
+  &:autofill {
+    box-shadow: 0 0 0 1000px ${token.colors.white} inset;
+    caret-color: ${token.colors.gray.gray70};
+  }
+
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus,
+  &:-webkit-autofill:active {
+    box-shadow: 0 0 0 1000px ${token.colors.white} inset;
+    caret-color: ${token.colors.gray.gray70};
+    -webkit-text-fill-color: ${token.colors.gray.gray70};
+  }
 `
 
 export const ChangeEmailButton = styled.button<{ $isVisible: boolean }>`
