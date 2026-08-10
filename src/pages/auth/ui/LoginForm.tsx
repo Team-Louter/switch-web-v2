@@ -1,3 +1,5 @@
+import type { FormEvent } from 'react'
+
 import { Turnstile } from '@/features/auth'
 
 import type { LoginFormController } from '../model/useLoginForm'
@@ -26,8 +28,13 @@ export function LoginForm({ controller }: LoginFormProps) {
   } = controller
   const hasEmailValidationError = Boolean(emailValidationMessage)
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    void handleContinue()
+  }
+
   return (
-    <>
+    <S.Form onSubmit={handleSubmit} noValidate>
       <S.Options>
         <S.GoogleButton type="button">
           <S.GoogleLogo src={googleLogo} alt="" />
@@ -122,9 +129,8 @@ export function LoginForm({ controller }: LoginFormProps) {
 
       <S.ActionArea>
         <S.ContinueButton
-          type="button"
+          type="submit"
           disabled={isContinueDisabled}
-          onClick={handleContinue}
           aria-busy={isCheckingEmail}
         >
           <S.ButtonContent>
@@ -140,6 +146,6 @@ export function LoginForm({ controller }: LoginFormProps) {
           <S.Team>Team. Louter</S.Team>
         </S.Footer>
       </S.ActionArea>
-    </>
+    </S.Form>
   )
 }
