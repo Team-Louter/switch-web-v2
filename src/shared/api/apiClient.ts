@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const ACCESS_TOKEN_KEY = 'accessToken'
+import { clearAccessToken, getAccessToken } from '@/shared/lib/authToken'
 
 export const UNAUTHORIZED_EVENT = 'auth:unauthorized'
 
@@ -15,7 +15,7 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY)
+    const accessToken = getAccessToken()
 
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`
@@ -30,7 +30,7 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error: unknown) => {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
-      localStorage.removeItem(ACCESS_TOKEN_KEY)
+      clearAccessToken()
       window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT))
     }
 
