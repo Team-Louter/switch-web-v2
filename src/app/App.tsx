@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import {
+  AuthPage,
   CalendarPage,
   CommunityPage,
   HomePage,
@@ -18,9 +19,10 @@ import { AppProvider } from './providers'
 export function App() {
   return (
     <AppProvider>
-      <AppLayout>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
+      <Routes>
+        <Route path="/" element={<AuthPage />} />
+        <Route element={<AppLayout />}>
+          <Route path="/home" element={<HomePage />} />
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/learning" element={<LearningPage />} />
@@ -29,9 +31,9 @@ export function App() {
           <Route path="/notification" element={<NotificationPage />} />
           <Route path="/store" element={<StorePage />} />
           <Route path="/my" element={<MyPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AppLayout>
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </AppProvider>
   )
 }
