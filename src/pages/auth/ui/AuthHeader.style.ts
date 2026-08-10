@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
@@ -14,10 +15,18 @@ export const Header = styled.header`
   }
 `
 
-export const BrandGroup = styled.div`
+export const BrandLink = styled(Link)`
   ${token.flexRow}
   align-items: center;
   gap: 12px;
+  color: inherit;
+  text-decoration: none;
+
+  &:focus-visible {
+    border-radius: ${token.shapes.xsmall};
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 4px;
+  }
 `
 
 export const SwitchLogo = styled.img`
