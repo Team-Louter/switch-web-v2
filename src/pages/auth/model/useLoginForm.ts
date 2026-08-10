@@ -16,7 +16,6 @@ export interface LoginFormController {
   isPasswordStep: boolean
   isCheckingEmail: boolean
   isContinueDisabled: boolean
-  emailCheckError: string
   turnstileSiteKey: string
   handleEmailChange: (event: ChangeEvent<HTMLInputElement>) => void
   handlePasswordChange: (event: ChangeEvent<HTMLInputElement>) => void
@@ -33,7 +32,6 @@ export function useLoginForm(): LoginFormController {
   const [loginStep, setLoginStep] = useState<LoginStep>('email')
   const [turnstileToken, setTurnstileToken] = useState('')
   const [isCheckingEmail, setIsCheckingEmail] = useState(false)
-  const [emailCheckError, setEmailCheckError] = useState('')
   const isPasswordStep = loginStep === 'password'
   const isContinueDisabled =
     isCheckingEmail ||
@@ -43,7 +41,6 @@ export function useLoginForm(): LoginFormController {
 
   function handleEmailChange(event: ChangeEvent<HTMLInputElement>) {
     setEmail(event.target.value)
-    setEmailCheckError('')
   }
 
   function handlePasswordChange(event: ChangeEvent<HTMLInputElement>) {
@@ -57,7 +54,6 @@ export function useLoginForm(): LoginFormController {
 
     const submittedEmail = email.trim()
     setIsCheckingEmail(true)
-    setEmailCheckError('')
 
     try {
       const [emailCheckResult] = await Promise.allSettled([
@@ -80,9 +76,7 @@ export function useLoginForm(): LoginFormController {
 
       navigate('/signup', { state: { email: submittedEmail } })
     } catch {
-      setEmailCheckError(
-        '이메일을 확인하지 못했습니다. 잠시 후 다시 시도해주세요.',
-      )
+      setLoginStep('email')
     } finally {
       setIsCheckingEmail(false)
     }
@@ -91,7 +85,6 @@ export function useLoginForm(): LoginFormController {
   function handleChangeEmail() {
     setLoginStep('email')
     setPassword('')
-    setEmailCheckError('')
   }
 
   const handleTurnstileVerify = useCallback((token: string) => {
@@ -108,7 +101,6 @@ export function useLoginForm(): LoginFormController {
     isPasswordStep,
     isCheckingEmail,
     isContinueDisabled,
-    emailCheckError,
     turnstileSiteKey: TURNSTILE_SITE_KEY,
     handleEmailChange,
     handlePasswordChange,
