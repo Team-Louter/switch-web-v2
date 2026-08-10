@@ -12,6 +12,7 @@ import { LuPlus } from 'react-icons/lu'
 import { getProblems, type TypingProblem } from '@/entities/typing'
 
 import { createProblem } from '../../api/createProblem'
+import { deleteProblem } from '../../api/deleteProblem'
 import { updateProblem } from '../../api/updateProblem'
 import * as S from './TypingSentenceModal.style'
 
@@ -67,7 +68,7 @@ export function TypingSentenceModal({
         <SettingsModal onDelete={onDelete} onEdit={onEdit} onOpenEditor={onOpenEditor} />
       )}
       {modalType === 'editor' && <SentenceEditor editingItem={editingItem} onBackToSettings={onBackToSettings} />}
-      {modalType === 'delete' && editingItem && <DeleteModal item={editingItem} onClose={onClose} />}
+      {modalType === 'delete' && editingItem && <DeleteModal item={editingItem} onBackToSettings={onBackToSettings} onClose={onClose} />}
     </S.Overlay>
   )
 }
@@ -238,16 +239,30 @@ function SentenceEditor({ editingItem, onBackToSettings }: SentenceEditorProps) 
   )
 }
 
-type DeleteModalProps = Pick<TypingSentenceModalProps, 'onClose'> & { item: TypingProblem }
+type DeleteModalProps = Pick<TypingSentenceModalProps, 'onBackToSettings' | 'onClose'> & { item: TypingProblem }
 
-function DeleteModal({ item, onClose }: DeleteModalProps) {
+function DeleteModal({ item, onBackToSettings, onClose }: DeleteModalProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleDelete = async () => {
+    try {
+      setIsSubmitting(true)
+      await deleteProblem(item.problemId)
+      onBackToSettings()
+    } catch {
+      // 실패 시 삭제 확인 모달을 유지해 다시 시도할 수 있게 한다.
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <S.DeleteDialog aria-modal="true" role="alertdialog">
       <S.DeleteTitle>문장을 삭제하시겠습니까?</S.DeleteTitle>
       <S.DeleteSentence>{item.content}</S.DeleteSentence>
       <S.DeleteActions>
         <S.CancelButton type="button" onClick={onClose}>취소</S.CancelButton>
-        <S.DeleteButton type="button" onClick={onClose}>삭제</S.DeleteButton>
+        <S.DeleteButton disabled={isSubmitting} type="button" onClick={() => { void handleDelete() }}>삭제</S.DeleteButton>
       </S.DeleteActions>
     </S.DeleteDialog>
   )
