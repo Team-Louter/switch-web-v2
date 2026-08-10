@@ -4,16 +4,31 @@ import { useLoginForm } from '../model/useLoginForm'
 import * as S from './LoginCard.style'
 import { LoginPanel } from './LoginPanel'
 
+const PASSWORD_STEP_HEIGHT_OFFSET = 48
+const VALIDATION_MESSAGE_HEIGHT_OFFSET = 24
+
+function getHeightOffset(
+  isPasswordStep: boolean,
+  emailValidationMessage: string,
+): number {
+  if (isPasswordStep) {
+    return PASSWORD_STEP_HEIGHT_OFFSET
+  }
+
+  return emailValidationMessage ? VALIDATION_MESSAGE_HEIGHT_OFFSET : 0
+}
+
 export function LoginCard() {
   const controller = useLoginForm()
-  const { isPasswordStep } = controller
+  const { isPasswordStep, emailValidationMessage } = controller
+  const heightOffset = getHeightOffset(
+    isPasswordStep,
+    emailValidationMessage,
+  )
 
   return (
-    <S.Card
-      $isPasswordStep={isPasswordStep}
-      aria-labelledby="login-title"
-    >
-      <S.Hero $isPasswordStep={isPasswordStep}>
+    <S.Card $heightOffset={heightOffset} aria-labelledby="login-title">
+      <S.Hero $heightOffset={heightOffset}>
         <S.HeroImage
           src={loginHeroImage}
           alt={isPasswordStep ? '' : 'Louter 캐릭터들이 함께 노는 모습'}
@@ -28,7 +43,7 @@ export function LoginCard() {
         />
       </S.Hero>
 
-      <LoginPanel controller={controller} />
+      <LoginPanel controller={controller} heightOffset={heightOffset} />
     </S.Card>
   )
 }
