@@ -4,10 +4,8 @@ import { useNavigate } from 'react-router-dom'
 
 import { checkEmailExists } from '@/features/auth'
 
-const TURNSTILE_TEST_SITE_KEY = '1x00000000000000000000AA'
-const TURNSTILE_SITE_KEY = import.meta.env.DEV
-  ? TURNSTILE_TEST_SITE_KEY
-  : import.meta.env.VITE_TURNSTILE_SITE_KEY || ''
+import { TURNSTILE_SITE_KEY } from '../config/turnstile'
+
 const EMAIL_CHECK_MIN_DURATION = 600
 
 type LoginStep = 'email' | 'password'
