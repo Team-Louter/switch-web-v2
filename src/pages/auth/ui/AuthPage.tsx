@@ -107,8 +107,8 @@ export function AuthPage() {
                 </S.Divider>
 
                 <S.EmailGroup>
-                  {isPasswordStep ? (
-                    <>
+                  <S.EmailFields>
+                    {isPasswordStep ? (
                       <S.EmailSummary>
                         <S.EmailValue>{email}</S.EmailValue>
                         <S.ChangeEmailButton
@@ -118,27 +118,36 @@ export function AuthPage() {
                           변경
                         </S.ChangeEmailButton>
                       </S.EmailSummary>
-                      <S.PasswordInput
-                        type="password"
-                        name="password"
-                        value={password}
-                        onChange={handlePasswordChange}
-                        aria-label="비밀번호"
-                        placeholder="비밀번호를 입력해주세요"
-                        autoComplete="current-password"
+                    ) : (
+                      <S.EmailInput
+                        type="email"
+                        name="email"
+                        value={email}
+                        onChange={handleEmailChange}
+                        aria-label="이메일"
+                        placeholder="이메일을 입력해주세요"
+                        autoComplete="email"
                       />
-                    </>
-                  ) : (
-                    <S.EmailInput
-                      type="email"
-                      name="email"
-                      value={email}
-                      onChange={handleEmailChange}
-                      aria-label="이메일"
-                      placeholder="이메일을 입력해주세요"
-                      autoComplete="email"
-                    />
-                  )}
+                    )}
+                    <S.PasswordFieldSlot
+                      $isVisible={isPasswordStep}
+                      aria-hidden={!isPasswordStep}
+                    >
+                      <S.PasswordFieldMotion $isVisible={isPasswordStep}>
+                        <S.PasswordInput
+                          type="password"
+                          name="password"
+                          value={password}
+                          onChange={handlePasswordChange}
+                          aria-label="비밀번호"
+                          placeholder="비밀번호를 입력해주세요"
+                          autoComplete="current-password"
+                          disabled={!isPasswordStep}
+                          tabIndex={isPasswordStep ? 0 : -1}
+                        />
+                      </S.PasswordFieldMotion>
+                    </S.PasswordFieldSlot>
+                  </S.EmailFields>
                   {TURNSTILE_SITE_KEY ? (
                     <Turnstile
                       key="turnstile"
