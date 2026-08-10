@@ -15,10 +15,14 @@ export const Header = styled.header`
   }
 `
 
-export const BrandLink = styled(Link)`
+export const BrandGroup = styled.div`
   ${token.flexRow}
   align-items: center;
   gap: 12px;
+`
+
+export const SwitchLink = styled(Link)`
+  display: flex;
   color: inherit;
   text-decoration: none;
 
