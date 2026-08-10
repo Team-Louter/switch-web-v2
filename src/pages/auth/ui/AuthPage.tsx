@@ -108,17 +108,7 @@ export function AuthPage() {
 
                 <S.EmailGroup>
                   <S.EmailFields>
-                    {isPasswordStep ? (
-                      <S.EmailSummary>
-                        <S.EmailValue>{email}</S.EmailValue>
-                        <S.ChangeEmailButton
-                          type="button"
-                          onClick={handleChangeEmail}
-                        >
-                          변경
-                        </S.ChangeEmailButton>
-                      </S.EmailSummary>
-                    ) : (
+                    <S.EmailField>
                       <S.EmailInput
                         type="email"
                         name="email"
@@ -127,8 +117,18 @@ export function AuthPage() {
                         aria-label="이메일"
                         placeholder="이메일을 입력해주세요"
                         autoComplete="email"
+                        readOnly={isPasswordStep}
                       />
-                    )}
+                      <S.ChangeEmailButton
+                        type="button"
+                        $isVisible={isPasswordStep}
+                        onClick={handleChangeEmail}
+                        aria-hidden={!isPasswordStep}
+                        tabIndex={isPasswordStep ? 0 : -1}
+                      >
+                        변경
+                      </S.ChangeEmailButton>
+                    </S.EmailField>
                     <S.PasswordFieldSlot
                       $isVisible={isPasswordStep}
                       aria-hidden={!isPasswordStep}
