@@ -71,8 +71,16 @@ export function AuthPage() {
         >
           <S.Hero $isPasswordStep={isPasswordStep}>
             <S.HeroImage
-              src={isPasswordStep ? loginPasswordHeroImage : loginHeroImage}
-              alt="Louter 캐릭터들이 함께 노는 모습"
+              src={loginHeroImage}
+              alt={isPasswordStep ? '' : 'Louter 캐릭터들이 함께 노는 모습'}
+              aria-hidden={isPasswordStep}
+              $isVisible={!isPasswordStep}
+            />
+            <S.HeroImage
+              src={loginPasswordHeroImage}
+              alt={isPasswordStep ? 'Louter 캐릭터들이 함께 노는 모습' : ''}
+              aria-hidden={!isPasswordStep}
+              $isVisible={isPasswordStep}
             />
           </S.Hero>
 
