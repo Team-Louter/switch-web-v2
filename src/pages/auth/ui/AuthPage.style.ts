@@ -240,17 +240,23 @@ export const EmailInput = styled.input`
   }
 `
 
-export const VerificationImage = styled.img`
+export const TurnstileConfigMessage = styled.p`
+  ${token.flexCenter}
   width: 100%;
-  height: auto;
-  aspect-ratio: 720 / 129;
-  object-fit: cover;
+  min-height: 65px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.xsmall};
+  color: ${token.colors.danger.danger20};
+  background: ${token.colors.gray.gray0};
+  text-align: center;
+  ${token.typography('caption', 'md', 'medium')}
 `
 
 export const ActionArea = styled.div`
   position: relative;
   width: 100%;
   height: 122px;
+  margin-top: -9px;
 `
 
 export const ContinueButton = styled(Button)`
