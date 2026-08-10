@@ -73,7 +73,7 @@ export function LoginForm({ controller }: LoginFormProps) {
                   onChange={handlePasswordChange}
                   aria-label="비밀번호"
                   placeholder="비밀번호를 입력해주세요"
-                  autoComplete="current-password"
+                  autoComplete="off"
                   disabled={!isPasswordStep}
                   tabIndex={isPasswordStep ? 0 : -1}
                 />
