@@ -12,6 +12,7 @@ import { LuPlus } from 'react-icons/lu'
 import { getProblems, type TypingProblem } from '@/entities/typing'
 
 import { createProblem } from '../../api/createProblem'
+import { updateProblem } from '../../api/updateProblem'
 import * as S from './TypingSentenceModal.style'
 
 export type TypingSentenceModalType = 'settings' | 'editor' | 'delete' | null
@@ -65,7 +66,7 @@ export function TypingSentenceModal({
       {modalType === 'settings' && (
         <SettingsModal onDelete={onDelete} onEdit={onEdit} onOpenEditor={onOpenEditor} />
       )}
-      {modalType === 'editor' && <SentenceEditor editingItem={editingItem} onBackToSettings={onBackToSettings} onClose={onClose} />}
+      {modalType === 'editor' && <SentenceEditor editingItem={editingItem} onBackToSettings={onBackToSettings} />}
       {modalType === 'delete' && editingItem && <DeleteModal item={editingItem} onClose={onClose} />}
     </S.Overlay>
   )
@@ -123,9 +124,9 @@ function SettingsModal({ onDelete, onEdit, onOpenEditor }: SettingsModalProps) {
   )
 }
 
-type SentenceEditorProps = Pick<TypingSentenceModalProps, 'editingItem' | 'onBackToSettings' | 'onClose'>
+type SentenceEditorProps = Pick<TypingSentenceModalProps, 'editingItem' | 'onBackToSettings'>
 
-function SentenceEditor({ editingItem, onBackToSettings, onClose }: SentenceEditorProps) {
+function SentenceEditor({ editingItem, onBackToSettings }: SentenceEditorProps) {
   const [category, setCategory] = useState<SentenceCategory>(editingItem?.problemType === 'DAILY' ? 'DAILY' : 'CODE')
   const [language, setLanguage] = useState(editingItem?.problemType === 'JAVA' ? 'java' : 'javascript')
   const [sentence, setSentence] = useState(editingItem?.content ?? '')
@@ -146,16 +147,15 @@ function SentenceEditor({ editingItem, onBackToSettings, onClose }: SentenceEdit
   }
 
   const handleSubmit = async () => {
-    if (editingItem) {
-      onClose()
-      return
-    }
-
     const problemType = category === 'DAILY' ? 'DAILY' : language.toUpperCase()
 
     try {
       setIsSubmitting(true)
-      await createProblem(problemType, sentence)
+      if (editingItem) {
+        await updateProblem(editingItem.problemId, problemType, sentence)
+      } else {
+        await createProblem(problemType, sentence)
+      }
       onBackToSettings()
     } catch {
       // 실패 시 입력 내용을 유지해 다시 시도할 수 있게 한다.
