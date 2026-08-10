@@ -25,7 +25,6 @@ export function SignupPage() {
   const controller = useSignupForm(getInitialEmail(location.state))
   const {
     values,
-    passwordError,
     isContinueDisabled,
     turnstileSiteKey,
     handleInputChange,
@@ -89,11 +88,6 @@ export function SignupPage() {
                     placeholder="비밀번호 확인"
                     autoComplete="new-password"
                   />
-                  {passwordError && (
-                    <S.PasswordError role="alert">
-                      {passwordError}
-                    </S.PasswordError>
-                  )}
                   <S.Input
                     type="email"
                     name="email"
