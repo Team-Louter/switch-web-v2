@@ -74,7 +74,7 @@ export function AuthPage() {
               src={loginHeroImage}
               alt={isPasswordStep ? '' : 'Louter 캐릭터들이 함께 노는 모습'}
               aria-hidden={isPasswordStep}
-              $isVisible={!isPasswordStep}
+              $isVisible
             />
             <S.HeroImage
               src={loginPasswordHeroImage}
