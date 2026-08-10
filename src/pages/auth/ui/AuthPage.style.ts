@@ -50,11 +50,11 @@ export const Content = styled.main`
   padding: 48px 24px;
 `
 
-export const LoginCard = styled.section`
+export const LoginCard = styled.section<{ $isPasswordStep: boolean }>`
   ${token.flexRow}
   align-items: stretch;
   width: min(969px, 100%);
-  height: 549px;
+  height: ${({ $isPasswordStep }) => ($isPasswordStep ? '597px' : '549px')};
   border-radius: 20px;
   box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
 
@@ -68,11 +68,11 @@ export const LoginCard = styled.section`
   }
 `
 
-export const Hero = styled.div`
+export const Hero = styled.div<{ $isPasswordStep: boolean }>`
   position: relative;
   flex: 0 0 600px;
   width: 600px;
-  height: 549px;
+  height: ${({ $isPasswordStep }) => ($isPasswordStep ? '597px' : '549px')};
   overflow: hidden;
   border-radius: 20px 0 0 20px;
 
@@ -83,18 +83,18 @@ export const Hero = styled.div`
 
 export const HeroImage = styled.img`
   position: absolute;
-  top: -2.2%;
-  left: -3%;
-  width: 106%;
-  height: 106.6%;
+  top: -12px;
+  left: -18px;
+  width: calc(100% + 36px);
+  height: calc(100% + 36px);
   max-width: none;
   object-fit: fill;
 `
 
-export const LoginPanel = styled.div`
+export const LoginPanel = styled.div<{ $isPasswordStep: boolean }>`
   flex: 0 0 369px;
   width: 369px;
-  height: 549px;
+  height: ${({ $isPasswordStep }) => ($isPasswordStep ? '597px' : '549px')};
   overflow: hidden;
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: 0 20px 20px 0;
@@ -224,7 +224,7 @@ export const EmailInput = styled.input`
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.xsmall};
   padding: 0 14px;
-  color: ${token.colors.gray.gray80};
+  color: ${token.colors.gray.gray70};
   background: ${token.colors.white};
   line-height: 1;
   ${token.typography('caption', 'lg', 'medium')}
@@ -235,10 +235,41 @@ export const EmailInput = styled.input`
   }
 
   &:focus {
-    border-color: ${token.colors.primary.primary50};
+    border-color: ${token.colors.gray.gray60};
     outline: none;
   }
 `
+
+export const EmailSummary = styled.div`
+  ${token.flexRow}
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 38px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.xsmall};
+  padding: 0 14px;
+  background: ${token.colors.white};
+`
+
+export const EmailValue = styled.span`
+  overflow: hidden;
+  color: ${token.colors.gray.gray70};
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  ${token.typography('caption', 'lg', 'medium')}
+`
+
+export const ChangeEmailButton = styled.button`
+  flex: 0 0 auto;
+  margin-left: 12px;
+  color: ${token.colors.primary.text};
+  line-height: 1;
+  ${token.typography('caption', 'md', 'medium')}
+`
+
+export const PasswordInput = styled(EmailInput)``
 
 export const TurnstileConfigMessage = styled.p`
   ${token.flexCenter}
@@ -265,12 +296,12 @@ export const ContinueButton = styled(Button)`
   border-radius: ${token.shapes.small};
   padding: 0;
   color: ${token.colors.gray.gray100};
-  background: ${token.colors.primary.primary50};
+  background: ${token.colors.primary.primary40};
   line-height: 1;
   ${token.typography('caption', 'lg', 'bold')}
 
   &:disabled {
-    background: ${token.colors.primary.primary50};
+    background: ${token.colors.primary.primary40};
     cursor: not-allowed;
     opacity: 0.5;
   }
