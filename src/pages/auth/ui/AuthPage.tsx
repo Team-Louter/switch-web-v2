@@ -1,11 +1,37 @@
-import humanVerificationImage from '../assets/images/human-verification.png'
+import { useCallback, useState } from 'react'
+import type { ChangeEvent } from 'react'
+
+import { Turnstile } from '@/features/auth'
+
 import loginHeroImage from '../assets/images/login-hero.png'
 import louterLogoImage from '../assets/images/louter-logo.png'
 import googleLogo from '../assets/svg/google-logo.svg'
 import switchLogo from '../assets/svg/switch-logo.svg'
 import * as S from './AuthPage.style'
 
+const TURNSTILE_TEST_SITE_KEY = '1x00000000000000000000AA'
+const TURNSTILE_SITE_KEY =
+  import.meta.env.VITE_TURNSTILE_SITE_KEY ||
+  (import.meta.env.DEV ? TURNSTILE_TEST_SITE_KEY : '')
+
 export function AuthPage() {
+  const [email, setEmail] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const isContinueDisabled =
+    !email.trim() || !turnstileToken || !TURNSTILE_SITE_KEY
+
+  function handleEmailChange(event: ChangeEvent<HTMLInputElement>) {
+    setEmail(event.target.value)
+  }
+
+  const handleTurnstileVerify = useCallback((token: string) => {
+    setTurnstileToken(token)
+  }, [])
+
+  const handleTurnstileReset = useCallback(() => {
+    setTurnstileToken('')
+  }, [])
+
   return (
     <S.Page>
       <S.Header>
@@ -51,19 +77,29 @@ export function AuthPage() {
                   <S.EmailInput
                     type="email"
                     name="email"
+                    value={email}
+                    onChange={handleEmailChange}
                     aria-label="이메일"
                     placeholder="이메일을 입력해주세요"
                     autoComplete="email"
                   />
-                  <S.VerificationImage
-                    src={humanVerificationImage}
-                    alt="사람인지 확인하는 인증 화면"
-                  />
+                  {TURNSTILE_SITE_KEY ? (
+                    <Turnstile
+                      siteKey={TURNSTILE_SITE_KEY}
+                      onVerify={handleTurnstileVerify}
+                      onExpire={handleTurnstileReset}
+                      onError={handleTurnstileReset}
+                    />
+                  ) : (
+                    <S.TurnstileConfigMessage role="alert">
+                      보안 인증 설정이 필요합니다
+                    </S.TurnstileConfigMessage>
+                  )}
                 </S.EmailGroup>
               </S.LoginOptions>
 
               <S.ActionArea>
-                <S.ContinueButton type="button" disabled>
+                <S.ContinueButton type="button" disabled={isContinueDisabled}>
                   계속
                 </S.ContinueButton>
                 <S.Footer>
