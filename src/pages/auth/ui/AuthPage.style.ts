@@ -239,12 +239,18 @@ export const EmailFields = styled.div`
   width: 100%;
 `
 
+export const EmailField = styled.div`
+  position: relative;
+  width: 100%;
+  height: 38px;
+`
+
 export const EmailInput = styled.input`
   width: 100%;
   height: 38px;
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.xsmall};
-  padding: 0 14px;
+  padding: 0 56px 0 14px;
   color: ${token.colors.gray.gray70};
   background: ${token.colors.white};
   line-height: 1;
@@ -261,32 +267,16 @@ export const EmailInput = styled.input`
   }
 `
 
-export const EmailSummary = styled.div`
-  ${token.flexRow}
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  height: 38px;
-  border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.xsmall};
-  padding: 0 14px;
-  background: ${token.colors.white};
-`
-
-export const EmailValue = styled.span`
-  overflow: hidden;
-  color: ${token.colors.gray.gray70};
-  line-height: 1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  ${token.typography('caption', 'lg', 'medium')}
-`
-
-export const ChangeEmailButton = styled.button`
-  flex: 0 0 auto;
-  margin-left: 12px;
+export const ChangeEmailButton = styled.button<{ $isVisible: boolean }>`
+  position: absolute;
+  top: 50%;
+  right: 14px;
   color: ${token.colors.primary.text};
   line-height: 1;
+  opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
+  pointer-events: ${({ $isVisible }) => ($isVisible ? 'auto' : 'none')};
+  transform: translateY(-50%);
+  visibility: ${({ $isVisible }) => ($isVisible ? 'visible' : 'hidden')};
   ${token.typography('caption', 'md', 'medium')}
 `
 
