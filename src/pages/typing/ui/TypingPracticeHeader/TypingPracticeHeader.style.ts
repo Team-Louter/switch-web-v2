@@ -27,7 +27,7 @@ export const StatsBar = styled.div`
 
 export const Stat = styled.div`
   ${token.flexCenter};
-  gap: 5px;
+  gap: 10px;
 `
 
 export const Label = styled.span`
