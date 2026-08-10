@@ -1,6 +1,6 @@
 import MonacoEditor, { loader } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
-import { type MouseEvent, useState } from 'react'
+import { type MouseEvent, useEffect, useState } from 'react'
 import {
   IoChevronDown,
   IoClose,
@@ -9,49 +9,23 @@ import {
 } from 'react-icons/io5'
 import { LuPlus } from 'react-icons/lu'
 
+import { getProblems, type TypingProblem } from '@/entities/typing'
+
 import * as S from './TypingSentenceModal.style'
 
 export type TypingSentenceModalType = 'settings' | 'editor' | 'delete' | null
 
 type SentenceCategory = 'DAILY' | 'CODE'
 
-type SentenceItem = {
-  category: SentenceCategory
-  label: string
-  sentence: string
-}
-
 type TypingSentenceModalProps = {
-  editingItem: SentenceItem | null
+  editingItem: TypingProblem | null
   modalType: TypingSentenceModalType
   onBackToSettings: () => void
   onClose: () => void
-  onDelete: (item: SentenceItem) => void
-  onEdit: (item: SentenceItem) => void
+  onDelete: (item: TypingProblem) => void
+  onEdit: (item: TypingProblem) => void
   onOpenEditor: () => void
 }
-
-const SENTENCES: SentenceItem[] = [
-  { category: 'DAILY', label: '일상', sentence: 'This is VERY VERY VERY VERY VERY loooooooooon' },
-  { category: 'DAILY', label: '일상', sentence: 'This is VERY VERY VERY VERY VERY loooooooooon' },
-  { category: 'DAILY', label: '일상', sentence: 'This is VERY VERY VERY VERY VERY loooooooooon' },
-  { category: 'CODE', label: 'JS', sentence: 'This is VERY VERY VERY VERY VERY loooooooooon' },
-  { category: 'CODE', label: 'JS', sentence: 'This is VERY VERY VERY VERY VERY loooooooooon' },
-  { category: 'CODE', label: 'JS', sentence: 'This is VERY VERY VERY VERY VERY loooooooooon' },
-  { category: 'CODE', label: 'Java', sentence: 'This is VERY VERY VERY VERY VERY loooooooooon' },
-  { category: 'CODE', label: 'Java', sentence: 'This is VERY VERY VERY VERY VERY loooooooooon' },
-]
-
-const CODE_SAMPLE = `function transform(arr) {
-  let sum = 0;
-  for (let i = 0; i < arr.length; i++) {
-    if (arr[i] % 2 === 0) {
-      const squared = arr[i] * arr[i];
-      sum += squared;
-    }
-  }
-  return sum;
-}`
 
 loader.config({ monaco })
 
@@ -64,6 +38,17 @@ export function TypingSentenceModal({
   onEdit,
   onOpenEditor,
 }: TypingSentenceModalProps) {
+  useEffect(() => {
+    if (!modalType) return
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [modalType])
+
   if (!modalType) {
     return null
   }
@@ -88,6 +73,27 @@ export function TypingSentenceModal({
 type SettingsModalProps = Pick<TypingSentenceModalProps, 'onDelete' | 'onEdit' | 'onOpenEditor'>
 
 function SettingsModal({ onDelete, onEdit, onOpenEditor }: SettingsModalProps) {
+  const [problems, setProblems] = useState<TypingProblem[]>([])
+
+  useEffect(() => {
+    const fetchProblems = async () => {
+      try {
+        const data = await getProblems()
+        setProblems([...data].sort((a, b) => b.problemId - a.problemId))
+      } catch {
+        // 조회 실패 시 빈 목록을 유지한다.
+      }
+    }
+
+    void fetchProblems()
+  }, [])
+
+  const getProblemLabel = (problemType: string) => {
+    if (problemType === 'DAILY') return '일상'
+    if (problemType === 'JAVASCRIPT') return 'JS'
+    return 'Java'
+  }
+
   return (
     <S.SettingsDialog aria-modal="true" role="dialog">
       <S.ModalHeader>
@@ -97,15 +103,15 @@ function SettingsModal({ onDelete, onEdit, onOpenEditor }: SettingsModalProps) {
         </S.IconButton>
       </S.ModalHeader>
       <S.SentenceList>
-        {SENTENCES.map((item, index) => (
-          <S.SentenceItem key={`${item.label}-${index}`}>
-            <S.CategoryBadge>{item.label}</S.CategoryBadge>
-            <S.SentenceText>{item.sentence}</S.SentenceText>
+        {problems.map((item) => (
+          <S.SentenceItem key={item.problemId}>
+            <S.CategoryBadge>{getProblemLabel(item.problemType)}</S.CategoryBadge>
+            <S.SentenceText>{item.content}</S.SentenceText>
             <S.RowActions>
-              <S.RowAction aria-label={`${item.label} 문장 수정`} type="button" onClick={() => onEdit(item)}>
+              <S.RowAction aria-label={`${getProblemLabel(item.problemType)} 문장 수정`} type="button" onClick={() => onEdit(item)}>
                 <IoPencil size={24} />
               </S.RowAction>
-              <S.RowAction $danger aria-label={`${item.label} 문장 삭제`} type="button" onClick={() => onDelete(item)}>
+              <S.RowAction $danger aria-label={`${getProblemLabel(item.problemType)} 문장 삭제`} type="button" onClick={() => onDelete(item)}>
                 <IoTrashOutline size={24} />
               </S.RowAction>
             </S.RowActions>
@@ -119,20 +125,22 @@ function SettingsModal({ onDelete, onEdit, onOpenEditor }: SettingsModalProps) {
 type SentenceEditorProps = Pick<TypingSentenceModalProps, 'editingItem' | 'onBackToSettings' | 'onClose'>
 
 function SentenceEditor({ editingItem, onBackToSettings, onClose }: SentenceEditorProps) {
-  const [category, setCategory] = useState<SentenceCategory>(editingItem?.category ?? 'CODE')
-  const [language, setLanguage] = useState(editingItem?.label === 'Java' ? 'java' : 'javascript')
-  const [sentence, setSentence] = useState(editingItem?.sentence ?? CODE_SAMPLE)
+  const [category, setCategory] = useState<SentenceCategory>(editingItem?.problemType === 'DAILY' ? 'DAILY' : 'CODE')
+  const [language, setLanguage] = useState(editingItem?.problemType === 'JAVA' ? 'java' : 'javascript')
+  const [sentence, setSentence] = useState(editingItem?.content ?? '')
   const isCode = category === 'CODE'
 
   const handleCategoryChange = (nextCategory: SentenceCategory) => {
     setCategory(nextCategory)
 
-    if (editingItem?.category === nextCategory) {
-      setSentence(editingItem.sentence)
+    const editingCategory = editingItem?.problemType === 'DAILY' ? 'DAILY' : 'CODE'
+
+    if (editingItem && editingCategory === nextCategory) {
+      setSentence(editingItem.content)
       return
     }
 
-    setSentence(nextCategory === 'CODE' ? CODE_SAMPLE : '')
+    setSentence('')
   }
 
   return (
@@ -209,13 +217,13 @@ function SentenceEditor({ editingItem, onBackToSettings, onClose }: SentenceEdit
   )
 }
 
-type DeleteModalProps = Pick<TypingSentenceModalProps, 'onClose'> & { item: SentenceItem }
+type DeleteModalProps = Pick<TypingSentenceModalProps, 'onClose'> & { item: TypingProblem }
 
 function DeleteModal({ item, onClose }: DeleteModalProps) {
   return (
     <S.DeleteDialog aria-modal="true" role="alertdialog">
       <S.DeleteTitle>문장을 삭제하시겠습니까?</S.DeleteTitle>
-      <S.DeleteSentence>{item.sentence}</S.DeleteSentence>
+      <S.DeleteSentence>{item.content}</S.DeleteSentence>
       <S.DeleteActions>
         <S.CancelButton type="button" onClick={onClose}>취소</S.CancelButton>
         <S.DeleteButton type="button" onClick={onClose}>삭제</S.DeleteButton>

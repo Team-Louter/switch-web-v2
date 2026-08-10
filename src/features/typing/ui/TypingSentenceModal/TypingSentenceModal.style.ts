@@ -47,11 +47,15 @@ export const IconButton = styled.button`
 
 export const SentenceList = styled.div`
   ${token.flexColumn}
+  height: calc(100% - 44px);
   gap: 10px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 `
 
 export const SentenceItem = styled.div`
   ${token.flexRow}
+  flex: 0 0 50px;
   align-items: center;
   width: 100%;
   height: 50px;

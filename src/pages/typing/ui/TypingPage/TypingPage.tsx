@@ -13,17 +13,14 @@ import { ModeButton } from "../ModeButton/ModeButton";
 import { TYPING_MODES } from "../../model/typingModes";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { TypingSentenceModal, type TypingSentenceModalType } from "./TypingSentenceModal";
+import { TypingSentenceModal, type TypingSentenceModalType } from "@/features/typing";
+import type { TypingProblem } from "@/entities/typing";
 
 export function TypingPage() {
   const navigate = useNavigate();
   const [selectedMode, setSelectedMode] = useState<string>("DAILY");
   const [sentenceModal, setSentenceModal] = useState<TypingSentenceModalType>(null);
-  const [editingSentence, setEditingSentence] = useState<{
-    category: 'DAILY' | 'CODE'
-    label: string
-    sentence: string
-  } | null>(null);
+  const [editingSentence, setEditingSentence] = useState<TypingProblem | null>(null);
   const selectedModeName = TYPING_MODES.find(
     (mode) => mode.serverValue === selectedMode,
   )?.mode;
