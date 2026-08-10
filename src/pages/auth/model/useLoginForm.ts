@@ -7,6 +7,7 @@ import { checkEmailExists } from '@/features/auth'
 import { TURNSTILE_SITE_KEY } from '../config/turnstile'
 
 const EMAIL_CHECK_MIN_DURATION = 600
+const INVALID_EMAIL_MESSAGE = '잘못된 이메일 주소'
 
 type LoginStep = 'email' | 'password'
 
@@ -16,6 +17,7 @@ export interface LoginFormController {
   isPasswordStep: boolean
   isCheckingEmail: boolean
   isContinueDisabled: boolean
+  emailValidationMessage: string
   turnstileSiteKey: string
   handleEmailChange: (event: ChangeEvent<HTMLInputElement>) => void
   handlePasswordChange: (event: ChangeEvent<HTMLInputElement>) => void
@@ -32,6 +34,7 @@ export function useLoginForm(): LoginFormController {
   const [loginStep, setLoginStep] = useState<LoginStep>('email')
   const [turnstileToken, setTurnstileToken] = useState('')
   const [isCheckingEmail, setIsCheckingEmail] = useState(false)
+  const [emailValidationMessage, setEmailValidationMessage] = useState('')
   const isPasswordStep = loginStep === 'password'
   const isContinueDisabled =
     isCheckingEmail ||
@@ -41,6 +44,7 @@ export function useLoginForm(): LoginFormController {
 
   function handleEmailChange(event: ChangeEvent<HTMLInputElement>) {
     setEmail(event.target.value)
+    setEmailValidationMessage('')
   }
 
   function handlePasswordChange(event: ChangeEvent<HTMLInputElement>) {
@@ -53,6 +57,12 @@ export function useLoginForm(): LoginFormController {
     }
 
     const submittedEmail = email.trim()
+
+    if (!isValidEmailAddress(submittedEmail)) {
+      setEmailValidationMessage(INVALID_EMAIL_MESSAGE)
+      return
+    }
+
     setIsCheckingEmail(true)
 
     try {
@@ -85,6 +95,7 @@ export function useLoginForm(): LoginFormController {
   function handleChangeEmail() {
     setLoginStep('email')
     setPassword('')
+    setEmailValidationMessage('')
   }
 
   const handleTurnstileVerify = useCallback((token: string) => {
@@ -101,6 +112,7 @@ export function useLoginForm(): LoginFormController {
     isPasswordStep,
     isCheckingEmail,
     isContinueDisabled,
+    emailValidationMessage,
     turnstileSiteKey: TURNSTILE_SITE_KEY,
     handleEmailChange,
     handlePasswordChange,
@@ -109,4 +121,8 @@ export function useLoginForm(): LoginFormController {
     handleTurnstileVerify,
     handleTurnstileReset,
   }
+}
+
+function isValidEmailAddress(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
