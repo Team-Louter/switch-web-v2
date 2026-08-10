@@ -65,6 +65,7 @@ export const DividerText = styled.span`
 
 export const EmailGroup = styled.div`
   ${token.flexColumn}
+  position: relative;
   align-items: stretch;
   gap: 10px;
   width: 100%;
@@ -169,6 +170,11 @@ export const TurnstileConfigMessage = styled.p`
 `
 
 export const EmailCheckError = styled.p`
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  margin-top: 4px;
   color: ${token.colors.danger.danger20};
   line-height: 1.3;
   text-align: center;
