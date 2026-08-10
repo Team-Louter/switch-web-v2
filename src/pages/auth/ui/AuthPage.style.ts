@@ -1,19 +1,7 @@
-import styled, { keyframes } from 'styled-components'
+import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 import { Button } from '@/shared/ui'
-
-const revealField = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`
 
 export const Page = styled.div`
   min-width: 320px;
@@ -69,7 +57,10 @@ export const LoginCard = styled.section<{ $isPasswordStep: boolean }>`
   height: ${({ $isPasswordStep }) => ($isPasswordStep ? '597px' : '549px')};
   border-radius: 20px;
   box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
-  transition: height 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translateY(${({ $isPasswordStep }) => ($isPasswordStep ? '24px' : '0')});
+  transition:
+    height 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
@@ -82,6 +73,7 @@ export const LoginCard = styled.section<{ $isPasswordStep: boolean }>`
   @media (max-width: 420px) {
     width: 100%;
     height: auto;
+    transform: none;
   }
 `
 
@@ -245,6 +237,12 @@ export const EmailGroup = styled.div`
   width: 100%;
 `
 
+export const EmailFields = styled.div`
+  ${token.flexColumn}
+  align-items: stretch;
+  width: 100%;
+`
+
 export const EmailInput = styled.input`
   width: 100%;
   height: 38px;
@@ -277,11 +275,6 @@ export const EmailSummary = styled.div`
   border-radius: ${token.shapes.xsmall};
   padding: 0 14px;
   background: ${token.colors.white};
-  animation: ${revealField} 180ms ease-out both;
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
 `
 
 export const EmailValue = styled.span`
@@ -301,13 +294,30 @@ export const ChangeEmailButton = styled.button`
   ${token.typography('caption', 'md', 'medium')}
 `
 
-export const PasswordInput = styled(EmailInput)`
-  animation: ${revealField} 220ms 30ms ease-out both;
+export const PasswordFieldSlot = styled.div<{ $isVisible: boolean }>`
+  max-height: ${({ $isVisible }) => ($isVisible ? '48px' : '0')};
+  overflow: hidden;
+  opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
+  transition:
+    max-height 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 160ms ease-out;
 
   @media (prefers-reduced-motion: reduce) {
-    animation: none;
+    transition: none;
   }
 `
+
+export const PasswordFieldMotion = styled.div<{ $isVisible: boolean }>`
+  padding-top: 10px;
+  transform: translateY(${({ $isVisible }) => ($isVisible ? '0' : '12px')});
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+`
+
+export const PasswordInput = styled(EmailInput)``
 
 export const TurnstileConfigMessage = styled.p`
   ${token.flexCenter}
