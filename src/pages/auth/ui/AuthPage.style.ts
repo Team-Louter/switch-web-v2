@@ -69,6 +69,11 @@ export const LoginCard = styled.section<{ $isPasswordStep: boolean }>`
   height: ${({ $isPasswordStep }) => ($isPasswordStep ? '597px' : '549px')};
   border-radius: 20px;
   box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
+  transition: height 320ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 
   @media (max-width: 900px) {
     width: 369px;
@@ -87,6 +92,11 @@ export const Hero = styled.div<{ $isPasswordStep: boolean }>`
   height: ${({ $isPasswordStep }) => ($isPasswordStep ? '597px' : '549px')};
   overflow: hidden;
   border-radius: 20px 0 0 20px;
+  transition: height 320ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 
   @media (max-width: 900px) {
     display: none;
@@ -112,6 +122,11 @@ export const LoginPanel = styled.div<{ $isPasswordStep: boolean }>`
   border-radius: 0 20px 20px 0;
   padding: 39px 27px;
   background: ${token.colors.white};
+  transition: height 320ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 
   @media (max-width: 900px) {
     border-radius: 20px;
