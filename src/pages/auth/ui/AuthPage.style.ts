@@ -55,9 +55,13 @@ export const LoginCard = styled.section<{ $isPasswordStep: boolean }>`
   align-items: stretch;
   width: min(969px, 100%);
   height: ${({ $isPasswordStep }) => ($isPasswordStep ? '597px' : '549px')};
+  margin-bottom: ${({ $isPasswordStep }) =>
+    $isPasswordStep ? '-48px' : '0'};
   border-radius: 20px;
   box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
-  transition: height 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    height 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    margin-bottom 320ms cubic-bezier(0.22, 1, 0.36, 1);
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
@@ -70,6 +74,7 @@ export const LoginCard = styled.section<{ $isPasswordStep: boolean }>`
   @media (max-width: 420px) {
     width: 100%;
     height: auto;
+    margin-bottom: 0;
   }
 `
 
