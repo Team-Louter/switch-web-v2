@@ -87,6 +87,41 @@ export const TypedLine = styled.input`
   width: 100%;
 `
 
+export const TypingInputWrapper = styled.div`
+  position: relative;
+  min-height: 1.35em;
+`
+
+export const TypedCharacters = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  color: ${token.colors.primary.primary50};
+  font-size: inherit;
+  line-height: 1.35;
+  white-space: pre;
+  pointer-events: none;
+`
+
+export const TypedCharacter = styled.span<{ $error: boolean }>`
+  color: ${({ $error }) => ($error ? '#ff5f57' : 'inherit')};
+`
+
+export const TypingInput = styled.input`
+  position: relative;
+  width: 100%;
+  min-height: 1.35em;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: transparent;
+  caret-color: ${token.colors.primary.primary50};
+  font-size: inherit;
+  line-height: 1.35;
+  white-space: nowrap;
+`
+
 export const Caret = styled.span`
   width: 2px;
   height: 1em;

@@ -1,15 +1,35 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { getProblemsForPractice, type TypingProblem } from '@/entities/typing'
 
 import * as S from './DailyTypingPage.style'
 import { TypingCountdown } from '../TypingCountdown/TypingCountdown'
 import { TypingPracticeHeader } from '../TypingPracticeHeader/TypingPracticeHeader'
 
-const CURRENT_SENTENCE = 'I want to go home!! Let me go!!'
-
 export function DailyTypingPage() {
+  const navigate = useNavigate()
+  const [problems, setProblems] = useState<TypingProblem[]>([])
+  const [currentProblemIndex, setCurrentProblemIndex] = useState(0)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [typedSentence, setTypedSentence] = useState('')
   const startTimeRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchProblems = async () => {
+      const data = await getProblemsForPractice('DAILY')
+
+      if (isMounted) setProblems(data)
+    }
+
+    void fetchProblems()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const handleCountdownComplete = useCallback(() => {
     startTimeRef.current = performance.now()
@@ -25,12 +45,30 @@ export function DailyTypingPage() {
     return () => window.clearInterval(intervalId)
   }, [])
 
-  const correctCharacterCount = [...typedSentence].filter((character, index) => character === CURRENT_SENTENCE[index]).length
+  const previousProblem = problems[currentProblemIndex - 1]
+  const currentProblem = problems[currentProblemIndex]
+  const nextProblem = problems[currentProblemIndex + 1]
+  const currentSentence = currentProblem?.content ?? ''
+  const correctCharacterCount = [...typedSentence].filter((character, index) => character === currentSentence[index]).length
   const typingSpeed = elapsedSeconds === 0 ? 0 : Math.round(typedSentence.length / (elapsedSeconds / 60))
   const accuracy = typedSentence.length === 0 ? 100 : Math.round((correctCharacterCount / typedSentence.length) * 100)
   const minutes = Math.floor(elapsedSeconds / 60)
   const seconds = elapsedSeconds % 60
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== 'Enter' || !currentProblem || typedSentence.length !== currentSentence.length) return
+
+    event.preventDefault()
+
+    if (!nextProblem) {
+      navigate('/typing')
+      return
+    }
+
+    setCurrentProblemIndex(currentIndex => currentIndex + 1)
+    setTypedSentence('')
+  }
 
   return (
     <S.Page>
@@ -43,23 +81,37 @@ export function DailyTypingPage() {
             <S.SentenceRow>
               <S.Label>이전 문장</S.Label>
               <S.SentenceBlock>
-                <S.Sentence>Fucking Hungry. Give me some food.</S.Sentence>
-                <S.TypedLine as="div">Fucking Hungry. Give me some food.</S.TypedLine>
+                <S.Sentence>{previousProblem?.content ?? ''}</S.Sentence>
+                <S.TypedLine as="div">{previousProblem?.content ?? ''}</S.TypedLine>
               </S.SentenceBlock>
             </S.SentenceRow>
 
             <S.SentenceRow $current>
               <S.Label $current>현재 문장</S.Label>
               <S.SentenceBlock>
-                <S.Sentence>{CURRENT_SENTENCE}</S.Sentence>
-                <S.TypedLine aria-label="문장 입력" value={typedSentence} onChange={event => setTypedSentence(event.target.value)} />
+                <S.Sentence>{currentSentence}</S.Sentence>
+                <S.TypingInputWrapper>
+                  <S.TypedCharacters aria-hidden="true">
+                    {[...typedSentence].map((character, index) => (
+                      <S.TypedCharacter key={index} $error={character !== currentSentence[index]}>{character}</S.TypedCharacter>
+                    ))}
+                  </S.TypedCharacters>
+                  <S.TypingInput
+                    aria-label="문장 입력"
+                    autoFocus
+                    maxLength={currentSentence.length}
+                    value={typedSentence}
+                    onChange={event => setTypedSentence(event.target.value)}
+                    onKeyDown={handleKeyDown}
+                  />
+                </S.TypingInputWrapper>
               </S.SentenceBlock>
             </S.SentenceRow>
 
             <S.SentenceRow>
               <S.Label>다음 문장</S.Label>
               <S.SentenceBlock>
-                <S.Sentence>I don’t have fucking vacation... I want to take a rest!!!</S.Sentence>
+                <S.Sentence>{nextProblem?.content ?? ''}</S.Sentence>
               </S.SentenceBlock>
             </S.SentenceRow>
 
