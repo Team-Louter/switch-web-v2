@@ -9,18 +9,23 @@ const COUNTDOWN_ICONS = {
   3: TbCircleNumber3,
 } as const
 
-export function TypingCountdown() {
+interface TypingCountdownProps {
+  onComplete: () => void
+}
+
+export function TypingCountdown({ onComplete }: TypingCountdownProps) {
   const [count, setCount] = useState<keyof typeof COUNTDOWN_ICONS | 0>(3)
 
   useEffect(() => {
     if (count === 0) return
 
     const timeoutId = window.setTimeout(() => {
+      if (count === 1) onComplete()
       setCount(previousCount => (previousCount - 1) as keyof typeof COUNTDOWN_ICONS | 0)
     }, 1000)
 
     return () => window.clearTimeout(timeoutId)
-  }, [count])
+  }, [count, onComplete])
 
   if (count === 0) return null
 

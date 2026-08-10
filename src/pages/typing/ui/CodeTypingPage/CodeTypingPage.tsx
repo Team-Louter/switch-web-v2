@@ -1,6 +1,6 @@
 import MonacoEditor, { loader, type OnMount } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
-import { useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 
 import * as S from './CodeTypingPage.style'
@@ -125,6 +125,22 @@ function CodeEditor({ title, lines, language, editable }: CodeEditorProps) {
 
 export function CodeTypingPage() {
   const { language } = useParams()
+  const [elapsedSeconds, setElapsedSeconds] = useState(0)
+  const startTimeRef = useRef<number | null>(null)
+
+  const handleCountdownComplete = useCallback(() => {
+    startTimeRef.current = performance.now()
+  }, [])
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      if (startTimeRef.current === null) return
+
+      setElapsedSeconds(Math.floor((performance.now() - startTimeRef.current) / 1000))
+    }, 250)
+
+    return () => window.clearInterval(intervalId)
+  }, [])
 
   if (!language || !(language in LANGUAGE_NAMES)) {
     return <Navigate to="/typing" replace />
@@ -132,12 +148,15 @@ export function CodeTypingPage() {
 
   const languageName = LANGUAGE_NAMES[language as keyof typeof LANGUAGE_NAMES]
   const editorLanguage = language === 'java' ? 'java' : 'javascript'
+  const minutes = Math.floor(elapsedSeconds / 60)
+  const seconds = elapsedSeconds % 60
+  const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`
 
   return (
     <S.Page>
-      <TypingCountdown />
+      <TypingCountdown onComplete={handleCountdownComplete} />
       <S.PracticeFrame>
-        <TypingPracticeHeader category={languageName} time="3:50" typingSpeed="370타" accuracy="100%" />
+        <TypingPracticeHeader category={languageName} time={formattedTime} typingSpeed="370타" accuracy="100%" />
         <S.Workspace>
           <S.Monitor>
             <S.Screen>

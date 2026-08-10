@@ -1,13 +1,36 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
+
 import * as S from './DailyTypingPage.style'
 import { TypingCountdown } from '../TypingCountdown/TypingCountdown'
 import { TypingPracticeHeader } from '../TypingPracticeHeader/TypingPracticeHeader'
 
 export function DailyTypingPage() {
+  const [elapsedSeconds, setElapsedSeconds] = useState(0)
+  const startTimeRef = useRef<number | null>(null)
+
+  const handleCountdownComplete = useCallback(() => {
+    startTimeRef.current = performance.now()
+  }, [])
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      if (startTimeRef.current === null) return
+
+      setElapsedSeconds(Math.floor((performance.now() - startTimeRef.current) / 1000))
+    }, 250)
+
+    return () => window.clearInterval(intervalId)
+  }, [])
+
+  const minutes = Math.floor(elapsedSeconds / 60)
+  const seconds = elapsedSeconds % 60
+  const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`
+
   return (
     <S.Page>
-      <TypingCountdown />
+      <TypingCountdown onComplete={handleCountdownComplete} />
       <S.PracticeFrame>
-        <TypingPracticeHeader category="일상 영어" time="00:00" typingSpeed="200타" accuracy="100%" />
+        <TypingPracticeHeader category="일상 영어" time={formattedTime} typingSpeed="200타" accuracy="100%" />
 
         <S.Workspace>
           <S.Paper>
