@@ -11,6 +11,7 @@ import { LuPlus } from 'react-icons/lu'
 
 import { getProblems, type TypingProblem } from '@/entities/typing'
 
+import { createProblem } from '../../api/createProblem'
 import * as S from './TypingSentenceModal.style'
 
 export type TypingSentenceModalType = 'settings' | 'editor' | 'delete' | null
@@ -128,6 +129,7 @@ function SentenceEditor({ editingItem, onBackToSettings, onClose }: SentenceEdit
   const [category, setCategory] = useState<SentenceCategory>(editingItem?.problemType === 'DAILY' ? 'DAILY' : 'CODE')
   const [language, setLanguage] = useState(editingItem?.problemType === 'JAVA' ? 'java' : 'javascript')
   const [sentence, setSentence] = useState(editingItem?.content ?? '')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const isCode = category === 'CODE'
 
   const handleCategoryChange = (nextCategory: SentenceCategory) => {
@@ -143,6 +145,25 @@ function SentenceEditor({ editingItem, onBackToSettings, onClose }: SentenceEdit
     setSentence('')
   }
 
+  const handleSubmit = async () => {
+    if (editingItem) {
+      onClose()
+      return
+    }
+
+    const problemType = category === 'DAILY' ? 'DAILY' : language.toUpperCase()
+
+    try {
+      setIsSubmitting(true)
+      await createProblem(problemType, sentence)
+      onBackToSettings()
+    } catch {
+      // 실패 시 입력 내용을 유지해 다시 시도할 수 있게 한다.
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <S.EditorDialog aria-modal="true" role="dialog">
       <S.ModalHeader>
@@ -151,7 +172,7 @@ function SentenceEditor({ editingItem, onBackToSettings, onClose }: SentenceEdit
           <IoClose size={24} />
         </S.IconButton>
       </S.ModalHeader>
-      <S.EditorForm onSubmit={(event) => { event.preventDefault(); onClose() }}>
+      <S.EditorForm onSubmit={(event) => { event.preventDefault(); void handleSubmit() }}>
         <S.Field>
           <S.FieldLabel htmlFor="sentence-category">카테고리</S.FieldLabel>
           <S.SelectWrap>
@@ -211,7 +232,7 @@ function SentenceEditor({ editingItem, onBackToSettings, onClose }: SentenceEdit
             <S.Textarea id="sentence-content" value={sentence} onChange={(event) => setSentence(event.target.value)} />
           )}
         </S.Field>
-        <S.SubmitButton type="submit">{editingItem ? '수정' : '추가'}</S.SubmitButton>
+        <S.SubmitButton disabled={isSubmitting} type="submit">{editingItem ? '수정' : '추가'}</S.SubmitButton>
       </S.EditorForm>
     </S.EditorDialog>
   )
