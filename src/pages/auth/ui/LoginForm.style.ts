@@ -82,10 +82,12 @@ export const EmailField = styled.div`
   height: 38px;
 `
 
-export const EmailInput = styled.input`
+export const EmailInput = styled.input<{ $hasError?: boolean }>`
   width: 100%;
   height: 38px;
-  border: 1px solid ${token.colors.gray.gray10};
+  border: 1px solid
+    ${({ $hasError }) =>
+      $hasError ? token.colors.danger.danger10 : token.colors.gray.gray10};
   border-radius: ${token.shapes.xsmall};
   padding: 0 56px 0 14px;
   color: ${token.colors.gray.gray70};
@@ -99,7 +101,8 @@ export const EmailInput = styled.input`
   }
 
   &:focus {
-    border-color: ${token.colors.gray.gray60};
+    border-color: ${({ $hasError }) =>
+      $hasError ? token.colors.danger.danger10 : token.colors.gray.gray60};
     outline: none;
   }
 
@@ -115,6 +118,32 @@ export const EmailInput = styled.input`
     box-shadow: 0 0 0 1000px ${token.colors.white} inset;
     caret-color: ${token.colors.gray.gray70};
     -webkit-text-fill-color: ${token.colors.gray.gray70};
+  }
+`
+
+export const ValidationMessageSlot = styled.div<{ $isVisible: boolean }>`
+  max-height: ${({ $isVisible }) => ($isVisible ? '24px' : '0')};
+  overflow: hidden;
+  opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
+  transition:
+    max-height 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 160ms ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+`
+
+export const ValidationMessage = styled.p<{ $isVisible: boolean }>`
+  padding-top: 6px;
+  color: ${token.colors.danger.danger10};
+  line-height: 1.3;
+  transform: translateY(${({ $isVisible }) => ($isVisible ? '0' : '-4px')});
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  ${token.typography('caption', 'md', 'medium')}
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
   }
 `
 
