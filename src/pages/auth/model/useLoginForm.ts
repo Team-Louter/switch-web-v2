@@ -60,12 +60,18 @@ export function useLoginForm(): LoginFormController {
     setEmailCheckError('')
 
     try {
-      const [{ exists }] = await Promise.all([
+      const [emailCheckResult] = await Promise.allSettled([
         checkEmailExists({ email: submittedEmail }),
         new Promise((resolve) =>
           window.setTimeout(resolve, EMAIL_CHECK_MIN_DURATION),
         ),
-      ])
+      ] as const)
+
+      if (emailCheckResult.status === 'rejected') {
+        throw emailCheckResult.reason
+      }
+
+      const { exists } = emailCheckResult.value
 
       if (exists) {
         setLoginStep('password')
