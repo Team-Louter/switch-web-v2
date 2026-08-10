@@ -2,10 +2,10 @@ import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
-export const Panel = styled.div<{ $isPasswordStep: boolean }>`
+export const Panel = styled.div<{ $heightOffset: number }>`
   flex: 0 0 369px;
   width: 369px;
-  height: ${({ $isPasswordStep }) => ($isPasswordStep ? '597px' : '549px')};
+  height: ${({ $heightOffset }) => 549 + $heightOffset}px;
   overflow: hidden;
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: 0 20px 20px 0;
