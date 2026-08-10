@@ -1,9 +1,13 @@
 import styled from "styled-components";
 
-import { Container } from '@/pages/temp-page.style'
 import * as token from '@/shared/styles/values/token'
 
-export const TypingContainer = styled(Container)`
+export const TypingContainer = styled.section`
+  ${token.flexCenter}
+  box-sizing: border-box;
+  min-height: 100dvh;
+  padding: 48px;
+  background: ${token.colors.white};
   height: 100dvh;
 `
 

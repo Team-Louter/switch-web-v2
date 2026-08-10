@@ -10,7 +10,7 @@ import firstMedal from "@/shared/assets/1st.svg";
 import secondMedal from "@/shared/assets/2nd.svg";
 import thirdMedal from "@/shared/assets/3rd.svg";
 import { ModeButton } from "../ModeButton/ModeButton";
-import { TYPING_MODES } from "@/shared/constants/typing";
+import { TYPING_MODES } from "../../model/typingModes";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TypingSentenceModal, type TypingSentenceModalType } from "./TypingSentenceModal";

@@ -1,8 +1,4 @@
-import {
-  TbCircleLetterD,
-  TbCircleLetterJ,
-  TbCircleLetterS,
-} from 'react-icons/tb';
+import { TbCircleLetterD, TbCircleLetterJ, TbCircleLetterS } from 'react-icons/tb'
 
 export const TYPING_MODES = [
   {
