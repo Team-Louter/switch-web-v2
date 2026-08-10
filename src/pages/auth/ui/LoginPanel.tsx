@@ -5,11 +5,12 @@ import * as S from './LoginPanel.style'
 
 interface LoginPanelProps {
   controller: LoginFormController
+  heightOffset: number
 }
 
-export function LoginPanel({ controller }: LoginPanelProps) {
+export function LoginPanel({ controller, heightOffset }: LoginPanelProps) {
   return (
-    <S.Panel $isPasswordStep={controller.isPasswordStep}>
+    <S.Panel $heightOffset={heightOffset}>
       <S.Content>
         <AuthIntro titleId="login-title" />
         <LoginForm controller={controller} />
