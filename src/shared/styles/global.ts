@@ -75,4 +75,10 @@ export const GlobalStyle = createGlobalStyle`
     display: block;
     max-width: 100%;
   }
+
+  img,
+  svg {
+    user-select: none;
+    -webkit-user-drag: none;
+  }
 `
