@@ -15,6 +15,7 @@ export function LoginForm({ controller }: LoginFormProps) {
     isPasswordStep,
     isCheckingEmail,
     isContinueDisabled,
+    emailValidationMessage,
     turnstileSiteKey,
     handleEmailChange,
     handlePasswordChange,
@@ -23,6 +24,7 @@ export function LoginForm({ controller }: LoginFormProps) {
     handleTurnstileVerify,
     handleTurnstileReset,
   } = controller
+  const hasEmailValidationError = Boolean(emailValidationMessage)
 
   return (
     <>
@@ -50,6 +52,13 @@ export function LoginForm({ controller }: LoginFormProps) {
                 placeholder="이메일을 입력해주세요"
                 autoComplete="email"
                 readOnly={isPasswordStep || isCheckingEmail}
+                $hasError={hasEmailValidationError}
+                aria-invalid={hasEmailValidationError}
+                aria-describedby={
+                  hasEmailValidationError
+                    ? 'login-email-validation'
+                    : undefined
+                }
               />
               <S.ChangeEmailButton
                 type="button"
@@ -61,6 +70,19 @@ export function LoginForm({ controller }: LoginFormProps) {
                 변경
               </S.ChangeEmailButton>
             </S.EmailField>
+
+            <S.ValidationMessageSlot
+              $isVisible={hasEmailValidationError}
+              aria-hidden={!hasEmailValidationError}
+            >
+              <S.ValidationMessage
+                id="login-email-validation"
+                $isVisible={hasEmailValidationError}
+                role={hasEmailValidationError ? 'alert' : undefined}
+              >
+                {emailValidationMessage}
+              </S.ValidationMessage>
+            </S.ValidationMessageSlot>
 
             <S.PasswordFieldSlot
               $isVisible={isPasswordStep}
