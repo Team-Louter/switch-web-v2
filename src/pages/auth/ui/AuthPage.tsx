@@ -9,12 +9,18 @@ import { SignupPage } from './SignupPage'
 interface AuthViewState {
   authView: 'login' | 'signup'
   email: string
+  returnPath: string
   startsFromSignup: boolean
 }
 
 function getAuthViewState(locationState: unknown): AuthViewState {
   if (typeof locationState !== 'object' || locationState === null) {
-    return { authView: 'login', email: '', startsFromSignup: false }
+    return {
+      authView: 'login',
+      email: '',
+      returnPath: '/home',
+      startsFromSignup: false,
+    }
   }
 
   const authView =
@@ -28,8 +34,23 @@ function getAuthViewState(locationState: unknown): AuthViewState {
   const startsFromSignup =
     'startsFromSignup' in locationState &&
     locationState.startsFromSignup === true
+  const requestedReturnPath =
+    'from' in locationState && typeof locationState.from === 'string'
+      ? locationState.from
+      : ''
+  const returnPath = isSafeReturnPath(requestedReturnPath)
+    ? requestedReturnPath
+    : '/home'
 
-  return { authView, email, startsFromSignup }
+  return { authView, email, returnPath, startsFromSignup }
+}
+
+function isSafeReturnPath(returnPath: string): boolean {
+  return (
+    returnPath.startsWith('/') &&
+    !returnPath.startsWith('//') &&
+    !/^\/(?:login|signup)(?:[/?#]|$)/.test(returnPath)
+  )
 }
 
 export function AuthPage() {
@@ -45,7 +66,12 @@ export function AuthPage() {
   function handleChangeSignupEmail(email: string) {
     navigate('/login', {
       replace: true,
-      state: { authView: 'login', email, startsFromSignup: true },
+      state: {
+        authView: 'login',
+        email,
+        from: authViewState.returnPath,
+        startsFromSignup: true,
+      },
       viewTransition: true,
     })
   }
@@ -66,6 +92,7 @@ export function AuthPage() {
         <LoginCard
           key={loginCardKey}
           initialEmail={authViewState.email}
+          returnPath={authViewState.returnPath}
           startsFromSignup={authViewState.startsFromSignup}
         />
       </S.Content>
