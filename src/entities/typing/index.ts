@@ -1,3 +1,5 @@
-export { getProblems, getProblemsForPractice } from './api/getProblem'
+export { endRound } from './api/endRound'
+export { getProblems } from './api/getProblem'
 export { getPreviousResult } from './api/getResult'
+export { startRound } from './api/startRound'
 export type { TypingProblem, TypingResult } from './model/types'

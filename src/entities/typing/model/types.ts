@@ -10,3 +10,11 @@ export interface TypingProblem {
   problemType: string,
   content: string
 }
+
+export interface Round {
+  roundId: number,
+  userId: number,
+  problems: TypingProblem[],
+  resultId: number,
+  problemType: string
+}
