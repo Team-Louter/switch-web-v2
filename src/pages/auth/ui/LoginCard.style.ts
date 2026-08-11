@@ -4,13 +4,13 @@ import * as token from '@/shared/styles/values/token'
 
 interface CardProps {
   $heightOffset: number
-  $isPasswordStep: boolean
+  $usesPasswordTransition: boolean
 }
 
 export const Card = styled.section<CardProps>`
   ${token.flexRow}
-  --login-height-transition-duration: ${({ $isPasswordStep }) =>
-    $isPasswordStep ? '480ms' : '320ms'};
+  --login-height-transition-duration: ${({ $usesPasswordTransition }) =>
+    $usesPasswordTransition ? '480ms' : '320ms'};
 
   align-items: stretch;
   width: min(969px, 100%);
