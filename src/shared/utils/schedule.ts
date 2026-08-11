@@ -7,6 +7,7 @@ import type {
   CreateScheduleRequest,
   Schedule,
   ScheduleResponse,
+  ScheduleUser,
 } from '@/shared/types/schedule'
 import { formatDateInput, parseDateInput } from '@/shared/utils/date'
 
@@ -42,7 +43,7 @@ export function toEndDateTime(value: string) {
 export function toScheduleFromRequest(
   scheduleId: number,
   request: CreateScheduleRequest,
-  users: Schedule['users'] = [],
+  users: ScheduleUser[] = [],
 ): Schedule {
   return {
     scheduleId,

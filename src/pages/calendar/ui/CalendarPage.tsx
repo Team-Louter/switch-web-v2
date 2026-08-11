@@ -21,7 +21,7 @@ const DUMMY_INITIAL_DATE = new Date(2026, 6, 1)
 
 export function CalendarPage() {
   const { schedules, createSchedule, updateSchedule, deleteSchedule } =
-    useSchedules(dummySchedules)
+    useSchedules(dummySchedules, dummyMembers)
   const {
     modalState,
     handleDateClick,

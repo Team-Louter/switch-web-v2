@@ -6,15 +6,20 @@
  */
 import { useRef, useState } from 'react'
 
+import type { Member } from '@/shared/types/member'
 import type {
   CreateScheduleRequest,
   Schedule,
   ScheduleResponse,
+  ScheduleUser,
   UpdateScheduleRequest,
 } from '@/shared/types/schedule'
 import { toScheduleFromRequest, toSchedules } from '@/shared/utils/schedule'
 
-export function useSchedules(initialResponses: ScheduleResponse[]) {
+export function useSchedules(
+  initialResponses: ScheduleResponse[],
+  members: Member[],
+) {
   const [schedules, setSchedules] = useState<Schedule[]>(() =>
     toSchedules(initialResponses),
   )
@@ -26,6 +31,17 @@ export function useSchedules(initialResponses: ScheduleResponse[]) {
     ) + 1,
   )
 
+  /**
+   * 요청의 userIds를 멤버 목록에서 찾아 화면용 담당자로 바꾼다.
+   *
+   * 서버 연동 후에는 응답의 users를 그대로 쓰면 된다.
+   */
+  const toScheduleUsers = (userIds: number[] = []): ScheduleUser[] =>
+    userIds
+      .map((userId) => members.find((member) => member.userId === userId))
+      .filter((member): member is Member => member !== undefined)
+      .map(({ userId, userName }) => ({ userId, userName }))
+
   // TODO: POST /schedules 연동
   const createSchedule = (request: CreateScheduleRequest) => {
     const scheduleId = nextScheduleIdRef.current
@@ -33,7 +49,7 @@ export function useSchedules(initialResponses: ScheduleResponse[]) {
     nextScheduleIdRef.current += 1
     setSchedules((previousSchedules) => [
       ...previousSchedules,
-      toScheduleFromRequest(scheduleId, request),
+      toScheduleFromRequest(scheduleId, request, toScheduleUsers(request.userIds)),
     ])
   }
 
@@ -45,7 +61,7 @@ export function useSchedules(initialResponses: ScheduleResponse[]) {
     setSchedules((previousSchedules) =>
       previousSchedules.map((schedule) =>
         schedule.scheduleId === scheduleId
-          ? toScheduleFromRequest(scheduleId, request, schedule.users)
+          ? toScheduleFromRequest(scheduleId, request, toScheduleUsers(request.userIds))
           : schedule,
       ),
     )
