@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { getProblemsForPractice, type TypingProblem } from '@/entities/typing'
+import { endRound, startRound, type TypingProblem } from '@/entities/typing'
+import { TypingCompletionModal } from '@/features/typing'
 
 import * as S from './DailyTypingPage.style'
 import { TypingCountdown } from '../TypingCountdown/TypingCountdown'
@@ -13,18 +14,25 @@ export function DailyTypingPage() {
   const [currentProblemIndex, setCurrentProblemIndex] = useState(0)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [typedSentence, setTypedSentence] = useState('')
+  const [previousTypedSentence, setPreviousTypedSentence] = useState('')
+  const [isComplete, setIsComplete] = useState(false)
+  const [errorCount, setErrorCount] = useState(0)
+  const roundIdRef = useRef<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
 
   useEffect(() => {
     let isMounted = true
 
-    const fetchProblems = async () => {
-      const data = await getProblemsForPractice('DAILY')
+    const beginRound = async () => {
+      const round = await startRound('DAILY')
 
-      if (isMounted) setProblems(data)
+      if (isMounted) {
+        roundIdRef.current = round.roundId
+        setProblems(round.problems)
+      }
     }
 
-    void fetchProblems()
+    void beginRound()
 
     return () => {
       isMounted = false
@@ -50,8 +58,11 @@ export function DailyTypingPage() {
   const nextProblem = problems[currentProblemIndex + 1]
   const currentSentence = currentProblem?.content ?? ''
   const correctCharacterCount = [...typedSentence].filter((character, index) => character === currentSentence[index]).length
-  const typingSpeed = elapsedSeconds === 0 ? 0 : Math.round(typedSentence.length / (elapsedSeconds / 60))
+  const completedCharacterCount = problems.slice(0, currentProblemIndex).reduce((total, problem) => total + problem.content.length, 0)
+  const typingSpeed = elapsedSeconds === 0 ? 0 : Math.round((completedCharacterCount + typedSentence.length) / (elapsedSeconds / 60))
   const accuracy = typedSentence.length === 0 ? 100 : Math.round((correctCharacterCount / typedSentence.length) * 100)
+  const totalCharacterCount = completedCharacterCount + typedSentence.length
+  const resultAccuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - errorCount) / totalCharacterCount) * 100)
   const minutes = Math.floor(elapsedSeconds / 60)
   const seconds = elapsedSeconds % 60
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`
@@ -60,12 +71,25 @@ export function DailyTypingPage() {
     if (event.key !== 'Enter' || !currentProblem || typedSentence.length !== currentSentence.length) return
 
     event.preventDefault()
+    const currentErrorCount = [...typedSentence].filter((character, index) => character !== currentSentence[index]).length
 
     if (!nextProblem) {
-      navigate('/typing')
+      const finalErrorCount = errorCount + currentErrorCount
+      const finalAccuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - finalErrorCount) / totalCharacterCount) * 100)
+
+      startTimeRef.current = null
+      setErrorCount(finalErrorCount)
+
+      if (roundIdRef.current !== null) {
+        void endRound(roundIdRef.current, finalAccuracy, elapsedSeconds, typingSpeed)
+      }
+
+      setIsComplete(true)
       return
     }
 
+    setPreviousTypedSentence(typedSentence)
+    setErrorCount(count => count + currentErrorCount)
     setCurrentProblemIndex(currentIndex => currentIndex + 1)
     setTypedSentence('')
   }
@@ -82,7 +106,11 @@ export function DailyTypingPage() {
               <S.Label>이전 문장</S.Label>
               <S.SentenceBlock>
                 <S.Sentence>{previousProblem?.content ?? ''}</S.Sentence>
-                <S.TypedLine as="div">{previousProblem?.content ?? ''}</S.TypedLine>
+                <S.TypedLine as="div">
+                  {[...previousTypedSentence].map((character, index) => (
+                    <S.TypedCharacter key={index} $error={character !== previousProblem?.content[index]}>{character}</S.TypedCharacter>
+                  ))}
+                </S.TypedLine>
               </S.SentenceBlock>
             </S.SentenceRow>
 
@@ -123,6 +151,16 @@ export function DailyTypingPage() {
           </S.Paper>
         </S.Workspace>
       </S.PracticeFrame>
+      {isComplete && (
+        <TypingCompletionModal
+          accuracy={resultAccuracy}
+          category="일상 영어"
+          errorCount={errorCount}
+          time={formattedTime}
+          typingSpeed={typingSpeed}
+          onClose={() => navigate('/typing')}
+        />
+      )}
     </S.Page>
   )
 }

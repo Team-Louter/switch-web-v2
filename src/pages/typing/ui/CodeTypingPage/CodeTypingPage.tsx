@@ -3,7 +3,8 @@ import * as monaco from 'monaco-editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 
-import { getProblemsForPractice, type TypingProblem } from '@/entities/typing'
+import { endRound, startRound, type TypingProblem } from '@/entities/typing'
+import { TypingCompletionModal } from '@/features/typing'
 
 import * as S from './CodeTypingPage.style'
 import { TypingCountdown } from '../TypingCountdown/TypingCountdown'
@@ -144,6 +145,9 @@ export function CodeTypingPage() {
   const [currentProblemIndex, setCurrentProblemIndex] = useState(0)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [typedCode, setTypedCode] = useState('')
+  const [isComplete, setIsComplete] = useState(false)
+  const [errorCount, setErrorCount] = useState(0)
+  const roundIdRef = useRef<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -151,13 +155,16 @@ export function CodeTypingPage() {
 
     let isMounted = true
 
-    const fetchProblems = async () => {
-      const data = await getProblemsForPractice(language.toUpperCase())
+    const beginRound = async () => {
+      const round = await startRound(language.toUpperCase())
 
-      if (isMounted) setProblems(data)
+      if (isMounted) {
+        roundIdRef.current = round.roundId
+        setProblems(round.problems)
+      }
     }
 
-    void fetchProblems()
+    void beginRound()
 
     return () => {
       isMounted = false
@@ -189,8 +196,11 @@ export function CodeTypingPage() {
   const referenceCode = currentProblem?.content ?? ''
   const codeLines = referenceCode.split('\n')
   const correctCharacterCount = [...typedCode].filter((character, index) => character === referenceCode[index]).length
-  const typingSpeed = elapsedSeconds === 0 ? 0 : Math.round(typedCode.length / (elapsedSeconds / 60))
+  const completedCharacterCount = problems.slice(0, currentProblemIndex).reduce((total, problem) => total + problem.content.length, 0)
+  const typingSpeed = elapsedSeconds === 0 ? 0 : Math.round((completedCharacterCount + typedCode.length) / (elapsedSeconds / 60))
   const accuracy = typedCode.length === 0 ? 100 : Math.round((correctCharacterCount / typedCode.length) * 100)
+  const totalCharacterCount = completedCharacterCount + typedCode.length
+  const resultAccuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - errorCount) / totalCharacterCount) * 100)
   const minutes = Math.floor(elapsedSeconds / 60)
   const seconds = elapsedSeconds % 60
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`
@@ -198,11 +208,24 @@ export function CodeTypingPage() {
   const handleComplete = () => {
     if (!currentProblem) return
 
+    const currentErrorCount = [...typedCode].filter((character, index) => character !== referenceCode[index]).length
+
     if (!problems[currentProblemIndex + 1]) {
-      navigate('/typing')
+      const finalErrorCount = errorCount + currentErrorCount
+      const finalAccuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - finalErrorCount) / totalCharacterCount) * 100)
+
+      startTimeRef.current = null
+      setErrorCount(finalErrorCount)
+
+      if (roundIdRef.current !== null) {
+        void endRound(roundIdRef.current, finalAccuracy, elapsedSeconds, typingSpeed)
+      }
+
+      setIsComplete(true)
       return
     }
 
+    setErrorCount(count => count + currentErrorCount)
     setCurrentProblemIndex(currentIndex => currentIndex + 1)
     setTypedCode('')
   }
@@ -238,6 +261,16 @@ export function CodeTypingPage() {
           </S.Monitor>
         </S.Workspace>
       </S.PracticeFrame>
+      {isComplete && (
+        <TypingCompletionModal
+          accuracy={resultAccuracy}
+          category={languageName}
+          errorCount={errorCount}
+          time={formattedTime}
+          typingSpeed={typingSpeed}
+          onClose={() => navigate('/typing')}
+        />
+      )}
     </S.Page>
   )
 }
