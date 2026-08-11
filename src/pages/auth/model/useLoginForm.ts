@@ -105,19 +105,22 @@ export function useLoginForm(
       return
     }
 
+    setIsSubmitting(true)
+
     if (usesGoogleLogin(submittedEmail)) {
-      startGoogleLogin()
+      await waitForEmailLoadingMinimumDuration()
+
+      if (!startGoogleLogin()) {
+        setIsSubmitting(false)
+      }
+
       return
     }
-
-    setIsSubmitting(true)
 
     try {
       const [emailCheckResult] = await Promise.allSettled([
         checkEmailExists({ userEmail: submittedEmail }),
-        new Promise((resolve) =>
-          window.setTimeout(resolve, EMAIL_CHECK_MIN_DURATION),
-        ),
+        waitForEmailLoadingMinimumDuration(),
       ] as const)
 
       if (emailCheckResult.status === 'rejected') {
@@ -209,4 +212,10 @@ function usesGoogleLogin(email: string): boolean {
   const domain = email.slice(email.lastIndexOf('@') + 1).toLowerCase()
 
   return GOOGLE_LOGIN_DOMAINS.has(domain)
+}
+
+function waitForEmailLoadingMinimumDuration(): Promise<void> {
+  return new Promise((resolve) =>
+    window.setTimeout(resolve, EMAIL_CHECK_MIN_DURATION),
+  )
 }
