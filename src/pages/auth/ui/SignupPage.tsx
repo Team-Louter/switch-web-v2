@@ -33,10 +33,12 @@ export function SignupPage({
     isVerificationOpen,
     isVerificationSubmitting,
     isResendingVerificationCode,
+    isResendVerificationReady,
     verificationErrorMessage,
     verificationStatusMessage,
     turnstileSiteKey,
     turnstileKey,
+    resendTurnstileKey,
     handleInputChange,
     handleContinue,
     handleVerificationCodeChange,
@@ -44,6 +46,8 @@ export function SignupPage({
     handleResendVerificationCode,
     handleTurnstileVerify,
     handleTurnstileReset,
+    handleResendTurnstileVerify,
+    handleResendTurnstileReset,
   } = controller
 
   function handleChangeEmail() {
@@ -217,9 +221,14 @@ export function SignupPage({
           statusMessage={verificationStatusMessage}
           isSubmitting={isVerificationSubmitting}
           isResending={isResendingVerificationCode}
+          isResendReady={isResendVerificationReady}
+          turnstileSiteKey={turnstileSiteKey}
+          turnstileKey={resendTurnstileKey}
           onChangeCode={handleVerificationCodeChange}
           onResend={handleResendVerificationCode}
           onSubmit={handleVerificationSubmit}
+          onTurnstileVerify={handleResendTurnstileVerify}
+          onTurnstileReset={handleResendTurnstileReset}
         />
       )}
     </S.Page>
