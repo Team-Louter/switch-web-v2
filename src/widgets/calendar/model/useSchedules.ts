@@ -1,78 +1,84 @@
 /**
  * 일정 목록 상태 훅
  *
- * 서버 연동 전까지 로컬 상태로 일정 추가/수정/삭제를 처리합니다.
- * 요청 본문은 서버 스키마와 동일한 형태이므로, 추후 API 호출만 끼워 넣으면 됩니다.
+ * 서버에서 일정을 불러오고, 추가/수정/삭제 후 응답으로 목록을 갱신합니다.
  */
-import { useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import type { Member } from '@/shared/types/member'
 import type {
   CreateScheduleRequest,
   Schedule,
-  ScheduleResponse,
-  ScheduleUser,
   UpdateScheduleRequest,
 } from '@/shared/types/schedule'
-import { toScheduleFromRequest, toSchedules } from '@/shared/utils/schedule'
+import { toSchedule, toSchedules } from '@/shared/utils/schedule'
 
-export function useSchedules(
-  initialResponses: ScheduleResponse[],
-  members: Member[],
-) {
-  const [schedules, setSchedules] = useState<Schedule[]>(() =>
-    toSchedules(initialResponses),
-  )
-  // 로컬에서 새 일정에 부여할 id (서버 연동 시 응답의 scheduleId로 대체)
-  const nextScheduleIdRef = useRef(
-    initialResponses.reduce(
-      (maxId, response) => Math.max(maxId, response.scheduleId),
-      0,
-    ) + 1,
-  )
+import {
+  createSchedule as requestCreateSchedule,
+  deleteSchedule as requestDeleteSchedule,
+  getAllSchedules,
+  modifySchedule as requestModifySchedule,
+} from '../api/scheduleApi'
 
-  /**
-   * 요청의 userIds를 멤버 목록에서 찾아 화면용 담당자로 바꾼다.
-   *
-   * 서버 연동 후에는 응답의 users를 그대로 쓰면 된다.
-   */
-  const toScheduleUsers = (userIds: number[] = []): ScheduleUser[] =>
-    userIds
-      .map((userId) => members.find((member) => member.userId === userId))
-      .filter((member): member is Member => member !== undefined)
-      .map(({ userId, userName }) => ({ userId, userName }))
+export function useSchedules() {
+  const [schedules, setSchedules] = useState<Schedule[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
 
-  // TODO: POST /schedules 연동
-  const createSchedule = (request: CreateScheduleRequest) => {
-    const scheduleId = nextScheduleIdRef.current
+  useEffect(() => {
+    let isCancelled = false
 
-    nextScheduleIdRef.current += 1
+    getAllSchedules()
+      .then((responses) => {
+        if (!isCancelled) setSchedules(toSchedules(responses))
+      })
+      .catch(() => {
+        if (!isCancelled) setHasError(true)
+      })
+      .finally(() => {
+        if (!isCancelled) setIsLoading(false)
+      })
+
+    return () => {
+      isCancelled = true
+    }
+  }, [])
+
+  const createSchedule = async (request: CreateScheduleRequest) => {
+    const response = await requestCreateSchedule(request)
+
     setSchedules((previousSchedules) => [
       ...previousSchedules,
-      toScheduleFromRequest(scheduleId, request, toScheduleUsers(request.userIds)),
+      toSchedule(response),
     ])
   }
 
-  // TODO: PUT /schedules/{scheduleId} 연동
-  const updateSchedule = (
+  const updateSchedule = async (
     scheduleId: number,
     request: UpdateScheduleRequest,
   ) => {
+    const response = await requestModifySchedule(scheduleId, request)
+
     setSchedules((previousSchedules) =>
       previousSchedules.map((schedule) =>
-        schedule.scheduleId === scheduleId
-          ? toScheduleFromRequest(scheduleId, request, toScheduleUsers(request.userIds))
-          : schedule,
+        schedule.scheduleId === scheduleId ? toSchedule(response) : schedule,
       ),
     )
   }
 
-  // TODO: DELETE /schedules/{scheduleId} 연동
-  const deleteSchedule = (scheduleId: number) => {
+  const deleteSchedule = async (scheduleId: number) => {
+    await requestDeleteSchedule(scheduleId)
+
     setSchedules((previousSchedules) =>
       previousSchedules.filter((schedule) => schedule.scheduleId !== scheduleId),
     )
   }
 
-  return { schedules, createSchedule, updateSchedule, deleteSchedule }
+  return {
+    schedules,
+    isLoading,
+    hasError,
+    createSchedule,
+    updateSchedule,
+    deleteSchedule,
+  }
 }

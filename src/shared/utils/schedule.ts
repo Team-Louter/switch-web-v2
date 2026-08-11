@@ -3,13 +3,8 @@
  *
  * 서버 응답(ScheduleResponse)과 화면 모델(Schedule), 요청 본문 사이의 변환을 담당합니다.
  */
-import type {
-  CreateScheduleRequest,
-  Schedule,
-  ScheduleResponse,
-  ScheduleUser,
-} from '@/shared/types/schedule'
-import { formatDateInput, parseDateInput } from '@/shared/utils/date'
+import type { Schedule, ScheduleResponse } from '@/shared/types/schedule'
+import { formatDateInput } from '@/shared/utils/date'
 
 export function toSchedule(response: ScheduleResponse): Schedule {
   return {
@@ -33,27 +28,6 @@ export function toStartDateTime(value: string) {
 
 export function toEndDateTime(value: string) {
   return `${value}T23:59:59`
-}
-
-/**
- * 요청 본문을 화면용 일정 모델로 변환합니다.
- *
- * 서버 연동 전까지 로컬 상태를 갱신하기 위해 사용합니다.
- */
-export function toScheduleFromRequest(
-  scheduleId: number,
-  request: CreateScheduleRequest,
-  users: ScheduleUser[] = [],
-): Schedule {
-  return {
-    scheduleId,
-    title: request.title,
-    content: request.content ?? '',
-    startDate: parseDateInput(request.startDate.slice(0, 10)),
-    endDate: parseDateInput(request.endDate.slice(0, 10)),
-    color: request.color,
-    users,
-  }
 }
 
 /** 일정 기간을 "2026-07-01부터 2026-07-03까지" 형태로 표시합니다. */

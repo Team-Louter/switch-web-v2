@@ -24,17 +24,6 @@ export type ScheduleUserResponse = {
   userName: string
 }
 
-/**
- * 화면에서 사용하는 담당자 모델
- *
- * 담당자를 방금 선택한 경우에는 멤버 목록에 없는 이메일을 알 수 없어 선택 값입니다.
- */
-export type ScheduleUser = {
-  userId: number
-  userName: string
-  userEmail?: string
-}
-
 export type ScheduleResponse = {
   scheduleId: number
   title: string
@@ -52,7 +41,7 @@ export type Schedule = {
   startDate: Date
   endDate: Date
   color: ScheduleColor
-  users: ScheduleUser[]
+  users: ScheduleUserResponse[]
 }
 
 export type CreateScheduleRequest = {
