@@ -9,9 +9,14 @@ import * as S from './SignupPage.style'
 interface SignupPageProps {
   initialEmail: string
   onChangeEmail: (email: string) => void
+  shouldAnimate?: boolean
 }
 
-export function SignupPage({ initialEmail, onChangeEmail }: SignupPageProps) {
+export function SignupPage({
+  initialEmail,
+  onChangeEmail,
+  shouldAnimate = false,
+}: SignupPageProps) {
   const controller = useSignupForm(initialEmail)
   const {
     values,
@@ -27,7 +32,7 @@ export function SignupPage({ initialEmail, onChangeEmail }: SignupPageProps) {
   }
 
   return (
-    <S.Page>
+    <S.Page $shouldAnimate={shouldAnimate}>
       <AuthHeader />
       <S.Content>
         <S.Card aria-labelledby="signup-title">
