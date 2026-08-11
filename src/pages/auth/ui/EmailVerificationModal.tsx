@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 
+import { Turnstile } from '@/features/auth'
+
 import arrowIcon from '../assets/svg/email-verification-arrow.svg'
 import loadingIcon from '../assets/svg/email-verification-loading.svg'
 import * as S from './EmailVerificationModal.style'
@@ -13,9 +15,14 @@ interface EmailVerificationModalProps {
   statusMessage: string
   isSubmitting: boolean
   isResending: boolean
+  isResendReady: boolean
+  turnstileSiteKey: string
+  turnstileKey: number
   onChangeCode: (code: string) => void
   onResend: () => void
   onSubmit: () => void
+  onTurnstileVerify: (token: string) => void
+  onTurnstileReset: () => void
 }
 
 export function EmailVerificationModal({
@@ -24,9 +31,14 @@ export function EmailVerificationModal({
   statusMessage,
   isSubmitting,
   isResending,
+  isResendReady,
+  turnstileSiteKey,
+  turnstileKey,
   onChangeCode,
   onResend,
   onSubmit,
+  onTurnstileVerify,
+  onTurnstileReset,
 }: EmailVerificationModalProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isInputFocused, setIsInputFocused] = useState(false)
@@ -121,7 +133,7 @@ export function EmailVerificationModal({
             <S.ResendButton
               type="button"
               onClick={onResend}
-              disabled={isBusy}
+              disabled={isBusy || !isResendReady}
             >
               {isResending ? '인증 코드 전송 중' : '인증 코드 재전송'}
             </S.ResendButton>
@@ -146,6 +158,21 @@ export function EmailVerificationModal({
               />
             </S.SubmitButton>
           </S.Form>
+        )}
+
+        {!isSubmitting && (
+          <S.ResendTurnstile>
+            <Turnstile
+              key={turnstileKey}
+              siteKey={turnstileSiteKey}
+              action="email_verification"
+              appearance="interaction-only"
+              size="compact"
+              onVerify={onTurnstileVerify}
+              onExpire={onTurnstileReset}
+              onError={onTurnstileReset}
+            />
+          </S.ResendTurnstile>
         )}
       </S.Dialog>
     </S.Overlay>
