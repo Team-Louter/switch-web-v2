@@ -34,26 +34,6 @@ const moveLoginEmail = keyframes`
   }
 `
 
-const fadeInLoginHero = keyframes`
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-`
-
-const fadeOutSignupHero = keyframes`
-  from {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0;
-  }
-`
-
 interface CardProps {
   $heightOffset: number
   $startsFromSignup: boolean
@@ -148,10 +128,7 @@ export const Hero = styled.div<{ $heightOffset: number }>`
   }
 `
 
-export const HeroImage = styled.img<{
-  $fadesIn?: boolean
-  $isVisible?: boolean
-}>`
+export const HeroImage = styled.img`
   position: absolute;
   top: -12px;
   left: -18px;
@@ -161,28 +138,4 @@ export const HeroImage = styled.img<{
   max-width: none;
   object-fit: cover;
   object-position: center top;
-  opacity: ${({ $isVisible = true }) => ($isVisible ? 1 : 0)};
-  transition: opacity 480ms ease-in-out;
-  animation: ${({ $fadesIn }) =>
-    $fadesIn
-      ? css`${fadeInLoginHero} 720ms 160ms ease-in-out both`
-      : 'none'};
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
-`
-
-export const PreviousHeroImage = styled.img`
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  animation: ${fadeOutSignupHero} 720ms 160ms ease-in-out both;
-
-  @media (prefers-reduced-motion: reduce) {
-    display: none;
-    animation: none;
-  }
 `
