@@ -12,7 +12,7 @@ export const Panel = styled.div<{ $heightOffset: number }>`
   padding: 39px 27px 32px;
   background: ${token.colors.white};
   transition: height var(--login-height-transition-duration)
-    var(--login-height-transition-easing);
+    cubic-bezier(0.22, 1, 0.36, 1);
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
