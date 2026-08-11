@@ -9,8 +9,6 @@ import {
 
 import { TURNSTILE_SITE_KEY } from '../config/turnstile'
 
-const SEND_CODE_FAILED_MESSAGE =
-  '인증 코드 전송에 실패했습니다. 다시 시도해주세요.'
 const INVALID_CODE_MESSAGE = '인증 코드가 올바르지 않습니다.'
 const RESEND_CODE_FAILED_MESSAGE =
   '인증 코드 재전송에 실패했습니다. 잠시 후 다시 시도해주세요.'
@@ -35,7 +33,6 @@ export interface SignupFormController {
   isVerificationOpen: boolean
   isVerificationSubmitting: boolean
   isResendingVerificationCode: boolean
-  signupErrorMessage: string
   verificationErrorMessage: string
   verificationStatusMessage: string
   turnstileSiteKey: string
@@ -82,7 +79,6 @@ export function useSignupForm(
     useState(false)
   const [isResendingVerificationCode, setIsResendingVerificationCode] =
     useState(false)
-  const [signupErrorMessage, setSignupErrorMessage] = useState('')
   const [verificationErrorMessage, setVerificationErrorMessage] =
     useState('')
   const [verificationStatusMessage, setVerificationStatusMessage] =
@@ -112,7 +108,6 @@ export function useSignupForm(
       ...currentValues,
       [fieldName]: value,
     }))
-    setSignupErrorMessage('')
   }
 
   async function handleContinue() {
@@ -121,7 +116,6 @@ export function useSignupForm(
     }
 
     setIsSendingVerificationCode(true)
-    setSignupErrorMessage('')
 
     try {
       await sendVerificationCode({
@@ -133,7 +127,6 @@ export function useSignupForm(
       setVerificationStatusMessage('')
       setIsVerificationOpen(true)
     } catch {
-      setSignupErrorMessage(SEND_CODE_FAILED_MESSAGE)
       setTurnstileToken('')
       setTurnstileKey((currentKey) => currentKey + 1)
     } finally {
@@ -228,7 +221,6 @@ export function useSignupForm(
     isVerificationOpen,
     isVerificationSubmitting,
     isResendingVerificationCode,
-    signupErrorMessage,
     verificationErrorMessage,
     verificationStatusMessage,
     turnstileSiteKey: TURNSTILE_SITE_KEY,
