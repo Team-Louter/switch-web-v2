@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import type { TypingProblem } from '@/entities/typing'
+import { getRankingList } from '@/entities/typing/api/getRanking'
 import { endRound, startRound, TypingCompletionModal } from '@/features/typing'
 
 import * as S from './DailyTypingPage.style'
@@ -17,6 +18,7 @@ export function DailyTypingPage() {
   const [previousTypedSentence, setPreviousTypedSentence] = useState('')
   const [isComplete, setIsComplete] = useState(false)
   const [errorCount, setErrorCount] = useState(0)
+  const [firstPlaceName, setFirstPlaceName] = useState('-')
   const roundIdRef = useRef<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
 
@@ -32,7 +34,17 @@ export function DailyTypingPage() {
       }
     }
 
+    const getFirstPlace = async () => {
+      const rankingList = await getRankingList('DAILY')
+      const firstPlace = rankingList.topRankings.find(ranking => ranking.rank === 1)
+
+      if (isMounted) {
+        setFirstPlaceName(firstPlace?.userName ?? '-')
+      }
+    }
+
     void beginRound()
+    void getFirstPlace()
 
     return () => {
       isMounted = false
@@ -145,7 +157,7 @@ export function DailyTypingPage() {
             <S.Eraser aria-hidden="true" />
             <S.Podium aria-hidden="true">
               <i /><i /><i />
-              <span>현재 1등<br />이또또</span>
+              <span>현재 1등<br />{firstPlaceName}</span>
             </S.Podium>
           </S.Paper>
         </S.Workspace>
