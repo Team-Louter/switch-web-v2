@@ -53,26 +53,6 @@ const moveSignupEmail = keyframes`
   }
 `
 
-const fadeInSignupHero = keyframes`
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-`
-
-const fadeOutLoginHero = keyframes`
-  from {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0;
-  }
-`
-
 export const Page = styled.div`
   --signup-transition-duration: 1000ms;
   --signup-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
@@ -138,19 +118,6 @@ export const Hero = styled.div`
 
 export const HeroImage = styled.img`
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  animation: ${fadeInSignupHero} 720ms 160ms ease-in-out both;
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
-`
-
-export const PreviousHeroImage = styled.img`
-  position: absolute;
   top: -12px;
   left: -18px;
   width: calc(100% + 36px);
@@ -158,12 +125,6 @@ export const PreviousHeroImage = styled.img`
   max-width: none;
   object-fit: cover;
   object-position: center top;
-  animation: ${fadeOutLoginHero} 720ms 160ms ease-in-out both;
-
-  @media (prefers-reduced-motion: reduce) {
-    display: none;
-    animation: none;
-  }
 `
 
 export const Panel = styled.div`
