@@ -49,7 +49,7 @@ export function LoginForm({ controller }: LoginFormProps) {
 
         <S.EmailGroup>
           <S.Fields>
-            <S.EmailField>
+            <S.EmailField data-auth-email-field>
               <S.EmailInput
                 type="email"
                 name="email"
