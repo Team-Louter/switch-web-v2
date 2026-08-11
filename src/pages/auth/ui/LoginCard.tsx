@@ -66,7 +66,7 @@ export function LoginCard({
           alt={isPasswordStep ? '' : 'Louter 캐릭터들이 함께 노는 모습'}
           aria-hidden={isPasswordStep}
           $fadesIn={startsFromSignup}
-          $isVisible
+          $isVisible={!isPasswordStep}
         />
         <S.HeroImage
           src={loginPasswordHeroImage}
