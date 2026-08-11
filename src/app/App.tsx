@@ -9,7 +9,6 @@ import {
   MentoringPage,
   MyPage,
   NotificationPage,
-  SignupPage,
   StorePage,
   TypingPage,
 } from '@/pages'
@@ -25,7 +24,10 @@ export function App() {
         <Route path="/" element={<RootRoute />} />
         <Route element={<GuestOnlyRoute />}>
           <Route path="/login" element={<AuthPage />} />
-          <Route path="/signup" element={<SignupPage />} />
+          <Route
+            path="/signup"
+            element={<Navigate to="/login" replace />}
+          />
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
