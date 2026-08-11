@@ -81,4 +81,31 @@ export const GlobalStyle = createGlobalStyle`
     user-select: none;
     -webkit-user-drag: none;
   }
+
+  @media (prefers-reduced-motion: no-preference) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none;
+    }
+
+    ::view-transition-group(auth-card),
+    ::view-transition-old(auth-card),
+    ::view-transition-new(auth-card) {
+      animation-duration: 640ms;
+      animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    ::view-transition-old(auth-card),
+    ::view-transition-new(auth-card) {
+      mix-blend-mode: normal;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(auth-card),
+    ::view-transition-old(auth-card),
+    ::view-transition-new(auth-card) {
+      animation-duration: 1ms;
+    }
+  }
 `
