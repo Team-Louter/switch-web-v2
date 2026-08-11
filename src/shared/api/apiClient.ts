@@ -3,9 +3,10 @@ import axios from 'axios'
 import { clearAccessToken, getAccessToken } from '@/shared/lib/authToken'
 
 export const UNAUTHORIZED_EVENT = 'auth:unauthorized'
+const DEFAULT_API_BASE_URL = 'https://api.louter.site'
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL,
   timeout: 10000,
   withCredentials: true,
   headers: {
