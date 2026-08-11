@@ -165,15 +165,7 @@ export const ChangeEmailButton = styled.button<{ $isVisible: boolean }>`
   pointer-events: ${({ $isVisible }) => ($isVisible ? 'auto' : 'none')};
   transform: translateY(-50%);
   visibility: ${({ $isVisible }) => ($isVisible ? 'visible' : 'hidden')};
-  transition:
-    opacity 320ms ease-in-out,
-    visibility 0s linear ${({ $isVisible }) =>
-      $isVisible ? '0ms' : '320ms'};
   ${token.typography('caption', 'md', 'medium')}
-
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
 `
 
 export const PasswordFieldSlot = styled.div<{ $isVisible: boolean }>`
@@ -182,9 +174,8 @@ export const PasswordFieldSlot = styled.div<{ $isVisible: boolean }>`
   opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
   transition:
     max-height var(--login-height-transition-duration)
-      var(--login-height-transition-easing),
-    opacity 360ms ease-in-out
-      ${({ $isVisible }) => ($isVisible ? '120ms' : '0ms')};
+      cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 160ms ease-out;
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
@@ -195,7 +186,7 @@ export const PasswordFieldMotion = styled.div<{ $isVisible: boolean }>`
   padding-top: 10px;
   transform: translateY(${({ $isVisible }) => ($isVisible ? '0' : '12px')});
   transition: transform var(--login-height-transition-duration)
-    var(--login-height-transition-easing);
+    cubic-bezier(0.22, 1, 0.36, 1);
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
