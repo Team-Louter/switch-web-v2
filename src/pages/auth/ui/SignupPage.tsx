@@ -169,6 +169,7 @@ export function SignupPage({
                       <Turnstile
                         key={turnstileKey}
                         siteKey={turnstileSiteKey}
+                        action="email_verification"
                         onVerify={handleTurnstileVerify}
                         onExpire={handleTurnstileReset}
                         onError={handleTurnstileReset}
