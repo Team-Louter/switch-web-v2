@@ -11,8 +11,6 @@ const VERIFICATION_CODE_LENGTH = 6
 
 interface EmailVerificationModalProps {
   code: string
-  errorMessage: string
-  statusMessage: string
   isSubmitting: boolean
   isResending: boolean
   isResendReady: boolean
@@ -28,8 +26,6 @@ interface EmailVerificationModalProps {
 
 export function EmailVerificationModal({
   code,
-  errorMessage,
-  statusMessage,
   isSubmitting,
   isResending,
   isResendReady,
@@ -46,7 +42,6 @@ export function EmailVerificationModal({
   const [isInputFocused, setIsInputFocused] = useState(false)
   const isComplete = code.length === VERIFICATION_CODE_LENGTH
   const isBusy = isSubmitting || isResending
-  const visibleMessage = errorMessage || statusMessage
 
   function handleCodeChange(event: ChangeEvent<HTMLInputElement>) {
     const nextCode = event.currentTarget.value
@@ -147,14 +142,6 @@ export function EmailVerificationModal({
             >
               {isResending ? '인증 코드 전송 중' : '인증 코드 재전송'}
             </S.ResendButton>
-            <S.StatusMessage
-              id="email-verification-status"
-              $hasError={Boolean(errorMessage)}
-              role={errorMessage ? 'alert' : 'status'}
-              aria-live="polite"
-            >
-              {visibleMessage}
-            </S.StatusMessage>
 
             <S.SubmitButton
               type="submit"
@@ -169,22 +156,22 @@ export function EmailVerificationModal({
             </S.SubmitButton>
           </S.Form>
         )}
-
-        {!isSubmitting && (
-          <S.ResendTurnstile>
-            <Turnstile
-              key={turnstileKey}
-              siteKey={turnstileSiteKey}
-              action="email_verification"
-              appearance="interaction-only"
-              size="compact"
-              onVerify={onTurnstileVerify}
-              onExpire={onTurnstileReset}
-              onError={onTurnstileReset}
-            />
-          </S.ResendTurnstile>
-        )}
       </S.Dialog>
+
+      {!isSubmitting && (
+        <S.ResendTurnstile>
+          <Turnstile
+            key={turnstileKey}
+            siteKey={turnstileSiteKey}
+            action="email_verification"
+            appearance="interaction-only"
+            size="compact"
+            onVerify={onTurnstileVerify}
+            onExpire={onTurnstileReset}
+            onError={onTurnstileReset}
+          />
+        </S.ResendTurnstile>
+      )}
     </S.Overlay>
   )
 }
