@@ -21,7 +21,6 @@ export const Overlay = styled.div`
 
 export const Dialog = styled.div`
   ${token.flexCenter}
-  position: relative;
   width: min(452px, 100%);
   height: 510px;
   overflow: hidden;
@@ -35,8 +34,8 @@ export const Dialog = styled.div`
 
 export const ResendTurnstile = styled.div`
   position: absolute;
-  right: 12px;
-  bottom: 12px;
+  right: 24px;
+  bottom: 24px;
   z-index: 1;
   width: 150px;
   height: 140px;
@@ -136,23 +135,10 @@ export const ResendButton = styled.button`
   }
 `
 
-export const StatusMessage = styled.p<{ $hasError: boolean }>`
-  width: 100%;
-  min-height: 18px;
-  margin-top: 10px;
-  color: ${({ $hasError }) =>
-    $hasError
-      ? token.colors.danger.danger20
-      : token.colors.success.success20};
-  line-height: 1.3;
-  text-align: center;
-  ${token.typography('caption', 'md', 'medium')}
-`
-
 export const SubmitButton = styled(Button)`
   width: 80px;
   height: 80px;
-  margin-top: 12px;
+  margin-top: 40px;
   border: 1px solid ${token.colors.primary.primary50};
   border-radius: ${token.shapes.xlarge};
   padding: 0;
