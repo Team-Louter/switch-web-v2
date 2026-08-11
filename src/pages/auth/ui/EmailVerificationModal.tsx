@@ -39,7 +39,7 @@ export function EmailVerificationModal({
   onTurnstileReset,
 }: EmailVerificationModalProps) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const [isInputFocused, setIsInputFocused] = useState(false)
+  const [isInputFocused, setIsInputFocused] = useState(true)
   const isComplete = code.length === VERIFICATION_CODE_LENGTH
   const isBusy = isSubmitting || isResending
 
