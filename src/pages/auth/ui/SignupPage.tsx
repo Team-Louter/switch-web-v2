@@ -1,5 +1,6 @@
 import { Turnstile } from '@/features/auth'
 
+import loginHeroImage from '../assets/images/login-hero.png'
 import signupHeroImage from '../assets/images/signup-hero.png'
 import { useSignupForm } from '../model/useSignupForm'
 import { AuthHeader } from './AuthHeader'
@@ -32,6 +33,11 @@ export function SignupPage({ initialEmail, onChangeEmail }: SignupPageProps) {
       <S.Content>
         <S.Card aria-labelledby="signup-title">
           <S.Hero>
+            <S.PreviousHeroImage
+              src={loginHeroImage}
+              alt=""
+              aria-hidden="true"
+            />
             <S.HeroImage
               src={signupHeroImage}
               alt="Louter 캐릭터들이 함께 뛰어노는 모습"
