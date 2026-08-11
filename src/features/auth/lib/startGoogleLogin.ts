@@ -1,4 +1,4 @@
-const GOOGLE_AUTHORIZATION_PATH = '/oauth2/authorization/google'
+const GOOGLE_OAUTH_START_PATH = '/auth/oauth/google/start'
 
 export function startGoogleLogin(): boolean {
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()
@@ -8,8 +8,10 @@ export function startGoogleLogin(): boolean {
   }
 
   const normalizedApiBaseUrl = apiBaseUrl.replace(/\/+$/, '')
+  const callbackUrl = `${window.location.origin}/oauth/callback`
+  const redirectUri = encodeURIComponent(callbackUrl)
 
-  window.location.href = `${normalizedApiBaseUrl}${GOOGLE_AUTHORIZATION_PATH}`
+  window.location.href = `${normalizedApiBaseUrl}${GOOGLE_OAUTH_START_PATH}?redirect_uri=${redirectUri}`
 
   return true
 }
