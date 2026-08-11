@@ -1,6 +1,6 @@
 import type { FormEvent } from 'react'
 
-import { Turnstile } from '@/features/auth'
+import { startGoogleLogin, Turnstile } from '@/features/auth'
 
 import type { LoginFormController } from '../model/useLoginForm'
 import googleLogo from '../assets/svg/google-logo.svg'
@@ -39,7 +39,7 @@ export function LoginForm({ controller }: LoginFormProps) {
   return (
     <S.Form onSubmit={handleSubmit} noValidate>
       <S.Options>
-        <S.GoogleButton type="button">
+        <S.GoogleButton type="button" onClick={startGoogleLogin}>
           <S.GoogleLogo src={googleLogo} alt="" />
           Google으로 계속하기
         </S.GoogleButton>
