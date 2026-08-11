@@ -29,9 +29,9 @@ export interface LoginFormController {
   handleTurnstileReset: () => void
 }
 
-export function useLoginForm(): LoginFormController {
+export function useLoginForm(initialEmail = ''): LoginFormController {
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(initialEmail)
   const [password, setPassword] = useState('')
   const [loginStep, setLoginStep] = useState<LoginStep>('email')
   const [turnstileToken, setTurnstileToken] = useState('')
