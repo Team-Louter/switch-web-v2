@@ -91,8 +91,10 @@ export const DigitBox = styled.span<{
       $isActive ? token.colors.gray.gray80 : 'transparent'};
   border-radius: ${token.shapes.xsmall};
   color: ${token.colors.gray.gray80};
-  background: ${({ $isFilled }) =>
-    $isFilled ? token.colors.white : token.colors.gray.gray0};
+  background: ${({ $isActive, $isFilled }) =>
+    $isActive || $isFilled
+      ? token.colors.white
+      : token.colors.gray.gray0};
   line-height: 1;
   ${token.typography('heading', 'lg', 'bold')}
 `
