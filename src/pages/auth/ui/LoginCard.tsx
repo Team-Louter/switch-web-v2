@@ -25,11 +25,10 @@ export function LoginCard() {
     isPasswordStep,
     emailValidationMessage,
   )
-
   return (
     <S.Card
       $heightOffset={heightOffset}
-      $isPasswordStep={isPasswordStep}
+      $usesPasswordTransition={isPasswordStep}
       aria-labelledby="login-title"
     >
       <S.Hero $heightOffset={heightOffset}>
