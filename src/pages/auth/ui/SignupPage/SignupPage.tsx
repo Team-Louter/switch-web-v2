@@ -28,6 +28,7 @@ export function SignupPage({
   const {
     values,
     verificationCode,
+    clubCodeValidationMessage,
     isContinueDisabled,
     isSendingVerificationCode,
     isVerificationOpen,
@@ -48,6 +49,9 @@ export function SignupPage({
     handleResendTurnstileVerify,
     handleResendTurnstileReset,
   } = controller
+  const hasClubCodeValidationError = Boolean(
+    clubCodeValidationMessage,
+  )
 
   function handleChangeEmail() {
     if (isReturningToLogin) {
@@ -158,15 +162,40 @@ export function SignupPage({
                       placeholder="비밀번호 확인"
                       autoComplete="new-password"
                     />
-                    <S.Input
-                      type="text"
-                      name="clubCode"
-                      value={values.clubCode}
-                      onChange={handleInputChange}
-                      aria-label="동아리 코드"
-                      placeholder="동아리 코드"
-                      autoComplete="off"
-                    />
+                    <S.ClubCodeField>
+                      <S.Input
+                        type="text"
+                        name="clubCode"
+                        value={values.clubCode}
+                        onChange={handleInputChange}
+                        aria-label="동아리 코드"
+                        placeholder="동아리 코드"
+                        autoComplete="off"
+                        $hasError={hasClubCodeValidationError}
+                        aria-invalid={hasClubCodeValidationError}
+                        aria-describedby={
+                          hasClubCodeValidationError
+                            ? 'signup-club-code-validation'
+                            : undefined
+                        }
+                      />
+                      <S.ClubCodeValidationMessageSlot
+                        $isVisible={hasClubCodeValidationError}
+                        aria-hidden={!hasClubCodeValidationError}
+                      >
+                        <S.ClubCodeValidationMessage
+                          id="signup-club-code-validation"
+                          $isVisible={hasClubCodeValidationError}
+                          role={
+                            hasClubCodeValidationError
+                              ? 'alert'
+                              : undefined
+                          }
+                        >
+                          {clubCodeValidationMessage}
+                        </S.ClubCodeValidationMessage>
+                      </S.ClubCodeValidationMessageSlot>
+                    </S.ClubCodeField>
 
                     {turnstileSiteKey ? (
                       <Turnstile
