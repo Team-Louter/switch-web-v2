@@ -2,13 +2,19 @@ import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
-const TURNSTILE_HEIGHT = '65px'
+const TURNSTILE_COMPACT_HEIGHT = '140px'
+const TURNSTILE_COMPACT_WIDTH = '150px'
+const TURNSTILE_DEFAULT_HEIGHT = '65px'
 
-export const WidgetShell = styled.div`
+export const WidgetShell = styled.div<{ $isCompact: boolean }>`
   position: relative;
-  flex: 0 0 ${TURNSTILE_HEIGHT};
-  width: 100%;
-  height: ${TURNSTILE_HEIGHT};
+  flex: 0 0
+    ${({ $isCompact }) =>
+      $isCompact ? TURNSTILE_COMPACT_HEIGHT : TURNSTILE_DEFAULT_HEIGHT};
+  width: ${({ $isCompact }) =>
+    $isCompact ? TURNSTILE_COMPACT_WIDTH : '100%'};
+  height: ${({ $isCompact }) =>
+    $isCompact ? TURNSTILE_COMPACT_HEIGHT : TURNSTILE_DEFAULT_HEIGHT};
   overflow: hidden;
   border-radius: ${token.shapes.xsmall};
   background: ${token.colors.white};
