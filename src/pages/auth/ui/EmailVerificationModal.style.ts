@@ -37,8 +37,12 @@ export const ResendTurnstile = styled.div`
   right: 24px;
   bottom: 24px;
   z-index: 1;
-  width: 150px;
-  height: 140px;
+  width: min(300px, calc(100% - 48px));
+  height: 65px;
+
+  & > div {
+    background: transparent;
+  }
 `
 
 export const Form = styled.form`
