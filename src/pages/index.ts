@@ -1,4 +1,4 @@
-export { AuthPage, SignupPage } from './auth'
+export { AuthPage } from './auth'
 export { CalendarPage } from './calendar'
 export { CommunityPage } from './community'
 export { HomePage } from './home'
