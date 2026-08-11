@@ -1,0 +1,153 @@
+import { useEffect, useRef, useState } from 'react'
+import type { ChangeEvent, FormEvent } from 'react'
+
+import arrowIcon from '../assets/svg/email-verification-arrow.svg'
+import loadingIcon from '../assets/svg/email-verification-loading.svg'
+import * as S from './EmailVerificationModal.style'
+
+const VERIFICATION_CODE_LENGTH = 6
+
+interface EmailVerificationModalProps {
+  code: string
+  errorMessage: string
+  statusMessage: string
+  isSubmitting: boolean
+  isResending: boolean
+  onChangeCode: (code: string) => void
+  onResend: () => void
+  onSubmit: () => void
+}
+
+export function EmailVerificationModal({
+  code,
+  errorMessage,
+  statusMessage,
+  isSubmitting,
+  isResending,
+  onChangeCode,
+  onResend,
+  onSubmit,
+}: EmailVerificationModalProps) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [isInputFocused, setIsInputFocused] = useState(false)
+  const isComplete = code.length === VERIFICATION_CODE_LENGTH
+  const isBusy = isSubmitting || isResending
+  const visibleMessage = errorMessage || statusMessage
+
+  function handleCodeChange(event: ChangeEvent<HTMLInputElement>) {
+    const nextCode = event.currentTarget.value
+      .replace(/\D/g, '')
+      .slice(0, VERIFICATION_CODE_LENGTH)
+
+    onChangeCode(nextCode)
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!isComplete || isBusy) {
+      return
+    }
+
+    onSubmit()
+  }
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow
+
+    document.body.style.overflow = 'hidden'
+    inputRef.current?.focus()
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [])
+
+  return (
+    <S.Overlay>
+      <S.Dialog
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="email-verification-title"
+        aria-describedby="email-verification-description"
+        aria-busy={isSubmitting}
+      >
+        {isSubmitting ? (
+          <S.LoadingIcon src={loadingIcon} alt="회원가입 처리 중" />
+        ) : (
+          <S.Form onSubmit={handleSubmit} noValidate>
+            <S.Title id="email-verification-title">
+              코드를 입력하세요
+            </S.Title>
+            <S.Description id="email-verification-description">
+              아래에 이메일로 전송된 6자리 코드를 입력하세요.
+            </S.Description>
+
+            <S.CodeField onClick={() => inputRef.current?.focus()}>
+              {Array.from({ length: VERIFICATION_CODE_LENGTH }).map(
+                (_, index) => {
+                  const digit = code[index] ?? ''
+                  const isActive =
+                    isInputFocused && !isComplete && index === code.length
+
+                  return (
+                    <S.DigitBox
+                      key={index}
+                      $isFilled={Boolean(digit)}
+                      $isActive={isActive}
+                      aria-hidden="true"
+                    >
+                      {digit}
+                    </S.DigitBox>
+                  )
+                },
+              )}
+              <S.CodeInput
+                ref={inputRef}
+                type="text"
+                value={code}
+                onChange={handleCodeChange}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
+                aria-label="이메일 인증 코드 6자리"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                autoComplete="one-time-code"
+                maxLength={VERIFICATION_CODE_LENGTH}
+                disabled={isBusy}
+              />
+            </S.CodeField>
+
+            <S.ResendButton
+              type="button"
+              onClick={onResend}
+              disabled={isBusy}
+            >
+              {isResending ? '인증 코드 전송 중' : '인증 코드 재전송'}
+            </S.ResendButton>
+            <S.StatusMessage
+              id="email-verification-status"
+              $hasError={Boolean(errorMessage)}
+              role={errorMessage ? 'alert' : 'status'}
+              aria-live="polite"
+            >
+              {visibleMessage}
+            </S.StatusMessage>
+
+            <S.SubmitButton
+              type="submit"
+              disabled={!isComplete || isBusy}
+              aria-label="이메일 인증 완료"
+            >
+              <S.ArrowIcon
+                src={arrowIcon}
+                alt=""
+                $isEnabled={isComplete && !isBusy}
+              />
+            </S.SubmitButton>
+          </S.Form>
+        )}
+      </S.Dialog>
+    </S.Overlay>
+  )
+}
