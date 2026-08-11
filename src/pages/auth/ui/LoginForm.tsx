@@ -20,6 +20,7 @@ export function LoginForm({ controller }: LoginFormProps) {
     emailValidationMessage,
     loginValidationMessage,
     turnstileSiteKey,
+    turnstileKey,
     handleEmailChange,
     handlePasswordChange,
     handleContinue,
@@ -135,7 +136,7 @@ export function LoginForm({ controller }: LoginFormProps) {
 
           {turnstileSiteKey ? (
             <Turnstile
-              key="turnstile"
+              key={turnstileKey}
               siteKey={turnstileSiteKey}
               onVerify={handleTurnstileVerify}
               onExpire={handleTurnstileReset}
