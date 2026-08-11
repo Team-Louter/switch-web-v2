@@ -75,7 +75,6 @@ export function AuthPage() {
         authView: 'login',
         email,
         from: authViewState.returnPath,
-        authTransitionSessionId,
       },
     })
   }
