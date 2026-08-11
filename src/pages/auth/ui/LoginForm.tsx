@@ -15,9 +15,10 @@ export function LoginForm({ controller }: LoginFormProps) {
     email,
     password,
     isPasswordStep,
-    isCheckingEmail,
+    isSubmitting,
     isContinueDisabled,
     emailValidationMessage,
+    loginValidationMessage,
     turnstileSiteKey,
     handleEmailChange,
     handlePasswordChange,
@@ -27,6 +28,7 @@ export function LoginForm({ controller }: LoginFormProps) {
     handleTurnstileReset,
   } = controller
   const hasEmailValidationError = Boolean(emailValidationMessage)
+  const hasLoginValidationError = Boolean(loginValidationMessage)
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -58,7 +60,7 @@ export function LoginForm({ controller }: LoginFormProps) {
                 aria-label="이메일"
                 placeholder="이메일을 입력해주세요"
                 autoComplete="email"
-                readOnly={isPasswordStep || isCheckingEmail}
+                readOnly={isPasswordStep || isSubmitting}
                 $hasError={hasEmailValidationError}
                 aria-invalid={hasEmailValidationError}
                 aria-describedby={
@@ -106,9 +108,29 @@ export function LoginForm({ controller }: LoginFormProps) {
                   autoComplete="current-password"
                   disabled={!isPasswordStep}
                   tabIndex={isPasswordStep ? 0 : -1}
+                  $hasError={hasLoginValidationError}
+                  aria-invalid={hasLoginValidationError}
+                  aria-describedby={
+                    hasLoginValidationError
+                      ? 'login-password-validation'
+                      : undefined
+                  }
                 />
               </S.PasswordFieldMotion>
             </S.PasswordFieldSlot>
+
+            <S.ValidationMessageSlot
+              $isVisible={hasLoginValidationError}
+              aria-hidden={!hasLoginValidationError}
+            >
+              <S.ValidationMessage
+                id="login-password-validation"
+                $isVisible={hasLoginValidationError}
+                role={hasLoginValidationError ? 'alert' : undefined}
+              >
+                {loginValidationMessage}
+              </S.ValidationMessage>
+            </S.ValidationMessageSlot>
           </S.Fields>
 
           {turnstileSiteKey ? (
@@ -131,10 +153,10 @@ export function LoginForm({ controller }: LoginFormProps) {
         <S.ContinueButton
           type="submit"
           disabled={isContinueDisabled}
-          aria-busy={isCheckingEmail}
+          aria-busy={isSubmitting}
         >
           <S.ButtonContent>
-            {isCheckingEmail && <S.LoadingSpinner aria-hidden="true" />}
+            {isSubmitting && <S.LoadingSpinner aria-hidden="true" />}
             <span>계속</span>
           </S.ButtonContent>
         </S.ContinueButton>
