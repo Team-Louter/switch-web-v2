@@ -2,8 +2,16 @@ import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
-export const Card = styled.section<{ $heightOffset: number }>`
+interface CardProps {
+  $heightOffset: number
+  $isPasswordStep: boolean
+}
+
+export const Card = styled.section<CardProps>`
   ${token.flexRow}
+  --login-height-transition-duration: ${({ $isPasswordStep }) =>
+    $isPasswordStep ? '480ms' : '320ms'};
+
   align-items: stretch;
   width: min(969px, 100%);
   height: ${({ $heightOffset }) => 549 + $heightOffset}px;
@@ -11,8 +19,10 @@ export const Card = styled.section<{ $heightOffset: number }>`
   border-radius: 20px;
   box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
   transition:
-    height 320ms cubic-bezier(0.22, 1, 0.36, 1),
-    margin-bottom 320ms cubic-bezier(0.22, 1, 0.36, 1);
+    height var(--login-height-transition-duration)
+      cubic-bezier(0.22, 1, 0.36, 1),
+    margin-bottom var(--login-height-transition-duration)
+      cubic-bezier(0.22, 1, 0.36, 1);
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
@@ -36,7 +46,8 @@ export const Hero = styled.div<{ $heightOffset: number }>`
   height: ${({ $heightOffset }) => 549 + $heightOffset}px;
   overflow: hidden;
   border-radius: 20px 0 0 20px;
-  transition: height 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: height var(--login-height-transition-duration)
+    cubic-bezier(0.22, 1, 0.36, 1);
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
