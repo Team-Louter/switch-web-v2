@@ -16,6 +16,13 @@ import { useNavigate } from "react-router-dom";
 import { TypingSentenceModal, type TypingSentenceModalType } from "@/features/typing";
 import { getPreviousResult, type TypingProblem, type TypingResult } from "@/entities/typing";
 
+const formatElapsedTime = (elapsedTime: number) => {
+  const minutes = Math.floor(elapsedTime / 60).toString().padStart(2, '0');
+  const seconds = (elapsedTime % 60).toString().padStart(2, '0');
+
+  return `${minutes}:${seconds}`;
+};
+
 export function TypingPage() {
   const navigate = useNavigate();
   const [selectedMode, setSelectedMode] = useState<string>("DAILY");
@@ -91,7 +98,7 @@ export function TypingPage() {
             <SummaryCard
               icon={<LuClock3 color="#0E90F2" size={38} />}
               label="이전 소요 시간"
-              value={previousResult.elapsedTime}
+              value={formatElapsedTime(previousResult.elapsedTime)}
               unit=""
             />
             <SummaryCard

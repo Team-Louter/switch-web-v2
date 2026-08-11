@@ -3,7 +3,7 @@ import * as S from "./SummaryCard.style"
 type SummaryCardProps = {
   icon: React.ReactNode,
   label: string,
-  value: number,
+  value: number | string,
   unit: string
 }
 
