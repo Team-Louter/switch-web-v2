@@ -9,6 +9,8 @@ import {
   EmailField as LoginEmailField,
   EmailInput as LoginEmailInput,
   LoadingSpinner as LoginLoadingSpinner,
+  ValidationMessage as LoginValidationMessage,
+  ValidationMessageSlot as LoginValidationMessageSlot,
 } from '../LoginForm/LoginForm.style'
 
 const revealSignupFields = keyframes`
@@ -290,6 +292,18 @@ export const Input = styled(LoginEmailInput)`
   flex: 0 0 38px;
   padding: 0 14px;
 `
+
+export const ClubCodeField = styled.div`
+  ${token.flexColumn}
+  align-items: stretch;
+  width: 100%;
+`
+
+export const ClubCodeValidationMessageSlot = styled(
+  LoginValidationMessageSlot,
+)``
+
+export const ClubCodeValidationMessage = styled(LoginValidationMessage)``
 
 export const SignupEmailInput = styled(Input)`
   padding-right: 56px;
