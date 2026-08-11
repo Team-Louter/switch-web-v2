@@ -6,6 +6,10 @@ export const Page = styled.div`
   min-width: 320px;
   min-height: 100dvh;
   background: ${token.colors.white};
+
+  @media (min-width: 901px) {
+    zoom: 0.9;
+  }
 `
 
 export const Content = styled.main`
