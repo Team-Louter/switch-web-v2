@@ -14,6 +14,14 @@ export interface SignupRequest {
 
 export type SignupResponse = Record<string, unknown>
 
+export interface GoogleExtraSignupRequest {
+  userName: string
+  studentId: number
+  clubCode: string
+}
+
+export type GoogleExtraSignupResponse = void
+
 export async function signup(
   request: SignupRequest,
 ): Promise<SignupResponse> {
@@ -23,4 +31,10 @@ export async function signup(
   )
 
   return response.data
+}
+
+export async function signupGoogleExtra(
+  request: GoogleExtraSignupRequest,
+): Promise<GoogleExtraSignupResponse> {
+  await apiClient.post('/auth/signup/extra', request)
 }
