@@ -4,6 +4,8 @@ import {
   AuthPage,
   CalendarPage,
   CommunityPage,
+  GoogleExtraSignupPage,
+  GoogleOAuthCallbackPage,
   HomePage,
   LearningPage,
   MentoringPage,
@@ -22,6 +24,8 @@ export function App() {
     <AppProvider>
       <Routes>
         <Route path="/" element={<RootRoute />} />
+        <Route path="/extra-signup" element={<GoogleExtraSignupPage />} />
+        <Route path="/main" element={<GoogleOAuthCallbackPage />} />
         <Route element={<GuestOnlyRoute />}>
           <Route path="/login" element={<AuthPage />} />
           <Route
