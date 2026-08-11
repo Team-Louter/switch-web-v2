@@ -4,6 +4,30 @@ import { createGlobalStyle } from 'styled-components'
 import * as token from '@/shared/styles/values/token'
 
 export const GlobalStyle = createGlobalStyle`
+  @keyframes auth-signup-fields-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes auth-signup-fields-out {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    to {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+
   * {
     box-sizing: border-box;
     margin: 0;
@@ -89,22 +113,50 @@ export const GlobalStyle = createGlobalStyle`
     }
 
     ::view-transition-group(auth-card),
+    ::view-transition-group(auth-email-field),
     ::view-transition-old(auth-card),
-    ::view-transition-new(auth-card) {
+    ::view-transition-new(auth-card),
+    ::view-transition-old(auth-email-field),
+    ::view-transition-new(auth-email-field) {
       animation-duration: 640ms;
       animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     ::view-transition-old(auth-card),
-    ::view-transition-new(auth-card) {
+    ::view-transition-new(auth-card),
+    ::view-transition-old(auth-email-field),
+    ::view-transition-new(auth-email-field),
+    ::view-transition-old(auth-signup-fields),
+    ::view-transition-new(auth-signup-fields) {
       mix-blend-mode: normal;
+    }
+
+    ::view-transition-group(auth-signup-fields) {
+      animation-duration: 640ms;
+      animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    ::view-transition-new(auth-signup-fields) {
+      animation: auth-signup-fields-in 520ms 100ms
+        cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    ::view-transition-old(auth-signup-fields) {
+      animation: auth-signup-fields-out 360ms
+        cubic-bezier(0.4, 0, 0.2, 1) both;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
     ::view-transition-group(auth-card),
+    ::view-transition-group(auth-email-field),
+    ::view-transition-group(auth-signup-fields),
     ::view-transition-old(auth-card),
-    ::view-transition-new(auth-card) {
+    ::view-transition-new(auth-card),
+    ::view-transition-old(auth-email-field),
+    ::view-transition-new(auth-email-field),
+    ::view-transition-old(auth-signup-fields),
+    ::view-transition-new(auth-signup-fields) {
       animation-duration: 1ms;
     }
   }
