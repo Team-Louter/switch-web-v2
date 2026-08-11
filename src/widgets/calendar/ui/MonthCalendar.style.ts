@@ -11,6 +11,8 @@ const DATE_ROW_HEIGHT = '37px' // 날짜 숫자 영역 높이 (아래로 일정 
 const CHIP_HEIGHT = '26px'
 const CHIP_GAP = '4px'
 const WEEK_ROW_MIN_HEIGHT = '132px'
+/** 날짜 칸 높이 안에 들어가는 일정 줄 수 (넘치면 주 높이가 늘어납니다) */
+const CHIP_ROW_COUNT = 3
 
 const dayToneColors: Record<DayTone, string> = {
   sunday: token.colors.danger.danger20,
@@ -105,15 +107,22 @@ export const WeekList = styled.div`
 export const WeekRow = styled.div`
   display: grid;
   grid-template-columns: repeat(${DAYS_IN_WEEK}, 1fr);
-  grid-template-rows: ${DATE_ROW_HEIGHT};
+  grid-template-rows: ${DATE_ROW_HEIGHT} repeat(${CHIP_ROW_COUNT}, ${CHIP_HEIGHT});
   grid-auto-rows: ${CHIP_HEIGHT};
   row-gap: ${CHIP_GAP};
   flex: 1 1 auto;
   min-height: ${WEEK_ROW_MIN_HEIGHT};
 `
 
-export const DayCell = styled.button`
-  grid-row: 1;
+/*
+ * 날짜 숫자 아래 빈 곳을 눌러도 일정을 추가할 수 있도록 칸 전체를 덮습니다.
+ * 일정 칩과 같은 칸을 쓰므로 열을 직접 지정해 자동 배치가 밀리지 않게 합니다.
+ */
+export const DayCell = styled.button<{ $column: number }>`
+  display: flex;
+  grid-column: ${({ $column }) => $column + 1};
+  grid-row: 1 / -1;
+  align-items: flex-start;
   overflow: hidden;
   padding: 6px 8px;
   border-radius: ${token.shapes.small};

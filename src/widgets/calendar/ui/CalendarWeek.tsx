@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+
 import type { Schedule } from '@/shared/types/schedule'
 import { formatDateInput, isSameMonth } from '@/shared/utils/date'
 
@@ -22,15 +24,19 @@ export function CalendarWeek({
   onDateSelect,
   onScheduleSelect,
 }: CalendarWeekProps) {
-  const segments = getWeekScheduleSegments(weekDates, schedules)
+  const segments = useMemo(
+    () => getWeekScheduleSegments(weekDates, schedules),
+    [weekDates, schedules],
+  )
 
   return (
     <WeekRow>
-      {weekDates.map((date) => (
+      {weekDates.map((date, dayIndex) => (
         <DayCell
           key={date.getTime()}
           type="button"
           aria-label={`${formatDateInput(date)} 일정 추가`}
+          $column={dayIndex}
           onClick={() => onDateSelect(date)}
         >
           <DayNumber
