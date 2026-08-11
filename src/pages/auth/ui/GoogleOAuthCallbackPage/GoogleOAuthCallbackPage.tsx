@@ -1,29 +1,69 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
+import { exchangeGoogleOAuthCode } from '@/features/auth'
 import {
   clearAccessToken,
   clearPendingAccessToken,
   setAccessToken,
+  setPendingAccessToken,
 } from '@/shared/lib/authToken'
 
 export function GoogleOAuthCallbackPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const accessToken = searchParams.get('token')?.trim() ?? ''
+  const hasHandledOAuthRef = useRef(false)
+  const legacyAccessToken = searchParams.get('token')?.trim() ?? ''
+  const authorizationCode = searchParams.get('code')?.trim() ?? ''
+  const oauthError = searchParams.get('error')?.trim() ?? ''
 
   useEffect(() => {
-    clearPendingAccessToken()
+    if (hasHandledOAuthRef.current) {
+      return
+    }
 
-    if (!accessToken) {
+    hasHandledOAuthRef.current = true
+
+    if (legacyAccessToken) {
+      clearPendingAccessToken()
+      setAccessToken(legacyAccessToken)
+      navigate('/home', { replace: true })
+      return
+    }
+
+    if (oauthError || !authorizationCode) {
       clearAccessToken()
+      clearPendingAccessToken()
       navigate('/login', { replace: true })
       return
     }
 
-    setAccessToken(accessToken)
-    navigate('/home', { replace: true })
-  }, [accessToken, navigate])
+    async function exchangeCode() {
+      clearAccessToken()
+      clearPendingAccessToken()
+
+      try {
+        const response = await exchangeGoogleOAuthCode({
+          code: authorizationCode,
+        })
+
+        if (response.requiresExtraSignup) {
+          setPendingAccessToken(response.token)
+          navigate('/extra-signup', { replace: true })
+          return
+        }
+
+        setAccessToken(response.token)
+        navigate('/home', { replace: true })
+      } catch {
+        clearAccessToken()
+        clearPendingAccessToken()
+        navigate('/login', { replace: true })
+      }
+    }
+
+    void exchangeCode()
+  }, [authorizationCode, legacyAccessToken, navigate, oauthError])
 
   return null
 }
