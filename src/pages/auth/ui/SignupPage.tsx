@@ -34,8 +34,6 @@ export function SignupPage({
     isVerificationSubmitting,
     isResendingVerificationCode,
     isResendVerificationReady,
-    verificationErrorMessage,
-    verificationStatusMessage,
     turnstileSiteKey,
     turnstileKey,
     resendTurnstileKey,
@@ -218,8 +216,6 @@ export function SignupPage({
       {isVerificationOpen && (
         <EmailVerificationModal
           code={verificationCode}
-          errorMessage={verificationErrorMessage}
-          statusMessage={verificationStatusMessage}
           isSubmitting={isVerificationSubmitting}
           isResending={isResendingVerificationCode}
           isResendReady={isResendVerificationReady}
