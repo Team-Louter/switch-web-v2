@@ -1,5 +1,3 @@
-import { useLocation } from 'react-router-dom'
-
 import { Turnstile } from '@/features/auth'
 
 import signupHeroImage from '../assets/images/signup-hero.png'
@@ -8,21 +6,13 @@ import { AuthHeader } from './AuthHeader'
 import { AuthIntro } from './AuthIntro'
 import * as S from './SignupPage.style'
 
-function getInitialEmail(locationState: unknown): string {
-  if (
-    typeof locationState !== 'object' ||
-    locationState === null ||
-    !('email' in locationState)
-  ) {
-    return ''
-  }
-
-  return typeof locationState.email === 'string' ? locationState.email : ''
+interface SignupPageProps {
+  initialEmail: string
+  onChangeEmail: (email: string) => void
 }
 
-export function SignupPage() {
-  const location = useLocation()
-  const controller = useSignupForm(getInitialEmail(location.state))
+export function SignupPage({ initialEmail, onChangeEmail }: SignupPageProps) {
+  const controller = useSignupForm(initialEmail)
   const {
     values,
     isContinueDisabled,
@@ -31,6 +21,10 @@ export function SignupPage() {
     handleTurnstileVerify,
     handleTurnstileReset,
   } = controller
+
+  function handleChangeEmail() {
+    onChangeEmail(values.email)
+  }
 
   return (
     <S.Page>
@@ -51,74 +45,85 @@ export function SignupPage() {
               <S.FormOptions>
                 <S.Divider aria-hidden="true" />
                 <S.Fields>
-                  <S.Input
-                    type="text"
-                    name="studentNumber"
-                    value={values.studentNumber}
-                    onChange={handleInputChange}
-                    aria-label="학번"
-                    placeholder="학번"
-                    inputMode="numeric"
-                    autoComplete="off"
-                  />
-                  <S.Input
-                    type="text"
-                    name="name"
-                    value={values.name}
-                    onChange={handleInputChange}
-                    aria-label="이름"
-                    placeholder="이름"
-                    autoComplete="name"
-                  />
-                  <S.Input
-                    type="password"
-                    name="password"
-                    value={values.password}
-                    onChange={handleInputChange}
-                    aria-label="비밀번호"
-                    placeholder="비밀번호"
-                    autoComplete="new-password"
-                  />
-                  <S.Input
-                    type="password"
-                    name="passwordConfirmation"
-                    value={values.passwordConfirmation}
-                    onChange={handleInputChange}
-                    aria-label="비밀번호 확인"
-                    placeholder="비밀번호 확인"
-                    autoComplete="new-password"
-                  />
-                  <S.Input
-                    type="email"
-                    name="email"
-                    value={values.email}
-                    onChange={handleInputChange}
-                    aria-label="이메일"
-                    placeholder="이메일"
-                    autoComplete="email"
-                  />
-                  <S.Input
-                    type="text"
-                    name="clubCode"
-                    value={values.clubCode}
-                    onChange={handleInputChange}
-                    aria-label="동아리 코드"
-                    placeholder="동아리 코드"
-                    autoComplete="off"
-                  />
-
-                  {turnstileSiteKey ? (
-                    <Turnstile
-                      siteKey={turnstileSiteKey}
-                      onVerify={handleTurnstileVerify}
-                      onExpire={handleTurnstileReset}
-                      onError={handleTurnstileReset}
+                  <S.EmailField>
+                    <S.SignupEmailInput
+                      type="email"
+                      name="email"
+                      value={values.email}
+                      aria-label="이메일"
+                      autoComplete="email"
+                      readOnly
                     />
-                  ) : (
-                    <S.TurnstileConfigMessage role="alert">
-                      보안 인증 설정이 필요합니다
-                    </S.TurnstileConfigMessage>
-                  )}
+                    <S.ChangeEmailButton
+                      type="button"
+                      $isVisible
+                      onClick={handleChangeEmail}
+                    >
+                      변경
+                    </S.ChangeEmailButton>
+                  </S.EmailField>
+
+                  <S.AdditionalFields>
+                    <S.Input
+                      type="text"
+                      name="studentNumber"
+                      value={values.studentNumber}
+                      onChange={handleInputChange}
+                      aria-label="학번"
+                      placeholder="학번"
+                      inputMode="numeric"
+                      autoComplete="off"
+                    />
+                    <S.Input
+                      type="text"
+                      name="name"
+                      value={values.name}
+                      onChange={handleInputChange}
+                      aria-label="이름"
+                      placeholder="이름"
+                      autoComplete="name"
+                    />
+                    <S.Input
+                      type="password"
+                      name="password"
+                      value={values.password}
+                      onChange={handleInputChange}
+                      aria-label="비밀번호"
+                      placeholder="비밀번호"
+                      autoComplete="new-password"
+                    />
+                    <S.Input
+                      type="password"
+                      name="passwordConfirmation"
+                      value={values.passwordConfirmation}
+                      onChange={handleInputChange}
+                      aria-label="비밀번호 확인"
+                      placeholder="비밀번호 확인"
+                      autoComplete="new-password"
+                    />
+                    <S.Input
+                      type="text"
+                      name="clubCode"
+                      value={values.clubCode}
+                      onChange={handleInputChange}
+                      aria-label="동아리 코드"
+                      placeholder="동아리 코드"
+                      autoComplete="off"
+                    />
+
+                    {turnstileSiteKey ? (
+                      <Turnstile
+                        siteKey={turnstileSiteKey}
+                        onVerify={handleTurnstileVerify}
+                        onExpire={handleTurnstileReset}
+                        onError={handleTurnstileReset}
+                      />
+                    ) : (
+                      <S.TurnstileConfigMessage role="alert">
+                        보안 인증 설정이 필요합니다
+                      </S.TurnstileConfigMessage>
+                    )}
+                  </S.AdditionalFields>
                 </S.Fields>
               </S.FormOptions>
 
