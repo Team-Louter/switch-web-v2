@@ -14,7 +14,14 @@ import { TYPING_MODES } from "../../model/typingModes";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TypingSentenceModal, type TypingSentenceModalType } from "@/features/typing";
-import { getPreviousResult, type TypingProblem, type TypingResult } from "@/entities/typing";
+import {
+  getPreviousResult,
+  getRankingList,
+  getTotalCount,
+  type RankingList,
+  type TypingProblem,
+  type TypingResult,
+} from "@/entities/typing";
 
 const formatElapsedTime = (elapsedTime: number) => {
   const minutes = Math.floor(elapsedTime / 60).toString().padStart(2, '0');
@@ -28,6 +35,9 @@ export function TypingPage() {
   const [selectedMode, setSelectedMode] = useState<string>("DAILY");
   const [sentenceModal, setSentenceModal] = useState<TypingSentenceModalType>(null);
   const [editingSentence, setEditingSentence] = useState<TypingProblem | null>(null);
+  const [totalScore, setTotalScore] = useState<number>(0);
+  const [rankings, setRankings] = useState<RankingList | null>(null);
+  const getRanking = (rank: number) => rankings?.topRankings.find((ranking) => ranking.rank === rank);
   const selectedModeName = TYPING_MODES.find(
     (mode) => mode.serverValue === selectedMode,
   )?.mode;
@@ -68,8 +78,23 @@ export function TypingPage() {
       setPreviousResult(data);
     }
 
+    const getTotalTraining = async () => {
+      const data = await getTotalCount();
+      setTotalScore(data);
+    }
+
     void getPrevious();
+    void getTotalTraining();
   }, [])
+
+  useEffect(() => {
+    const getRankings = async () => {
+      const data = await getRankingList(selectedMode);
+      setRankings(data);
+    }
+
+    void getRankings();
+  }, [selectedMode])
 
   return (
     <S.TypingContainer>
@@ -104,38 +129,38 @@ export function TypingPage() {
             <SummaryCard
               icon={<FaRankingStar color="#29C54B" size={38} />}
               label="내 랭킹"
-              value={16}
+              value={rankings?.myRanking.rank ?? '-'}
               unit="등"
             />
             <SummaryCard
               icon={<LuTimer color="#898989" size={40} />}
               label="총 훈련 횟수"
-              value={3}
+              value={totalScore}
               unit="회"
             />
           </S.SummaryContainer>
           <S.RankingContainer>
             <S.RankingTitle>{selectedModeName} 현재 순위</S.RankingTitle>
             <S.Top>
-              <TopItem medal={secondMedal} name="전수안" value="300"/>
-              <TopItem medal={firstMedal} name="전수안" value="300"/>
-              <TopItem medal={thirdMedal} name="전수안" value="300"/>
+              <TopItem medal={secondMedal} name={getRanking(2)?.userName ?? '-'} value={getRanking(2)?.averageSpeed.toString() ?? '-'}/>
+              <TopItem medal={firstMedal} name={getRanking(1)?.userName ?? '-'} value={getRanking(1)?.averageSpeed.toString() ?? '-'}/>
+              <TopItem medal={thirdMedal} name={getRanking(3)?.userName ?? '-'} value={getRanking(3)?.averageSpeed.toString() ?? '-'}/>
             </S.Top>
             <S.RankingList>
               <S.RankingItem>
                 <S.Rank>4</S.Rank>
-                <S.RankName>전수안</S.RankName>
-                <S.RankValue>300타</S.RankValue>
+                <S.RankName>{getRanking(4)?.userName ?? '-'}</S.RankName>
+                <S.RankValue>{getRanking(4) ? `${getRanking(4)?.averageSpeed}타` : '-'}</S.RankValue>
               </S.RankingItem>
               <S.RankingItem style={{ width: '98%'}}>
                 <S.Rank>5</S.Rank>
-                <S.RankName>전수안</S.RankName>
-                <S.RankValue>300타</S.RankValue>
+                <S.RankName>{getRanking(5)?.userName ?? '-'}</S.RankName>
+                <S.RankValue>{getRanking(5) ? `${getRanking(5)?.averageSpeed}타` : '-'}</S.RankValue>
               </S.RankingItem>
               <S.RankingItem style={{ borderColor: tokens.colors.primary.primary50}}>
-                <S.Rank>39</S.Rank>
-                <S.RankName>전수안</S.RankName>
-                <S.RankValue>300타</S.RankValue>
+                <S.Rank>{rankings?.myRanking.rank ?? '-'}</S.Rank>
+                <S.RankName>{rankings?.myRanking.userName ?? '-'}</S.RankName>
+                <S.RankValue>{rankings?.myRanking ? `${rankings.myRanking.averageSpeed}타` : '-'}</S.RankValue>
               </S.RankingItem>
             </S.RankingList>
           </S.RankingContainer>

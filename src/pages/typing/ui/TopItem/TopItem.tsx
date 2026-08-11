@@ -12,7 +12,7 @@ export function TopItem({ medal, name, value }: TopItemProps) {
       <S.MedalContainer src={medal} />
       <S.Column>
         <S.Name>{name}</S.Name>
-        <S.Value>{value}타</S.Value>
+        <S.Value>{value === '-' ? value : `${value}타`}</S.Value>
       </S.Column>
     </S.Card>
   )

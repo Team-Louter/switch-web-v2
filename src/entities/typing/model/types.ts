@@ -18,3 +18,16 @@ export interface Round {
   resultId: number,
   problemType: string
 }
+
+export interface Ranking {
+  rank: number,
+  userId: number,
+  userName: string,
+  averageSpeed: number
+}
+
+export interface RankingList {
+  problemType: string,
+  topRankings: Ranking[],
+  myRanking: Ranking
+}
