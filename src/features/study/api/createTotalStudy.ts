@@ -1,0 +1,17 @@
+import { apiClient } from '@/shared/api'
+
+import type { StudyRequest, StudyResponse } from '@/entities/study'
+
+export const createTotalStudy = async (
+  data: StudyRequest,
+): Promise<StudyResponse> => {
+  const response = await apiClient.post<StudyResponse>('/club-report', data)
+  return response.data
+}
+
+export const modifyTotalStudy = async (clubReportId: number): Promise<StudyResponse> => {
+  const response = await apiClient.post<StudyResponse>(
+    `/club-report/${clubReportId}/regenerate`,
+  )
+  return response.data
+}
