@@ -138,6 +138,7 @@ export function LoginForm({ controller }: LoginFormProps) {
             <Turnstile
               key={turnstileKey}
               siteKey={turnstileSiteKey}
+              action="login"
               onVerify={handleTurnstileVerify}
               onExpire={handleTurnstileReset}
               onError={handleTurnstileReset}
