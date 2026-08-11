@@ -7,6 +7,10 @@ import { LoginPanel } from './LoginPanel'
 const PASSWORD_STEP_HEIGHT_OFFSET = 48
 const VALIDATION_MESSAGE_HEIGHT_OFFSET = 24
 
+interface LoginCardProps {
+  initialEmail?: string
+}
+
 function getHeightOffset(
   isPasswordStep: boolean,
   emailValidationMessage: string,
@@ -18,8 +22,8 @@ function getHeightOffset(
   return emailValidationMessage ? VALIDATION_MESSAGE_HEIGHT_OFFSET : 0
 }
 
-export function LoginCard() {
-  const controller = useLoginForm()
+export function LoginCard({ initialEmail = '' }: LoginCardProps) {
+  const controller = useLoginForm(initialEmail)
   const {
     isPasswordStep,
     usesPasswordTransition,
