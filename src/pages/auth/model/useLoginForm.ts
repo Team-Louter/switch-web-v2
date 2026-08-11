@@ -36,6 +36,7 @@ export interface LoginFormController {
 export function useLoginForm(
   initialEmail = '',
   returnPath = '/home',
+  authTransitionSessionId = '',
 ): LoginFormController {
   const navigate = useNavigate()
   const [email, setEmail] = useState(initialEmail)
@@ -131,8 +132,8 @@ export function useLoginForm(
           authView: 'signup',
           email: submittedEmail,
           from: returnPath,
+          authTransitionSessionId,
         },
-        viewTransition: true,
       })
     } catch {
       setLoginStep('email')
