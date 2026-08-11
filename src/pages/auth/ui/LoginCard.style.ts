@@ -1,42 +1,9 @@
-import styled, { css, keyframes } from 'styled-components'
+import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
-const collapseSignupCard = keyframes`
-  from {
-    width: min(1157px, 100%);
-    height: 721px;
-  }
-
-  to {
-    width: min(969px, 100%);
-    height: 549px;
-  }
-`
-
-const collapseSignupHeight = keyframes`
-  from {
-    height: 721px;
-  }
-
-  to {
-    height: 549px;
-  }
-`
-
-const moveLoginEmail = keyframes`
-  from {
-    transform: translateY(-66px);
-  }
-
-  to {
-    transform: translateY(0);
-  }
-`
-
 interface CardProps {
   $heightOffset: number
-  $startsFromSignup: boolean
   $usesPasswordTransition: boolean
 }
 
@@ -59,41 +26,12 @@ export const Card = styled.section<CardProps>`
     margin-bottom var(--login-height-transition-duration)
       cubic-bezier(0.22, 1, 0.36, 1);
 
-  ${({ $startsFromSignup }) =>
-    $startsFromSignup &&
-    css`
-      animation: ${collapseSignupCard} 1000ms cubic-bezier(0.4, 0, 0.2, 1)
-        both;
-
-      > div {
-        animation: ${collapseSignupHeight} 1000ms
-          cubic-bezier(0.4, 0, 0.2, 1) both;
-      }
-
-      [data-auth-email-field] {
-        animation: ${moveLoginEmail} 1000ms cubic-bezier(0.4, 0, 0.2, 1)
-          both;
-      }
-    `}
-
   @media (prefers-reduced-motion: reduce) {
     transition: none;
-
-    &,
-    > div,
-    [data-auth-email-field] {
-      animation: none;
-    }
   }
 
   @media (max-width: 900px) {
     width: 369px;
-
-    ${({ $startsFromSignup }) =>
-      $startsFromSignup &&
-      css`
-        animation-name: ${collapseSignupHeight};
-      `}
   }
 
   @media (max-width: 420px) {
@@ -101,11 +39,6 @@ export const Card = styled.section<CardProps>`
     height: auto;
     margin-bottom: 0;
 
-    &,
-    > div,
-    [data-auth-email-field] {
-      animation: none;
-    }
   }
 `
 
