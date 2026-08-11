@@ -7,12 +7,15 @@ const TURNSTILE_SCRIPT_URL =
   'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
 
 type TurnstileAction = 'email_verification' | 'login'
+type TurnstileAppearance = 'always' | 'interaction-only'
+type TurnstileSize = 'compact' | 'flexible'
 
 interface TurnstileRenderOptions {
   sitekey: string
   action: TurnstileAction
+  appearance: TurnstileAppearance
   theme: 'light'
-  size: 'flexible'
+  size: TurnstileSize
   retry: 'auto'
   callback: (token: string) => void
   'expired-callback': () => void
@@ -31,6 +34,8 @@ interface TurnstileApi {
 interface TurnstileProps {
   siteKey: string
   action: TurnstileAction
+  appearance?: TurnstileAppearance
+  size?: TurnstileSize
   onVerify: (token: string) => void
   onExpire: () => void
   onError: () => void
@@ -97,6 +102,8 @@ function loadTurnstileScript(): Promise<TurnstileApi> {
 export function Turnstile({
   siteKey,
   action,
+  appearance = 'always',
+  size = 'flexible',
   onVerify,
   onExpire,
   onError,
@@ -119,8 +126,9 @@ export function Turnstile({
         widgetId = turnstile.render(containerRef.current, {
           sitekey: siteKey,
           action,
+          appearance,
           theme: 'light',
-          size: 'flexible',
+          size,
           retry: 'auto',
           callback: onVerify,
           'expired-callback': onExpire,
@@ -149,12 +157,15 @@ export function Turnstile({
         window.turnstile.remove(widgetId)
       }
     }
-  }, [action, onError, onExpire, onVerify, siteKey])
+  }, [action, appearance, onError, onExpire, onVerify, siteKey, size])
 
   return (
-    <S.WidgetShell aria-busy={status === 'loading'}>
+    <S.WidgetShell
+      $isCompact={size === 'compact'}
+      aria-busy={status === 'loading'}
+    >
       <S.WidgetContainer ref={containerRef} />
-      {status === 'loading' && (
+      {status === 'loading' && appearance === 'always' && (
         <S.StatusMessage role="status">
           보안 인증을 불러오는 중입니다
         </S.StatusMessage>
