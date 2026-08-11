@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { ChangeEvent, FormEvent } from 'react'
+import type { ChangeEvent, FormEvent, MouseEvent } from 'react'
 
 import { Turnstile } from '@/features/auth'
 
@@ -19,6 +19,7 @@ interface EmailVerificationModalProps {
   turnstileSiteKey: string
   turnstileKey: number
   onChangeCode: (code: string) => void
+  onClose: () => void
   onResend: () => void
   onSubmit: () => void
   onTurnstileVerify: (token: string) => void
@@ -35,6 +36,7 @@ export function EmailVerificationModal({
   turnstileSiteKey,
   turnstileKey,
   onChangeCode,
+  onClose,
   onResend,
   onSubmit,
   onTurnstileVerify,
@@ -64,6 +66,14 @@ export function EmailVerificationModal({
     onSubmit()
   }
 
+  function handleOverlayClick(event: MouseEvent<HTMLDivElement>) {
+    if (event.target !== event.currentTarget || isBusy) {
+      return
+    }
+
+    onClose()
+  }
+
   useEffect(() => {
     const previousOverflow = document.body.style.overflow
 
@@ -76,7 +86,7 @@ export function EmailVerificationModal({
   }, [])
 
   return (
-    <S.Overlay>
+    <S.Overlay onClick={handleOverlayClick}>
       <S.Dialog
         role="dialog"
         aria-modal="true"
