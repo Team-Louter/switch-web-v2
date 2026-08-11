@@ -189,7 +189,12 @@ export function SignupPage({
                   disabled={isContinueDisabled}
                   aria-busy={isSendingVerificationCode}
                 >
-                  {isSendingVerificationCode ? '전송 중' : '계속'}
+                  <S.ButtonContent>
+                    {isSendingVerificationCode && (
+                      <S.LoadingSpinner aria-hidden="true" />
+                    )}
+                    <span>계속</span>
+                  </S.ButtonContent>
                 </S.ContinueButton>
                 <S.Footer>
                   <S.PolicyLinks>
