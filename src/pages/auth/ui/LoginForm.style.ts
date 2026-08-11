@@ -172,7 +172,8 @@ export const PasswordFieldSlot = styled.div<{ $isVisible: boolean }>`
   overflow: hidden;
   opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
   transition:
-    max-height 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    max-height var(--login-height-transition-duration)
+      cubic-bezier(0.22, 1, 0.36, 1),
     opacity 160ms ease-out;
 
   @media (prefers-reduced-motion: reduce) {
@@ -183,7 +184,8 @@ export const PasswordFieldSlot = styled.div<{ $isVisible: boolean }>`
 export const PasswordFieldMotion = styled.div<{ $isVisible: boolean }>`
   padding-top: 10px;
   transform: translateY(${({ $isVisible }) => ($isVisible ? '0' : '12px')});
-  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform var(--login-height-transition-duration)
+    cubic-bezier(0.22, 1, 0.36, 1);
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
