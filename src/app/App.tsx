@@ -25,6 +25,7 @@ export function App() {
       <Routes>
         <Route path="/" element={<RootRoute />} />
         <Route path="/extra-signup" element={<GoogleExtraSignupPage />} />
+        <Route path="/oauth/callback" element={<GoogleOAuthCallbackPage />} />
         <Route path="/main" element={<GoogleOAuthCallbackPage />} />
         <Route element={<GuestOnlyRoute />}>
           <Route path="/login" element={<AuthPage />} />
