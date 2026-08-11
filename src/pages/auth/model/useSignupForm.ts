@@ -42,6 +42,7 @@ export interface SignupFormController {
   handleInputChange: (event: ChangeEvent<HTMLInputElement>) => void
   handleContinue: () => Promise<void>
   handleVerificationCodeChange: (code: string) => void
+  handleVerificationClose: () => void
   handleVerificationSubmit: () => Promise<void>
   handleResendVerificationCode: () => Promise<void>
   handleTurnstileVerify: (token: string) => void
@@ -147,6 +148,21 @@ export function useSignupForm(
     setVerificationCode(code)
     setVerificationErrorMessage('')
     setVerificationStatusMessage('')
+  }
+
+  function handleVerificationClose() {
+    if (isVerificationSubmitting || isResendingVerificationCode) {
+      return
+    }
+
+    setIsVerificationOpen(false)
+    setVerificationCode('')
+    setVerificationErrorMessage('')
+    setVerificationStatusMessage('')
+    setTurnstileToken('')
+    setTurnstileKey((currentKey) => currentKey + 1)
+    setResendTurnstileToken('')
+    setResendTurnstileKey((currentKey) => currentKey + 1)
   }
 
   async function handleVerificationSubmit() {
@@ -255,6 +271,7 @@ export function useSignupForm(
     handleInputChange,
     handleContinue,
     handleVerificationCodeChange,
+    handleVerificationClose,
     handleVerificationSubmit,
     handleResendVerificationCode,
     handleTurnstileVerify,
