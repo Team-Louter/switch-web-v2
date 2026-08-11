@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import type { AnimationEvent } from 'react'
+
 import { Turnstile } from '@/features/auth'
 
 import authHeroImage from '../assets/images/auth-hero.jpg'
@@ -17,6 +20,7 @@ export function SignupPage({
   onChangeEmail,
   shouldAnimate = false,
 }: SignupPageProps) {
+  const [isReturningToLogin, setIsReturningToLogin] = useState(false)
   const controller = useSignupForm(initialEmail)
   const {
     values,
@@ -28,14 +32,41 @@ export function SignupPage({
   } = controller
 
   function handleChangeEmail() {
+    if (isReturningToLogin) {
+      return
+    }
+
+    if (
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+      window.matchMedia('(max-width: 420px)').matches
+    ) {
+      onChangeEmail(values.email)
+      return
+    }
+
+    setIsReturningToLogin(true)
+  }
+
+  function handleCardAnimationEnd(event: AnimationEvent<HTMLElement>) {
+    if (!isReturningToLogin || event.target !== event.currentTarget) {
+      return
+    }
+
     onChangeEmail(values.email)
   }
 
   return (
-    <S.Page $shouldAnimate={shouldAnimate}>
+    <S.Page
+      $shouldAnimate={shouldAnimate}
+      $isReturningToLogin={isReturningToLogin}
+      data-returning-to-login={isReturningToLogin}
+    >
       <AuthHeader />
       <S.Content>
-        <S.Card aria-labelledby="signup-title">
+        <S.Card
+          aria-labelledby="signup-title"
+          onAnimationEnd={handleCardAnimationEnd}
+        >
           <S.Hero>
             <S.HeroImage
               src={authHeroImage}
@@ -63,6 +94,7 @@ export function SignupPage({
                       type="button"
                       $isVisible
                       onClick={handleChangeEmail}
+                      disabled={isReturningToLogin}
                     >
                       변경
                     </S.ChangeEmailButton>
