@@ -1,8 +1,7 @@
-import { dummyMembers } from '@/shared/dummy/dummyMembers'
-import { dummySchedules } from '@/shared/dummy/dummySchedules'
 import { getCreateFormValues, getEditFormValues } from '@/widgets/calendar/lib/scheduleForm'
 import { toScheduleRequest } from '@/widgets/calendar/lib/scheduleRequest'
 import type { ScheduleFormValues } from '@/widgets/calendar/model/types'
+import { useMembers } from '@/widgets/calendar/model/useMembers'
 import { useScheduleModal } from '@/widgets/calendar/model/useScheduleModal'
 import { useSchedules } from '@/widgets/calendar/model/useSchedules'
 import { MonthCalendar } from '@/widgets/calendar/ui/MonthCalendar'
@@ -14,14 +13,19 @@ import {
   PageDescription,
   PageHeader,
   PageTitle,
+  StateText,
 } from './CalendarPage.style'
 
-// 더미 데이터(2026년 7월)를 확인하기 위한 초기 월로, 서버 연동 시 제거합니다.
-const DUMMY_INITIAL_DATE = new Date(2026, 6, 1)
-
 export function CalendarPage() {
-  const { schedules, createSchedule, updateSchedule, deleteSchedule } =
-    useSchedules(dummySchedules, dummyMembers)
+  const {
+    schedules,
+    isLoading,
+    hasError,
+    createSchedule,
+    updateSchedule,
+    deleteSchedule,
+  } = useSchedules()
+  const { members } = useMembers()
   const {
     modalState,
     handleDateClick,
@@ -30,19 +34,34 @@ export function CalendarPage() {
     handleModalClose,
   } = useScheduleModal()
 
-  const handleCreateSubmit = (values: ScheduleFormValues) => {
-    createSchedule(toScheduleRequest(values))
-    handleModalClose()
+  const handleCreateSubmit = async (values: ScheduleFormValues) => {
+    try {
+      await createSchedule(toScheduleRequest(values))
+      handleModalClose()
+    } catch {
+      // 실패 시 모달을 유지해 사용자가 다시 시도할 수 있게 합니다.
+    }
   }
 
-  const handleEditSubmit = (scheduleId: number, values: ScheduleFormValues) => {
-    updateSchedule(scheduleId, toScheduleRequest(values))
-    handleModalClose()
+  const handleEditSubmit = async (
+    scheduleId: number,
+    values: ScheduleFormValues,
+  ) => {
+    try {
+      await updateSchedule(scheduleId, toScheduleRequest(values))
+      handleModalClose()
+    } catch {
+      // 실패 시 모달을 유지해 사용자가 다시 시도할 수 있게 합니다.
+    }
   }
 
-  const handleDeleteClick = (scheduleId: number) => {
-    deleteSchedule(scheduleId)
-    handleModalClose()
+  const handleDeleteClick = async (scheduleId: number) => {
+    try {
+      await deleteSchedule(scheduleId)
+      handleModalClose()
+    } catch {
+      // 실패 시 모달을 유지해 사용자가 다시 시도할 수 있게 합니다.
+    }
   }
 
   return (
@@ -52,9 +71,12 @@ export function CalendarPage() {
         <PageDescription>월별 일정을 확인해 보세요.</PageDescription>
       </PageHeader>
 
+      {/* 일정을 불러오는 중이거나 실패한 경우를 구분해 안내합니다. */}
+      {isLoading && <StateText>일정을 불러오는 중이에요.</StateText>}
+      {hasError && <StateText>일정을 불러오지 못했어요.</StateText>}
+
       <MonthCalendar
         schedules={schedules}
-        initialDate={DUMMY_INITIAL_DATE}
         onDateSelect={handleDateClick}
         onScheduleSelect={handleScheduleClick}
       />
@@ -63,8 +85,8 @@ export function CalendarPage() {
         <ScheduleFormModal
           mode="create"
           initialValues={getCreateFormValues(modalState.date)}
-          members={dummyMembers}
-          onSubmit={handleCreateSubmit}
+          members={members}
+          onSubmit={(values) => void handleCreateSubmit(values)}
           onClose={handleModalClose}
         />
       )}
@@ -81,11 +103,11 @@ export function CalendarPage() {
         <ScheduleFormModal
           mode="edit"
           initialValues={getEditFormValues(modalState.schedule)}
-          members={dummyMembers}
+          members={members}
           onSubmit={(values) =>
-            handleEditSubmit(modalState.schedule.scheduleId, values)
+            void handleEditSubmit(modalState.schedule.scheduleId, values)
           }
-          onDelete={() => handleDeleteClick(modalState.schedule.scheduleId)}
+          onDelete={() => void handleDeleteClick(modalState.schedule.scheduleId)}
           onClose={handleModalClose}
         />
       )}

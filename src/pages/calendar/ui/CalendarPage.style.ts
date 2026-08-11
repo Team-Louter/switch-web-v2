@@ -32,3 +32,9 @@ export const PageDescription = styled.p`
   line-height: 1;
   ${token.typography('body', 'lg', 'medium')}
 `
+
+export const StateText = styled.p`
+  flex: 0 0 auto;
+  color: ${token.colors.gray.gray50};
+  ${token.typography('body', 'md', 'medium')}
+`
