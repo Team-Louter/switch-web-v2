@@ -1,4 +1,5 @@
 import {
+  SCHEDULE_COLOR_LABELS,
   SCHEDULE_COLOR_OPTIONS,
   SCHEDULE_SWATCH_COLORS,
 } from '@/shared/constants/calendar'
@@ -22,7 +23,7 @@ export function ScheduleColorPicker({
           key={color}
           type="button"
           role="radio"
-          aria-label={color}
+          aria-label={SCHEDULE_COLOR_LABELS[color]}
           aria-checked={value === color}
           $color={SCHEDULE_SWATCH_COLORS[color]}
           $selected={value === color}

@@ -44,6 +44,19 @@ export const SCHEDULE_SWATCH_COLORS: Record<ScheduleColor, string> = {
   LIGHTGREY: '#5A0FBD',
 }
 
+/**
+ * 일정 색상 값 → 화면에 읽어줄 이름
+ *
+ * 색상 이름은 실제로 보이는 색을 따르므로, LIGHTGREY의 임시 매핑(보라)에 맞춥니다.
+ */
+export const SCHEDULE_COLOR_LABELS: Record<ScheduleColor, string> = {
+  PINK: '빨강',
+  LIGHTBLUE: '파랑',
+  GOLD: '노랑',
+  LIGHTGREEN: '초록',
+  LIGHTGREY: '보라',
+}
+
 /** 색상 선택 원형이 노출되는 순서 (디자인 기준) */
 export const SCHEDULE_COLOR_OPTIONS: ScheduleColor[] = [
   'PINK',
