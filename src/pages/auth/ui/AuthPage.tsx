@@ -10,7 +10,7 @@ interface AuthViewState {
   authView: 'login' | 'signup'
   email: string
   returnPath: string
-  startsFromSignup: boolean
+  authTransitionSessionId: string
 }
 
 function getAuthViewState(locationState: unknown): AuthViewState {
@@ -19,7 +19,7 @@ function getAuthViewState(locationState: unknown): AuthViewState {
       authView: 'login',
       email: '',
       returnPath: '/home',
-      startsFromSignup: false,
+      authTransitionSessionId: '',
     }
   }
 
@@ -31,9 +31,11 @@ function getAuthViewState(locationState: unknown): AuthViewState {
     'email' in locationState && typeof locationState.email === 'string'
       ? locationState.email
       : ''
-  const startsFromSignup =
-    'startsFromSignup' in locationState &&
-    locationState.startsFromSignup === true
+  const authTransitionSessionId =
+    'authTransitionSessionId' in locationState &&
+    typeof locationState.authTransitionSessionId === 'string'
+      ? locationState.authTransitionSessionId
+      : ''
   const requestedReturnPath =
     'from' in locationState && typeof locationState.from === 'string'
       ? locationState.from
@@ -42,7 +44,7 @@ function getAuthViewState(locationState: unknown): AuthViewState {
     ? requestedReturnPath
     : '/home'
 
-  return { authView, email, returnPath, startsFromSignup }
+  return { authView, email, returnPath, authTransitionSessionId }
 }
 
 function isSafeReturnPath(returnPath: string): boolean {
@@ -57,7 +59,10 @@ export function AuthPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const [loginCardKey, setLoginCardKey] = useState(0)
+  const [authTransitionSessionId] = useState(() => crypto.randomUUID())
   const authViewState = getAuthViewState(location.state)
+  const shouldAnimateAuthTransition =
+    authViewState.authTransitionSessionId === authTransitionSessionId
 
   function handleLoginReset() {
     setLoginCardKey((currentKey) => currentKey + 1)
@@ -70,9 +75,8 @@ export function AuthPage() {
         authView: 'login',
         email,
         from: authViewState.returnPath,
-        startsFromSignup: true,
+        authTransitionSessionId,
       },
-      viewTransition: true,
     })
   }
 
@@ -81,6 +85,7 @@ export function AuthPage() {
       <SignupPage
         initialEmail={authViewState.email}
         onChangeEmail={handleChangeSignupEmail}
+        shouldAnimate={shouldAnimateAuthTransition}
       />
     )
   }
@@ -93,7 +98,8 @@ export function AuthPage() {
           key={loginCardKey}
           initialEmail={authViewState.email}
           returnPath={authViewState.returnPath}
-          startsFromSignup={authViewState.startsFromSignup}
+          startsFromSignup={shouldAnimateAuthTransition}
+          authTransitionSessionId={authTransitionSessionId}
         />
       </S.Content>
     </S.Page>
