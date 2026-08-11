@@ -362,17 +362,6 @@ export const ContinueButton = styled(Button)`
   }
 `
 
-export const SignupErrorMessage = styled.p`
-  position: absolute;
-  top: 44px;
-  left: 0;
-  width: 100%;
-  color: ${token.colors.danger.danger20};
-  line-height: 1.3;
-  text-align: center;
-  ${token.typography('caption', 'sm', 'medium')}
-`
-
 export const Footer = styled.footer`
   ${token.flexColumn}
   position: absolute;
