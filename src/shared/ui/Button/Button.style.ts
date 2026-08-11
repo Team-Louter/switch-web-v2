@@ -32,6 +32,19 @@ const variantStyles = {
       background: ${token.colors.gray.gray10};
     }
   `,
+  neutral: css`
+    color: ${token.colors.gray.gray100};
+    background: ${token.colors.gray.gray10};
+
+    &:hover {
+      background: ${token.colors.gray.gray20};
+    }
+
+    &:disabled {
+      color: ${token.colors.gray.gray40};
+      background: ${token.colors.gray.gray0};
+    }
+  `,
   line: css`
     border: 1px solid ${token.colors.primary.primary50};
     color: ${token.colors.primary.primary50};
