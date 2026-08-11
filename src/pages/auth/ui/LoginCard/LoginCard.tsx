@@ -1,7 +1,7 @@
-import authHeroImage from '../assets/images/auth-hero.jpg'
-import { useLoginForm } from '../model/useLoginForm'
+import authHeroImage from '../../assets/images/auth-hero.jpg'
+import { useLoginForm } from '../../model/useLoginForm'
+import { LoginPanel } from '../LoginPanel'
 import * as S from './LoginCard.style'
-import { LoginPanel } from './LoginPanel'
 
 const PASSWORD_STEP_HEIGHT_OFFSET = 48
 const VALIDATION_MESSAGE_HEIGHT_OFFSET = 24

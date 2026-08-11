@@ -9,7 +9,7 @@ import {
   EmailField as LoginEmailField,
   EmailInput as LoginEmailInput,
   LoadingSpinner as LoginLoadingSpinner,
-} from './LoginForm.style'
+} from '../LoginForm/LoginForm.style'
 
 const revealSignupFields = keyframes`
   from {

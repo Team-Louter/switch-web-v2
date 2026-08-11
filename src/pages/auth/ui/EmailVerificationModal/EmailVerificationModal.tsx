@@ -3,8 +3,8 @@ import type { ChangeEvent, FormEvent, MouseEvent } from 'react'
 
 import { Turnstile } from '@/features/auth'
 
-import arrowIcon from '../assets/svg/email-verification-arrow.svg'
-import loadingIcon from '../assets/svg/email-verification-loading.svg'
+import arrowIcon from '../../assets/svg/email-verification-arrow.svg'
+import loadingIcon from '../../assets/svg/email-verification-loading.svg'
 import * as S from './EmailVerificationModal.style'
 
 const VERIFICATION_CODE_LENGTH = 6

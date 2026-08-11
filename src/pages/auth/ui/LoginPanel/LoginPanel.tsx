@@ -1,6 +1,6 @@
-import type { LoginFormController } from '../model/useLoginForm'
-import { AuthIntro } from './AuthIntro'
-import { LoginForm } from './LoginForm'
+import type { LoginFormController } from '../../model/useLoginForm'
+import { AuthIntro } from '../AuthIntro'
+import { LoginForm } from '../LoginForm'
 import * as S from './LoginPanel.style'
 
 interface LoginPanelProps {

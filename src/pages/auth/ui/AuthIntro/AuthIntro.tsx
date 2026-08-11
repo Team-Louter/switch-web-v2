@@ -1,4 +1,4 @@
-import louterLogoImage from '../assets/images/louter-logo.png'
+import louterLogoImage from '../../assets/images/louter-logo.png'
 import * as S from './AuthIntro.style'
 
 interface AuthIntroProps {

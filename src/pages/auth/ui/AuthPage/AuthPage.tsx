@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { AuthHeader } from './AuthHeader'
+import { AuthHeader } from '../AuthHeader'
+import { LoginCard } from '../LoginCard'
+import { SignupPage } from '../SignupPage'
 import * as S from './AuthPage.style'
-import { LoginCard } from './LoginCard'
-import { SignupPage } from './SignupPage'
 
 interface AuthViewState {
   authView: 'login' | 'signup'

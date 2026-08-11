@@ -2,8 +2,8 @@ import type { FormEvent } from 'react'
 
 import { startGoogleLogin, Turnstile } from '@/features/auth'
 
-import type { LoginFormController } from '../model/useLoginForm'
-import googleLogo from '../assets/svg/google-logo.svg'
+import googleLogo from '../../assets/svg/google-logo.svg'
+import type { LoginFormController } from '../../model/useLoginForm'
 import * as S from './LoginForm.style'
 
 interface LoginFormProps {
