@@ -1,6 +1,7 @@
 export { checkEmailExists } from './api/checkEmailExists'
-export { login } from './api/login'
+export { exchangeGoogleOAuthCode, login } from './api/login'
 export type {
+  GoogleOAuthCodeExchangeRequest,
   LoginProvider,
   LoginRequest,
   LoginResponse,
