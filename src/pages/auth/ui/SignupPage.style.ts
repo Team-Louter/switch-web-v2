@@ -284,7 +284,21 @@ export const SignupEmailInput = styled(Input)`
   padding-right: 56px;
 `
 
-export const ChangeEmailButton = styled(LoginChangeEmailButton)``
+export const ChangeEmailButton = styled(LoginChangeEmailButton)`
+  transition:
+    opacity 160ms ease-out,
+    visibility 0s linear 160ms;
+
+  ${Page}[data-returning-to-login='true'] & {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+`
 
 export const AdditionalFields = styled.div`
   ${token.flexColumn}
