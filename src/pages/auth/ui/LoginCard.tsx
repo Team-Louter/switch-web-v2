@@ -10,15 +10,20 @@ const VALIDATION_MESSAGE_HEIGHT_OFFSET = 24
 
 interface LoginCardProps {
   initialEmail?: string
+  returnPath?: string
   startsFromSignup?: boolean
 }
 
 function getHeightOffset(
   isPasswordStep: boolean,
   emailValidationMessage: string,
+  loginValidationMessage: string,
 ): number {
   if (isPasswordStep) {
-    return PASSWORD_STEP_HEIGHT_OFFSET
+    return (
+      PASSWORD_STEP_HEIGHT_OFFSET +
+      (loginValidationMessage ? VALIDATION_MESSAGE_HEIGHT_OFFSET : 0)
+    )
   }
 
   return emailValidationMessage ? VALIDATION_MESSAGE_HEIGHT_OFFSET : 0
@@ -26,17 +31,20 @@ function getHeightOffset(
 
 export function LoginCard({
   initialEmail = '',
+  returnPath = '/home',
   startsFromSignup = false,
 }: LoginCardProps) {
-  const controller = useLoginForm(initialEmail)
+  const controller = useLoginForm(initialEmail, returnPath)
   const {
     isPasswordStep,
     usesPasswordTransition,
     emailValidationMessage,
+    loginValidationMessage,
   } = controller
   const heightOffset = getHeightOffset(
     isPasswordStep,
     emailValidationMessage,
+    loginValidationMessage,
   )
   return (
     <S.Card
