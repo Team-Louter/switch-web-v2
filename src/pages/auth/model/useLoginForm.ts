@@ -123,7 +123,11 @@ export function useLoginForm(
 
       navigate('/login', {
         replace: true,
-        state: { authView: 'signup', email: submittedEmail },
+        state: {
+          authView: 'signup',
+          email: submittedEmail,
+          from: returnPath,
+        },
         viewTransition: true,
       })
     } catch {
