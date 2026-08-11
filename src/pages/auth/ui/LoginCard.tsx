@@ -1,4 +1,4 @@
-import loginHeroImage from '../assets/images/login-hero.png'
+import authHeroImage from '../assets/images/auth-hero.jpg'
 import { useLoginForm } from '../model/useLoginForm'
 import * as S from './LoginCard.style'
 import { LoginPanel } from './LoginPanel'
@@ -53,7 +53,7 @@ export function LoginCard({
     >
       <S.Hero $heightOffset={heightOffset}>
         <S.HeroImage
-          src={loginHeroImage}
+          src={authHeroImage}
           alt="Louter 캐릭터들이 함께 노는 모습"
         />
       </S.Hero>
