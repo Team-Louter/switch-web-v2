@@ -74,6 +74,9 @@ const fadeOutLoginHero = keyframes`
 `
 
 export const Page = styled.div`
+  --signup-transition-duration: 1000ms;
+  --signup-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+
   min-width: 320px;
   min-height: 100dvh;
   background: ${token.colors.white};
@@ -94,8 +97,8 @@ export const Card = styled.section`
   view-transition-name: auth-card;
   border-radius: 20px;
   box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
-  animation: ${expandSignupCard} 900ms cubic-bezier(0.22, 1, 0.36, 1)
-    both;
+  animation: ${expandSignupCard} var(--signup-transition-duration)
+    var(--signup-transition-easing) both;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
@@ -121,8 +124,8 @@ export const Hero = styled.div`
   overflow: hidden;
   border-radius: 20px 0 0 20px;
   background: ${token.colors.primary.primary50};
-  animation: ${expandSignupHeight} 900ms cubic-bezier(0.22, 1, 0.36, 1)
-    both;
+  animation: ${expandSignupHeight} var(--signup-transition-duration)
+    var(--signup-transition-easing) both;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
@@ -139,7 +142,7 @@ export const HeroImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
-  animation: ${fadeInSignupHero} 620ms 120ms ease-out both;
+  animation: ${fadeInSignupHero} 720ms 160ms ease-in-out both;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
@@ -155,7 +158,7 @@ export const PreviousHeroImage = styled.img`
   max-width: none;
   object-fit: cover;
   object-position: center top;
-  animation: ${fadeOutLoginHero} 620ms 120ms ease-out both;
+  animation: ${fadeOutLoginHero} 720ms 160ms ease-in-out both;
 
   @media (prefers-reduced-motion: reduce) {
     display: none;
@@ -172,8 +175,8 @@ export const Panel = styled.div`
   border-radius: 0 20px 20px 0;
   padding: 39px 27px 32px;
   background: ${token.colors.white};
-  animation: ${expandSignupHeight} 900ms cubic-bezier(0.22, 1, 0.36, 1)
-    both;
+  animation: ${expandSignupHeight} var(--signup-transition-duration)
+    var(--signup-transition-easing) both;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
@@ -225,8 +228,8 @@ export const Fields = styled.div`
 
 export const EmailField = styled(LoginEmailField)`
   flex: 0 0 38px;
-  animation: ${moveSignupEmail} 900ms cubic-bezier(0.22, 1, 0.36, 1)
-    both;
+  animation: ${moveSignupEmail} var(--signup-transition-duration)
+    var(--signup-transition-easing) both;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
@@ -254,7 +257,7 @@ export const AdditionalFields = styled.div`
   gap: 10px;
   width: 100%;
   view-transition-name: auth-signup-fields;
-  animation: ${revealSignupFields} 620ms 240ms
+  animation: ${revealSignupFields} 650ms 320ms
     cubic-bezier(0.22, 1, 0.36, 1) both;
 
   @media (prefers-reduced-motion: reduce) {
