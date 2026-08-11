@@ -9,11 +9,12 @@ import { SignupPage } from './SignupPage'
 interface AuthViewState {
   authView: 'login' | 'signup'
   email: string
+  startsFromSignup: boolean
 }
 
 function getAuthViewState(locationState: unknown): AuthViewState {
   if (typeof locationState !== 'object' || locationState === null) {
-    return { authView: 'login', email: '' }
+    return { authView: 'login', email: '', startsFromSignup: false }
   }
 
   const authView =
@@ -24,8 +25,11 @@ function getAuthViewState(locationState: unknown): AuthViewState {
     'email' in locationState && typeof locationState.email === 'string'
       ? locationState.email
       : ''
+  const startsFromSignup =
+    'startsFromSignup' in locationState &&
+    locationState.startsFromSignup === true
 
-  return { authView, email }
+  return { authView, email, startsFromSignup }
 }
 
 export function AuthPage() {
@@ -41,7 +45,7 @@ export function AuthPage() {
   function handleChangeSignupEmail(email: string) {
     navigate('/login', {
       replace: true,
-      state: { authView: 'login', email },
+      state: { authView: 'login', email, startsFromSignup: true },
       viewTransition: true,
     })
   }
@@ -59,7 +63,11 @@ export function AuthPage() {
     <S.Page>
       <AuthHeader onSwitchClick={handleLoginReset} />
       <S.Content>
-        <LoginCard key={loginCardKey} initialEmail={authViewState.email} />
+        <LoginCard
+          key={loginCardKey}
+          initialEmail={authViewState.email}
+          startsFromSignup={authViewState.startsFromSignup}
+        />
       </S.Content>
     </S.Page>
   )
