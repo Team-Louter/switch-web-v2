@@ -63,7 +63,11 @@ interface CardProps {
 export const Card = styled.section<CardProps>`
   ${token.flexRow}
   --login-height-transition-duration: ${({ $usesPasswordTransition }) =>
-    $usesPasswordTransition ? '480ms' : '320ms'};
+    $usesPasswordTransition ? '720ms' : '320ms'};
+  --login-height-transition-easing: ${({ $usesPasswordTransition }) =>
+    $usesPasswordTransition
+      ? 'cubic-bezier(0.4, 0, 0.2, 1)'
+      : 'cubic-bezier(0.22, 1, 0.36, 1)'};
 
   align-items: stretch;
   width: min(969px, 100%);
@@ -75,9 +79,9 @@ export const Card = styled.section<CardProps>`
   box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
   transition:
     height var(--login-height-transition-duration)
-      cubic-bezier(0.22, 1, 0.36, 1),
+      var(--login-height-transition-easing),
     margin-bottom var(--login-height-transition-duration)
-      cubic-bezier(0.22, 1, 0.36, 1);
+      var(--login-height-transition-easing);
 
   ${({ $startsFromSignup }) =>
     $startsFromSignup &&
@@ -137,7 +141,7 @@ export const Hero = styled.div<{ $heightOffset: number }>`
   overflow: hidden;
   border-radius: 20px 0 0 20px;
   transition: height var(--login-height-transition-duration)
-    cubic-bezier(0.22, 1, 0.36, 1);
+    var(--login-height-transition-easing);
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
@@ -162,6 +166,7 @@ export const HeroImage = styled.img<{
   object-fit: cover;
   object-position: center top;
   opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
+  transition: opacity 480ms ease-in-out;
   animation: ${({ $fadesIn }) =>
     $fadesIn
       ? css`${fadeInLoginHero} 720ms 160ms ease-in-out both`
