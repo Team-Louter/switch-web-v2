@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -7,6 +7,7 @@ import { checkEmailExists } from '@/features/auth'
 import { TURNSTILE_SITE_KEY } from '../config/turnstile'
 
 const EMAIL_CHECK_MIN_DURATION = 600
+const PASSWORD_TRANSITION_DURATION = 480
 const INVALID_EMAIL_MESSAGE = '잘못된 이메일 주소'
 
 type LoginStep = 'email' | 'password'
@@ -15,6 +16,7 @@ export interface LoginFormController {
   email: string
   password: string
   isPasswordStep: boolean
+  usesPasswordTransition: boolean
   isCheckingEmail: boolean
   isContinueDisabled: boolean
   emailValidationMessage: string
@@ -34,7 +36,9 @@ export function useLoginForm(): LoginFormController {
   const [loginStep, setLoginStep] = useState<LoginStep>('email')
   const [turnstileToken, setTurnstileToken] = useState('')
   const [isCheckingEmail, setIsCheckingEmail] = useState(false)
+  const [usesPasswordTransition, setUsesPasswordTransition] = useState(false)
   const [emailValidationMessage, setEmailValidationMessage] = useState('')
+  const passwordTransitionTimerRef = useRef<number | null>(null)
   const isPasswordStep = loginStep === 'password'
   const isContinueDisabled =
     isCheckingEmail ||
@@ -80,6 +84,7 @@ export function useLoginForm(): LoginFormController {
       const { exists } = emailCheckResult.value
 
       if (exists) {
+        setUsesPasswordTransition(true)
         setLoginStep('password')
         return
       }
@@ -93,9 +98,18 @@ export function useLoginForm(): LoginFormController {
   }
 
   function handleChangeEmail() {
+    if (passwordTransitionTimerRef.current !== null) {
+      window.clearTimeout(passwordTransitionTimerRef.current)
+    }
+
     setLoginStep('email')
     setPassword('')
     setEmailValidationMessage('')
+    setUsesPasswordTransition(true)
+    passwordTransitionTimerRef.current = window.setTimeout(() => {
+      setUsesPasswordTransition(false)
+      passwordTransitionTimerRef.current = null
+    }, PASSWORD_TRANSITION_DURATION)
   }
 
   const handleTurnstileVerify = useCallback((token: string) => {
@@ -106,10 +120,20 @@ export function useLoginForm(): LoginFormController {
     setTurnstileToken('')
   }, [])
 
+  useEffect(
+    () => () => {
+      if (passwordTransitionTimerRef.current !== null) {
+        window.clearTimeout(passwordTransitionTimerRef.current)
+      }
+    },
+    [],
+  )
+
   return {
     email,
     password,
     isPasswordStep,
+    usesPasswordTransition,
     isCheckingEmail,
     isContinueDisabled,
     emailValidationMessage,
