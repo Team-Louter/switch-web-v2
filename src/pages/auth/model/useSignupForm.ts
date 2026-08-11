@@ -33,10 +33,12 @@ export interface SignupFormController {
   isVerificationOpen: boolean
   isVerificationSubmitting: boolean
   isResendingVerificationCode: boolean
+  isResendVerificationReady: boolean
   verificationErrorMessage: string
   verificationStatusMessage: string
   turnstileSiteKey: string
   turnstileKey: number
+  resendTurnstileKey: number
   handleInputChange: (event: ChangeEvent<HTMLInputElement>) => void
   handleContinue: () => Promise<void>
   handleVerificationCodeChange: (code: string) => void
@@ -44,6 +46,8 @@ export interface SignupFormController {
   handleResendVerificationCode: () => Promise<void>
   handleTurnstileVerify: (token: string) => void
   handleTurnstileReset: () => void
+  handleResendTurnstileVerify: (token: string) => void
+  handleResendTurnstileReset: () => void
 }
 
 function isSignupFieldName(fieldName: string): fieldName is keyof SignupFormValues {
@@ -71,6 +75,8 @@ export function useSignupForm(
   })
   const [turnstileToken, setTurnstileToken] = useState('')
   const [turnstileKey, setTurnstileKey] = useState(0)
+  const [resendTurnstileToken, setResendTurnstileToken] = useState('')
+  const [resendTurnstileKey, setResendTurnstileKey] = useState(0)
   const [verificationCode, setVerificationCode] = useState('')
   const [isSendingVerificationCode, setIsSendingVerificationCode] =
     useState(false)
@@ -96,6 +102,7 @@ export function useSignupForm(
     !TURNSTILE_SITE_KEY ||
     isSendingVerificationCode ||
     isVerificationOpen
+  const isResendVerificationReady = Boolean(resendTurnstileToken)
 
   function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
     const { name: fieldName, value } = event.target
@@ -125,6 +132,8 @@ export function useSignupForm(
       setVerificationCode('')
       setVerificationErrorMessage('')
       setVerificationStatusMessage('')
+      setResendTurnstileToken('')
+      setResendTurnstileKey((currentKey) => currentKey + 1)
       setIsVerificationOpen(true)
     } catch {
       setTurnstileToken('')
@@ -183,10 +192,17 @@ export function useSignupForm(
   }
 
   async function handleResendVerificationCode() {
-    if (isVerificationSubmitting || isResendingVerificationCode) {
+    if (
+      !resendTurnstileToken ||
+      isVerificationSubmitting ||
+      isResendingVerificationCode
+    ) {
       return
     }
 
+    const submittedTurnstileToken = resendTurnstileToken
+
+    setResendTurnstileToken('')
     setIsResendingVerificationCode(true)
     setVerificationErrorMessage('')
     setVerificationStatusMessage('')
@@ -194,7 +210,7 @@ export function useSignupForm(
     try {
       await sendVerificationCode({
         userEmail: values.email.trim(),
-        turnstileToken,
+        turnstileToken: submittedTurnstileToken,
       })
       setVerificationCode('')
       setVerificationStatusMessage(RESEND_CODE_SUCCESS_MESSAGE)
@@ -202,6 +218,7 @@ export function useSignupForm(
       setVerificationErrorMessage(RESEND_CODE_FAILED_MESSAGE)
     } finally {
       setIsResendingVerificationCode(false)
+      setResendTurnstileKey((currentKey) => currentKey + 1)
     }
   }
 
@@ -213,6 +230,14 @@ export function useSignupForm(
     setTurnstileToken('')
   }, [])
 
+  const handleResendTurnstileVerify = useCallback((token: string) => {
+    setResendTurnstileToken(token)
+  }, [])
+
+  const handleResendTurnstileReset = useCallback(() => {
+    setResendTurnstileToken('')
+  }, [])
+
   return {
     values,
     verificationCode,
@@ -221,10 +246,12 @@ export function useSignupForm(
     isVerificationOpen,
     isVerificationSubmitting,
     isResendingVerificationCode,
+    isResendVerificationReady,
     verificationErrorMessage,
     verificationStatusMessage,
     turnstileSiteKey: TURNSTILE_SITE_KEY,
     turnstileKey,
+    resendTurnstileKey,
     handleInputChange,
     handleContinue,
     handleVerificationCodeChange,
@@ -232,5 +259,7 @@ export function useSignupForm(
     handleResendVerificationCode,
     handleTurnstileVerify,
     handleTurnstileReset,
+    handleResendTurnstileVerify,
+    handleResendTurnstileReset,
   }
 }
