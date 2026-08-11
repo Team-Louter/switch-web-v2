@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { useCallback, useState } from 'react'
 import type { ChangeEvent } from 'react'
 
@@ -10,6 +11,13 @@ import {
 import { TURNSTILE_SITE_KEY } from '../config/turnstile'
 
 const VERIFICATION_CODE_LENGTH = 6
+const INVALID_CLUB_CODE_ERROR_NAME = 'InvalidClubCodeException'
+const INVALID_CLUB_CODE_MESSAGE = '동아리 코드가 일치하지 않습니다.'
+
+interface SignupErrorResponse {
+  message?: string
+  error_name?: string
+}
 
 export interface SignupFormValues {
   studentNumber: string
@@ -23,6 +31,7 @@ export interface SignupFormValues {
 export interface SignupFormController {
   values: SignupFormValues
   verificationCode: string
+  clubCodeValidationMessage: string
   isContinueDisabled: boolean
   isSendingVerificationCode: boolean
   isVerificationOpen: boolean
@@ -72,6 +81,8 @@ export function useSignupForm(
   const [resendTurnstileToken, setResendTurnstileToken] = useState('')
   const [resendTurnstileKey, setResendTurnstileKey] = useState(0)
   const [verificationCode, setVerificationCode] = useState('')
+  const [clubCodeValidationMessage, setClubCodeValidationMessage] =
+    useState('')
   const [isSendingVerificationCode, setIsSendingVerificationCode] =
     useState(false)
   const [isVerificationOpen, setIsVerificationOpen] = useState(false)
@@ -99,6 +110,10 @@ export function useSignupForm(
 
     if (!isSignupFieldName(fieldName)) {
       return
+    }
+
+    if (fieldName === 'clubCode') {
+      setClubCodeValidationMessage('')
     }
 
     setValues((currentValues) => ({
@@ -140,6 +155,10 @@ export function useSignupForm(
       return
     }
 
+    resetVerification()
+  }
+
+  function resetVerification() {
     setIsVerificationOpen(false)
     setVerificationCode('')
     setTurnstileToken('')
@@ -164,6 +183,12 @@ export function useSignupForm(
         userEmail: values.email.trim(),
         inputCode: verificationCode,
       })
+    } catch {
+      setIsVerificationSubmitting(false)
+      return
+    }
+
+    try {
       await signup({
         studentId: Number(values.studentNumber),
         userName: values.name.trim(),
@@ -174,8 +199,20 @@ export function useSignupForm(
         clubCode: values.clubCode.trim(),
       })
       onSignupComplete(values.email.trim())
-    } catch {
-      return
+    } catch (error: unknown) {
+      if (
+        axios.isAxiosError<SignupErrorResponse>(error) &&
+        error.response?.status === 400
+      ) {
+        resetVerification()
+
+        if (
+          error.response.data?.error_name ===
+          INVALID_CLUB_CODE_ERROR_NAME
+        ) {
+          setClubCodeValidationMessage(INVALID_CLUB_CODE_MESSAGE)
+        }
+      }
     } finally {
       setIsVerificationSubmitting(false)
     }
@@ -228,6 +265,7 @@ export function useSignupForm(
   return {
     values,
     verificationCode,
+    clubCodeValidationMessage,
     isContinueDisabled,
     isSendingVerificationCode,
     isVerificationOpen,
