@@ -97,7 +97,6 @@ export function AuthPage() {
           key={loginCardKey}
           initialEmail={authViewState.email}
           returnPath={authViewState.returnPath}
-          startsFromSignup={shouldAnimateAuthTransition}
           authTransitionSessionId={authTransitionSessionId}
         />
       </S.Content>
