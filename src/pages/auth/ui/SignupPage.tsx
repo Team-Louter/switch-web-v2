@@ -33,7 +33,6 @@ export function SignupPage({
     isVerificationOpen,
     isVerificationSubmitting,
     isResendingVerificationCode,
-    signupErrorMessage,
     verificationErrorMessage,
     verificationStatusMessage,
     turnstileSiteKey,
@@ -192,11 +191,6 @@ export function SignupPage({
                 >
                   {isSendingVerificationCode ? '전송 중' : '계속'}
                 </S.ContinueButton>
-                {signupErrorMessage && (
-                  <S.SignupErrorMessage role="alert">
-                    {signupErrorMessage}
-                  </S.SignupErrorMessage>
-                )}
                 <S.Footer>
                   <S.PolicyLinks>
                     <span>서비스 이용약관</span>
