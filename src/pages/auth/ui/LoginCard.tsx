@@ -9,7 +9,6 @@ const VALIDATION_MESSAGE_HEIGHT_OFFSET = 24
 interface LoginCardProps {
   initialEmail?: string
   returnPath?: string
-  startsFromSignup?: boolean
   authTransitionSessionId?: string
 }
 
@@ -31,7 +30,6 @@ function getHeightOffset(
 export function LoginCard({
   initialEmail = '',
   returnPath = '/home',
-  startsFromSignup = false,
   authTransitionSessionId = '',
 }: LoginCardProps) {
   const controller = useLoginForm(
@@ -53,7 +51,6 @@ export function LoginCard({
   return (
     <S.Card
       $heightOffset={heightOffset}
-      $startsFromSignup={startsFromSignup}
       $usesPasswordTransition={usesPasswordTransition}
       aria-labelledby="login-title"
     >
