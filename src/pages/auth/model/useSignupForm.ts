@@ -9,11 +9,6 @@ import {
 
 import { TURNSTILE_SITE_KEY } from '../config/turnstile'
 
-const INVALID_CODE_MESSAGE = '인증 코드가 올바르지 않습니다.'
-const RESEND_CODE_FAILED_MESSAGE =
-  '인증 코드 재전송에 실패했습니다. 잠시 후 다시 시도해주세요.'
-const RESEND_CODE_SUCCESS_MESSAGE = '인증 코드를 다시 전송했습니다.'
-const SIGNUP_FAILED_MESSAGE = '회원가입에 실패했습니다. 다시 시도해주세요.'
 const VERIFICATION_CODE_LENGTH = 6
 
 export interface SignupFormValues {
@@ -34,8 +29,6 @@ export interface SignupFormController {
   isVerificationSubmitting: boolean
   isResendingVerificationCode: boolean
   isResendVerificationReady: boolean
-  verificationErrorMessage: string
-  verificationStatusMessage: string
   turnstileSiteKey: string
   turnstileKey: number
   resendTurnstileKey: number
@@ -86,10 +79,6 @@ export function useSignupForm(
     useState(false)
   const [isResendingVerificationCode, setIsResendingVerificationCode] =
     useState(false)
-  const [verificationErrorMessage, setVerificationErrorMessage] =
-    useState('')
-  const [verificationStatusMessage, setVerificationStatusMessage] =
-    useState('')
   const hasPasswordMismatch =
     Boolean(values.passwordConfirmation) &&
     values.password !== values.passwordConfirmation
@@ -131,8 +120,6 @@ export function useSignupForm(
         turnstileToken,
       })
       setVerificationCode('')
-      setVerificationErrorMessage('')
-      setVerificationStatusMessage('')
       setResendTurnstileToken('')
       setResendTurnstileKey((currentKey) => currentKey + 1)
       setIsVerificationOpen(true)
@@ -146,8 +133,6 @@ export function useSignupForm(
 
   function handleVerificationCodeChange(code: string) {
     setVerificationCode(code)
-    setVerificationErrorMessage('')
-    setVerificationStatusMessage('')
   }
 
   function handleVerificationClose() {
@@ -157,8 +142,6 @@ export function useSignupForm(
 
     setIsVerificationOpen(false)
     setVerificationCode('')
-    setVerificationErrorMessage('')
-    setVerificationStatusMessage('')
     setTurnstileToken('')
     setTurnstileKey((currentKey) => currentKey + 1)
     setResendTurnstileToken('')
@@ -175,21 +158,12 @@ export function useSignupForm(
     }
 
     setIsVerificationSubmitting(true)
-    setVerificationErrorMessage('')
-    setVerificationStatusMessage('')
 
     try {
       await verifyEmailCode({
         userEmail: values.email.trim(),
         inputCode: verificationCode,
       })
-    } catch {
-      setVerificationErrorMessage(INVALID_CODE_MESSAGE)
-      setIsVerificationSubmitting(false)
-      return
-    }
-
-    try {
       await signup({
         studentId: Number(values.studentNumber),
         userName: values.name.trim(),
@@ -201,7 +175,7 @@ export function useSignupForm(
       })
       onSignupComplete(values.email.trim())
     } catch {
-      setVerificationErrorMessage(SIGNUP_FAILED_MESSAGE)
+      return
     } finally {
       setIsVerificationSubmitting(false)
     }
@@ -220,8 +194,6 @@ export function useSignupForm(
 
     setResendTurnstileToken('')
     setIsResendingVerificationCode(true)
-    setVerificationErrorMessage('')
-    setVerificationStatusMessage('')
 
     try {
       await sendVerificationCode({
@@ -229,9 +201,8 @@ export function useSignupForm(
         turnstileToken: submittedTurnstileToken,
       })
       setVerificationCode('')
-      setVerificationStatusMessage(RESEND_CODE_SUCCESS_MESSAGE)
     } catch {
-      setVerificationErrorMessage(RESEND_CODE_FAILED_MESSAGE)
+      return
     } finally {
       setIsResendingVerificationCode(false)
       setResendTurnstileKey((currentKey) => currentKey + 1)
@@ -263,8 +234,6 @@ export function useSignupForm(
     isVerificationSubmitting,
     isResendingVerificationCode,
     isResendVerificationReady,
-    verificationErrorMessage,
-    verificationStatusMessage,
     turnstileSiteKey: TURNSTILE_SITE_KEY,
     turnstileKey,
     resendTurnstileKey,
