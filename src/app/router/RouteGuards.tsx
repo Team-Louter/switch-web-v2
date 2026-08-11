@@ -24,10 +24,31 @@ function useIsAuthenticated() {
   return useSyncExternalStore(subscribeToAuthState, hasAccessToken, () => false)
 }
 
+function getSafeReturnPath(locationState: unknown): string {
+  if (
+    typeof locationState !== 'object' ||
+    locationState === null ||
+    !('from' in locationState) ||
+    typeof locationState.from !== 'string'
+  ) {
+    return '/home'
+  }
+
+  const returnPath = locationState.from
+
+  return returnPath.startsWith('/') &&
+    !returnPath.startsWith('//') &&
+    !/^\/(?:login|signup)(?:[/?#]|$)/.test(returnPath)
+    ? returnPath
+    : '/home'
+}
+
 export function GuestOnlyRoute() {
   const isAuthenticated = useIsAuthenticated()
+  const location = useLocation()
+  const returnPath = getSafeReturnPath(location.state)
 
-  return isAuthenticated ? <Navigate to="/home" replace /> : <Outlet />
+  return isAuthenticated ? <Navigate to={returnPath} replace /> : <Outlet />
 }
 
 export function ProtectedRoute() {
