@@ -20,7 +20,11 @@ function getHeightOffset(
 
 export function LoginCard() {
   const controller = useLoginForm()
-  const { isPasswordStep, emailValidationMessage } = controller
+  const {
+    isPasswordStep,
+    usesPasswordTransition,
+    emailValidationMessage,
+  } = controller
   const heightOffset = getHeightOffset(
     isPasswordStep,
     emailValidationMessage,
@@ -28,7 +32,7 @@ export function LoginCard() {
   return (
     <S.Card
       $heightOffset={heightOffset}
-      $usesPasswordTransition={isPasswordStep}
+      $usesPasswordTransition={usesPasswordTransition}
       aria-labelledby="login-title"
     >
       <S.Hero $heightOffset={heightOffset}>
