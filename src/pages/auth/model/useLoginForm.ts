@@ -50,6 +50,7 @@ export function useLoginForm(
   const [emailValidationMessage, setEmailValidationMessage] = useState('')
   const [loginValidationMessage, setLoginValidationMessage] = useState('')
   const passwordTransitionTimerRef = useRef<number | null>(null)
+  const googleOAuthNavigationRef = useRef(false)
   const isPasswordStep = loginStep === 'password'
   const isContinueDisabled =
     isSubmitting ||
@@ -109,8 +110,10 @@ export function useLoginForm(
 
     if (usesGoogleLogin(submittedEmail)) {
       await waitForEmailLoadingMinimumDuration()
+      googleOAuthNavigationRef.current = true
 
       if (!startGoogleLogin()) {
+        googleOAuthNavigationRef.current = false
         setIsSubmitting(false)
       }
 
@@ -183,6 +186,25 @@ export function useLoginForm(
     },
     [],
   )
+
+  useEffect(() => {
+    function handlePageShow(event: PageTransitionEvent) {
+      if (!event.persisted || !googleOAuthNavigationRef.current) {
+        return
+      }
+
+      googleOAuthNavigationRef.current = false
+      setIsSubmitting(false)
+      setTurnstileToken('')
+      setTurnstileKey((currentKey) => currentKey + 1)
+    }
+
+    window.addEventListener('pageshow', handlePageShow)
+
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow)
+    }
+  }, [])
 
   return {
     email,
