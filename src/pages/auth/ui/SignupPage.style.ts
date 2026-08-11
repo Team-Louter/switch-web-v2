@@ -4,9 +4,11 @@ import * as token from '@/shared/styles/values/token'
 import { Button } from '@/shared/ui'
 
 import {
+  ButtonContent as LoginButtonContent,
   ChangeEmailButton as LoginChangeEmailButton,
   EmailField as LoginEmailField,
   EmailInput as LoginEmailInput,
+  LoadingSpinner as LoginLoadingSpinner,
 } from './LoginForm.style'
 
 const revealSignupFields = keyframes`
@@ -361,6 +363,10 @@ export const ContinueButton = styled(Button)`
     opacity: 0.5;
   }
 `
+
+export const ButtonContent = styled(LoginButtonContent)``
+
+export const LoadingSpinner = styled(LoginLoadingSpinner)``
 
 export const Footer = styled.footer`
   ${token.flexColumn}
