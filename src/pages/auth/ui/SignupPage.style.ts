@@ -12,12 +12,64 @@ import {
 const revealSignupFields = keyframes`
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(16px);
   }
 
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+`
+
+const expandSignupCard = keyframes`
+  from {
+    width: min(969px, 100%);
+    height: 549px;
+  }
+
+  to {
+    width: min(1157px, 100%);
+    height: 721px;
+  }
+`
+
+const expandSignupHeight = keyframes`
+  from {
+    height: 549px;
+  }
+
+  to {
+    height: 721px;
+  }
+`
+
+const moveSignupEmail = keyframes`
+  from {
+    transform: translateY(66px);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+`
+
+const fadeInSignupHero = keyframes`
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+`
+
+const fadeOutLoginHero = keyframes`
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
   }
 `
 
@@ -38,17 +90,26 @@ export const Card = styled.section`
   align-items: stretch;
   width: min(1157px, 100%);
   height: 721px;
+  overflow: hidden;
   view-transition-name: auth-card;
   border-radius: 20px;
   box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
+  animation: ${expandSignupCard} 900ms cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 
   @media (max-width: 900px) {
     width: 369px;
+    animation-name: ${expandSignupHeight};
   }
 
   @media (max-width: 420px) {
     width: 100%;
     height: auto;
+    animation: none;
   }
 `
 
@@ -59,6 +120,13 @@ export const Hero = styled.div`
   height: 721px;
   overflow: hidden;
   border-radius: 20px 0 0 20px;
+  background: ${token.colors.primary.primary50};
+  animation: ${expandSignupHeight} 900ms cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 
   @media (max-width: 900px) {
     display: none;
@@ -66,9 +134,33 @@ export const Hero = styled.div`
 `
 
 export const HeroImage = styled.img`
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  animation: ${fadeInSignupHero} 620ms 120ms ease-out both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
+export const PreviousHeroImage = styled.img`
+  position: absolute;
+  top: -12px;
+  left: -18px;
+  width: calc(100% + 36px);
+  height: calc(100% + 36px);
+  max-width: none;
+  object-fit: cover;
+  object-position: center top;
+  animation: ${fadeOutLoginHero} 620ms 120ms ease-out both;
+
+  @media (prefers-reduced-motion: reduce) {
+    display: none;
+    animation: none;
+  }
 `
 
 export const Panel = styled.div`
@@ -80,6 +172,12 @@ export const Panel = styled.div`
   border-radius: 0 20px 20px 0;
   padding: 39px 27px 32px;
   background: ${token.colors.white};
+  animation: ${expandSignupHeight} 900ms cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 
   @media (max-width: 900px) {
     border-radius: 20px;
@@ -90,6 +188,7 @@ export const Panel = styled.div`
     width: 100%;
     height: auto;
     padding: 32px 20px;
+    animation: none;
   }
 `
 
@@ -126,6 +225,16 @@ export const Fields = styled.div`
 
 export const EmailField = styled(LoginEmailField)`
   flex: 0 0 38px;
+  animation: ${moveSignupEmail} 900ms cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+
+  @media (max-width: 420px) {
+    animation: none;
+  }
 `
 
 export const Input = styled(LoginEmailInput)`
@@ -145,11 +254,8 @@ export const AdditionalFields = styled.div`
   gap: 10px;
   width: 100%;
   view-transition-name: auth-signup-fields;
-
-  @supports not (view-transition-name: auth-signup-fields) {
-    animation: ${revealSignupFields} 520ms cubic-bezier(0.22, 1, 0.36, 1)
-      both;
-  }
+  animation: ${revealSignupFields} 620ms 240ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
