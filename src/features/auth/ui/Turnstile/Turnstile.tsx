@@ -6,9 +6,11 @@ const TURNSTILE_SCRIPT_ID = 'cloudflare-turnstile-script'
 const TURNSTILE_SCRIPT_URL =
   'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
 
+type TurnstileAction = 'email_verification' | 'login'
+
 interface TurnstileRenderOptions {
   sitekey: string
-  action: string
+  action: TurnstileAction
   theme: 'light'
   size: 'flexible'
   retry: 'auto'
@@ -28,6 +30,7 @@ interface TurnstileApi {
 
 interface TurnstileProps {
   siteKey: string
+  action: TurnstileAction
   onVerify: (token: string) => void
   onExpire: () => void
   onError: () => void
@@ -93,6 +96,7 @@ function loadTurnstileScript(): Promise<TurnstileApi> {
 
 export function Turnstile({
   siteKey,
+  action,
   onVerify,
   onExpire,
   onError,
@@ -114,7 +118,7 @@ export function Turnstile({
 
         widgetId = turnstile.render(containerRef.current, {
           sitekey: siteKey,
-          action: 'login',
+          action,
           theme: 'light',
           size: 'flexible',
           retry: 'auto',
@@ -145,7 +149,7 @@ export function Turnstile({
         window.turnstile.remove(widgetId)
       }
     }
-  }, [onError, onExpire, onVerify, siteKey])
+  }, [action, onError, onExpire, onVerify, siteKey])
 
   return (
     <S.WidgetShell aria-busy={status === 'loading'}>
