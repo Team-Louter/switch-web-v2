@@ -12,17 +12,28 @@ import { TypingPracticeHeader } from '../TypingPracticeHeader/TypingPracticeHead
 const LANGUAGE_NAMES = { java: 'Java', javascript: 'JavaScript' } as const
 
 loader.config({ monaco })
+monaco.editor.defineTheme('typing-vs-dark', {
+  base: 'vs-dark',
+  inherit: true,
+  rules: [{ token: 'invalid', foreground: 'D4D4D4' }],
+  colors: {},
+})
+monaco.typescript.javascriptDefaults.setCompilerOptions({
+  allowNonTsExtensions: true,
+  jsx: monaco.typescript.JsxEmit.ReactJSX,
+})
 
 interface CodeEditorProps {
   title: string
   lines: string[]
   language: string
+  modelPath: string
   editable?: boolean
   onChange?: (value: string) => void
   onComplete?: () => void
 }
 
-function CodeEditor({ title, lines, language, editable, onChange, onComplete }: CodeEditorProps) {
+function CodeEditor({ title, lines, language, modelPath, editable, onChange, onComplete }: CodeEditorProps) {
   const errorDecorations = useRef<monaco.editor.IEditorDecorationsCollection | null>(null)
 
   const handleMount: OnMount = editor => {
@@ -83,16 +94,19 @@ function CodeEditor({ title, lines, language, editable, onChange, onComplete }: 
         <MonacoEditor
           defaultLanguage={language}
           defaultValue={editable ? '' : lines.join('\n')}
+          path={modelPath}
           onMount={editable ? handleMount : undefined}
-          theme="vs-dark"
+          theme="typing-vs-dark"
           options={{
             ariaLabel: `${title} 에디터`,
             acceptSuggestionOnEnter: 'off',
             automaticLayout: true,
             autoClosingBrackets: 'always',
             autoClosingQuotes: 'always',
+            autoIndent: 'full',
             bracketPairColorization: { enabled: true },
             cursorBlinking: 'blink',
+            detectIndentation: false,
             editContext: false,
             folding: false,
             fontFamily: "'Roboto Mono', monospace",
@@ -110,6 +124,7 @@ function CodeEditor({ title, lines, language, editable, onChange, onComplete }: 
             renderLineHighlight: editable ? 'line' : 'none',
             scrollBeyondLastLine: false,
             suggestOnTriggerCharacters: false,
+            insertSpaces: true,
             tabSize: 2,
             tabCompletion: 'off',
             wordBasedSuggestions: 'off',
@@ -170,6 +185,7 @@ export function CodeTypingPage() {
   const languageName = LANGUAGE_NAMES[language as keyof typeof LANGUAGE_NAMES]
   const editorLanguage = language === 'java' ? 'java' : 'javascript'
   const currentProblem = problems[currentProblemIndex]
+  const modelExtension = language === 'javascript' ? 'jsx' : 'java'
   const referenceCode = currentProblem?.content ?? ''
   const codeLines = referenceCode.split('\n')
   const correctCharacterCount = [...typedCode].filter((character, index) => character === referenceCode[index]).length
@@ -199,12 +215,19 @@ export function CodeTypingPage() {
         <S.Workspace>
           <S.Monitor>
             <S.Screen>
-              <CodeEditor key={`reference-${currentProblem?.problemId ?? 0}`} title="따라 칠 코드" lines={codeLines} language={editorLanguage} />
+              <CodeEditor
+                key={`reference-${currentProblem?.problemId ?? 0}`}
+                title="따라 칠 코드"
+                lines={codeLines}
+                language={editorLanguage}
+                modelPath={`file:///typing-reference-${currentProblem?.problemId ?? 0}.${modelExtension}`}
+              />
               <CodeEditor
                 key={`editable-${currentProblem?.problemId ?? 0}`}
                 title="내가 쓴 코드"
                 lines={codeLines}
                 language={editorLanguage}
+                modelPath={`file:///typing-input-${currentProblem?.problemId ?? 0}.${modelExtension}`}
                 editable
                 onChange={setTypedCode}
                 onComplete={handleComplete}

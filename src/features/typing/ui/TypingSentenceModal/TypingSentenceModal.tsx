@@ -31,6 +31,16 @@ type TypingSentenceModalProps = {
 }
 
 loader.config({ monaco })
+monaco.editor.defineTheme('typing-vs-dark', {
+  base: 'vs-dark',
+  inherit: true,
+  rules: [{ token: 'invalid', foreground: 'D4D4D4' }],
+  colors: {},
+})
+monaco.typescript.javascriptDefaults.setCompilerOptions({
+  allowNonTsExtensions: true,
+  jsx: monaco.typescript.JsxEmit.ReactJSX,
+})
 
 export function TypingSentenceModal({
   editingItem,
@@ -202,14 +212,17 @@ function SentenceEditor({ editingItem, onBackToSettings }: SentenceEditorProps) 
             <S.CodeEditorWrap>
               <MonacoEditor
                 language={language}
+                path={`file:///sentence-editor.${language === 'javascript' ? 'jsx' : 'java'}`}
                 value={sentence}
                 onChange={(value) => setSentence(value ?? '')}
-                theme="vs-dark"
+                theme="typing-vs-dark"
                 options={{
                   ariaLabel: '개발 언어 문장 에디터',
                   automaticLayout: true,
                   autoClosingBrackets: 'always',
                   autoClosingQuotes: 'always',
+                  autoIndent: 'full',
+                  detectIndentation: false,
                   editContext: false,
                   folding: false,
                   fontFamily: "'Roboto Mono', monospace",
@@ -223,6 +236,7 @@ function SentenceEditor({ editingItem, onBackToSettings }: SentenceEditorProps) 
                   padding: { top: 8, bottom: 8 },
                   renderLineHighlight: 'none',
                   scrollBeyondLastLine: false,
+                  insertSpaces: true,
                   tabSize: 2,
                   wordWrap: 'on',
                   wrappingIndent: 'indent',
