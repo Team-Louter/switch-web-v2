@@ -10,6 +10,7 @@ interface LoginCardProps {
   initialEmail?: string
   returnPath?: string
   startsFromSignup?: boolean
+  authTransitionSessionId?: string
 }
 
 function getHeightOffset(
@@ -31,8 +32,13 @@ export function LoginCard({
   initialEmail = '',
   returnPath = '/home',
   startsFromSignup = false,
+  authTransitionSessionId = '',
 }: LoginCardProps) {
-  const controller = useLoginForm(initialEmail, returnPath)
+  const controller = useLoginForm(
+    initialEmail,
+    returnPath,
+    authTransitionSessionId,
+  )
   const {
     isPasswordStep,
     usesPasswordTransition,
