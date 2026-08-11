@@ -8,7 +8,7 @@ import { setAccessToken } from '@/shared/lib/authToken'
 import { TURNSTILE_SITE_KEY } from '../config/turnstile'
 
 const EMAIL_CHECK_MIN_DURATION = 600
-const PASSWORD_TRANSITION_DURATION = 480
+const PASSWORD_TRANSITION_DURATION = 720
 const INVALID_EMAIL_MESSAGE = '잘못된 이메일 주소'
 const LOGIN_FAILED_MESSAGE = '이메일 또는 비밀번호를 확인해주세요'
 
