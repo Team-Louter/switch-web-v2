@@ -10,8 +10,13 @@ export type {
   SendVerificationCodeRequest,
   SendVerificationCodeResponse,
 } from './api/sendVerificationCode'
-export { signup } from './api/signup'
-export type { SignupRequest, SignupResponse } from './api/signup'
+export { signup, signupGoogleExtra } from './api/signup'
+export type {
+  GoogleExtraSignupRequest,
+  GoogleExtraSignupResponse,
+  SignupRequest,
+  SignupResponse,
+} from './api/signup'
 export { verifyEmailCode } from './api/verifyEmailCode'
 export type {
   VerifyEmailCodeRequest,
