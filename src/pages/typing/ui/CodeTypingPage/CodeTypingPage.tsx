@@ -3,8 +3,8 @@ import * as monaco from 'monaco-editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 
-import { endRound, startRound, type TypingProblem } from '@/entities/typing'
-import { TypingCompletionModal } from '@/features/typing'
+import type { TypingProblem } from '@/entities/typing'
+import { endRound, startRound, TypingCompletionModal } from '@/features/typing'
 
 import * as S from './CodeTypingPage.style'
 import { TypingCountdown } from '../TypingCountdown/TypingCountdown'

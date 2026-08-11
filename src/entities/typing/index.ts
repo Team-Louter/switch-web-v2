@@ -1,6 +1,4 @@
-export { endRound } from './api/endRound'
 export { getRankingList } from './api/getRanking'
 export { getProblems } from './api/getProblem'
 export { getPreviousResult, getTotalCount } from './api/getResult'
-export { startRound } from './api/startRound'
-export type { RankingList, TypingProblem, TypingResult } from './model/types'
+export type { RankingList, Round, TypingProblem, TypingResult } from './model/types'
