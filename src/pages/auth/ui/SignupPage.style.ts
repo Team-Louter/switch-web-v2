@@ -1,9 +1,25 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 import { Button } from '@/shared/ui'
 
-import { EmailInput } from './LoginForm.style'
+import {
+  ChangeEmailButton as LoginChangeEmailButton,
+  EmailField as LoginEmailField,
+  EmailInput as LoginEmailInput,
+} from './LoginForm.style'
+
+const revealSignupFields = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`
 
 export const Page = styled.div`
   min-width: 320px;
@@ -108,9 +124,36 @@ export const Fields = styled.div`
   width: 100%;
 `
 
-export const Input = styled(EmailInput)`
+export const EmailField = styled(LoginEmailField)`
+  flex: 0 0 38px;
+`
+
+export const Input = styled(LoginEmailInput)`
   flex: 0 0 38px;
   padding: 0 14px;
+`
+
+export const SignupEmailInput = styled(Input)`
+  padding-right: 56px;
+`
+
+export const ChangeEmailButton = styled(LoginChangeEmailButton)``
+
+export const AdditionalFields = styled.div`
+  ${token.flexColumn}
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  view-transition-name: auth-signup-fields;
+
+  @supports not (view-transition-name: auth-signup-fields) {
+    animation: ${revealSignupFields} 520ms cubic-bezier(0.22, 1, 0.36, 1)
+      both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 export const TurnstileConfigMessage = styled.p`
