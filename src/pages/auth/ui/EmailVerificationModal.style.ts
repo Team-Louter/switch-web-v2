@@ -21,6 +21,7 @@ export const Overlay = styled.div`
 
 export const Dialog = styled.div`
   ${token.flexCenter}
+  position: relative;
   width: min(452px, 100%);
   height: 510px;
   overflow: hidden;
@@ -30,6 +31,15 @@ export const Dialog = styled.div`
   @media (max-width: 480px) {
     height: min(510px, calc(100dvh - 48px));
   }
+`
+
+export const ResendTurnstile = styled.div`
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 1;
+  width: 150px;
+  height: 140px;
 `
 
 export const Form = styled.form`
