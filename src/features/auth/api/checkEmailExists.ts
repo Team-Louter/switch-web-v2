@@ -1,7 +1,7 @@
 import { apiClient } from '@/shared/api'
 
 export interface CheckEmailExistsRequest {
-  email: string
+  userEmail: string
 }
 
 export interface CheckEmailExistsResponse {
@@ -11,9 +11,9 @@ export interface CheckEmailExistsResponse {
 export async function checkEmailExists(
   request: CheckEmailExistsRequest,
 ): Promise<CheckEmailExistsResponse> {
-  const response = await apiClient.post<CheckEmailExistsResponse>(
+  const response = await apiClient.get<CheckEmailExistsResponse>(
     '/auth/email/exists',
-    request,
+    { params: request },
   )
 
   if (typeof response.data.exists !== 'boolean') {
