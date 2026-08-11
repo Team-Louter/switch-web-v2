@@ -1,6 +1,11 @@
 import axios from 'axios'
 
-import { clearAccessToken, getAccessToken } from '@/shared/lib/authToken'
+import {
+  clearAccessToken,
+  clearPendingAccessToken,
+  getAccessToken,
+  getPendingAccessToken,
+} from '@/shared/lib/authToken'
 
 export const UNAUTHORIZED_EVENT = 'auth:unauthorized'
 
@@ -15,7 +20,7 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    const accessToken = getAccessToken()
+    const accessToken = getAccessToken() ?? getPendingAccessToken()
 
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`
@@ -31,6 +36,7 @@ apiClient.interceptors.response.use(
   (error: unknown) => {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
       clearAccessToken()
+      clearPendingAccessToken()
       window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT))
     }
 
