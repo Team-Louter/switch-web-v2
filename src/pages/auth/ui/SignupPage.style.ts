@@ -22,6 +22,7 @@ export const Card = styled.section`
   align-items: stretch;
   width: min(1157px, 100%);
   height: 721px;
+  view-transition-name: auth-card;
   border-radius: 20px;
   box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
 
