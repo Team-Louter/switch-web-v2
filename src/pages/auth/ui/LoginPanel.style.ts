@@ -11,7 +11,8 @@ export const Panel = styled.div<{ $heightOffset: number }>`
   border-radius: 0 20px 20px 0;
   padding: 39px 27px 32px;
   background: ${token.colors.white};
-  transition: height 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: height var(--login-height-transition-duration)
+    cubic-bezier(0.22, 1, 0.36, 1);
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
