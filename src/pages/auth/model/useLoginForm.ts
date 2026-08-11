@@ -89,7 +89,10 @@ export function useLoginForm(): LoginFormController {
         return
       }
 
-      navigate('/signup', { state: { email: submittedEmail } })
+      navigate('/signup', {
+        state: { email: submittedEmail },
+        viewTransition: true,
+      })
     } catch {
       setLoginStep('email')
     } finally {
