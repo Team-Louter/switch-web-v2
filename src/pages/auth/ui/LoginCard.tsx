@@ -27,7 +27,11 @@ export function LoginCard() {
   )
 
   return (
-    <S.Card $heightOffset={heightOffset} aria-labelledby="login-title">
+    <S.Card
+      $heightOffset={heightOffset}
+      $isPasswordStep={isPasswordStep}
+      aria-labelledby="login-title"
+    >
       <S.Hero $heightOffset={heightOffset}>
         <S.HeroImage
           src={loginHeroImage}
