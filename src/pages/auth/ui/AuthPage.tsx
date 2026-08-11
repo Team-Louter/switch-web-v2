@@ -84,6 +84,7 @@ export function AuthPage() {
       <SignupPage
         initialEmail={authViewState.email}
         onChangeEmail={handleChangeSignupEmail}
+        onSignupComplete={handleChangeSignupEmail}
         shouldAnimate={shouldAnimateAuthTransition}
       />
     )
