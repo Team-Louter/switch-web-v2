@@ -53,9 +53,14 @@ const moveSignupEmail = keyframes`
   }
 `
 
-export const Page = styled.div`
-  --signup-transition-duration: 1000ms;
+export const Page = styled.div<{ $shouldAnimate?: boolean }>`
+  --signup-transition-duration: ${({ $shouldAnimate }) =>
+    $shouldAnimate ? '1000ms' : '0ms'};
   --signup-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  --signup-fields-transition-duration: ${({ $shouldAnimate }) =>
+    $shouldAnimate ? '650ms' : '0ms'};
+  --signup-fields-transition-delay: ${({ $shouldAnimate }) =>
+    $shouldAnimate ? '320ms' : '0ms'};
 
   min-width: 320px;
   min-height: 100dvh;
@@ -218,8 +223,8 @@ export const AdditionalFields = styled.div`
   gap: 10px;
   width: 100%;
   view-transition-name: auth-signup-fields;
-  animation: ${revealSignupFields} 650ms 320ms
-    cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: ${revealSignupFields} var(--signup-fields-transition-duration)
+    var(--signup-fields-transition-delay) cubic-bezier(0.22, 1, 0.36, 1) both;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
