@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { checkEmailExists, login } from '@/features/auth'
+import { checkEmailExists, login, startGoogleLogin } from '@/features/auth'
 import { setAccessToken } from '@/shared/lib/authToken'
 
 import { TURNSTILE_SITE_KEY } from '../config/turnstile'
@@ -11,6 +11,7 @@ const EMAIL_CHECK_MIN_DURATION = 600
 const PASSWORD_TRANSITION_DURATION = 480
 const INVALID_EMAIL_MESSAGE = '잘못된 이메일 주소'
 const LOGIN_FAILED_MESSAGE = '이메일 또는 비밀번호를 확인해주세요'
+const GOOGLE_LOGIN_DOMAINS = new Set(['gmail.com', 'dgsw.hs.kr'])
 
 type LoginStep = 'email' | 'password'
 
@@ -101,6 +102,11 @@ export function useLoginForm(
 
     if (!isValidEmailAddress(submittedEmail)) {
       setEmailValidationMessage(INVALID_EMAIL_MESSAGE)
+      return
+    }
+
+    if (usesGoogleLogin(submittedEmail)) {
+      startGoogleLogin()
       return
     }
 
@@ -197,4 +203,10 @@ export function useLoginForm(
 
 function isValidEmailAddress(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+function usesGoogleLogin(email: string): boolean {
+  const domain = email.slice(email.lastIndexOf('@') + 1).toLowerCase()
+
+  return GOOGLE_LOGIN_DOMAINS.has(domain)
 }
