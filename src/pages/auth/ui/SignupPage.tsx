@@ -7,26 +7,42 @@ import authHeroImage from '../assets/images/auth-hero.jpg'
 import { useSignupForm } from '../model/useSignupForm'
 import { AuthHeader } from './AuthHeader'
 import { AuthIntro } from './AuthIntro'
+import { EmailVerificationModal } from './EmailVerificationModal'
 import * as S from './SignupPage.style'
 
 interface SignupPageProps {
   initialEmail: string
   onChangeEmail: (email: string) => void
+  onSignupComplete: (email: string) => void
   shouldAnimate?: boolean
 }
 
 export function SignupPage({
   initialEmail,
   onChangeEmail,
+  onSignupComplete,
   shouldAnimate = false,
 }: SignupPageProps) {
   const [isReturningToLogin, setIsReturningToLogin] = useState(false)
-  const controller = useSignupForm(initialEmail)
+  const controller = useSignupForm(initialEmail, onSignupComplete)
   const {
     values,
+    verificationCode,
     isContinueDisabled,
+    isSendingVerificationCode,
+    isVerificationOpen,
+    isVerificationSubmitting,
+    isResendingVerificationCode,
+    signupErrorMessage,
+    verificationErrorMessage,
+    verificationStatusMessage,
     turnstileSiteKey,
+    turnstileKey,
     handleInputChange,
+    handleContinue,
+    handleVerificationCodeChange,
+    handleVerificationSubmit,
+    handleResendVerificationCode,
     handleTurnstileVerify,
     handleTurnstileReset,
   } = controller
@@ -94,7 +110,9 @@ export function SignupPage({
                       type="button"
                       $isVisible
                       onClick={handleChangeEmail}
-                      disabled={isReturningToLogin}
+                      disabled={
+                        isReturningToLogin || isSendingVerificationCode
+                      }
                     >
                       변경
                     </S.ChangeEmailButton>
@@ -150,6 +168,7 @@ export function SignupPage({
 
                     {turnstileSiteKey ? (
                       <Turnstile
+                        key={turnstileKey}
                         siteKey={turnstileSiteKey}
                         onVerify={handleTurnstileVerify}
                         onExpire={handleTurnstileReset}
@@ -165,9 +184,19 @@ export function SignupPage({
               </S.FormOptions>
 
               <S.ActionArea>
-                <S.ContinueButton type="button" disabled={isContinueDisabled}>
-                  계속
+                <S.ContinueButton
+                  type="button"
+                  onClick={() => void handleContinue()}
+                  disabled={isContinueDisabled}
+                  aria-busy={isSendingVerificationCode}
+                >
+                  {isSendingVerificationCode ? '전송 중' : '계속'}
                 </S.ContinueButton>
+                {signupErrorMessage && (
+                  <S.SignupErrorMessage role="alert">
+                    {signupErrorMessage}
+                  </S.SignupErrorMessage>
+                )}
                 <S.Footer>
                   <S.PolicyLinks>
                     <span>서비스 이용약관</span>
@@ -180,6 +209,19 @@ export function SignupPage({
           </S.Panel>
         </S.Card>
       </S.Content>
+
+      {isVerificationOpen && (
+        <EmailVerificationModal
+          code={verificationCode}
+          errorMessage={verificationErrorMessage}
+          statusMessage={verificationStatusMessage}
+          isSubmitting={isVerificationSubmitting}
+          isResending={isResendingVerificationCode}
+          onChangeCode={handleVerificationCodeChange}
+          onResend={handleResendVerificationCode}
+          onSubmit={handleVerificationSubmit}
+        />
+      )}
     </S.Page>
   )
 }
