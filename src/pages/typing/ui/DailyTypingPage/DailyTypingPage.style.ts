@@ -80,7 +80,7 @@ export const TypedLine = styled.input`
   color: ${token.colors.primary.primary50};
   font-size: inherit;
   line-height: 1.35;
-  white-space: nowrap;
+  white-space: pre;
   outline: none;
   width: 100%;
   border: 0px solid black;

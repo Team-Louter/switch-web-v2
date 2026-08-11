@@ -77,7 +77,7 @@ function CodeEditor({ title, lines, language, modelPath, editable, onChange, onC
     editor.onDidChangeModelContent(updateErrorDecorations)
     editor.focus()
     editor.onKeyDown(event => {
-      if (event.keyCode !== monaco.KeyCode.Enter || model.getValue().length !== lines.join('\n').length) return
+      if ((event.keyCode !== monaco.KeyCode.Enter && event.keyCode !== monaco.KeyCode.Space) || model.getValue().length !== lines.join('\n').length) return
 
       event.preventDefault()
       event.stopPropagation()
@@ -196,10 +196,11 @@ export function CodeTypingPage() {
   const referenceCode = currentProblem?.content ?? ''
   const codeLines = referenceCode.split('\n')
   const correctCharacterCount = [...typedCode].filter((character, index) => character === referenceCode[index]).length
+  const currentErrorCount = typedCode.length - correctCharacterCount
   const completedCharacterCount = problems.slice(0, currentProblemIndex).reduce((total, problem) => total + problem.content.length, 0)
   const typingSpeed = elapsedSeconds === 0 ? 0 : Math.round((completedCharacterCount + typedCode.length) / (elapsedSeconds / 60))
-  const accuracy = typedCode.length === 0 ? 100 : Math.round((correctCharacterCount / typedCode.length) * 100)
   const totalCharacterCount = completedCharacterCount + typedCode.length
+  const accuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - errorCount - currentErrorCount) / totalCharacterCount) * 100)
   const resultAccuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - errorCount) / totalCharacterCount) * 100)
   const minutes = Math.floor(elapsedSeconds / 60)
   const seconds = elapsedSeconds % 60
@@ -207,8 +208,6 @@ export function CodeTypingPage() {
 
   const handleComplete = () => {
     if (!currentProblem) return
-
-    const currentErrorCount = [...typedCode].filter((character, index) => character !== referenceCode[index]).length
 
     if (!problems[currentProblemIndex + 1]) {
       const finalErrorCount = errorCount + currentErrorCount

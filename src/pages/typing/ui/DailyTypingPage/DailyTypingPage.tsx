@@ -58,21 +58,20 @@ export function DailyTypingPage() {
   const nextProblem = problems[currentProblemIndex + 1]
   const currentSentence = currentProblem?.content ?? ''
   const correctCharacterCount = [...typedSentence].filter((character, index) => character === currentSentence[index]).length
+  const currentErrorCount = typedSentence.length - correctCharacterCount
   const completedCharacterCount = problems.slice(0, currentProblemIndex).reduce((total, problem) => total + problem.content.length, 0)
   const typingSpeed = elapsedSeconds === 0 ? 0 : Math.round((completedCharacterCount + typedSentence.length) / (elapsedSeconds / 60))
-  const accuracy = typedSentence.length === 0 ? 100 : Math.round((correctCharacterCount / typedSentence.length) * 100)
   const totalCharacterCount = completedCharacterCount + typedSentence.length
+  const accuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - errorCount - currentErrorCount) / totalCharacterCount) * 100)
   const resultAccuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - errorCount) / totalCharacterCount) * 100)
   const minutes = Math.floor(elapsedSeconds / 60)
   const seconds = elapsedSeconds % 60
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key !== 'Enter' || !currentProblem || typedSentence.length !== currentSentence.length) return
+    if ((event.key !== 'Enter' && event.key !== ' ') || !currentProblem || typedSentence.length !== currentSentence.length) return
 
     event.preventDefault()
-    const currentErrorCount = [...typedSentence].filter((character, index) => character !== currentSentence[index]).length
-
     if (!nextProblem) {
       const finalErrorCount = errorCount + currentErrorCount
       const finalAccuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - finalErrorCount) / totalCharacterCount) * 100)
