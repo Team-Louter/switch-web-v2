@@ -5,6 +5,7 @@ import dateIcon from '@/shared/assets/calendar/date.svg'
 import {
   DateField,
   DateInput,
+  DatePickerButton,
   DateSuffix,
   DateValue,
   FieldIcon,
@@ -27,8 +28,18 @@ export function ScheduleDateField({
   const hasValue = value.length > 0
 
   // 아이콘뿐 아니라 칸 어디를 눌러도 날짜 선택기가 열리도록 합니다.
+  // showPicker를 지원하지 않는 브라우저에서는 입력칸 포커스로 대체합니다.
   const handleFieldClick = () => {
-    inputRef.current?.showPicker()
+    const input = inputRef.current
+
+    if (!input) return
+
+    if (typeof input.showPicker === 'function') {
+      input.showPicker()
+      return
+    }
+
+    input.focus()
   }
 
   return (
@@ -44,7 +55,13 @@ export function ScheduleDateField({
         />
         <DateSuffix $hasValue={hasValue}>{suffix}</DateSuffix>
       </DateValue>
-      <FieldIcon src={dateIcon} alt="" />
+      <DatePickerButton
+        type="button"
+        aria-label={`${label} 선택기 열기`}
+        onClick={handleFieldClick}
+      >
+        <FieldIcon src={dateIcon} alt="" />
+      </DatePickerButton>
     </DateField>
   )
 }

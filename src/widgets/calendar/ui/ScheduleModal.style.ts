@@ -165,6 +165,19 @@ export const FieldIcon = styled.img`
   height: 20px;
 `
 
+/* 키보드로도 날짜 선택기를 열 수 있도록 아이콘을 버튼으로 감쌉니다. */
+export const DatePickerButton = styled.button`
+  ${token.flexCenter}
+  flex: 0 0 20px;
+  height: 20px;
+  border-radius: ${token.shapes.xsmall};
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary40};
+    outline-offset: 2px;
+  }
+`
+
 export const SelectField = styled.div`
   position: relative;
   flex: 0 0 auto;
