@@ -87,6 +87,7 @@ export const EmailField = styled.div`
   position: relative;
   width: 100%;
   height: 38px;
+  view-transition-name: auth-email-field;
 `
 
 export const EmailInput = styled.input<{ $hasError?: boolean }>`
