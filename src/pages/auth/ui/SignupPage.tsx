@@ -42,6 +42,7 @@ export function SignupPage({
     handleInputChange,
     handleContinue,
     handleVerificationCodeChange,
+    handleVerificationClose,
     handleVerificationSubmit,
     handleResendVerificationCode,
     handleTurnstileVerify,
@@ -225,6 +226,7 @@ export function SignupPage({
           turnstileSiteKey={turnstileSiteKey}
           turnstileKey={resendTurnstileKey}
           onChangeCode={handleVerificationCodeChange}
+          onClose={handleVerificationClose}
           onResend={handleResendVerificationCode}
           onSubmit={handleVerificationSubmit}
           onTurnstileVerify={handleResendTurnstileVerify}
