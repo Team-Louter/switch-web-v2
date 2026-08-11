@@ -67,7 +67,7 @@ export function useLoginForm(): LoginFormController {
 
     try {
       const [emailCheckResult] = await Promise.allSettled([
-        checkEmailExists({ email: submittedEmail }),
+        checkEmailExists({ userEmail: submittedEmail }),
         new Promise((resolve) =>
           window.setTimeout(resolve, EMAIL_CHECK_MIN_DURATION),
         ),
