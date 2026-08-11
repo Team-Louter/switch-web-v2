@@ -43,6 +43,28 @@ const expandSignupHeight = keyframes`
   }
 `
 
+const collapseSignupCard = keyframes`
+  from {
+    width: min(1157px, 100%);
+    height: 721px;
+  }
+
+  to {
+    width: min(969px, 100%);
+    height: 549px;
+  }
+`
+
+const collapseSignupHeight = keyframes`
+  from {
+    height: 721px;
+  }
+
+  to {
+    height: 549px;
+  }
+`
+
 const moveSignupEmail = keyframes`
   from {
     transform: translateY(66px);
@@ -53,9 +75,36 @@ const moveSignupEmail = keyframes`
   }
 `
 
-export const Page = styled.div<{ $shouldAnimate?: boolean }>`
-  --signup-transition-duration: ${({ $shouldAnimate }) =>
-    $shouldAnimate ? '1000ms' : '0ms'};
+const returnSignupEmail = keyframes`
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(66px);
+  }
+`
+
+const concealSignupContent = keyframes`
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+`
+
+export const Page = styled.div<{
+  $shouldAnimate?: boolean
+  $isReturningToLogin?: boolean
+}>`
+  --signup-transition-duration: ${({
+    $shouldAnimate,
+    $isReturningToLogin,
+  }) => ($shouldAnimate || $isReturningToLogin ? '1000ms' : '0ms')};
   --signup-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
   --signup-fields-transition-duration: ${({ $shouldAnimate }) =>
     $shouldAnimate ? '650ms' : '0ms'};
@@ -85,6 +134,10 @@ export const Card = styled.section`
   animation: ${expandSignupCard} var(--signup-transition-duration)
     var(--signup-transition-easing) both;
 
+  ${Page}[data-returning-to-login='true'] & {
+    animation-name: ${collapseSignupCard};
+  }
+
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
@@ -92,6 +145,10 @@ export const Card = styled.section`
   @media (max-width: 900px) {
     width: 369px;
     animation-name: ${expandSignupHeight};
+
+    ${Page}[data-returning-to-login='true'] & {
+      animation-name: ${collapseSignupHeight};
+    }
   }
 
   @media (max-width: 420px) {
@@ -111,6 +168,10 @@ export const Hero = styled.div`
   background: ${token.colors.primary.primary50};
   animation: ${expandSignupHeight} var(--signup-transition-duration)
     var(--signup-transition-easing) both;
+
+  ${Page}[data-returning-to-login='true'] & {
+    animation-name: ${collapseSignupHeight};
+  }
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
@@ -143,6 +204,10 @@ export const Panel = styled.div`
   background: ${token.colors.white};
   animation: ${expandSignupHeight} var(--signup-transition-duration)
     var(--signup-transition-easing) both;
+
+  ${Page}[data-returning-to-login='true'] & {
+    animation-name: ${collapseSignupHeight};
+  }
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
@@ -197,6 +262,10 @@ export const EmailField = styled(LoginEmailField)`
   animation: ${moveSignupEmail} var(--signup-transition-duration)
     var(--signup-transition-easing) both;
 
+  ${Page}[data-returning-to-login='true'] & {
+    animation-name: ${returnSignupEmail};
+  }
+
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
@@ -226,6 +295,10 @@ export const AdditionalFields = styled.div`
   animation: ${revealSignupFields} var(--signup-fields-transition-duration)
     var(--signup-fields-transition-delay) cubic-bezier(0.22, 1, 0.36, 1) both;
 
+  ${Page}[data-returning-to-login='true'] & {
+    animation: ${concealSignupContent} 280ms ease-out both;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
@@ -248,6 +321,14 @@ export const ActionArea = styled.div`
   width: 100%;
   height: 122px;
   margin-top: -9px;
+
+  ${Page}[data-returning-to-login='true'] & {
+    animation: ${concealSignupContent} 220ms ease-out both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 export const ContinueButton = styled(Button)`
