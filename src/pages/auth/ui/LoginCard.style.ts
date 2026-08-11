@@ -16,6 +16,7 @@ export const Card = styled.section<CardProps>`
   width: min(969px, 100%);
   height: ${({ $heightOffset }) => 549 + $heightOffset}px;
   margin-bottom: ${({ $heightOffset }) => -$heightOffset}px;
+  view-transition-name: auth-card;
   border-radius: 20px;
   box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
   transition:
