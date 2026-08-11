@@ -150,7 +150,7 @@ export const Hero = styled.div<{ $heightOffset: number }>`
 
 export const HeroImage = styled.img<{
   $fadesIn?: boolean
-  $isVisible: boolean
+  $isVisible?: boolean
 }>`
   position: absolute;
   top: -12px;
@@ -161,7 +161,7 @@ export const HeroImage = styled.img<{
   max-width: none;
   object-fit: cover;
   object-position: center top;
-  opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
+  opacity: ${({ $isVisible = true }) => ($isVisible ? 1 : 0)};
   transition: opacity 480ms ease-in-out;
   animation: ${({ $fadesIn }) =>
     $fadesIn
