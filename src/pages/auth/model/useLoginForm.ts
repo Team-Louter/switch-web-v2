@@ -89,8 +89,9 @@ export function useLoginForm(): LoginFormController {
         return
       }
 
-      navigate('/signup', {
-        state: { email: submittedEmail },
+      navigate('/login', {
+        replace: true,
+        state: { authView: 'signup', email: submittedEmail },
         viewTransition: true,
       })
     } catch {
