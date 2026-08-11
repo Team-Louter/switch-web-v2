@@ -24,6 +24,7 @@ export interface LoginFormController {
   emailValidationMessage: string
   loginValidationMessage: string
   turnstileSiteKey: string
+  turnstileKey: number
   handleEmailChange: (event: ChangeEvent<HTMLInputElement>) => void
   handlePasswordChange: (event: ChangeEvent<HTMLInputElement>) => void
   handleContinue: () => Promise<void>
@@ -41,6 +42,7 @@ export function useLoginForm(
   const [password, setPassword] = useState('')
   const [loginStep, setLoginStep] = useState<LoginStep>('email')
   const [turnstileToken, setTurnstileToken] = useState('')
+  const [turnstileKey, setTurnstileKey] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [usesPasswordTransition, setUsesPasswordTransition] = useState(false)
   const [emailValidationMessage, setEmailValidationMessage] = useState('')
@@ -85,6 +87,8 @@ export function useLoginForm(
         navigate(returnPath, { replace: true })
       } catch {
         setLoginValidationMessage(LOGIN_FAILED_MESSAGE)
+        setTurnstileToken('')
+        setTurnstileKey((currentKey) => currentKey + 1)
       } finally {
         setIsSubmitting(false)
       }
@@ -180,6 +184,7 @@ export function useLoginForm(
     emailValidationMessage,
     loginValidationMessage,
     turnstileSiteKey: TURNSTILE_SITE_KEY,
+    turnstileKey,
     handleEmailChange,
     handlePasswordChange,
     handleContinue,
