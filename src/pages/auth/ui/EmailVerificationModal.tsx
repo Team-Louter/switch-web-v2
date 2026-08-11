@@ -164,8 +164,6 @@ export function EmailVerificationModal({
             key={turnstileKey}
             siteKey={turnstileSiteKey}
             action="email_verification"
-            appearance="interaction-only"
-            size="compact"
             onVerify={onTurnstileVerify}
             onExpire={onTurnstileReset}
             onError={onTurnstileReset}
