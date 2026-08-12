@@ -7,11 +7,11 @@ export const Item = styled.article`
   position: relative;
   align-items: flex-start;
   width: 100%;
-  padding: 20px 0;
+  padding: 14px 0;
   border-radius: ${token.shapes.medium};
 
   @media (max-width: 760px) {
-    gap: 16px;
+    gap: 12px;
   }
 `
 
@@ -19,20 +19,20 @@ export const Main = styled.div`
   ${token.flexRow}
   flex: 1;
   align-items: flex-start;
-  gap: 20px;
+  gap: 16px;
   min-width: 0;
 `
 
 export const AvatarWrap = styled.div`
   position: relative;
-  flex: 0 0 52px;
-  width: 52px;
-  height: 52px;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
 `
 
 export const Avatar = styled.img`
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   object-fit: cover;
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.circle};
@@ -40,10 +40,10 @@ export const Avatar = styled.img`
 
 export const TypeIcon = styled.img`
   position: absolute;
-  right: -5px;
-  bottom: -5px;
-  width: 24px;
-  height: 24px;
+  right: -4px;
+  bottom: -4px;
+  width: 20px;
+  height: 20px;
   object-fit: contain;
 `
 
@@ -51,14 +51,14 @@ export const Content = styled.div`
   ${token.flexColumnStart}
   flex: 1;
   justify-content: center;
-  gap: 10px;
+  gap: 7px;
   min-width: 0;
 `
 
 export const Category = styled.span`
   color: ${token.colors.gray.gray70};
   line-height: 1;
-  ${token.typography('body', 'lg', 'semibold')}
+  ${token.typography('body', 'md', 'semibold')}
 `
 
 export const Message = styled.p`
@@ -66,7 +66,7 @@ export const Message = styled.p`
   line-height: 1.4;
   overflow-wrap: anywhere;
   word-break: break-word;
-  ${token.typography('body', 'lg', 'semibold')}
+  ${token.typography('body', 'md', 'semibold')}
 `
 
 export const Subject = styled.p`
@@ -74,7 +74,7 @@ export const Subject = styled.p`
   line-height: 1.4;
   overflow-wrap: anywhere;
   word-break: break-word;
-  ${token.typography('body', 'sm', 'regular')}
+  ${token.typography('caption', 'lg', 'regular')}
 `
 
 export const Controls = styled.div`
@@ -82,11 +82,11 @@ export const Controls = styled.div`
   flex: 0 0 auto;
   align-items: flex-start;
   align-self: stretch;
-  gap: 20px;
-  margin-left: 20px;
+  gap: 14px;
+  margin-left: 16px;
 
   @media (max-width: 760px) {
-    gap: 12px;
+    gap: 10px;
     margin-left: 0;
   }
 `
@@ -96,19 +96,19 @@ export const Meta = styled.div`
   align-items: flex-end;
   align-self: stretch;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 `
 
 export const IndicatorSlot = styled.span`
   display: block;
-  width: 17px;
-  height: 17px;
+  width: 14px;
+  height: 14px;
 `
 
 export const UnreadIndicator = styled.span`
   display: block;
-  width: 17px;
-  height: 17px;
+  width: 14px;
+  height: 14px;
   border-radius: ${token.shapes.circle};
   background: ${token.colors.primary.primary50};
 `
@@ -117,17 +117,17 @@ export const OccurredAt = styled.time`
   color: ${token.colors.gray.gray50};
   line-height: 1;
   white-space: nowrap;
-  ${token.typography('body', 'lg', 'semibold')}
+  ${token.typography('body', 'sm', 'semibold')}
 
   @media (max-width: 760px) {
-    font-size: ${token.fontSize.body.sm};
+    font-size: ${token.fontSize.caption.lg};
   }
 `
 
 export const MoreButton = styled.button`
   ${token.flexCenter}
-  width: 17px;
-  height: 18px;
+  width: 14px;
+  height: 15px;
   border-radius: ${token.shapes.xsmall};
 
   &:hover {
@@ -141,15 +141,15 @@ export const MoreButton = styled.button`
 `
 
 export const MoreIcon = styled.img`
-  width: 4px;
-  height: 17.542px;
+  width: 3.5px;
+  height: 15px;
 `
 
 export const ContextMenu = styled.div`
   ${token.flexColumnStart}
   position: absolute;
   z-index: 10;
-  top: 48px;
+  top: 40px;
   right: 0;
   width: 181px;
   padding: 8px;
