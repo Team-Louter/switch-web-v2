@@ -1,4 +1,6 @@
-export type NotificationType = 'post' | 'comment' | 'like'
+export type NotificationType = 'mentoring' | 'comment' | 'schedule'
+
+export type NotificationApiType = 'MENTORING' | 'COMMENT' | 'SCHEDULE'
 
 export interface Notification {
   id: number
@@ -11,7 +13,21 @@ export interface Notification {
   actorImageUrl?: string
 }
 
-export interface NotificationListResponse {
-  notifications: Notification[]
-  unreadCount: number
+export interface NotificationResponse {
+  notificationId: number
+  notiType: NotificationApiType
+  title: string
+  content: string
+  isRead: boolean
+  readAt: string | null
+  createdAt: string
+}
+
+export interface NotificationSettingsResponse {
+  mentoringEnabled: boolean
+  commentEnabled: boolean
+  scheduleEnabled: boolean
+  pushEnabled: boolean
+  inAppEnabled: boolean
+  emailEnabled: boolean
 }
