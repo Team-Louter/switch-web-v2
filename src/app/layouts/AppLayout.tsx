@@ -54,11 +54,14 @@ const Layout = styled.main`
 
 const Side = styled.div`
   ${token.flexLeft}
+  position: sticky;
+  top: 0;
   align-items: flex-start;
+  align-self: flex-start;
   flex: 0 0 clamp(260px, 21.5vw, 309px);
   width: clamp(260px, 21.5vw, 309px);
   box-sizing: border-box;
-  min-height: 100dvh;
+  height: 100dvh;
   padding: clamp(20px, 2vw, 30px);
 `
 
