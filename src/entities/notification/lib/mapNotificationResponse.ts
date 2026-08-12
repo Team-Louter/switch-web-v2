@@ -60,7 +60,7 @@ function formatRelativeTime(createdAt: string): string {
 
 export function mapNotificationResponse(
   response: NotificationResponse,
-  actorImageUrl?: string,
+  fallbackActorImageUrl?: string,
 ): Notification {
   const displayMeta = NOTIFICATION_DISPLAY_META[response.notiType]
 
@@ -72,6 +72,7 @@ export function mapNotificationResponse(
     content: response.content,
     occurredAt: formatRelativeTime(response.createdAt),
     isRead: response.isRead,
-    actorImageUrl,
+    actorImageUrl: response.actor?.profileImageUrl || fallbackActorImageUrl,
+    target: response.target,
   }
 }
