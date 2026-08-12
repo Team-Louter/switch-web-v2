@@ -17,6 +17,7 @@ export const Item = styled.article`
 
 export const Main = styled.div`
   ${token.flexRow}
+  flex: 1;
   align-items: flex-start;
   gap: 20px;
   min-width: 0;
@@ -48,6 +49,7 @@ export const TypeIcon = styled.img`
 
 export const Content = styled.div`
   ${token.flexColumnStart}
+  flex: 1;
   justify-content: center;
   gap: 10px;
   min-width: 0;
@@ -60,25 +62,24 @@ export const Category = styled.span`
 `
 
 export const Message = styled.p`
-  overflow: hidden;
   color: ${token.colors.gray.gray80};
-  line-height: 1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   ${token.typography('body', 'lg', 'semibold')}
 `
 
 export const Subject = styled.p`
-  overflow: hidden;
   color: ${token.colors.gray.gray80};
-  line-height: 1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   ${token.typography('body', 'sm', 'regular')}
 `
 
 export const Controls = styled.div`
   ${token.flexRow}
+  flex: 0 0 auto;
   align-items: flex-start;
   align-self: stretch;
   gap: 20px;
