@@ -1,3 +1,5 @@
+import type { SyntheticEvent } from 'react'
+
 import type { Notification } from '../../model/types'
 import {
   Avatar,
@@ -24,6 +26,7 @@ interface NotificationItemProps {
   notification: Notification
   typeIconUrl?: string
   moreIconUrl: string
+  fallbackActorImageUrl?: string
   isMenuOpen: boolean
   onMenuToggle: (notificationId: number) => void
   onReadToggle: (notificationId: number) => void
@@ -34,6 +37,7 @@ export function NotificationItem({
   notification,
   typeIconUrl,
   moreIconUrl,
+  fallbackActorImageUrl,
   isMenuOpen,
   onMenuToggle,
   onReadToggle,
@@ -62,12 +66,21 @@ export function NotificationItem({
     onDelete(id)
   }
 
+  const handleAvatarError = (event: SyntheticEvent<HTMLImageElement>) => {
+    if (!fallbackActorImageUrl) {
+      return
+    }
+
+    event.currentTarget.onerror = null
+    event.currentTarget.src = fallbackActorImageUrl
+  }
+
   return (
     <Item data-notification-type={type}>
       <Main>
         {actorImageUrl && (
           <AvatarWrap>
-            <Avatar src={actorImageUrl} alt="" />
+            <Avatar src={actorImageUrl} alt="" onError={handleAvatarError} />
             {typeIconUrl && <TypeIcon src={typeIconUrl} alt="" />}
           </AvatarWrap>
         )}
