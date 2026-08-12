@@ -1,1 +1,5 @@
-export { apiClient, UNAUTHORIZED_EVENT } from './apiClient'
+export {
+  apiClient,
+  refreshAccessToken,
+  UNAUTHORIZED_EVENT,
+} from './apiClient'
