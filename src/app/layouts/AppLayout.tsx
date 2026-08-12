@@ -21,7 +21,7 @@ export function AppLayout() {
     )
   }, [location.pathname])
   const notificationCountLabel =
-    notificationCount > 15
+    notificationCount >= 15
       ? '15+'
       : notificationCount > 0
         ? String(notificationCount)
