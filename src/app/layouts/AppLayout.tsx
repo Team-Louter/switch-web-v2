@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
-import { getNotifications } from '@/entities/notification'
+import { getUnreadNotificationCount } from '@/entities/notification'
 import {
   SIDEBAR_MENU,
   type SidebarItemId,
@@ -38,13 +38,10 @@ export function AppLayout() {
   useEffect(() => {
     let isCancelled = false
 
-    getNotifications()
-      .then((notifications) => {
+    getUnreadNotificationCount()
+      .then((unreadCount) => {
         if (!isCancelled) {
-          setNotificationCount(
-            notifications.filter((notification) => !notification.isRead)
-              .length,
-          )
+          setNotificationCount(unreadCount)
         }
       })
       .catch(() => {})
