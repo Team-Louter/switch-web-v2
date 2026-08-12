@@ -1,0 +1,8 @@
+export { HomeIcon } from './HomeIcon'
+export { CommunityIcon } from './CommunityIcon'
+export { CalendarIcon } from './CalendarIcon'
+export { BookIcon } from './BookIcon'
+export { MentoringIcon } from './MentoringIcon'
+export { TypingIcon } from './TypingIcon'
+export { AlarmIcon } from './AlarmIcon'
+export { StoreIcon } from './StoreIcon'
