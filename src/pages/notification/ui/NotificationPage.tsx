@@ -4,6 +4,7 @@ import { useOutletContext } from 'react-router-dom'
 import {
   getNotificationSettings,
   getNotifications,
+  getUnreadNotificationCount,
   mapNotificationResponse,
   NotificationItem,
   type Notification,
@@ -17,6 +18,7 @@ import {
   readNotification,
   type NotificationSettingKey,
   type NotificationSettings,
+  unreadNotification,
   updateNotificationSettings,
 } from '@/features/notification'
 
@@ -32,6 +34,7 @@ import {
   EmptyState,
   Header,
   HeaderActions,
+  LoadMoreButton,
   NotificationList,
   Page,
   ReadAllButton,
@@ -65,7 +68,11 @@ export function NotificationPage() {
   const { setNotificationCount } =
     useOutletContext<NotificationOutletContext>()
   const [notifications, setNotifications] = useState<Notification[]>([])
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [nextPage, setNextPage] = useState(1)
+  const [hasNextPage, setHasNextPage] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [isNotificationMutating, setIsNotificationMutating] = useState(false)
@@ -79,9 +86,6 @@ export function NotificationPage() {
   const [isSettingsUpdating, setIsSettingsUpdating] = useState(false)
   const [settingsError, setSettingsError] = useState<string | null>(null)
 
-  const unreadNotificationCount = notifications.filter(
-    (notification) => !notification.isRead,
-  ).length
   const hasUnreadNotification = unreadNotificationCount > 0
 
   const loadNotifications = useCallback(async () => {
@@ -89,22 +93,62 @@ export function NotificationPage() {
     setLoadError(null)
 
     try {
-      const response = await getNotifications()
-      const nextNotifications = response.map((notification) =>
+      const [response, unreadCount] = await Promise.all([
+        getNotifications(),
+        getUnreadNotificationCount(),
+      ])
+      const nextNotifications = response.content.map((notification) =>
         mapNotificationResponse(notification, notificationAvatar),
       )
-      const unreadCount = nextNotifications.filter(
-        (notification) => !notification.isRead,
-      ).length
 
       setNotifications(nextNotifications)
+      setUnreadNotificationCount(unreadCount)
       setNotificationCount(unreadCount)
+      setNextPage(response.number + 1)
+      setHasNextPage(!response.last)
     } catch {
       setLoadError('알림을 불러오지 못했습니다.')
     } finally {
       setIsLoading(false)
     }
   }, [setNotificationCount])
+
+  const handleLoadMore = async () => {
+    if (!hasNextPage || isLoadingMore) {
+      return
+    }
+
+    setIsLoadingMore(true)
+    setActionError(null)
+
+    try {
+      const response = await getNotifications({ page: nextPage })
+      const nextNotifications = response.content.map((notification) =>
+        mapNotificationResponse(notification, notificationAvatar),
+      )
+
+      setNotifications((currentNotifications) => {
+        const notificationMap = new Map(
+          currentNotifications.map((notification) => [
+            notification.id,
+            notification,
+          ]),
+        )
+
+        nextNotifications.forEach((notification) => {
+          notificationMap.set(notification.id, notification)
+        })
+
+        return Array.from(notificationMap.values())
+      })
+      setNextPage(response.number + 1)
+      setHasNextPage(!response.last)
+    } catch {
+      setActionError('다음 알림을 불러오지 못했습니다.')
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }
 
   const loadSettings = useCallback(async () => {
     setIsSettingsLoading(true)
@@ -126,22 +170,19 @@ export function NotificationPage() {
       return
     }
 
-    const unreadNotificationIds = notifications
-      .filter((notification) => !notification.isRead)
-      .map((notification) => notification.id)
-
     setIsNotificationMutating(true)
     setActionError(null)
     setOpenMenuId(null)
 
     try {
-      await readAllNotifications(unreadNotificationIds)
+      await readAllNotifications()
       setNotifications((currentNotifications) =>
         currentNotifications.map((notification) => ({
           ...notification,
           isRead: true,
         })),
       )
+      setUnreadNotificationCount(0)
       setNotificationCount(0)
     } catch {
       setActionError('모든 알림을 읽음 처리하지 못했습니다.')
@@ -161,7 +202,7 @@ export function NotificationPage() {
     )
   }
 
-  const handleRead = async (notificationId: number) => {
+  const handleReadToggle = async (notificationId: number) => {
     if (isNotificationMutating) {
       return
     }
@@ -170,25 +211,44 @@ export function NotificationPage() {
       (notification) => notification.id === notificationId,
     )
 
+    if (!selectedNotification) {
+      return
+    }
+
+    const nextIsRead = !selectedNotification.isRead
+
     setIsNotificationMutating(true)
     setActionError(null)
     setOpenMenuId(null)
 
     try {
-      await readNotification(notificationId)
+      if (nextIsRead) {
+        await readNotification(notificationId)
+      } else {
+        await unreadNotification(notificationId)
+      }
+
       setNotifications((currentNotifications) =>
         currentNotifications.map((notification) =>
           notification.id === notificationId
-            ? { ...notification, isRead: true }
+            ? { ...notification, isRead: nextIsRead }
             : notification,
         ),
       )
 
-      if (selectedNotification && !selectedNotification.isRead) {
-        setNotificationCount(Math.max(0, unreadNotificationCount - 1))
-      }
+      const nextUnreadCount = Math.max(
+        0,
+        unreadNotificationCount + (nextIsRead ? -1 : 1),
+      )
+
+      setUnreadNotificationCount(nextUnreadCount)
+      setNotificationCount(nextUnreadCount)
     } catch {
-      setActionError('알림을 읽음 처리하지 못했습니다.')
+      setActionError(
+        nextIsRead
+          ? '알림을 읽음 처리하지 못했습니다.'
+          : '알림을 읽지 않음 처리하지 못했습니다.',
+      )
     } finally {
       setIsNotificationMutating(false)
     }
@@ -228,7 +288,10 @@ export function NotificationPage() {
       )
 
       if (selectedNotification && !selectedNotification.isRead) {
-        setNotificationCount(Math.max(0, unreadNotificationCount - 1))
+        const nextUnreadCount = Math.max(0, unreadNotificationCount - 1)
+
+        setUnreadNotificationCount(nextUnreadCount)
+        setNotificationCount(nextUnreadCount)
       }
 
       setPendingDeleteId(null)
@@ -269,7 +332,10 @@ export function NotificationPage() {
     setSettingsError(null)
 
     try {
-      const response = await updateNotificationSettings(nextSettings, setting)
+      const response = await updateNotificationSettings(
+        setting,
+        nextSettings[setting],
+      )
 
       setNotificationSettings(response)
     } catch {
@@ -283,21 +349,21 @@ export function NotificationPage() {
   useEffect(() => {
     let isCancelled = false
 
-    getNotifications()
-      .then((response) => {
+    Promise.all([getNotifications(), getUnreadNotificationCount()])
+      .then(([response, unreadCount]) => {
         if (isCancelled) {
           return
         }
 
-        const nextNotifications = response.map((notification) =>
+        const nextNotifications = response.content.map((notification) =>
           mapNotificationResponse(notification, notificationAvatar),
         )
-        const unreadCount = nextNotifications.filter(
-          (notification) => !notification.isRead,
-        ).length
 
         setNotifications(nextNotifications)
+        setUnreadNotificationCount(unreadCount)
         setNotificationCount(unreadCount)
+        setNextPage(response.number + 1)
+        setHasNextPage(!response.last)
       })
       .catch(() => {
         if (!isCancelled) {
@@ -375,18 +441,29 @@ export function NotificationPage() {
               </RetryButton>
             </StatusState>
           ) : notifications.length > 0 ? (
-            notifications.map((notification) => (
-              <NotificationItem
-                key={notification.id}
-                notification={notification}
-                typeIconUrl={NOTIFICATION_TYPE_ICONS[notification.type]}
-                moreIconUrl={notificationMoreIcon}
-                isMenuOpen={openMenuId === notification.id}
-                onMenuToggle={handleMenuToggle}
-                onRead={handleRead}
-                onDelete={handleDeleteRequest}
-              />
-            ))
+            <>
+              {notifications.map((notification) => (
+                <NotificationItem
+                  key={notification.id}
+                  notification={notification}
+                  typeIconUrl={NOTIFICATION_TYPE_ICONS[notification.type]}
+                  moreIconUrl={notificationMoreIcon}
+                  isMenuOpen={openMenuId === notification.id}
+                  onMenuToggle={handleMenuToggle}
+                  onReadToggle={handleReadToggle}
+                  onDelete={handleDeleteRequest}
+                />
+              ))}
+              {hasNextPage && (
+                <LoadMoreButton
+                  type="button"
+                  disabled={isLoadingMore}
+                  onClick={handleLoadMore}
+                >
+                  {isLoadingMore ? '불러오는 중' : '알림 더 보기'}
+                </LoadMoreButton>
+              )}
+            </>
           ) : (
             <EmptyState>새로운 알림이 없습니다.</EmptyState>
           )}
