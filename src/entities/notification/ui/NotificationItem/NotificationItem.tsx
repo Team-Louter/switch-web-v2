@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import type { SyntheticEvent } from 'react'
 
 import type { Notification } from '../../model/types'
@@ -43,6 +44,8 @@ export function NotificationItem({
   onReadToggle,
   onDelete,
 }: NotificationItemProps) {
+  const moreButtonRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   const {
     actorImageUrl,
     category,
@@ -76,6 +79,40 @@ export function NotificationItem({
     event.currentTarget.src = fallbackActorImageUrl
   }
 
+  useEffect(() => {
+    if (!isMenuOpen) {
+      return
+    }
+
+    function handleOutsidePointerDown(event: PointerEvent) {
+      const target = event.target
+
+      if (
+        !(target instanceof Node) ||
+        moreButtonRef.current?.contains(target) ||
+        menuRef.current?.contains(target)
+      ) {
+        return
+      }
+
+      onMenuToggle(id)
+    }
+
+    function handleEscapeKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        onMenuToggle(id)
+      }
+    }
+
+    document.addEventListener('pointerdown', handleOutsidePointerDown)
+    window.addEventListener('keydown', handleEscapeKeyDown)
+
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsidePointerDown)
+      window.removeEventListener('keydown', handleEscapeKeyDown)
+    }
+  }, [id, isMenuOpen, onMenuToggle])
+
   return (
     <Item data-notification-type={type}>
       <Main>
@@ -103,6 +140,7 @@ export function NotificationItem({
         </Meta>
 
         <MoreButton
+          ref={moreButtonRef}
           type="button"
           aria-label={`${message} 더보기`}
           aria-haspopup="menu"
@@ -115,7 +153,11 @@ export function NotificationItem({
       </Controls>
 
       {isMenuOpen && (
-        <ContextMenu id={`notification-menu-${id}`} role="menu">
+        <ContextMenu
+          ref={menuRef}
+          id={`notification-menu-${id}`}
+          role="menu"
+        >
           <MenuActionButton
             type="button"
             role="menuitem"
