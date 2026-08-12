@@ -1,6 +1,8 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
+
+import { getNotifications } from '@/entities/notification'
 import {
   SIDEBAR_MENU,
   type SidebarItemId,
@@ -8,17 +10,22 @@ import {
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 
-const MOCK_NOTIFICATION_COUNT = '15+'
-
 export function AppLayout() {
   const location = useLocation()
   const navigate = useNavigate()
+  const [notificationCount, setNotificationCount] = useState(0)
 
   const activeSidebarItemId = useMemo(() => {
     return (
       SIDEBAR_MENU.find((item) => item.path === location.pathname)?.id ?? 'home'
     )
   }, [location.pathname])
+  const notificationCountLabel =
+    notificationCount > 15
+      ? '15+'
+      : notificationCount > 0
+        ? String(notificationCount)
+        : undefined
 
   const handleSidebarItemSelect = (itemId: SidebarItemId) => {
     const path = SIDEBAR_MENU.find((item) => item.id === itemId)?.path
@@ -28,17 +35,36 @@ export function AppLayout() {
     }
   }
 
+  useEffect(() => {
+    let isCancelled = false
+
+    getNotifications()
+      .then((notifications) => {
+        if (!isCancelled) {
+          setNotificationCount(
+            notifications.filter((notification) => !notification.isRead)
+              .length,
+          )
+        }
+      })
+      .catch(() => {})
+
+    return () => {
+      isCancelled = true
+    }
+  }, [])
+
   return (
     <Layout>
       <Side>
         <Sidebar
           activeItemId={activeSidebarItemId}
-          notificationCount={MOCK_NOTIFICATION_COUNT}
+          notificationCount={notificationCountLabel}
           onItemSelect={handleSidebarItemSelect}
         />
       </Side>
       <Body>
-        <Outlet />
+        <Outlet context={{ setNotificationCount }} />
       </Body>
     </Layout>
   )
