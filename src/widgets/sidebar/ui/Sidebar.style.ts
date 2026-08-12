@@ -97,6 +97,14 @@ export const MenuLabel = styled.span<{ $active?: boolean }>`
   ${token.typography('body', 'md', 'semibold')}
 `
 
+export const NotificationCount = styled.span`
+  margin-left: auto;
+  color: ${token.colors.primary.primary70};
+  line-height: 1;
+  white-space: nowrap;
+  ${token.typography('body', 'lg', 'medium')}
+`
+
 export const Divider = styled.img`
   flex: 0 0 auto;
   width: 100%;
