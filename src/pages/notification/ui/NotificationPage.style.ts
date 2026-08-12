@@ -98,3 +98,41 @@ export const EmptyState = styled.p`
   text-align: center;
   ${token.typography('body', 'md', 'medium')}
 `
+
+export const StatusState = styled.div`
+  ${token.flexColumnCenter}
+  width: 100%;
+  gap: 16px;
+  padding: 80px 0;
+`
+
+export const StatusText = styled.p`
+  color: ${token.colors.gray.gray50};
+  text-align: center;
+  ${token.typography('body', 'md', 'medium')}
+`
+
+export const RetryButton = styled.button`
+  padding: 10px 20px;
+  border-radius: ${token.shapes.small};
+  color: ${token.colors.gray.gray80};
+  background: ${token.colors.gray.gray10};
+  line-height: 1;
+  ${token.typography('body', 'sm', 'medium')}
+
+  &:hover {
+    background: ${token.colors.gray.gray20};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary40};
+    outline-offset: 2px;
+  }
+`
+
+export const ActionError = styled.p`
+  width: 100%;
+  color: ${token.colors.danger.danger20};
+  text-align: right;
+  ${token.typography('body', 'sm', 'medium')}
+`
