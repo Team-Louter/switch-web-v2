@@ -98,7 +98,7 @@ export function NotificationPage() {
         getUnreadNotificationCount(),
       ])
       const nextNotifications = response.content.map((notification) =>
-        mapNotificationResponse(notification, notificationAvatar),
+        mapNotificationResponse(notification),
       )
 
       setNotifications(nextNotifications)
@@ -124,7 +124,7 @@ export function NotificationPage() {
     try {
       const response = await getNotifications({ page: nextPage })
       const nextNotifications = response.content.map((notification) =>
-        mapNotificationResponse(notification, notificationAvatar),
+        mapNotificationResponse(notification),
       )
 
       setNotifications((currentNotifications) => {
@@ -356,7 +356,7 @@ export function NotificationPage() {
         }
 
         const nextNotifications = response.content.map((notification) =>
-          mapNotificationResponse(notification, notificationAvatar),
+          mapNotificationResponse(notification),
         )
 
         setNotifications(nextNotifications)
