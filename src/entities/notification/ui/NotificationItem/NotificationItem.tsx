@@ -53,6 +53,7 @@ export function NotificationItem({
     occurredAt,
     type,
   } = notification
+  const avatarImageUrl = actorImageUrl ?? fallbackActorImageUrl
 
   const handleMenuToggle = () => {
     onMenuToggle(id)
@@ -78,9 +79,9 @@ export function NotificationItem({
   return (
     <Item data-notification-type={type}>
       <Main>
-        {actorImageUrl && (
+        {avatarImageUrl && (
           <AvatarWrap>
-            <Avatar src={actorImageUrl} alt="" onError={handleAvatarError} />
+            <Avatar src={avatarImageUrl} alt="" onError={handleAvatarError} />
             {typeIconUrl && <TypeIcon src={typeIconUrl} alt="" />}
           </AvatarWrap>
         )}
