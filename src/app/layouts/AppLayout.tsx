@@ -1,6 +1,5 @@
-import type { PropsWithChildren } from 'react'
 import { useMemo } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import {
   SIDEBAR_MENU,
@@ -9,9 +8,7 @@ import {
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 
-type AppLayoutProps = PropsWithChildren
-
-export function AppLayout({ children }: AppLayoutProps) {
+export function AppLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const isTypingPractice = location.pathname === '/typing/daily' || location.pathname.startsWith('/typing/code/')
@@ -36,15 +33,15 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <Layout>
-      {!isTypingPractice && (
-        <Side>
-          <Sidebar
-            activeItemId={activeSidebarItemId}
-            onItemSelect={handleSidebarItemSelect}
-          />
-        </Side>
-      )}
-      <Body>{children}</Body>
+      <Side>
+        <Sidebar
+          activeItemId={activeSidebarItemId}
+          onItemSelect={handleSidebarItemSelect}
+        />
+      </Side>
+      <Body>
+        <Outlet />
+      </Body>
     </Layout>
   )
 }

@@ -12,7 +12,7 @@ import {
   getWeekStatus,
 } from '@/entities/study'
 import type { StudyRecord, StudyResponse, StudyStatus } from '@/entities/study'
-import { getMember } from '@/entities/member/getMember'
+import { getMember } from '@/entities/member/api/getMember'
 import type { Member } from '@/entities/member/model/types'
 import { PercentBar } from '@/features/study'
 
@@ -49,7 +49,7 @@ export function MentorLearningPage() {
     getMember()
       .then((members) => {
         if (!isCancelled) {
-          setMentees(members.filter(({ role }) => role === 'mentee'))
+          setMentees(members.filter(({ role }) => role === 'MENTEE'))
         }
       })
       .catch(() => {})
@@ -149,7 +149,7 @@ export function MentorLearningPage() {
                   100,
               )
             : 0
-          const items =
+          const items = (
             state === 'future' || weekStatuses.length === 0
               ? mentees.map(({ userId, userName }) => ({
                   id: userId,
@@ -165,6 +165,7 @@ export function MentorLearningPage() {
                     OVERDUE: 'overdue',
                   }[status] as 'submitted' | 'due' | 'overdue',
                 }))
+          ).sort((a, b) => a.id - b.id)
 
           return (
             <S.Column key={id} $state={state}>
