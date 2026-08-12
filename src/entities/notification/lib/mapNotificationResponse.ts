@@ -19,6 +19,26 @@ const NOTIFICATION_DISPLAY_META: Record<
   SCHEDULE: { category: '일정', type: 'schedule' },
 }
 
+function resolveActorImageUrl(
+  profileImageUrl: string | undefined,
+  fallbackActorImageUrl: string | undefined,
+): string | undefined {
+  const trimmedProfileImageUrl = profileImageUrl?.trim()
+
+  if (!trimmedProfileImageUrl) {
+    return fallbackActorImageUrl
+  }
+
+  try {
+    return new URL(
+      trimmedProfileImageUrl,
+      import.meta.env.VITE_API_BASE_URL,
+    ).toString()
+  } catch {
+    return fallbackActorImageUrl
+  }
+}
+
 function formatRelativeTime(createdAt: string): string {
   const createdTime = new Date(createdAt).getTime()
 
@@ -72,7 +92,10 @@ export function mapNotificationResponse(
     content: response.content,
     occurredAt: formatRelativeTime(response.createdAt),
     isRead: response.isRead,
-    actorImageUrl: response.actor?.profileImageUrl || fallbackActorImageUrl,
+    actorImageUrl: resolveActorImageUrl(
+      response.actor?.profileImageUrl,
+      fallbackActorImageUrl,
+    ),
     target: response.target,
   }
 }
