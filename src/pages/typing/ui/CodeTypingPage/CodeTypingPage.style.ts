@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 
-import codeTypingBackground from '@/shared/assets/code-typing-background.png'
+import codeTypingBackground from '@/shared/assets/code-typing-background.jpg'
 import * as token from '@/shared/styles/values/token'
 
 export const Page = styled.main`
