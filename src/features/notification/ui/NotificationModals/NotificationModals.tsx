@@ -14,14 +14,14 @@ interface NotificationSettingOption {
 
 const NOTIFICATION_SETTING_GROUPS: NotificationSettingOption[][] = [
   [
-    { key: 'mentoring', label: '멘토링' },
-    { key: 'comment', label: '댓글' },
-    { key: 'scheduleReminder', label: '일정 리마인드' },
+    { key: 'mentoringEnabled', label: '멘토링' },
+    { key: 'commentEnabled', label: '댓글' },
+    { key: 'scheduleEnabled', label: '일정 리마인드' },
   ],
   [
-    { key: 'inApp', label: '인앱 알림' },
-    { key: 'push', label: '푸시 알림' },
-    { key: 'email', label: '메일 알림' },
+    { key: 'inAppEnabled', label: '인앱 알림' },
+    { key: 'pushEnabled', label: '푸시 알림' },
+    { key: 'emailEnabled', label: '메일 알림' },
   ],
 ]
 
