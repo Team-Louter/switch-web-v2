@@ -19,7 +19,7 @@ export const CloseButton = styled.button`
   ${token.flexCenter}
   width: 28px;
   height: 28px;
-  margin: 0 0 28px 28px;
+  margin: 0 0 28px;
   padding: 0;
   border: 0;
   background-color: transparent;
