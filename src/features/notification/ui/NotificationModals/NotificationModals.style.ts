@@ -25,7 +25,7 @@ export const DeleteDialog = styled.div`
 
 export const DeleteTitle = styled.h2`
   color: ${token.colors.gray.gray100};
-  line-height: 1;
+  line-height: normal;
   ${token.typography('heading', 'sm', 'semibold')}
 `
 
@@ -45,7 +45,7 @@ export const DeleteActionButton = styled.button<{ $danger?: boolean }>`
   color: ${({ $danger }) =>
     $danger ? token.colors.danger.danger20 : token.colors.gray.gray100};
   background: ${token.colors.gray.gray10};
-  line-height: 1;
+  line-height: normal;
   ${token.typography('body', 'md', 'medium')}
 
   &:hover {
@@ -76,7 +76,7 @@ export const SettingsHeader = styled.header`
 
 export const SettingsTitle = styled.h2`
   color: ${token.colors.gray.gray80};
-  line-height: 1;
+  line-height: normal;
   ${token.typography('heading', 'md', 'medium')}
 `
 
@@ -111,7 +111,7 @@ export const SettingRow = styled.div`
 
 export const SettingLabel = styled.span`
   color: ${token.colors.primary.primary90};
-  line-height: 1;
+  line-height: normal;
   ${token.typography('body', 'lg', 'medium')}
 `
 
