@@ -21,12 +21,11 @@ const NOTIFICATION_DISPLAY_META: Record<
 
 function resolveActorImageUrl(
   profileImageUrl: string | undefined,
-  fallbackActorImageUrl: string | undefined,
 ): string | undefined {
   const trimmedProfileImageUrl = profileImageUrl?.trim()
 
   if (!trimmedProfileImageUrl) {
-    return fallbackActorImageUrl
+    return undefined
   }
 
   try {
@@ -35,7 +34,7 @@ function resolveActorImageUrl(
       import.meta.env.VITE_API_BASE_URL,
     ).toString()
   } catch {
-    return fallbackActorImageUrl
+    return undefined
   }
 }
 
@@ -80,7 +79,6 @@ function formatRelativeTime(createdAt: string): string {
 
 export function mapNotificationResponse(
   response: NotificationResponse,
-  fallbackActorImageUrl?: string,
 ): Notification {
   const displayMeta = NOTIFICATION_DISPLAY_META[response.notiType]
 
@@ -92,10 +90,7 @@ export function mapNotificationResponse(
     content: response.content,
     occurredAt: formatRelativeTime(response.createdAt),
     isRead: response.isRead,
-    actorImageUrl: resolveActorImageUrl(
-      response.actor?.profileImageUrl,
-      fallbackActorImageUrl,
-    ),
+    actorImageUrl: resolveActorImageUrl(response.actor?.profileImageUrl),
     target: response.target,
   }
 }
