@@ -56,6 +56,11 @@ export const DeleteActionButton = styled.button<{ $danger?: boolean }>`
     outline: 2px solid ${token.colors.primary.primary40};
     outline-offset: 2px;
   }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
 `
 
 export const SettingsDialog = styled.div`
@@ -115,6 +120,13 @@ export const SettingLabel = styled.span`
   ${token.typography('body', 'lg', 'medium')}
 `
 
+export const SettingsError = styled.p`
+  width: 100%;
+  color: ${token.colors.danger.danger20};
+  line-height: 1.4;
+  ${token.typography('body', 'sm', 'medium')}
+`
+
 export const ToggleButton = styled.button<{ $enabled: boolean }>`
   position: relative;
   flex: 0 0 48px;
@@ -132,6 +144,11 @@ export const ToggleButton = styled.button<{ $enabled: boolean }>`
   &:focus-visible {
     outline: 2px solid ${token.colors.primary.primary40};
     outline-offset: 3px;
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.6;
   }
 `
 
