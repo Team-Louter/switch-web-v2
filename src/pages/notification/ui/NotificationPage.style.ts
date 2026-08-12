@@ -15,7 +15,7 @@ export const Page = styled.main`
 
 export const Content = styled.div`
   ${token.flexColumnStart}
-  width: min(100%, 920px);
+  width: min(100%, 760px);
   gap: 32px;
 
   @media (max-width: 760px) {
