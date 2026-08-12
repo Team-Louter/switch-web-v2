@@ -1,14 +1,21 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
 import {
   NotificationItem,
   type Notification,
   type NotificationType,
 } from '@/entities/notification'
+import {
+  DeleteNotificationModal,
+  NotificationSettingsModal,
+  type NotificationSettingKey,
+  type NotificationSettings,
+} from '@/features/notification'
 
 import notificationAvatar from '../assets/images/notification-avatar.png'
 import notificationCommentIcon from '../assets/svg/notification-comment.svg'
 import notificationLikeIcon from '../assets/svg/notification-like.svg'
+import notificationModalCloseIcon from '../assets/svg/notification-modal-close.svg'
 import notificationMoreIcon from '../assets/svg/notification-more.svg'
 import notificationReadAllIcon from '../assets/svg/notification-read-all.svg'
 import notificationSettingsIcon from '../assets/svg/notification-settings.svg'
@@ -104,9 +111,23 @@ const NOTIFICATION_TYPE_ICONS: Partial<Record<NotificationType, string>> = {
   like: notificationLikeIcon,
 }
 
+const INITIAL_NOTIFICATION_SETTINGS: NotificationSettings = {
+  mentoring: true,
+  comment: true,
+  scheduleReminder: true,
+  inApp: true,
+  push: true,
+  email: true,
+}
+
 export function NotificationPage() {
   const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS)
   const [openMenuId, setOpenMenuId] = useState<number | null>(null)
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [notificationSettings, setNotificationSettings] = useState(
+    INITIAL_NOTIFICATION_SETTINGS,
+  )
 
   const hasUnreadNotification = notifications.some(
     (notification) => !notification.isRead,
@@ -139,13 +160,42 @@ export function NotificationPage() {
     setOpenMenuId(null)
   }
 
-  const handleDelete = (notificationId: number) => {
+  const handleDeleteRequest = (notificationId: number) => {
+    setPendingDeleteId(notificationId)
+    setOpenMenuId(null)
+  }
+
+  const handleDeleteCancel = useCallback(() => {
+    setPendingDeleteId(null)
+  }, [])
+
+  const handleDeleteConfirm = () => {
+    if (pendingDeleteId === null) {
+      return
+    }
+
     setNotifications((currentNotifications) =>
       currentNotifications.filter(
-        (notification) => notification.id !== notificationId,
+        (notification) => notification.id !== pendingDeleteId,
       ),
     )
+    setPendingDeleteId(null)
+  }
+
+  const handleSettingsOpen = () => {
+    setIsSettingsOpen(true)
     setOpenMenuId(null)
+  }
+
+  const handleSettingsClose = useCallback(() => {
+    setIsSettingsOpen(false)
+  }, [])
+
+  const handleSettingToggle = (setting: NotificationSettingKey) => {
+    setNotificationSettings((currentSettings) => ({
+      ...currentSettings,
+      [setting]: !currentSettings[setting],
+    }))
   }
 
   return (
@@ -162,7 +212,13 @@ export function NotificationPage() {
               <ReadAllIcon src={notificationReadAllIcon} alt="" />
               모두 읽음
             </ReadAllButton>
-            <SettingsButton type="button" aria-label="알림 설정">
+            <SettingsButton
+              type="button"
+              aria-label="알림 설정"
+              aria-haspopup="dialog"
+              aria-expanded={isSettingsOpen}
+              onClick={handleSettingsOpen}
+            >
               <SettingsIcon src={notificationSettingsIcon} alt="" />
             </SettingsButton>
           </HeaderActions>
@@ -179,7 +235,7 @@ export function NotificationPage() {
                 isMenuOpen={openMenuId === notification.id}
                 onMenuToggle={handleMenuToggle}
                 onRead={handleRead}
-                onDelete={handleDelete}
+                onDelete={handleDeleteRequest}
               />
             ))
           ) : (
@@ -187,6 +243,22 @@ export function NotificationPage() {
           )}
         </NotificationList>
       </Content>
+
+      {pendingDeleteId !== null && (
+        <DeleteNotificationModal
+          onCancel={handleDeleteCancel}
+          onConfirm={handleDeleteConfirm}
+        />
+      )}
+
+      {isSettingsOpen && (
+        <NotificationSettingsModal
+          closeIconUrl={notificationModalCloseIcon}
+          settings={notificationSettings}
+          onClose={handleSettingsClose}
+          onToggle={handleSettingToggle}
+        />
+      )}
     </Page>
   )
 }
