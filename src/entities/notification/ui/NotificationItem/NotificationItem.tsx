@@ -26,7 +26,7 @@ interface NotificationItemProps {
   moreIconUrl: string
   isMenuOpen: boolean
   onMenuToggle: (notificationId: number) => void
-  onRead: (notificationId: number) => void
+  onReadToggle: (notificationId: number) => void
   onDelete: (notificationId: number) => void
 }
 
@@ -36,7 +36,7 @@ export function NotificationItem({
   moreIconUrl,
   isMenuOpen,
   onMenuToggle,
-  onRead,
+  onReadToggle,
   onDelete,
 }: NotificationItemProps) {
   const {
@@ -54,8 +54,8 @@ export function NotificationItem({
     onMenuToggle(id)
   }
 
-  const handleRead = () => {
-    onRead(id)
+  const handleReadToggle = () => {
+    onReadToggle(id)
   }
 
   const handleDelete = () => {
@@ -105,13 +105,7 @@ export function NotificationItem({
           <MenuActionButton
             type="button"
             role="menuitem"
-            disabled={isRead}
-            title={
-              isRead
-                ? '읽지 않음 처리는 서버 API 지원 후 사용할 수 있습니다.'
-                : undefined
-            }
-            onClick={handleRead}
+            onClick={handleReadToggle}
           >
             {isRead ? '읽지 않음으로 표시' : '읽음으로 표시'}
           </MenuActionButton>
