@@ -6,20 +6,20 @@ export const Page = styled.main`
   ${token.flexColumn}
   align-items: center;
   min-height: 100dvh;
-  padding: 50px 30px;
+  padding: 40px 24px;
 
   @media (max-width: 760px) {
-    padding: 32px 20px;
+    padding: 28px 18px;
   }
 `
 
 export const Content = styled.div`
   ${token.flexColumnStart}
-  width: min(100%, 1000px);
-  gap: 40px;
+  width: min(100%, 920px);
+  gap: 32px;
 
   @media (max-width: 760px) {
-    gap: 28px;
+    gap: 24px;
   }
 `
 
@@ -31,20 +31,20 @@ export const Header = styled.header`
 export const Title = styled.h1`
   color: ${token.colors.gray.gray80};
   line-height: 1;
-  ${token.typography('body', 'lg', 'medium')}
+  ${token.typography('body', 'md', 'medium')}
 `
 
 export const HeaderActions = styled.div`
   ${token.flexLeft}
-  gap: 20px;
+  gap: 16px;
 `
 
 export const ReadAllButton = styled.button`
   ${token.flexLeft}
-  gap: 5px;
+  gap: 4px;
   color: ${token.colors.primary.primary70};
   line-height: 1;
-  ${token.typography('body', 'md', 'semibold')}
+  ${token.typography('body', 'sm', 'semibold')}
 
   &:focus-visible {
     outline: 2px solid ${token.colors.primary.primary40};
@@ -58,15 +58,15 @@ export const ReadAllButton = styled.button`
 `
 
 export const ReadAllIcon = styled.img`
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
 `
 
 export const SettingsButton = styled.button`
   ${token.flexCenter}
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border-radius: ${token.shapes.xsmall};
 
   &:hover {
@@ -80,15 +80,15 @@ export const SettingsButton = styled.button`
 `
 
 export const SettingsIcon = styled.img`
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   object-fit: contain;
 `
 
 export const NotificationList = styled.div`
   ${token.flexColumnStart}
   width: 100%;
-  gap: 20px;
+  gap: 14px;
 `
 
 export const EmptyState = styled.p`
