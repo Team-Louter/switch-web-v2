@@ -1,25 +1,33 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useOutletContext } from 'react-router-dom'
 
 import {
+  getNotificationSettings,
+  getNotifications,
+  mapNotificationResponse,
   NotificationItem,
   type Notification,
   type NotificationType,
 } from '@/entities/notification'
 import {
+  deleteNotification,
   DeleteNotificationModal,
   NotificationSettingsModal,
+  readAllNotifications,
+  readNotification,
   type NotificationSettingKey,
   type NotificationSettings,
+  updateNotificationSettings,
 } from '@/features/notification'
 
 import notificationAvatar from '../assets/images/notification-avatar.png'
 import notificationCommentIcon from '../assets/svg/notification-comment.svg'
-import notificationLikeIcon from '../assets/svg/notification-like.svg'
 import notificationModalCloseIcon from '../assets/svg/notification-modal-close.svg'
 import notificationMoreIcon from '../assets/svg/notification-more.svg'
 import notificationReadAllIcon from '../assets/svg/notification-read-all.svg'
 import notificationSettingsIcon from '../assets/svg/notification-settings.svg'
 import {
+  ActionError,
   Content,
   EmptyState,
   Header,
@@ -28,139 +36,169 @@ import {
   Page,
   ReadAllButton,
   ReadAllIcon,
+  RetryButton,
   SettingsButton,
   SettingsIcon,
+  StatusState,
+  StatusText,
   Title,
 } from './NotificationPage.style'
 
-const INITIAL_NOTIFICATIONS: Notification[] = [
-  {
-    id: 1,
-    type: 'post',
-    category: '커뮤니티',
-    message: '이도연님이 게시글을 작성했어요',
-    content: '[자유게시판] 집가고 싶다',
-    occurredAt: '2시간 전',
-    isRead: false,
-    actorImageUrl: notificationAvatar,
-  },
-  {
-    id: 2,
-    type: 'comment',
-    category: '커뮤니티',
-    message: '이도연님이 내 게시글에 댓글을 작성했어요',
-    content: '[자유게시판] 집가고 싶다',
-    occurredAt: '2시간 전',
-    isRead: false,
-    actorImageUrl: notificationAvatar,
-  },
-  {
-    id: 3,
-    type: 'like',
-    category: '커뮤니티',
-    message: '이도연님이 내 게시글에 댓글을 작성했어요',
-    content: '[자유게시판] 집가고 싶다',
-    occurredAt: '2시간 전',
-    isRead: false,
-    actorImageUrl: notificationAvatar,
-  },
-  {
-    id: 4,
-    type: 'like',
-    category: '커뮤니티',
-    message: '이도연님이 내 게시글에 댓글을 작성했어요',
-    content: '[자유게시판] 집가고 싶다',
-    occurredAt: '2시간 전',
-    isRead: true,
-    actorImageUrl: notificationAvatar,
-  },
-  {
-    id: 5,
-    type: 'comment',
-    category: '커뮤니티',
-    message: '이도연님이 내 게시글에 댓글을 작성했어요',
-    content: '[자유게시판] 집가고 싶다',
-    occurredAt: '2시간 전',
-    isRead: false,
-    actorImageUrl: notificationAvatar,
-  },
-  {
-    id: 6,
-    type: 'post',
-    category: '커뮤니티',
-    message: '이도연님이 게시글을 작성했어요',
-    content: '[자유게시판] 집가고 싶다',
-    occurredAt: '2시간 전',
-    isRead: false,
-    actorImageUrl: notificationAvatar,
-  },
-  {
-    id: 7,
-    type: 'post',
-    category: '커뮤니티',
-    message: '이도연님이 게시글을 작성했어요',
-    content: '[자유게시판] 집가고 싶다',
-    occurredAt: '2시간 전',
-    isRead: false,
-    actorImageUrl: notificationAvatar,
-  },
-]
+interface NotificationOutletContext {
+  setNotificationCount: (count: number) => void
+}
 
 const NOTIFICATION_TYPE_ICONS: Partial<Record<NotificationType, string>> = {
   comment: notificationCommentIcon,
-  like: notificationLikeIcon,
 }
 
 const INITIAL_NOTIFICATION_SETTINGS: NotificationSettings = {
-  mentoring: true,
-  comment: true,
-  scheduleReminder: true,
-  inApp: true,
-  push: true,
-  email: true,
+  mentoringEnabled: true,
+  commentEnabled: true,
+  scheduleEnabled: true,
+  inAppEnabled: true,
+  pushEnabled: true,
+  emailEnabled: true,
 }
 
 export function NotificationPage() {
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS)
+  const { setNotificationCount } =
+    useOutletContext<NotificationOutletContext>()
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [isNotificationMutating, setIsNotificationMutating] = useState(false)
   const [openMenuId, setOpenMenuId] = useState<number | null>(null)
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [notificationSettings, setNotificationSettings] = useState(
     INITIAL_NOTIFICATION_SETTINGS,
   )
+  const [isSettingsLoading, setIsSettingsLoading] = useState(true)
+  const [isSettingsUpdating, setIsSettingsUpdating] = useState(false)
+  const [settingsError, setSettingsError] = useState<string | null>(null)
 
-  const hasUnreadNotification = notifications.some(
+  const unreadNotificationCount = notifications.filter(
     (notification) => !notification.isRead,
-  )
+  ).length
+  const hasUnreadNotification = unreadNotificationCount > 0
 
-  const handleReadAll = () => {
-    setNotifications((currentNotifications) =>
-      currentNotifications.map((notification) => ({
-        ...notification,
-        isRead: true,
-      })),
-    )
+  const loadNotifications = useCallback(async () => {
+    setIsLoading(true)
+    setLoadError(null)
+
+    try {
+      const response = await getNotifications()
+      const nextNotifications = response.map((notification) =>
+        mapNotificationResponse(notification, notificationAvatar),
+      )
+      const unreadCount = nextNotifications.filter(
+        (notification) => !notification.isRead,
+      ).length
+
+      setNotifications(nextNotifications)
+      setNotificationCount(unreadCount)
+    } catch {
+      setLoadError('알림을 불러오지 못했습니다.')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [setNotificationCount])
+
+  const loadSettings = useCallback(async () => {
+    setIsSettingsLoading(true)
+    setSettingsError(null)
+
+    try {
+      const response = await getNotificationSettings()
+
+      setNotificationSettings(response)
+    } catch {
+      setSettingsError('알림 설정을 불러오지 못했습니다.')
+    } finally {
+      setIsSettingsLoading(false)
+    }
+  }, [])
+
+  const handleReadAll = async () => {
+    if (!hasUnreadNotification || isNotificationMutating) {
+      return
+    }
+
+    const unreadNotificationIds = notifications
+      .filter((notification) => !notification.isRead)
+      .map((notification) => notification.id)
+
+    setIsNotificationMutating(true)
+    setActionError(null)
     setOpenMenuId(null)
+
+    try {
+      await readAllNotifications(unreadNotificationIds)
+      setNotifications((currentNotifications) =>
+        currentNotifications.map((notification) => ({
+          ...notification,
+          isRead: true,
+        })),
+      )
+      setNotificationCount(0)
+    } catch {
+      setActionError('모든 알림을 읽음 처리하지 못했습니다.')
+      void loadNotifications()
+    } finally {
+      setIsNotificationMutating(false)
+    }
   }
 
   const handleMenuToggle = (notificationId: number) => {
+    if (isNotificationMutating) {
+      return
+    }
+
     setOpenMenuId((currentId) =>
       currentId === notificationId ? null : notificationId,
     )
   }
 
-  const handleRead = (notificationId: number) => {
-    setNotifications((currentNotifications) =>
-      currentNotifications.map((notification) =>
-        notification.id === notificationId
-          ? { ...notification, isRead: true }
-          : notification,
-      ),
+  const handleRead = async (notificationId: number) => {
+    if (isNotificationMutating) {
+      return
+    }
+
+    const selectedNotification = notifications.find(
+      (notification) => notification.id === notificationId,
     )
+
+    setIsNotificationMutating(true)
+    setActionError(null)
     setOpenMenuId(null)
+
+    try {
+      await readNotification(notificationId)
+      setNotifications((currentNotifications) =>
+        currentNotifications.map((notification) =>
+          notification.id === notificationId
+            ? { ...notification, isRead: true }
+            : notification,
+        ),
+      )
+
+      if (selectedNotification && !selectedNotification.isRead) {
+        setNotificationCount(Math.max(0, unreadNotificationCount - 1))
+      }
+    } catch {
+      setActionError('알림을 읽음 처리하지 못했습니다.')
+    } finally {
+      setIsNotificationMutating(false)
+    }
   }
 
   const handleDeleteRequest = (notificationId: number) => {
+    if (isNotificationMutating) {
+      return
+    }
+
     setPendingDeleteId(notificationId)
     setOpenMenuId(null)
   }
@@ -169,34 +207,130 @@ export function NotificationPage() {
     setPendingDeleteId(null)
   }, [])
 
-  const handleDeleteConfirm = () => {
-    if (pendingDeleteId === null) {
+  const handleDeleteConfirm = async () => {
+    if (pendingDeleteId === null || isNotificationMutating) {
       return
     }
 
-    setNotifications((currentNotifications) =>
-      currentNotifications.filter(
-        (notification) => notification.id !== pendingDeleteId,
-      ),
+    const selectedNotification = notifications.find(
+      (notification) => notification.id === pendingDeleteId,
     )
-    setPendingDeleteId(null)
+
+    setIsNotificationMutating(true)
+    setActionError(null)
+
+    try {
+      await deleteNotification(pendingDeleteId)
+      setNotifications((currentNotifications) =>
+        currentNotifications.filter(
+          (notification) => notification.id !== pendingDeleteId,
+        ),
+      )
+
+      if (selectedNotification && !selectedNotification.isRead) {
+        setNotificationCount(Math.max(0, unreadNotificationCount - 1))
+      }
+
+      setPendingDeleteId(null)
+    } catch {
+      setActionError('알림을 삭제하지 못했습니다.')
+      setPendingDeleteId(null)
+    } finally {
+      setIsNotificationMutating(false)
+    }
   }
 
   const handleSettingsOpen = () => {
     setIsSettingsOpen(true)
     setOpenMenuId(null)
+
+    if (settingsError) {
+      void loadSettings()
+    }
   }
 
   const handleSettingsClose = useCallback(() => {
     setIsSettingsOpen(false)
   }, [])
 
-  const handleSettingToggle = (setting: NotificationSettingKey) => {
-    setNotificationSettings((currentSettings) => ({
-      ...currentSettings,
-      [setting]: !currentSettings[setting],
-    }))
+  const handleSettingToggle = async (setting: NotificationSettingKey) => {
+    if (isSettingsLoading || isSettingsUpdating) {
+      return
+    }
+
+    const previousSettings = notificationSettings
+    const nextSettings = {
+      ...notificationSettings,
+      [setting]: !notificationSettings[setting],
+    }
+
+    setNotificationSettings(nextSettings)
+    setIsSettingsUpdating(true)
+    setSettingsError(null)
+
+    try {
+      const response = await updateNotificationSettings(nextSettings, setting)
+
+      setNotificationSettings(response)
+    } catch {
+      setNotificationSettings(previousSettings)
+      setSettingsError('알림 설정을 변경하지 못했습니다.')
+    } finally {
+      setIsSettingsUpdating(false)
+    }
   }
+
+  useEffect(() => {
+    let isCancelled = false
+
+    getNotifications()
+      .then((response) => {
+        if (isCancelled) {
+          return
+        }
+
+        const nextNotifications = response.map((notification) =>
+          mapNotificationResponse(notification, notificationAvatar),
+        )
+        const unreadCount = nextNotifications.filter(
+          (notification) => !notification.isRead,
+        ).length
+
+        setNotifications(nextNotifications)
+        setNotificationCount(unreadCount)
+      })
+      .catch(() => {
+        if (!isCancelled) {
+          setLoadError('알림을 불러오지 못했습니다.')
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsLoading(false)
+        }
+      })
+
+    getNotificationSettings()
+      .then((response) => {
+        if (!isCancelled) {
+          setNotificationSettings(response)
+        }
+      })
+      .catch(() => {
+        if (!isCancelled) {
+          setSettingsError('알림 설정을 불러오지 못했습니다.')
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsSettingsLoading(false)
+        }
+      })
+
+    return () => {
+      isCancelled = true
+    }
+  }, [setNotificationCount])
 
   return (
     <Page>
@@ -206,7 +340,9 @@ export function NotificationPage() {
           <HeaderActions>
             <ReadAllButton
               type="button"
-              disabled={!hasUnreadNotification}
+              disabled={
+                !hasUnreadNotification || isLoading || isNotificationMutating
+              }
               onClick={handleReadAll}
             >
               <ReadAllIcon src={notificationReadAllIcon} alt="" />
@@ -225,7 +361,20 @@ export function NotificationPage() {
         </Header>
 
         <NotificationList aria-live="polite">
-          {notifications.length > 0 ? (
+          {actionError && <ActionError role="alert">{actionError}</ActionError>}
+
+          {isLoading ? (
+            <StatusState>
+              <StatusText>알림을 불러오는 중입니다.</StatusText>
+            </StatusState>
+          ) : loadError ? (
+            <StatusState>
+              <StatusText>{loadError}</StatusText>
+              <RetryButton type="button" onClick={loadNotifications}>
+                다시 시도
+              </RetryButton>
+            </StatusState>
+          ) : notifications.length > 0 ? (
             notifications.map((notification) => (
               <NotificationItem
                 key={notification.id}
@@ -246,6 +395,7 @@ export function NotificationPage() {
 
       {pendingDeleteId !== null && (
         <DeleteNotificationModal
+          isDeleting={isNotificationMutating}
           onCancel={handleDeleteCancel}
           onConfirm={handleDeleteConfirm}
         />
@@ -255,6 +405,8 @@ export function NotificationPage() {
         <NotificationSettingsModal
           closeIconUrl={notificationModalCloseIcon}
           settings={notificationSettings}
+          errorMessage={settingsError ?? undefined}
+          isUpdating={isSettingsLoading || isSettingsUpdating}
           onClose={handleSettingsClose}
           onToggle={handleSettingToggle}
         />
