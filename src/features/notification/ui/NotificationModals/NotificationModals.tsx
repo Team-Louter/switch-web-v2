@@ -26,18 +26,20 @@ const NOTIFICATION_SETTING_GROUPS: NotificationSettingOption[][] = [
 ]
 
 interface DeleteNotificationModalProps {
+  isDeleting?: boolean
   onCancel: () => void
   onConfirm: () => void
 }
 
 export function DeleteNotificationModal({
+  isDeleting = false,
   onCancel,
   onConfirm,
 }: DeleteNotificationModalProps) {
   const cancelButtonRef = useRef<HTMLButtonElement>(null)
 
   function handleOverlayClick(event: MouseEvent<HTMLDivElement>) {
-    if (event.target === event.currentTarget) {
+    if (event.target === event.currentTarget && !isDeleting) {
       onCancel()
     }
   }
@@ -46,7 +48,7 @@ export function DeleteNotificationModal({
     const previousOverflow = document.body.style.overflow
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
+      if (event.key === 'Escape' && !isDeleting) {
         onCancel()
       }
     }
@@ -59,7 +61,7 @@ export function DeleteNotificationModal({
       document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [onCancel])
+  }, [isDeleting, onCancel])
 
   return (
     <S.Overlay onClick={handleOverlayClick}>
@@ -67,6 +69,7 @@ export function DeleteNotificationModal({
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="delete-notification-title"
+        aria-busy={isDeleting}
       >
         <S.DeleteTitle id="delete-notification-title">
           선택한 알림을 삭제할까요?
@@ -75,11 +78,17 @@ export function DeleteNotificationModal({
           <S.DeleteActionButton
             ref={cancelButtonRef}
             type="button"
+            disabled={isDeleting}
             onClick={onCancel}
           >
             취소
           </S.DeleteActionButton>
-          <S.DeleteActionButton type="button" $danger onClick={onConfirm}>
+          <S.DeleteActionButton
+            type="button"
+            $danger
+            disabled={isDeleting}
+            onClick={onConfirm}
+          >
             삭제
           </S.DeleteActionButton>
         </S.DeleteActions>
@@ -91,6 +100,8 @@ export function DeleteNotificationModal({
 interface NotificationSettingsModalProps {
   closeIconUrl: string
   settings: NotificationSettings
+  errorMessage?: string
+  isUpdating?: boolean
   onClose: () => void
   onToggle: (setting: NotificationSettingKey) => void
 }
@@ -98,6 +109,8 @@ interface NotificationSettingsModalProps {
 export function NotificationSettingsModal({
   closeIconUrl,
   settings,
+  errorMessage,
+  isUpdating = false,
   onClose,
   onToggle,
 }: NotificationSettingsModalProps) {
@@ -134,6 +147,7 @@ export function NotificationSettingsModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="notification-settings-title"
+        aria-busy={isUpdating}
       >
         <S.SettingsHeader>
           <S.SettingsTitle id="notification-settings-title">
@@ -163,6 +177,7 @@ export function NotificationSettingsModal({
                     aria-checked={isEnabled}
                     aria-label={`${label} ${isEnabled ? '끄기' : '켜기'}`}
                     $enabled={isEnabled}
+                    disabled={isUpdating}
                     onClick={() => onToggle(key)}
                   >
                     <S.ToggleThumb $enabled={isEnabled} />
@@ -172,6 +187,10 @@ export function NotificationSettingsModal({
             })}
           </S.SettingsGroup>
         ))}
+
+        {errorMessage && (
+          <S.SettingsError role="alert">{errorMessage}</S.SettingsError>
+        )}
       </S.SettingsDialog>
     </S.Overlay>
   )
