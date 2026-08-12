@@ -6,6 +6,7 @@ import {
   clearPendingAccessToken,
   getAccessToken,
   getPendingAccessToken,
+  isAccessTokenExpired,
   setAccessToken,
 } from '@/shared/lib/authToken'
 
@@ -43,8 +44,8 @@ export function refreshAccessToken(): Promise<string> {
     .then((response) => {
       const accessToken = response.data.access_token?.trim()
 
-      if (!accessToken) {
-        throw new Error('토큰 갱신 응답에 액세스 토큰이 없습니다.')
+      if (!accessToken || isAccessTokenExpired(accessToken)) {
+        throw new Error('토큰 갱신 응답에 유효한 액세스 토큰이 없습니다.')
       }
 
       setAccessToken(accessToken)
