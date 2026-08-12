@@ -448,6 +448,7 @@ export function NotificationPage() {
                   notification={notification}
                   typeIconUrl={NOTIFICATION_TYPE_ICONS[notification.type]}
                   moreIconUrl={notificationMoreIcon}
+                  fallbackActorImageUrl={notificationAvatar}
                   isMenuOpen={openMenuId === notification.id}
                   onMenuToggle={handleMenuToggle}
                   onReadToggle={handleReadToggle}
