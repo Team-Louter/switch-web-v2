@@ -1,17 +1,14 @@
-import type { PropsWithChildren } from 'react'
 import { useMemo } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
-import {
-  SIDEBAR_MENU,
-  type SidebarItemId,
-} from '@/shared/constants/sidebar'
+
+import { SIDEBAR_MENU } from '@/shared/constants/sidebar'
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 
-type AppLayoutProps = PropsWithChildren
+import type { SidebarItemId } from '@/shared/constants/sidebar'
 
-export function AppLayout({ children }: AppLayoutProps) {
+export function AppLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const shouldShowSidebar =
@@ -42,7 +39,9 @@ export function AppLayout({ children }: AppLayoutProps) {
           />
         </Side>
       )}
-      <Body>{children}</Body>
+      <Body>
+        <Outlet />
+      </Body>
     </Layout>
   )
 }

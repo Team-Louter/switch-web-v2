@@ -16,7 +16,7 @@ export type SidebarMenuItem = {
 }
 
 export const PRIMARY_SIDEBAR_MENU: SidebarMenuItem[] = [
-  { id: 'home', label: '홈', path: '/' },
+  { id: 'home', label: '홈', path: '/home' },
   { id: 'community', label: '커뮤니티', path: '/community' },
   { id: 'calendar', label: '캘린더', path: '/calendar' },
   { id: 'learning', label: '학습관리', path: '/learning' },
