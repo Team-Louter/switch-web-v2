@@ -180,8 +180,4 @@ export const MenuActionButton = styled.button`
     outline-offset: -2px;
   }
 
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
-  }
 `
