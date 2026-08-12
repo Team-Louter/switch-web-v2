@@ -1,10 +1,19 @@
-import { useSyncExternalStore } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 
+import { refreshAccessToken } from '@/shared/api'
 import {
   AUTH_STATE_CHANGED_EVENT,
+  clearAccessToken,
+  clearPendingAccessToken,
+  getAccessToken,
   hasAccessToken,
 } from '@/shared/lib/authToken'
+
+interface AuthenticationState {
+  isAuthenticated: boolean
+  isChecking: boolean
+}
 
 function subscribeToAuthState(onStoreChange: () => void) {
   function handleAuthStateChange() {
@@ -20,8 +29,39 @@ function subscribeToAuthState(onStoreChange: () => void) {
   }
 }
 
-function useIsAuthenticated() {
-  return useSyncExternalStore(subscribeToAuthState, hasAccessToken, () => false)
+function useAuthenticationState(): AuthenticationState {
+  const isAuthenticated = useSyncExternalStore(
+    subscribeToAuthState,
+    hasAccessToken,
+    () => false,
+  )
+  const accessToken = getAccessToken()
+  const [checkedAccessToken, setCheckedAccessToken] = useState<string | null>(
+    null,
+  )
+  const shouldRefresh = Boolean(
+    accessToken && !isAuthenticated && checkedAccessToken !== accessToken,
+  )
+
+  useEffect(() => {
+    if (!shouldRefresh || !accessToken) {
+      return
+    }
+
+    refreshAccessToken()
+      .catch(() => {
+        clearAccessToken()
+        clearPendingAccessToken()
+      })
+      .finally(() => {
+        setCheckedAccessToken(accessToken)
+      })
+  }, [accessToken, shouldRefresh])
+
+  return {
+    isAuthenticated,
+    isChecking: shouldRefresh,
+  }
 }
 
 function getSafeReturnPath(locationState: unknown): string {
@@ -44,17 +84,25 @@ function getSafeReturnPath(locationState: unknown): string {
 }
 
 export function GuestOnlyRoute() {
-  const isAuthenticated = useIsAuthenticated()
+  const { isAuthenticated, isChecking } = useAuthenticationState()
   const location = useLocation()
   const returnPath = getSafeReturnPath(location.state)
+
+  if (isChecking) {
+    return null
+  }
 
   return isAuthenticated ? <Navigate to={returnPath} replace /> : <Outlet />
 }
 
 export function ProtectedRoute() {
-  const isAuthenticated = useIsAuthenticated()
+  const { isAuthenticated, isChecking } = useAuthenticationState()
   const location = useLocation()
   const returnPath = `${location.pathname}${location.search}${location.hash}`
+
+  if (isChecking) {
+    return null
+  }
 
   return isAuthenticated ? (
     <Outlet />
@@ -64,7 +112,11 @@ export function ProtectedRoute() {
 }
 
 export function RootRoute() {
-  const isAuthenticated = useIsAuthenticated()
+  const { isAuthenticated, isChecking } = useAuthenticationState()
+
+  if (isChecking) {
+    return null
+  }
 
   return <Navigate to={isAuthenticated ? '/home' : '/login'} replace />
 }
