@@ -7,12 +7,20 @@ export const Page = styled.main`
   align-items: center;
   min-height: 100dvh;
   padding: 50px 30px;
+
+  @media (max-width: 760px) {
+    padding: 32px 20px;
+  }
 `
 
 export const Content = styled.div`
   ${token.flexColumnStart}
   width: min(100%, 1000px);
   gap: 40px;
+
+  @media (max-width: 760px) {
+    gap: 28px;
+  }
 `
 
 export const Header = styled.header`
@@ -42,6 +50,39 @@ export const ReadAllButton = styled.button`
     outline: 2px solid ${token.colors.primary.primary40};
     outline-offset: 4px;
   }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+`
+
+export const ReadAllIcon = styled.img`
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+`
+
+export const SettingsButton = styled.button`
+  ${token.flexCenter}
+  width: 24px;
+  height: 24px;
+  border-radius: ${token.shapes.xsmall};
+
+  &:hover {
+    background: ${token.colors.gray.gray0};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary40};
+    outline-offset: 3px;
+  }
+`
+
+export const SettingsIcon = styled.img`
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 `
 
 export const NotificationList = styled.div`
