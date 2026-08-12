@@ -18,6 +18,7 @@ import {
   MenuButton,
   MenuLabel,
   MenuList,
+  NotificationCount,
   ProfileButton,
   ProfileMeta,
   ProfileName,
@@ -26,12 +27,17 @@ import {
 } from './Sidebar.style'
 import { SidebarIcon } from './SidebarIcon'
 
-type SidebarProps = {
+interface SidebarProps {
   activeItemId?: SidebarItemId
+  notificationCount?: string
   onItemSelect?: (itemId: SidebarItemId) => void
 }
 
-export function Sidebar({ activeItemId = 'home', onItemSelect }: SidebarProps) {
+export function Sidebar({
+  activeItemId = 'home',
+  notificationCount,
+  onItemSelect,
+}: SidebarProps) {
   return (
     <Aside aria-label="주요 메뉴">
       <LogoArea>
@@ -66,6 +72,9 @@ export function Sidebar({ activeItemId = 'home', onItemSelect }: SidebarProps) {
           >
             <SidebarIcon item={item} active={activeItemId === item.id} />
             <MenuLabel $active={activeItemId === item.id}>{item.label}</MenuLabel>
+            {item.id === 'notification' && notificationCount && (
+              <NotificationCount>{notificationCount}</NotificationCount>
+            )}
           </MenuButton>
         ))}
       </MenuList>
