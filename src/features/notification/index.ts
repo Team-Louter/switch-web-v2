@@ -1,1 +1,9 @@
-export type { NotificationMenuAction } from './model/types'
+export type {
+  NotificationMenuAction,
+  NotificationSettingKey,
+  NotificationSettings,
+} from './model/types'
+export {
+  DeleteNotificationModal,
+  NotificationSettingsModal,
+} from './ui/NotificationModals'
