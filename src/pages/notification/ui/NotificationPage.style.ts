@@ -91,6 +91,30 @@ export const NotificationList = styled.div`
   gap: 14px;
 `
 
+export const LoadMoreButton = styled.button`
+  align-self: center;
+  padding: 10px 20px;
+  border-radius: ${token.shapes.small};
+  color: ${token.colors.gray.gray70};
+  background: ${token.colors.gray.gray0};
+  line-height: 1;
+  ${token.typography('body', 'sm', 'medium')}
+
+  &:hover {
+    background: ${token.colors.gray.gray10};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary40};
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+`
+
 export const EmptyState = styled.p`
   width: 100%;
   padding: 80px 0;
