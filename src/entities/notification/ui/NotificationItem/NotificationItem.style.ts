@@ -179,4 +179,9 @@ export const MenuActionButton = styled.button`
     outline: 2px solid ${token.colors.primary.primary40};
     outline-offset: -2px;
   }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
 `
