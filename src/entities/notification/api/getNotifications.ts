@@ -1,10 +1,16 @@
 import { apiClient } from '@/shared/api'
 
-import type { NotificationResponse } from '../model/types'
+import type {
+  GetNotificationsParams,
+  NotificationPageResponse,
+} from '../model/types'
 
-export async function getNotifications(): Promise<NotificationResponse[]> {
-  const response = await apiClient.get<NotificationResponse[]>(
+export async function getNotifications(
+  params: GetNotificationsParams = {},
+): Promise<NotificationPageResponse> {
+  const response = await apiClient.get<NotificationPageResponse>(
     '/in-app-notifications',
+    { params },
   )
 
   return response.data
