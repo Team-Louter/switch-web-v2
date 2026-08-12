@@ -50,6 +50,11 @@ export const MemberList = styled.div`
   background-color: ${token.colors.gray.gray0};
 `
 
+export const GradeGroup = styled.div`
+  ${token.flexColumnStart}
+  width: 100%;
+`
+
 export const GradeRow = styled.div`
   ${token.flexBetween}
   width: 100%;
@@ -61,19 +66,30 @@ export const GradeRow = styled.div`
 
 export const GradeLabel = styled.button`
   ${token.typography('body', 'md', 'semibold')}
-  ${token.flexBetween}
+  ${token.flexLeft}
   flex: 1 1 0;
-  gap: 8px;
+  min-width: 0;
   padding: 0;
   border: 0;
   background-color: transparent;
   color: ${token.colors.gray.gray80};
   cursor: pointer;
+`
+
+export const CaretButton = styled.button`
+  ${token.flexCenter}
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  color: ${token.colors.gray.gray50};
+  cursor: pointer;
 
   svg {
     width: 18px;
     height: 18px;
-    color: ${token.colors.gray.gray50};
   }
 `
 

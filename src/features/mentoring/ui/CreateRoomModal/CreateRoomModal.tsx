@@ -168,7 +168,7 @@ function CreateRoomModalContent({
                   )
 
                 return (
-                  <div key={grade}>
+                  <S.GradeGroup key={grade}>
                     <S.GradeRow>
                       <S.GradeLabel
                         type="button"
@@ -176,11 +176,6 @@ function CreateRoomModalContent({
                         onClick={() => toggleGrade(grade)}
                       >
                         {grade}학년
-                        {isOpened ? (
-                          <PiCaretUp aria-hidden="true" />
-                        ) : (
-                          <PiCaretDown aria-hidden="true" />
-                        )}
                       </S.GradeLabel>
                       <S.CheckBox
                         type="button"
@@ -192,6 +187,18 @@ function CreateRoomModalContent({
                       >
                         {isAllSelected && <PiCheck aria-hidden="true" />}
                       </S.CheckBox>
+                      <S.CaretButton
+                        type="button"
+                        aria-expanded={isOpened}
+                        aria-label={`${grade}학년 ${isOpened ? '접기' : '펼치기'}`}
+                        onClick={() => toggleGrade(grade)}
+                      >
+                        {isOpened ? (
+                          <PiCaretUp aria-hidden="true" />
+                        ) : (
+                          <PiCaretDown aria-hidden="true" />
+                        )}
+                      </S.CaretButton>
                     </S.GradeRow>
                     {/* 학년을 펼쳤을 때만 멤버를 노출한다 */}
                     {isOpened &&
@@ -222,7 +229,7 @@ function CreateRoomModalContent({
                           </S.MemberRow>
                         )
                       })}
-                  </div>
+                  </S.GradeGroup>
                 )
               })
             )}
