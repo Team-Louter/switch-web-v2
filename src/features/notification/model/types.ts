@@ -6,14 +6,11 @@ export type NotificationSettings = NotificationSettingsResponse
 
 export type NotificationSettingKey = keyof NotificationSettings
 
-export interface UpdateNotificationContentSettingsRequest {
-  mentoringEnabled: boolean
-  commentEnabled: boolean
-  scheduleEnabled: boolean
+export interface ReadAllNotificationsResponse {
+  updatedCount: number
 }
 
-export interface UpdateNotificationChannelSettingsRequest {
-  pushEnabled: boolean
-  inAppEnabled: boolean
-  emailEnabled: boolean
+export interface PatchNotificationSettingRequest {
+  setting: NotificationSettingKey
+  enabled: boolean
 }
