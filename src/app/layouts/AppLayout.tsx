@@ -8,6 +8,8 @@ import {
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 
+const MOCK_NOTIFICATION_COUNT = '15+'
+
 export function AppLayout() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -31,6 +33,7 @@ export function AppLayout() {
       <Side>
         <Sidebar
           activeItemId={activeSidebarItemId}
+          notificationCount={MOCK_NOTIFICATION_COUNT}
           onItemSelect={handleSidebarItemSelect}
         />
       </Side>
