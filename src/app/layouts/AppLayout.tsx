@@ -1,6 +1,5 @@
-import type { PropsWithChildren } from 'react'
 import { useMemo } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import {
   SIDEBAR_MENU,
@@ -9,9 +8,7 @@ import {
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 
-type AppLayoutProps = PropsWithChildren
-
-export function AppLayout({ children }: AppLayoutProps) {
+export function AppLayout() {
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -37,7 +34,9 @@ export function AppLayout({ children }: AppLayoutProps) {
           onItemSelect={handleSidebarItemSelect}
         />
       </Side>
-      <Body>{children}</Body>
+      <Body>
+        <Outlet />
+      </Body>
     </Layout>
   )
 }
