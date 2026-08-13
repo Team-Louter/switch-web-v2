@@ -10,7 +10,7 @@ interface SkeletonBlockProps {
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
-  padding: clamp(32px, 5.1dvh, 50px) clamp(24px, 6.62vw, 100px);
+  padding: clamp(32px, 5.1dvh, 50px) clamp(24px, 8.31%, 100px);
   container-name: community-detail;
   container-type: inline-size;
   background: ${token.colors.white};
