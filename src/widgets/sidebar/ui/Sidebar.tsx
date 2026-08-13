@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from 'react'
+
 import dividerImage from '@/shared/assets/sidebar/divider.svg'
 import profileImage from '@/shared/assets/sidebar/profile.png'
 import switchLogo from '@/shared/assets/sidebar/switch-logo.svg'
@@ -24,20 +26,48 @@ import {
   ProfileName,
   ProfileText,
   Spacer,
+  type NotificationCountAnimationDirection,
 } from './Sidebar.style'
 import { SidebarIcon } from './SidebarIcon'
 
 interface SidebarProps {
   activeItemId?: SidebarItemId
-  notificationCount?: string
+  notificationCount?: number
   onItemSelect?: (itemId: SidebarItemId) => void
 }
 
 export function Sidebar({
   activeItemId = 'home',
-  notificationCount,
+  notificationCount = 0,
   onItemSelect,
 }: SidebarProps) {
+  const previousNotificationCountRef = useRef(notificationCount)
+  const [notificationCountDirection, setNotificationCountDirection] =
+    useState<NotificationCountAnimationDirection>()
+  const notificationCountLabel =
+    notificationCount >= 15 ? '15+' : String(notificationCount)
+
+  useEffect(() => {
+    const previousNotificationCount = previousNotificationCountRef.current
+
+    if (notificationCount === previousNotificationCount) {
+      return
+    }
+
+    previousNotificationCountRef.current = notificationCount
+    setNotificationCountDirection(
+      notificationCount > previousNotificationCount ? 'increase' : 'decrease',
+    )
+
+    const animationTimer = window.setTimeout(() => {
+      setNotificationCountDirection(undefined)
+    }, 220)
+
+    return () => {
+      window.clearTimeout(animationTimer)
+    }
+  }, [notificationCount])
+
   return (
     <Aside aria-label="주요 메뉴">
       <LogoArea>
@@ -72,8 +102,13 @@ export function Sidebar({
           >
             <SidebarIcon item={item} active={activeItemId === item.id} />
             <MenuLabel $active={activeItemId === item.id}>{item.label}</MenuLabel>
-            {item.id === 'notification' && notificationCount && (
-              <NotificationCount>{notificationCount}</NotificationCount>
+            {item.id === 'notification' && notificationCount > 0 && (
+              <NotificationCount
+                key={notificationCount}
+                $direction={notificationCountDirection}
+              >
+                {notificationCountLabel}
+              </NotificationCount>
             )}
           </MenuButton>
         ))}
