@@ -10,6 +10,7 @@ import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import type { SidebarItemId } from '@/shared/constants/sidebar'
 
 const UNREAD_NOTIFICATION_COUNT_STORAGE_KEY = 'switch:unread-notification-count'
+const UNREAD_NOTIFICATION_POLLING_INTERVAL = 15_000
 
 function getStoredUnreadNotificationCount(): number {
   if (typeof window === 'undefined') {
@@ -70,16 +71,38 @@ export function AppLayout() {
   useEffect(() => {
     let isCancelled = false
 
-    getUnreadNotificationCount()
-      .then((unreadCount) => {
+    const synchronizeNotificationCount = async () => {
+      try {
+        const unreadCount = await getUnreadNotificationCount()
+
         if (!isCancelled) {
           updateNotificationCount(unreadCount)
         }
-      })
-      .catch(() => {})
+      } catch {
+        // Keep the latest verified count until the next synchronization.
+      }
+    }
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        void synchronizeNotificationCount()
+      }
+    }
+
+    void synchronizeNotificationCount()
+
+    const pollingTimer = window.setInterval(() => {
+      if (!document.hidden) {
+        void synchronizeNotificationCount()
+      }
+    }, UNREAD_NOTIFICATION_POLLING_INTERVAL)
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 
     return () => {
       isCancelled = true
+      window.clearInterval(pollingTimer)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [updateNotificationCount])
 
