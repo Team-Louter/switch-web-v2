@@ -256,7 +256,7 @@ export const StatGroup = styled.div`
 export const Stat = styled.span`
   ${token.flexLeft}
   gap: 6px;
-  color: ${token.colors.gray.gray80};
+  color: #404040;
   ${token.typography('body', 'md', 'semibold')}
   line-height: 1;
   white-space: nowrap;
@@ -267,7 +267,7 @@ export const HeartButton = styled.button`
   gap: 6px;
   padding: 0;
   border: 0;
-  color: ${token.colors.gray.gray80};
+  color: #404040;
   background: transparent;
   ${token.typography('body', 'md', 'semibold')}
   line-height: 1;
@@ -282,7 +282,7 @@ export const HeartButton = styled.button`
 export const StatIcon = styled.img`
   width: 20px;
   height: 20px;
-  object-fit: none;
+  object-fit: contain;
 `
 
 export const AttachmentButton = styled.button`
@@ -295,7 +295,7 @@ export const AttachmentButton = styled.button`
   overflow: hidden;
   border: 0;
   border-radius: ${token.shapes.small};
-  color: ${token.colors.gray.gray70};
+  color: #404040;
   background: #f5f5f5;
   cursor: pointer;
 `
@@ -453,7 +453,7 @@ export const ActionError = styled.p`
 
 export const CommentRow = styled.article`
   ${token.flexLeft}
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
   width: 100%;
   min-height: 80px;
@@ -468,8 +468,8 @@ export const ReplyGuide = styled.span`
     position: absolute;
     top: 0;
     bottom: 0;
-    left: 12px;
-    width: 1px;
+    left: 10px;
+    width: 4px;
     background: ${token.colors.gray.gray10};
     content: '';
   }
@@ -501,14 +501,15 @@ export const CommentContent = styled.div`
 `
 
 export const CommentHeader = styled.div`
-  ${token.flexBetween}
-  gap: 16px;
+  ${token.flexLeft}
+  gap: 28px;
+  width: 100%;
   min-height: 32px;
 `
 
 export const CommentMeta = styled.div`
   ${token.flexLeft}
-  flex-wrap: wrap;
+  flex: 0 0 auto;
   gap: 8px;
   padding: 4px 0;
 `
@@ -529,8 +530,9 @@ export const CommentDate = styled.time`
 
 export const CommentMenuButton = styled.button`
   ${token.flexCenter}
-  width: 24px;
-  height: 24px;
+  flex: 0 0 24.01px;
+  width: 24.01px;
+  height: 24.01px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -538,8 +540,9 @@ export const CommentMenuButton = styled.button`
 `
 
 export const CommentMenuIcon = styled.img`
-  width: 24px;
-  height: 24px;
+  width: 24.01px;
+  height: 24.01px;
+  object-fit: contain;
 `
 
 export const CommentText = styled.p`
