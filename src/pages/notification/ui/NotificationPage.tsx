@@ -42,6 +42,15 @@ import {
   RetryButton,
   SettingsButton,
   SettingsIcon,
+  SkeletonAvatar,
+  SkeletonControls,
+  SkeletonIndicator,
+  SkeletonItem,
+  SkeletonLine,
+  SkeletonList,
+  SkeletonMain,
+  SkeletonOccurredAt,
+  SkeletonText,
   StatusState,
   StatusText,
   Title,
@@ -54,6 +63,8 @@ interface NotificationOutletContext {
 const NOTIFICATION_TYPE_ICONS: Partial<Record<NotificationType, string>> = {
   comment: notificationCommentIcon,
 }
+
+const SKELETON_ITEM_COUNT = 4
 
 const INITIAL_NOTIFICATION_SETTINGS: NotificationSettings = {
   mentoringEnabled: true,
@@ -426,13 +437,28 @@ export function NotificationPage() {
           </HeaderActions>
         </Header>
 
-        <NotificationList aria-live="polite">
+        <NotificationList aria-busy={isLoading} aria-live="polite">
           {actionError && <ActionError role="alert">{actionError}</ActionError>}
 
           {isLoading ? (
-            <StatusState>
-              <StatusText>알림을 불러오는 중입니다.</StatusText>
-            </StatusState>
+            <SkeletonList aria-label="알림을 불러오는 중입니다.">
+              {Array.from({ length: SKELETON_ITEM_COUNT }, (_, index) => (
+                <SkeletonItem key={index} aria-hidden="true">
+                  <SkeletonMain>
+                    <SkeletonAvatar />
+                    <SkeletonText>
+                      <SkeletonLine $width="64px" />
+                      <SkeletonLine $width="260px" />
+                      <SkeletonLine $width="180px" />
+                    </SkeletonText>
+                  </SkeletonMain>
+                  <SkeletonControls>
+                    <SkeletonIndicator />
+                    <SkeletonOccurredAt />
+                  </SkeletonControls>
+                </SkeletonItem>
+              ))}
+            </SkeletonList>
           ) : loadError ? (
             <StatusState>
               <StatusText>{loadError}</StatusText>
