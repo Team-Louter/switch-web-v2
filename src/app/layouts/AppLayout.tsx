@@ -13,11 +13,18 @@ export function AppLayout() {
   const navigate = useNavigate()
   const shouldShowSidebar =
     !location.pathname.startsWith('/my/edit') &&
+    !location.pathname.startsWith('/my/withdraw-complete') &&
+    location.pathname !== '/typing/daily' &&
+    !location.pathname.startsWith('/typing/code/')
     !location.pathname.startsWith('/my/withdraw-complete')
 
   const activeSidebarItemId = useMemo(() => {
     return (
-      SIDEBAR_MENU.find((item) => item.path === location.pathname)?.id ?? 'home'
+      SIDEBAR_MENU.find((item) =>
+        item.path === '/'
+          ? location.pathname === '/'
+          : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`),
+      )?.id ?? 'home'
     )
   }, [location.pathname])
 
