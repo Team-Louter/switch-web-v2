@@ -110,11 +110,13 @@ export function AppLayout() {
     <Layout>
       {shouldShowSidebar && (
         <Side>
-          <Sidebar
-            activeItemId={activeSidebarItemId}
-            notificationCount={notificationCount}
-            onItemSelect={handleSidebarItemSelect}
-          />
+          <SidebarContainer>
+            <Sidebar
+              activeItemId={activeSidebarItemId}
+              notificationCount={notificationCount}
+              onItemSelect={handleSidebarItemSelect}
+            />
+          </SidebarContainer>
         </Side>
       )}
       <Body>
@@ -134,14 +136,20 @@ const Layout = styled.main`
 
 const Side = styled.div`
   ${token.flexLeft}
-  position: sticky;
-  top: 0;
   align-items: flex-start;
-  align-self: flex-start;
   flex: 0 0 clamp(260px, 21.5vw, 309px);
   width: clamp(260px, 21.5vw, 309px);
   box-sizing: border-box;
+  min-height: 100dvh;
+`
+
+const SidebarContainer = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: clamp(260px, 21.5vw, 309px);
   height: 100dvh;
+  box-sizing: border-box;
   padding: clamp(20px, 2vw, 30px);
 `
 
