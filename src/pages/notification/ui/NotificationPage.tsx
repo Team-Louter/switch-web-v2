@@ -65,6 +65,7 @@ const NOTIFICATION_TYPE_ICONS: Partial<Record<NotificationType, string>> = {
 }
 
 const SKELETON_ITEM_COUNT = 4
+const NOTIFICATION_POLLING_INTERVAL = 15_000
 
 const INITIAL_NOTIFICATION_SETTINGS: NotificationSettings = {
   mentoringEnabled: true,
@@ -121,6 +122,33 @@ export function NotificationPage() {
       setLoadError('알림을 불러오지 못했습니다.')
     } finally {
       setIsLoading(false)
+    }
+  }, [setNotificationCount])
+
+  const refreshNotifications = useCallback(async () => {
+    try {
+      const [response, unreadCount] = await Promise.all([
+        getNotifications(),
+        getUnreadNotificationCount(),
+      ])
+      const refreshedNotifications = response.content.map((notification) =>
+        mapNotificationResponse(notification),
+      )
+      const refreshedNotificationIds = new Set(
+        refreshedNotifications.map((notification) => notification.id),
+      )
+
+      setNotifications((currentNotifications) => [
+        ...refreshedNotifications,
+        ...currentNotifications.filter(
+          (notification) => !refreshedNotificationIds.has(notification.id),
+        ),
+      ])
+      setUnreadNotificationCount(unreadCount)
+      setNotificationCount(unreadCount)
+      setLoadError(null)
+    } catch {
+      // Keep the currently visible notifications until the next refresh.
     }
   }, [setNotificationCount])
 
@@ -408,6 +436,27 @@ export function NotificationPage() {
       isCancelled = true
     }
   }, [setNotificationCount])
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        void refreshNotifications()
+      }
+    }
+
+    const pollingTimer = window.setInterval(() => {
+      if (!document.hidden) {
+        void refreshNotifications()
+      }
+    }, NOTIFICATION_POLLING_INTERVAL)
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.clearInterval(pollingTimer)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [refreshNotifications])
 
   return (
     <Page>
