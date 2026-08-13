@@ -7,6 +7,7 @@ import authorJeongMinSeong from '../assets/images/author-jeong-min-seong.png'
 import authorJoSangCheol from '../assets/images/author-jo-sang-cheol.png'
 import authorLeeDaYeon from '../assets/images/author-lee-da-yeon.png'
 import authorLeeJunHyeon from '../assets/images/author-lee-jun-hyeon.png'
+import pinIcon from '../assets/svg/pin-solid.svg'
 import commentIcon from '@/shared/assets/my/comment-icon.svg'
 import eyeIcon from '@/shared/assets/my/eye-icon.svg'
 import heartIcon from '@/shared/assets/my/heart-icon.svg'
@@ -29,6 +30,7 @@ import {
   Page,
   PageButton,
   Pagination,
+  PinnedIcon,
   PostCategory,
   PostList,
   PostRow,
@@ -54,6 +56,7 @@ interface CommunityPost {
   id: number
   category: PostCategory
   title: string
+  isPinned: boolean
   author: string
   authorImage: string
   date: string
@@ -79,6 +82,7 @@ const POSTS: readonly CommunityPost[] = [
     id: 1,
     category: '공지사항',
     title: '[필독] 라우터 커뮤니티 규칙',
+    isPinned: true,
     author: '이도연',
     authorImage: authorIdoYeon,
     date: '2026.01.01 23:59',
@@ -91,6 +95,7 @@ const POSTS: readonly CommunityPost[] = [
     id: 2,
     category: '과제',
     title: '[기획] 2213최현수 과제 제출',
+    isPinned: false,
     author: '최현수',
     authorImage: authorChoiHyeonSu,
     date: '2026.01.01 23:59',
@@ -103,6 +108,7 @@ const POSTS: readonly CommunityPost[] = [
     id: 3,
     category: 'Q&A',
     title: '깃허브 사용법이 궁금해요',
+    isPinned: false,
     author: '조상철',
     authorImage: authorJoSangCheol,
     date: '2026.01.01 23:59',
@@ -115,6 +121,7 @@ const POSTS: readonly CommunityPost[] = [
     id: 4,
     category: 'Q&A',
     title: '다음 주 동아리 시간에 뭐하나요?',
+    isPinned: false,
     author: '이준현',
     authorImage: authorLeeJunHyeon,
     date: '2026.01.01 23:59',
@@ -127,6 +134,7 @@ const POSTS: readonly CommunityPost[] = [
     id: 5,
     category: '대회',
     title: '2026 SW미래채움 고교 AI·SW챌린지',
+    isPinned: false,
     author: '정민성',
     authorImage: authorJeongMinSeong,
     date: '2026.01.01 23:59',
@@ -139,6 +147,7 @@ const POSTS: readonly CommunityPost[] = [
     id: 6,
     category: '정보 공유',
     title: '피그마 필수 플러그인 공유',
+    isPinned: false,
     author: '이윤지',
     authorImage: authorJoSangCheol,
     date: '2026.01.01 23:59',
@@ -151,6 +160,7 @@ const POSTS: readonly CommunityPost[] = [
     id: 7,
     category: '과제',
     title: '7월 둘째 주 과제 예시자료',
+    isPinned: false,
     author: '전수안',
     authorImage: authorJeonSuAn,
     date: '2026.01.01 23:59',
@@ -163,6 +173,7 @@ const POSTS: readonly CommunityPost[] = [
     id: 8,
     category: '자유게시판',
     title: '작년 시험지 나눔',
+    isPinned: false,
     author: '이다연',
     authorImage: authorLeeDaYeon,
     date: '2026.01.01 23:59',
@@ -216,7 +227,10 @@ export function CommunityPage() {
               <CategoryCell>
                 <PostCategory>{post.category}</PostCategory>
               </CategoryCell>
-              <PostTitle>{post.title}</PostTitle>
+              {post.isPinned && (
+                <PinnedIcon src={pinIcon} alt="고정된 게시글" />
+              )}
+              <PostTitle $pinned={post.isPinned}>{post.title}</PostTitle>
               <Author>
                 <AuthorImage src={post.authorImage} alt={`${post.author} 프로필`} />
                 <AuthorName>{post.author}</AuthorName>
