@@ -1,4 +1,4 @@
-import styled, { keyframes } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
@@ -89,6 +89,33 @@ export const NotificationList = styled.div`
   ${token.flexColumnStart}
   width: 100%;
   gap: 14px;
+`
+
+const newNotificationEntrance = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`
+
+export const NewNotification = styled.div<{ $isNew: boolean }>`
+  width: 100%;
+  border-radius: ${token.shapes.medium};
+
+  ${({ $isNew }) =>
+    $isNew &&
+    css`
+      animation: ${newNotificationEntrance} 320ms ease-out;
+    `}
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 const shimmer = keyframes`
