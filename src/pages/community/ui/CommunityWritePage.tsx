@@ -1,5 +1,9 @@
 import { type FormEvent, useRef, useState } from 'react'
+import ReactMarkdown from 'react-markdown'
 import { useNavigate } from 'react-router-dom'
+import rehypeRaw from 'rehype-raw'
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
+import remarkGfm from 'remark-gfm'
 
 import {
   POST_CATEGORY_OPTIONS,
@@ -115,6 +119,11 @@ const EDITOR_TOOLS: readonly EditorTool[] = [
   { action: 'link', label: '링크', icon: linkIcon, width: 21.001, height: 21 },
   { action: 'image', label: '이미지', icon: imageIcon, width: 20, height: 20 },
 ]
+
+const markdownSanitizeSchema = {
+  ...defaultSchema,
+  tagNames: [...(defaultSchema.tagNames ?? []), 'u'],
+}
 
 function wrapEditorText(
   selectedText: string,
@@ -338,15 +347,34 @@ export function CommunityWritePage() {
           </S.Toolbar>
 
           <S.EditorDivider />
-          <S.ContentInput
-            ref={contentInputRef}
-            aria-label="게시글 내용"
-            placeholder="어떤 내용을 공유하고 싶으신가요?"
-            value={content}
-            required
-            disabled={isSubmitting}
-            onChange={(event) => setContent(event.target.value)}
-          />
+          <S.EditorBody>
+            <S.ContentInput
+              ref={contentInputRef}
+              aria-label="게시글 내용"
+              placeholder="어떤 내용을 공유하고 싶으신가요?"
+              value={content}
+              required
+              disabled={isSubmitting}
+              onChange={(event) => setContent(event.target.value)}
+            />
+            <S.MarkdownPreview aria-label="게시글 실시간 미리보기">
+              {content.trim() ? (
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[
+                    rehypeRaw,
+                    [rehypeSanitize, markdownSanitizeSchema],
+                  ]}
+                >
+                  {content}
+                </ReactMarkdown>
+              ) : (
+                <S.PreviewPlaceholder>
+                  입력한 내용이 실시간으로 표시됩니다.
+                </S.PreviewPlaceholder>
+              )}
+            </S.MarkdownPreview>
+          </S.EditorBody>
         </S.Editor>
         {submitError && (
           <S.SubmitError role="alert">{submitError}</S.SubmitError>
