@@ -129,7 +129,7 @@ export function TypingPage() {
             <SummaryCard
               icon={<FaRankingStar color="#29C54B" size={38} />}
               label="내 랭킹"
-              value={rankings?.myRanking.rank ?? '-'}
+              value={rankings?.myRanking?.rank ?? '-'}
               unit="등"
             />
             <SummaryCard
@@ -158,8 +158,8 @@ export function TypingPage() {
                 <S.RankValue>{getRanking(5) ? `${getRanking(5)?.averageSpeed}타` : '-'}</S.RankValue>
               </S.RankingItem>
               <S.RankingItem style={{ borderColor: tokens.colors.primary.primary50}}>
-                <S.Rank>{rankings?.myRanking.rank ?? '-'}</S.Rank>
-                <S.RankName>{rankings?.myRanking.userName ?? '-'}</S.RankName>
+                <S.Rank>{rankings?.myRanking?.rank ?? '-'}</S.Rank>
+                <S.RankName>{rankings?.myRanking?.userName ?? '-'}</S.RankName>
                 <S.RankValue>{rankings?.myRanking ? `${rankings.myRanking.averageSpeed}타` : '-'}</S.RankValue>
               </S.RankingItem>
             </S.RankingList>

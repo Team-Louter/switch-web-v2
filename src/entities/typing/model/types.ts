@@ -29,5 +29,5 @@ export interface Ranking {
 export interface RankingList {
   problemType: string,
   topRankings: Ranking[],
-  myRanking: Ranking
+  myRanking: Ranking | null
 }
