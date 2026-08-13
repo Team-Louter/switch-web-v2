@@ -124,7 +124,7 @@ const EDITOR_TOOLS: readonly EditorTool[] = [
 ]
 
 const INLINE_MARKDOWN_PATTERN =
-  /(\*\*[^*\n]+?\*\*|~~[^~\n]+?~~|<u>[^<\n]+?<\/u>|`[^`\n]+?`|!\[[^\]\n]*?\]\([^\)\n]+?\)|\[[^\]\n]+?\]\([^\)\n]+?\)|\*[^*\n]+?\*)/g
+  /(\*\*[^*\n]+?\*\*|~~[^~\n]+?~~|<u>[^<\n]+?<\/u>|`[^`\n]+?`|!\[[^\]\n]*?\]\([^)\n]+?\)|\[[^\]\n]+?\]\([^)\n]+?\)|\*[^*\n]+?\*)/g
 
 function renderInlineMarkdown(value: string): ReactNode[] {
   const nodes: ReactNode[] = []
