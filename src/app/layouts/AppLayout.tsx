@@ -1,12 +1,12 @@
 import { useMemo } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
-import {
-  SIDEBAR_MENU,
-  type SidebarItemId,
-} from '@/shared/constants/sidebar'
+
+import { SIDEBAR_MENU } from '@/shared/constants/sidebar'
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
+
+import type { SidebarItemId } from '@/shared/constants/sidebar'
 
 export function AppLayout() {
   const location = useLocation()
@@ -16,6 +16,7 @@ export function AppLayout() {
     !location.pathname.startsWith('/my/withdraw-complete') &&
     location.pathname !== '/typing/daily' &&
     !location.pathname.startsWith('/typing/code/')
+    !location.pathname.startsWith('/my/withdraw-complete')
 
   const activeSidebarItemId = useMemo(() => {
     return (
