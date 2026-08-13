@@ -37,9 +37,9 @@ monaco.editor.defineTheme('typing-vs-dark', {
   rules: [{ token: 'invalid', foreground: 'D4D4D4' }],
   colors: {},
 })
-monaco.typescript.javascriptDefaults.setCompilerOptions({
+monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
   allowNonTsExtensions: true,
-  jsx: monaco.typescript.JsxEmit.ReactJSX,
+  jsx: monaco.languages.typescript.JsxEmit.ReactJSX,
 })
 
 export function TypingSentenceModal({
