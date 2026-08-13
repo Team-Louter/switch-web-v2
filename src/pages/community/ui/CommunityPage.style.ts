@@ -10,7 +10,6 @@ export const Page = styled.section`
   min-height: 100dvh;
   padding: 50px 100px;
   background: ${token.colors.white};
-  zoom: 0.9;
 `
 
 export const Content = styled.div`
@@ -52,6 +51,7 @@ export const HeadingGroup = styled.div`
 export const CategoryTabs = styled.div`
   ${token.flexBetween}
   box-sizing: border-box;
+  width: min(1000px, 100%);
   min-height: 56px;
   padding: 4px;
   border-radius: ${token.shapes.xlarge};
@@ -74,22 +74,27 @@ export const CategoryTab = styled.button<{ $active: boolean }>`
 
 export const PostList = styled.section`
   overflow: hidden;
+  width: 100%;
   background: ${token.colors.white};
 `
 
 export const PostRow = styled.article`
-  display: grid;
-  grid-template-columns: 100px minmax(0, 1fr) 140px 180px 214px;
+  display: flex;
+  gap: 10px;
   align-items: center;
   box-sizing: border-box;
-  min-height: 72px;
+  width: min(1000px, 100%);
+  height: 72px;
   padding: 10px;
+  overflow: hidden;
   background: ${token.colors.white};
 `
 
 export const CategoryCell = styled.div`
-  ${token.flexLeft}
-  min-width: 0;
+  ${token.flexCenter}
+  flex: 0 0 80px;
+  height: 100%;
+  overflow: hidden;
 `
 
 export const PostCategory = styled.span`
@@ -109,8 +114,14 @@ export const PostCategory = styled.span`
 `
 
 export const PostTitle = styled.p`
+  display: flex;
+  flex: 0 0 348px;
+  align-items: center;
+  box-sizing: border-box;
+  height: 100%;
   overflow: hidden;
   margin: 0;
+  padding: 12px 0;
   color: ${token.colors.gray.gray100};
   ${token.typography('body', 'lg', 'semibold')}
   line-height: 1.2;
@@ -120,9 +131,12 @@ export const PostTitle = styled.p`
 
 export const Author = styled.div`
   ${token.flexCenter}
+  flex: 0 0 120px;
   gap: 8px;
-  min-width: 0;
-  padding: 0 12px;
+  box-sizing: border-box;
+  height: 100%;
+  padding: 12px 8px;
+  overflow: hidden;
 `
 
 export const AuthorImage = styled.img`
@@ -146,6 +160,10 @@ export const AuthorName = styled.p`
 
 export const Date = styled.time`
   ${token.flexCenter}
+  flex: 0 0 176px;
+  box-sizing: border-box;
+  height: 100%;
+  padding: 10px;
   color: ${token.colors.gray.gray80};
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1.2;
@@ -154,9 +172,12 @@ export const Date = styled.time`
 
 export const Stats = styled.div`
   ${token.flexCenter}
+  flex: 0 0 214px;
   gap: 12px;
-  min-width: 0;
-  padding: 0 16px;
+  box-sizing: border-box;
+  height: 100%;
+  padding: 12px 16px;
+  overflow: hidden;
 `
 
 export const Stat = styled.span`
