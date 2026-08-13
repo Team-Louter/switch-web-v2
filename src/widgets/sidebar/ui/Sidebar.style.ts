@@ -1,4 +1,4 @@
-import styled, { css } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
@@ -95,6 +95,57 @@ export const MenuLabel = styled.span<{ $active?: boolean }>`
   line-height: 1;
   white-space: nowrap;
   ${token.typography('body', 'md', 'semibold')}
+`
+
+export type NotificationCountAnimationDirection = 'increase' | 'decrease'
+
+const increaseNotificationCount = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.88);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+`
+
+const decreaseNotificationCount = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-5px) scale(1.12);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+`
+
+export const NotificationCount = styled.span<{
+  $direction?: NotificationCountAnimationDirection
+}>`
+  margin-left: auto;
+  color: ${token.colors.primary.primary70};
+  line-height: 1;
+  white-space: nowrap;
+  ${token.typography('body', 'lg', 'medium')}
+
+  ${({ $direction }) =>
+    $direction &&
+    css`
+      animation: ${
+          $direction === 'increase'
+            ? increaseNotificationCount
+            : decreaseNotificationCount
+        }
+        220ms ease-out;
+    `}
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 export const Divider = styled.div`

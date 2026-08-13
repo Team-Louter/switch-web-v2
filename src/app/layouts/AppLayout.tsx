@@ -1,16 +1,47 @@
-import { useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
+import { getUnreadNotificationCount } from '@/entities/notification'
 import { SIDEBAR_MENU } from '@/shared/constants/sidebar'
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 
 import type { SidebarItemId } from '@/shared/constants/sidebar'
 
+const UNREAD_NOTIFICATION_COUNT_STORAGE_KEY = 'switch:unread-notification-count'
+const UNREAD_NOTIFICATION_POLLING_INTERVAL = 15_000
+
+function getStoredUnreadNotificationCount(): number {
+  if (typeof window === 'undefined') {
+    return 0
+  }
+
+  const storedCount = Number.parseInt(
+    window.localStorage.getItem(UNREAD_NOTIFICATION_COUNT_STORAGE_KEY) ?? '',
+    10,
+  )
+
+  return Number.isFinite(storedCount) && storedCount > 0 ? storedCount : 0
+}
+
+function saveUnreadNotificationCount(count: number) {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  window.localStorage.setItem(
+    UNREAD_NOTIFICATION_COUNT_STORAGE_KEY,
+    String(count),
+  )
+}
+
 export function AppLayout() {
   const location = useLocation()
   const navigate = useNavigate()
+  const [notificationCount, setNotificationCount] = useState(
+    getStoredUnreadNotificationCount,
+  )
   const shouldShowSidebar =
     !location.pathname.startsWith('/my/edit') &&
     !location.pathname.startsWith('/my/withdraw-complete') &&
@@ -27,7 +58,6 @@ export function AppLayout() {
       )?.id ?? 'home'
     )
   }, [location.pathname])
-
   const handleSidebarItemSelect = (itemId: SidebarItemId) => {
     const path = SIDEBAR_MENU.find((item) => item.id === itemId)?.path
 
@@ -36,18 +66,68 @@ export function AppLayout() {
     }
   }
 
+  const updateNotificationCount = useCallback((count: number) => {
+    const normalizedCount = Number.isFinite(count)
+      ? Math.max(0, Math.floor(count))
+      : 0
+
+    setNotificationCount(normalizedCount)
+    saveUnreadNotificationCount(normalizedCount)
+  }, [])
+
+  useEffect(() => {
+    let isCancelled = false
+
+    const synchronizeNotificationCount = async () => {
+      try {
+        const unreadCount = await getUnreadNotificationCount()
+
+        if (!isCancelled) {
+          updateNotificationCount(unreadCount)
+        }
+      } catch {
+        // Keep the latest verified count until the next synchronization.
+      }
+    }
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        void synchronizeNotificationCount()
+      }
+    }
+
+    void synchronizeNotificationCount()
+
+    const pollingTimer = window.setInterval(() => {
+      if (!document.hidden) {
+        void synchronizeNotificationCount()
+      }
+    }, UNREAD_NOTIFICATION_POLLING_INTERVAL)
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      isCancelled = true
+      window.clearInterval(pollingTimer)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [updateNotificationCount])
+
   return (
     <Layout>
       {shouldShowSidebar && (
         <Side>
-          <Sidebar
-            activeItemId={activeSidebarItemId}
-            onItemSelect={handleSidebarItemSelect}
-          />
+          <SidebarContainer>
+            <Sidebar
+              activeItemId={activeSidebarItemId}
+              notificationCount={notificationCount}
+              onItemSelect={handleSidebarItemSelect}
+            />
+          </SidebarContainer>
         </Side>
       )}
       <Body>
-        <Outlet />
+        <Outlet context={{ setNotificationCount: updateNotificationCount }} />
       </Body>
     </Layout>
   )
@@ -68,6 +148,15 @@ const Side = styled.div`
   width: clamp(260px, 21.5vw, 309px);
   box-sizing: border-box;
   min-height: 100dvh;
+`
+
+const SidebarContainer = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: clamp(260px, 21.5vw, 309px);
+  height: 100dvh;
+  box-sizing: border-box;
   padding: clamp(20px, 2vw, 30px);
 `
 
