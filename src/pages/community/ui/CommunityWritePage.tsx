@@ -1,9 +1,12 @@
-import { type FormEvent, useRef, useState } from 'react'
-import ReactMarkdown from 'react-markdown'
+import {
+  Fragment,
+  type FormEvent,
+  type ReactNode,
+  type UIEvent,
+  useRef,
+  useState,
+} from 'react'
 import { useNavigate } from 'react-router-dom'
-import rehypeRaw from 'rehype-raw'
-import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
-import remarkGfm from 'remark-gfm'
 
 import {
   POST_CATEGORY_OPTIONS,
@@ -120,9 +123,132 @@ const EDITOR_TOOLS: readonly EditorTool[] = [
   { action: 'image', label: '이미지', icon: imageIcon, width: 20, height: 20 },
 ]
 
-const markdownSanitizeSchema = {
-  ...defaultSchema,
-  tagNames: [...(defaultSchema.tagNames ?? []), 'u'],
+const INLINE_MARKDOWN_PATTERN =
+  /(\*\*[^*\n]+?\*\*|~~[^~\n]+?~~|<u>[^<\n]+?<\/u>|`[^`\n]+?`|!\[[^\]\n]*?\]\([^\)\n]+?\)|\[[^\]\n]+?\]\([^\)\n]+?\)|\*[^*\n]+?\*)/g
+
+function renderInlineMarkdown(value: string): ReactNode[] {
+  const nodes: ReactNode[] = []
+  let sourceIndex = 0
+
+  for (const match of value.matchAll(INLINE_MARKDOWN_PATTERN)) {
+    const matchIndex = match.index ?? 0
+    const token = match[0]
+
+    if (matchIndex > sourceIndex) {
+      nodes.push(value.slice(sourceIndex, matchIndex))
+    }
+
+    if (token.startsWith('**')) {
+      nodes.push(
+        <Fragment key={matchIndex}>
+          <S.MarkdownSyntax>**</S.MarkdownSyntax>
+          <S.FormattedText $format="bold">{token.slice(2, -2)}</S.FormattedText>
+          <S.MarkdownSyntax>**</S.MarkdownSyntax>
+        </Fragment>,
+      )
+    } else if (token.startsWith('~~')) {
+      nodes.push(
+        <Fragment key={matchIndex}>
+          <S.MarkdownSyntax>~~</S.MarkdownSyntax>
+          <S.FormattedText $format="strike">
+            {token.slice(2, -2)}
+          </S.FormattedText>
+          <S.MarkdownSyntax>~~</S.MarkdownSyntax>
+        </Fragment>,
+      )
+    } else if (token.startsWith('<u>')) {
+      nodes.push(
+        <Fragment key={matchIndex}>
+          <S.MarkdownSyntax>&lt;u&gt;</S.MarkdownSyntax>
+          <S.FormattedText $format="underline">
+            {token.slice(3, -4)}
+          </S.FormattedText>
+          <S.MarkdownSyntax>&lt;/u&gt;</S.MarkdownSyntax>
+        </Fragment>,
+      )
+    } else if (token.startsWith('`')) {
+      nodes.push(
+        <Fragment key={matchIndex}>
+          <S.MarkdownSyntax>`</S.MarkdownSyntax>
+          <S.FormattedText $format="code">{token.slice(1, -1)}</S.FormattedText>
+          <S.MarkdownSyntax>`</S.MarkdownSyntax>
+        </Fragment>,
+      )
+    } else if (token.startsWith('![')) {
+      const labelEndIndex = token.indexOf('](')
+
+      nodes.push(
+        <Fragment key={matchIndex}>
+          <S.MarkdownSyntax>![</S.MarkdownSyntax>
+          <S.FormattedText $format="image">
+            {token.slice(2, labelEndIndex)}
+          </S.FormattedText>
+          <S.MarkdownSyntax>{token.slice(labelEndIndex)}</S.MarkdownSyntax>
+        </Fragment>,
+      )
+    } else if (token.startsWith('[')) {
+      const labelEndIndex = token.indexOf('](')
+
+      nodes.push(
+        <Fragment key={matchIndex}>
+          <S.MarkdownSyntax>[</S.MarkdownSyntax>
+          <S.FormattedText $format="link">
+            {token.slice(1, labelEndIndex)}
+          </S.FormattedText>
+          <S.MarkdownSyntax>{token.slice(labelEndIndex)}</S.MarkdownSyntax>
+        </Fragment>,
+      )
+    } else {
+      nodes.push(
+        <Fragment key={matchIndex}>
+          <S.MarkdownSyntax>*</S.MarkdownSyntax>
+          <S.FormattedText $format="italic">
+            {token.slice(1, -1)}
+          </S.FormattedText>
+          <S.MarkdownSyntax>*</S.MarkdownSyntax>
+        </Fragment>,
+      )
+    }
+
+    sourceIndex = matchIndex + token.length
+  }
+
+  if (sourceIndex < value.length) {
+    nodes.push(value.slice(sourceIndex))
+  }
+
+  return nodes
+}
+
+function renderEditorLine(line: string, lineIndex: number): ReactNode {
+  const heading = line.match(/^(#{1,6})(\s+)(.*)$/)
+
+  if (!heading) {
+    return (
+      <Fragment key={lineIndex}>{renderInlineMarkdown(line)}</Fragment>
+    )
+  }
+
+  return (
+    <Fragment key={lineIndex}>
+      <S.MarkdownSyntax>{heading[1]}</S.MarkdownSyntax>
+      {heading[2]}
+      <S.FormattedText $format="heading">
+        {renderInlineMarkdown(heading[3])}
+      </S.FormattedText>
+    </Fragment>
+  )
+}
+
+function InlineMarkdownPreview({ value }: { value: string }) {
+  const lines = value.split('\n')
+
+  return lines.map((line, index) => (
+    <Fragment key={index}>
+      {renderEditorLine(line, index)}
+      {index < lines.length - 1 && '\n'}
+    </Fragment>
+  ))
 }
 
 function wrapEditorText(
@@ -195,6 +321,7 @@ function createEditorInsertion(
 export function CommunityWritePage() {
   const navigate = useNavigate()
   const contentInputRef = useRef<HTMLTextAreaElement>(null)
+  const inlinePreviewRef = useRef<HTMLDivElement>(null)
   const [category, setCategory] = useState<PostCategory | ''>('')
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -230,6 +357,15 @@ export function CommunityWritePage() {
         selectionStart + insertion.selectionEnd,
       )
     })
+  }
+
+  const handleContentScroll = (event: UIEvent<HTMLTextAreaElement>) => {
+    if (!inlinePreviewRef.current) {
+      return
+    }
+
+    inlinePreviewRef.current.scrollTop = event.currentTarget.scrollTop
+    inlinePreviewRef.current.scrollLeft = event.currentTarget.scrollLeft
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -348,6 +484,9 @@ export function CommunityWritePage() {
 
           <S.EditorDivider />
           <S.EditorBody>
+            <S.InlineMarkdownPreview ref={inlinePreviewRef} aria-hidden="true">
+              <InlineMarkdownPreview value={content} />
+            </S.InlineMarkdownPreview>
             <S.ContentInput
               ref={contentInputRef}
               aria-label="게시글 내용"
@@ -356,24 +495,8 @@ export function CommunityWritePage() {
               required
               disabled={isSubmitting}
               onChange={(event) => setContent(event.target.value)}
+              onScroll={handleContentScroll}
             />
-            <S.MarkdownPreview aria-label="게시글 실시간 미리보기">
-              {content.trim() ? (
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[
-                    rehypeRaw,
-                    [rehypeSanitize, markdownSanitizeSchema],
-                  ]}
-                >
-                  {content}
-                </ReactMarkdown>
-              ) : (
-                <S.PreviewPlaceholder>
-                  입력한 내용이 실시간으로 표시됩니다.
-                </S.PreviewPlaceholder>
-              )}
-            </S.MarkdownPreview>
           </S.EditorBody>
         </S.Editor>
         {submitError && (
