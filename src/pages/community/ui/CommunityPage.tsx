@@ -21,6 +21,7 @@ import eyeIcon from '@/shared/assets/my/eye-icon.svg'
 import heartIcon from '@/shared/assets/my/heart-icon.svg'
 import { Button } from '@/shared/ui'
 
+import heartColoredIcon from '../assets/svg/heart-colored.svg'
 import pinIcon from '../assets/svg/pin-solid.svg'
 import {
   Author,
@@ -265,7 +266,11 @@ export function CommunityPage() {
                     aria-label={`좋아요 ${post.likeCount}, 댓글 ${post.commentCount}, 조회 ${post.viewers}`}
                   >
                     <Stat>
-                      <StatIcon src={heartIcon} alt="" $kind="heart" />
+                      <StatIcon
+                        src={post.isHearted ? heartColoredIcon : heartIcon}
+                        alt=""
+                        $kind="heart"
+                      />
                       {post.likeCount}
                     </Stat>
                     <Stat>
