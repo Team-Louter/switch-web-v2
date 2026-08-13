@@ -7,7 +7,7 @@ import {
 import ReactMarkdown from 'react-markdown'
 import { useNavigate, useParams } from 'react-router-dom'
 import rehypeRaw from 'rehype-raw'
-import rehypeSanitize from 'rehype-sanitize'
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
 
 import {
@@ -34,6 +34,11 @@ import kebabIcon from '../assets/svg/kebab.svg'
 import paperclipIcon from '../assets/svg/paperclip.svg'
 import sendIcon from '../assets/svg/send.svg'
 import * as S from './CommunityDetailPage.style'
+
+const markdownSanitizeSchema = {
+  ...defaultSchema,
+  tagNames: [...(defaultSchema.tagNames ?? []), 'u'],
+}
 
 export function CommunityDetailPage() {
   const navigate = useNavigate()
@@ -288,7 +293,10 @@ export function CommunityDetailPage() {
               <S.BodyText>
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[rehypeRaw, rehypeSanitize]}
+                  rehypePlugins={[
+                    rehypeRaw,
+                    [rehypeSanitize, markdownSanitizeSchema],
+                  ]}
                 >
                   {post.postContent}
                 </ReactMarkdown>
