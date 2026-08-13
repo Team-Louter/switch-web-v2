@@ -5,7 +5,8 @@ import * as token from '@/shared/styles/values/token'
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
-  padding: 50px 100px;
+  padding: clamp(32px, 5.1dvh, 50px) clamp(24px, 6.62vw, 100px);
+  container-name: community-write;
   container-type: inline-size;
   background: ${token.colors.white};
 `
@@ -13,10 +14,10 @@ export const Page = styled.section`
 export const Content = styled.div`
   ${token.flexColumn}
   gap: 20px;
-  width: 1003px;
+  width: 100%;
+  max-width: 1003px;
   min-height: calc(100dvh - 100px);
   margin: 0 auto;
-  zoom: min(1, calc(100cqw / 1003px));
 `
 
 export const Header = styled.header`
@@ -53,8 +54,9 @@ export const WriteForm = styled.form`
 
 export const TitleRow = styled.div`
   ${token.flexBetween}
+  gap: 20px;
   width: 100%;
-  height: 39px;
+  min-height: 39px;
 `
 
 export const Heading = styled.h1`
@@ -69,12 +71,22 @@ export const Fields = styled.div`
   gap: 12px;
   width: 100%;
   height: 52px;
+
+  @container community-write (max-width: 560px) {
+    flex-direction: column;
+    height: auto;
+  }
 `
 
 export const CategoryField = styled.div`
   position: relative;
   flex: 0 0 162px;
   height: 52px;
+
+  @container community-write (max-width: 560px) {
+    flex-basis: 52px;
+    width: 100%;
+  }
 `
 
 export const CategorySelect = styled.select`
@@ -145,20 +157,37 @@ export const Editor = styled.section`
   overflow: hidden;
   border-radius: ${token.shapes.small};
   background: #f5f5f5;
+
+  @container community-write (max-width: 560px) {
+    flex-basis: 520px;
+    min-height: 520px;
+  }
 `
 
 export const Toolbar = styled.div`
   ${token.flexBetween}
-  flex: 0 0 24px;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 12px;
   width: 100%;
-  height: 24px;
+  min-height: 24px;
 `
 
 export const ToolbarActions = styled.div`
   ${token.flexLeft}
-  flex: 0 0 410px;
+  flex: 0 0 420px;
   gap: 12px;
   height: 24px;
+
+  @container community-write (max-width: 650px) {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    height: auto;
+  }
+
+  @container community-write (max-width: 430px) {
+    gap: 10px;
+  }
 `
 
 export const ToolbarButton = styled.button`
@@ -196,6 +225,10 @@ export const AnonymousLabel = styled.label`
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
+
+  @container community-write (max-width: 650px) {
+    margin-left: auto;
+  }
 `
 
 export const AnonymousToggle = styled.input`
@@ -280,4 +313,11 @@ export const SubmitError = styled.p`
   background: ${token.colors.danger.danger0};
   ${token.typography('body', 'md', 'medium')}
   line-height: 1.4;
+
+  @media (max-width: 700px) {
+    right: 24px;
+    bottom: 24px;
+    left: 24px;
+    max-width: none;
+  }
 `
