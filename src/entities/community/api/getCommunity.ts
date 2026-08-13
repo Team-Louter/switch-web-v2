@@ -21,6 +21,9 @@ export async function getPosts({
       size,
       sort: ['pinned,desc', 'createdAt,desc'],
     },
+    paramsSerializer: {
+      indexes: null,
+    },
   })
 
   return response.data
