@@ -18,6 +18,19 @@ export const Content = styled.div`
   zoom: min(1, calc(100cqw / 1003px));
 `
 
+export const PageStatus = styled.div`
+  ${token.flexColumnCenter}
+  gap: 16px;
+  width: 100%;
+  min-height: 320px;
+  color: ${token.colors.gray.gray50};
+  ${token.typography('body', 'lg', 'medium')}
+`
+
+export const StatusMessage = styled.p`
+  margin: 0;
+`
+
 export const BackButton = styled.button`
   ${token.flexLeft}
   align-self: flex-start;
@@ -171,6 +184,23 @@ export const Stat = styled.span`
   white-space: nowrap;
 `
 
+export const HeartButton = styled.button`
+  ${token.flexLeft}
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  color: ${token.colors.gray.gray80};
+  background: transparent;
+  ${token.typography('body', 'md', 'semibold')}
+  line-height: 1;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
+`
+
 export const StatIcon = styled.img`
   width: 20px;
   height: 20px;
@@ -278,6 +308,11 @@ export const SendButton = styled.button`
   border: 0;
   background: transparent;
   cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
 `
 
 export const SendIcon = styled.img`
@@ -317,6 +352,21 @@ export const CommentList = styled.div`
   width: 100%;
   padding: 5px 4px;
   overflow: hidden;
+`
+
+export const CommentStatus = styled.p`
+  margin: 12px 4px;
+  color: ${token.colors.gray.gray50};
+  ${token.typography('body', 'md', 'medium')}
+  line-height: 1.4;
+`
+
+export const ActionError = styled.p`
+  align-self: flex-start;
+  margin: 0;
+  color: ${token.colors.danger.danger20};
+  ${token.typography('body', 'sm', 'medium')}
+  line-height: 1.4;
 `
 
 export const CommentRow = styled.article`
