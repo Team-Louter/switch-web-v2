@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 
 import {
@@ -35,6 +35,7 @@ import {
   Header,
   HeaderActions,
   LoadMoreButton,
+  NewNotification,
   NotificationList,
   Page,
   ReadAllButton,
@@ -80,6 +81,11 @@ export function NotificationPage() {
   const { setNotificationCount } =
     useOutletContext<NotificationOutletContext>()
   const [notifications, setNotifications] = useState<Notification[]>([])
+  const notificationIdsRef = useRef<Set<number>>(new Set())
+  const hasLoadedNotificationsRef = useRef(false)
+  const [newNotificationIds, setNewNotificationIds] = useState<Set<number>>(
+    new Set(),
+  )
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
@@ -113,6 +119,11 @@ export function NotificationPage() {
         mapNotificationResponse(notification),
       )
 
+      notificationIdsRef.current = new Set(
+        nextNotifications.map((notification) => notification.id),
+      )
+      hasLoadedNotificationsRef.current = true
+      setNewNotificationIds(new Set())
       setNotifications(nextNotifications)
       setUnreadNotificationCount(unreadCount)
       setNotificationCount(unreadCount)
@@ -137,13 +148,33 @@ export function NotificationPage() {
       const refreshedNotificationIds = new Set(
         refreshedNotifications.map((notification) => notification.id),
       )
+      const addedNotificationIds = refreshedNotifications
+        .filter(
+          (notification) => !notificationIdsRef.current.has(notification.id),
+        )
+        .map((notification) => notification.id)
 
-      setNotifications((currentNotifications) => [
-        ...refreshedNotifications,
-        ...currentNotifications.filter(
-          (notification) => !refreshedNotificationIds.has(notification.id),
-        ),
-      ])
+      if (hasLoadedNotificationsRef.current && addedNotificationIds.length > 0) {
+        setNewNotificationIds(
+          (currentNotificationIds) =>
+            new Set([...currentNotificationIds, ...addedNotificationIds]),
+        )
+      }
+
+      setNotifications((currentNotifications) => {
+        const nextNotifications = [
+          ...refreshedNotifications,
+          ...currentNotifications.filter(
+            (notification) => !refreshedNotificationIds.has(notification.id),
+          ),
+        ]
+
+        notificationIdsRef.current = new Set(
+          nextNotifications.map((notification) => notification.id),
+        )
+
+        return nextNotifications
+      })
       setUnreadNotificationCount(unreadCount)
       setNotificationCount(unreadCount)
       setLoadError(null)
@@ -178,7 +209,13 @@ export function NotificationPage() {
           notificationMap.set(notification.id, notification)
         })
 
-        return Array.from(notificationMap.values())
+        const mergedNotifications = Array.from(notificationMap.values())
+
+        notificationIdsRef.current = new Set(
+          mergedNotifications.map((notification) => notification.id),
+        )
+
+        return mergedNotifications
       })
       setNextPage(response.number + 1)
       setHasNextPage(!response.last)
@@ -325,6 +362,14 @@ export function NotificationPage() {
           (notification) => notification.id !== pendingDeleteId,
         ),
       )
+      notificationIdsRef.current.delete(pendingDeleteId)
+      setNewNotificationIds((currentNotificationIds) => {
+        const nextNotificationIds = new Set(currentNotificationIds)
+
+        nextNotificationIds.delete(pendingDeleteId)
+
+        return nextNotificationIds
+      })
 
       if (selectedNotification && !selectedNotification.isRead) {
         const nextUnreadCount = Math.max(0, unreadNotificationCount - 1)
@@ -398,6 +443,10 @@ export function NotificationPage() {
           mapNotificationResponse(notification),
         )
 
+        notificationIdsRef.current = new Set(
+          nextNotifications.map((notification) => notification.id),
+        )
+        hasLoadedNotificationsRef.current = true
         setNotifications(nextNotifications)
         setUnreadNotificationCount(unreadCount)
         setNotificationCount(unreadCount)
@@ -436,6 +485,23 @@ export function NotificationPage() {
       isCancelled = true
     }
   }, [setNotificationCount])
+
+  const handleNewNotificationAnimationEnd = useCallback(
+    (notificationId: number) => {
+      setNewNotificationIds((currentNotificationIds) => {
+        if (!currentNotificationIds.has(notificationId)) {
+          return currentNotificationIds
+        }
+
+        const nextNotificationIds = new Set(currentNotificationIds)
+
+        nextNotificationIds.delete(notificationId)
+
+        return nextNotificationIds
+      })
+    },
+    [],
+  )
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -518,17 +584,24 @@ export function NotificationPage() {
           ) : notifications.length > 0 ? (
             <>
               {notifications.map((notification) => (
-                <NotificationItem
+                <NewNotification
                   key={notification.id}
-                  notification={notification}
-                  typeIconUrl={NOTIFICATION_TYPE_ICONS[notification.type]}
-                  moreIconUrl={notificationMoreIcon}
-                  fallbackActorImageUrl={notificationAvatar}
-                  isMenuOpen={openMenuId === notification.id}
-                  onMenuToggle={handleMenuToggle}
-                  onReadToggle={handleReadToggle}
-                  onDelete={handleDeleteRequest}
-                />
+                  $isNew={newNotificationIds.has(notification.id)}
+                  onAnimationEnd={() =>
+                    handleNewNotificationAnimationEnd(notification.id)
+                  }
+                >
+                  <NotificationItem
+                    notification={notification}
+                    typeIconUrl={NOTIFICATION_TYPE_ICONS[notification.type]}
+                    moreIconUrl={notificationMoreIcon}
+                    fallbackActorImageUrl={notificationAvatar}
+                    isMenuOpen={openMenuId === notification.id}
+                    onMenuToggle={handleMenuToggle}
+                    onReadToggle={handleReadToggle}
+                    onDelete={handleDeleteRequest}
+                  />
+                </NewNotification>
               ))}
               {hasNextPage && (
                 <LoadMoreButton
