@@ -19,7 +19,7 @@ export const Page = styled.section`
 export const Content = styled.div`
   ${token.flexColumn}
   gap: 40px;
-  width: calc(100% / 0.9);
+  width: 100%;
   max-width: calc(1003px / 0.9);
   zoom: 0.9;
 
