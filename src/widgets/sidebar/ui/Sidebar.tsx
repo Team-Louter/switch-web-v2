@@ -1,4 +1,3 @@
-import dividerImage from '@/shared/assets/sidebar/divider.svg'
 import profileImage from '@/shared/assets/sidebar/profile.png'
 import switchLogo from '@/shared/assets/sidebar/switch-logo.svg'
 import {
@@ -53,7 +52,7 @@ export function Sidebar({ activeItemId = 'home', onItemSelect }: SidebarProps) {
         ))}
       </MenuList>
 
-      <Divider src={dividerImage} alt="" aria-hidden="true" />
+      <Divider aria-hidden="true" />
 
       <MenuList>
         {UTILITY_SIDEBAR_MENU.map((item) => (

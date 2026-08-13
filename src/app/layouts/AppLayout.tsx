@@ -1,16 +1,19 @@
 import { useMemo } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
-import {
-  SIDEBAR_MENU,
-  type SidebarItemId,
-} from '@/shared/constants/sidebar'
+
+import { SIDEBAR_MENU } from '@/shared/constants/sidebar'
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
+
+import type { SidebarItemId } from '@/shared/constants/sidebar'
 
 export function AppLayout() {
   const location = useLocation()
   const navigate = useNavigate()
+  const shouldShowSidebar =
+    !location.pathname.startsWith('/my/edit') &&
+    !location.pathname.startsWith('/my/withdraw-complete')
 
   const activeSidebarItemId = useMemo(() => {
     return (
@@ -28,12 +31,14 @@ export function AppLayout() {
 
   return (
     <Layout>
-      <Side>
-        <Sidebar
-          activeItemId={activeSidebarItemId}
-          onItemSelect={handleSidebarItemSelect}
-        />
-      </Side>
+      {shouldShowSidebar && (
+        <Side>
+          <Sidebar
+            activeItemId={activeSidebarItemId}
+            onItemSelect={handleSidebarItemSelect}
+          />
+        </Side>
+      )}
       <Body>
         <Outlet />
       </Body>
