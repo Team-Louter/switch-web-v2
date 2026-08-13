@@ -67,7 +67,7 @@ const CATEGORY_TABS: readonly CategoryTabItem[] = [
   ...POST_CATEGORY_OPTIONS,
 ]
 
-const MAX_VISIBLE_PAGE_COUNT = 5
+const VISIBLE_PAGE_COUNT = 2
 const SKELETON_ROW_COUNT = 8
 
 export function CommunityPage() {
@@ -81,14 +81,20 @@ export function CommunityPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
 
-  const firstVisiblePage = Math.min(
-    Math.max(currentPage - Math.floor(MAX_VISIBLE_PAGE_COUNT / 2), 0),
-    Math.max(totalPages - MAX_VISIBLE_PAGE_COUNT, 0),
-  )
+  const firstVisiblePage =
+    Math.floor(currentPage / VISIBLE_PAGE_COUNT) * VISIBLE_PAGE_COUNT
   const visiblePages = Array.from(
-    { length: Math.min(totalPages, MAX_VISIBLE_PAGE_COUNT) },
+    {
+      length: Math.min(
+        VISIBLE_PAGE_COUNT,
+        Math.max(totalPages - firstVisiblePage, 0),
+      ),
+    },
     (_, index) => firstVisiblePage + index,
   )
+  const hasPreviousPageGroup = firstVisiblePage > 0
+  const hasNextPageGroup =
+    firstVisiblePage + VISIBLE_PAGE_COUNT < totalPages
 
   const handleCategorySelect = (category: PostCategory | null) => {
     setSelectedCategory(category)
@@ -284,6 +290,15 @@ export function CommunityPage() {
 
         {!isLoading && !loadError && totalPages > 1 && (
           <Pagination aria-label="게시글 페이지">
+            <PageButton
+              type="button"
+              aria-label="이전 페이지 그룹"
+              $active={false}
+              disabled={!hasPreviousPageGroup}
+              onClick={() => setCurrentPage(firstVisiblePage - 1)}
+            >
+              ‹
+            </PageButton>
             {visiblePages.map((page) => (
               <PageButton
                 key={page}
@@ -296,6 +311,17 @@ export function CommunityPage() {
                 {page + 1}
               </PageButton>
             ))}
+            <PageButton
+              type="button"
+              aria-label="다음 페이지 그룹"
+              $active={false}
+              disabled={!hasNextPageGroup}
+              onClick={() =>
+                setCurrentPage(firstVisiblePage + VISIBLE_PAGE_COUNT)
+              }
+            >
+              ›
+            </PageButton>
           </Pagination>
         )}
       </Content>
