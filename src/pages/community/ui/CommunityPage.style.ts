@@ -114,9 +114,15 @@ export const PostCategory = styled.span`
   white-space: nowrap;
 `
 
-export const PostTitle = styled.p`
+export const PinnedIcon = styled.img`
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+`
+
+export const PostTitle = styled.p<{ $pinned: boolean }>`
   display: flex;
-  flex: 0 0 348px;
+  flex: 0 0 ${({ $pinned }) => ($pinned ? '310px' : '348px')};
   align-items: center;
   box-sizing: border-box;
   height: 100%;
@@ -136,7 +142,7 @@ export const Author = styled.div`
   gap: 8px;
   box-sizing: border-box;
   height: 100%;
-  padding: 12px 8px;
+  padding: 12px 4px;
   overflow: hidden;
 `
 
@@ -150,6 +156,7 @@ export const AuthorImage = styled.img`
 `
 
 export const AuthorName = styled.p`
+  flex: 0 0 72px;
   overflow: hidden;
   margin: 0;
   color: ${token.colors.gray.gray80};
@@ -177,14 +184,15 @@ export const Stats = styled.div`
   gap: 12px;
   box-sizing: border-box;
   height: 100%;
-  padding: 12px 16px;
+  padding: 12px 15.5px;
   overflow: hidden;
 `
 
 export const Stat = styled.span`
   ${token.flexLeft}
+  flex: 0 0 53px;
   gap: 4px;
-  min-width: 0;
+  width: 53px;
   color: ${token.colors.gray.gray80};
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1;
@@ -192,9 +200,9 @@ export const Stat = styled.span`
 
 export const StatIcon = styled.img<{ $kind: StatIconKind }>`
   flex: 0 0 auto;
-  width: ${({ $kind }) => ($kind === 'view' ? '24px' : '20px')};
-  height: ${({ $kind }) => ($kind === 'comment' ? '18px' : '20px')};
-  object-fit: contain;
+  width: 24px;
+  height: 24px;
+  object-fit: none;
 `
 
 export const Pagination = styled.nav`
