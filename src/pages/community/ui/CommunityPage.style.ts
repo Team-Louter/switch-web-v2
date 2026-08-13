@@ -9,14 +9,15 @@ export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
   padding: 50px 100px;
+  container-type: inline-size;
   background: ${token.colors.white};
 `
 
 export const Content = styled.div`
   ${token.flexColumn}
   gap: 40px;
-  width: 100%;
-  max-width: 1003px;
+  width: 1003px;
+  zoom: min(1, calc(100cqw / 1003px));
 `
 
 export const Header = styled.header`
