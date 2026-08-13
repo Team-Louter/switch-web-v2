@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
@@ -89,6 +89,100 @@ export const NotificationList = styled.div`
   ${token.flexColumnStart}
   width: 100%;
   gap: 14px;
+`
+
+const shimmer = keyframes`
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: -100% 0;
+  }
+`
+
+const SkeletonBlock = styled.span`
+  display: block;
+  border-radius: ${token.shapes.xsmall};
+  background: linear-gradient(
+    90deg,
+    ${token.colors.gray.gray0} 20%,
+    ${token.colors.gray.gray10} 45%,
+    ${token.colors.gray.gray0} 70%
+  );
+  background-size: 200% 100%;
+  animation: ${shimmer} 1.5s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
+export const SkeletonList = styled.div`
+  ${token.flexColumnStart}
+  width: 100%;
+  gap: 14px;
+`
+
+export const SkeletonItem = styled.div`
+  ${token.flexBetween}
+  align-items: flex-start;
+  width: 100%;
+  padding: 14px 0;
+`
+
+export const SkeletonMain = styled.div`
+  ${token.flexRow}
+  flex: 1;
+  min-width: 0;
+  gap: 16px;
+`
+
+export const SkeletonAvatar = styled(SkeletonBlock)`
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: ${token.shapes.circle};
+`
+
+export const SkeletonText = styled.div`
+  ${token.flexColumnStart}
+  flex: 1;
+  min-width: 0;
+  gap: 7px;
+  padding-top: 1px;
+`
+
+export const SkeletonLine = styled(SkeletonBlock)<{ $width: string }>`
+  width: ${({ $width }) => $width};
+  max-width: 100%;
+  height: 13px;
+
+  &:nth-child(2) {
+    height: 16px;
+  }
+`
+
+export const SkeletonControls = styled.div`
+  ${token.flexColumn}
+  align-items: flex-end;
+  flex: 0 0 auto;
+  justify-content: space-between;
+  align-self: stretch;
+  width: 52px;
+  min-height: 44px;
+  margin-left: 16px;
+`
+
+export const SkeletonIndicator = styled(SkeletonBlock)`
+  width: 14px;
+  height: 14px;
+  border-radius: ${token.shapes.circle};
+`
+
+export const SkeletonOccurredAt = styled(SkeletonBlock)`
+  width: 42px;
+  height: 13px;
 `
 
 export const LoadMoreButton = styled.button`
