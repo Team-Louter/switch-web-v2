@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { type KeyboardEvent, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import authorChoiHyeonSu from '../assets/images/author-choi-hyeon-su.png'
 import authorIdoYeon from '../assets/images/author-ido-yeon.png'
@@ -185,11 +186,26 @@ const POSTS: readonly CommunityPost[] = [
 ]
 
 export function CommunityPage() {
+  const navigate = useNavigate()
   const [selectedCategory, setSelectedCategory] =
     useState<CommunityCategory>('전체 글')
 
   const handleCategorySelect = (category: CommunityCategory) => {
     setSelectedCategory(category)
+  }
+
+  const handlePostSelect = (postId: number) => {
+    navigate(`/community/${postId}`)
+  }
+
+  const handlePostKeyDown = (
+    event: KeyboardEvent<HTMLElement>,
+    postId: number,
+  ) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      handlePostSelect(postId)
+    }
   }
 
   return (
@@ -223,7 +239,13 @@ export function CommunityPage() {
 
         <PostList aria-label="게시글 목록">
           {POSTS.map((post) => (
-            <PostRow key={post.id}>
+            <PostRow
+              key={post.id}
+              role="link"
+              tabIndex={0}
+              onClick={() => handlePostSelect(post.id)}
+              onKeyDown={(event) => handlePostKeyDown(event, post.id)}
+            >
               <CategoryCell>
                 <PostCategory>{post.category}</PostCategory>
               </CategoryCell>
