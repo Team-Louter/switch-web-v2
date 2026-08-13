@@ -68,7 +68,7 @@ const CATEGORY_TABS: readonly CategoryTabItem[] = [
 ]
 
 const MAX_VISIBLE_PAGE_COUNT = 5
-const SKELETON_ROW_COUNT = 8
+const SKELETON_ROW_COUNT = 16
 
 export function CommunityPage() {
   const navigate = useNavigate()
