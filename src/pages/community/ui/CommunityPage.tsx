@@ -44,6 +44,12 @@ import {
   PostList,
   PostRow,
   PostTitle,
+  SkeletonAuthor,
+  SkeletonCategory,
+  SkeletonDate,
+  SkeletonRow,
+  SkeletonStats,
+  SkeletonTitle,
   Stat,
   StatIcon,
   Stats,
@@ -62,6 +68,7 @@ const CATEGORY_TABS: readonly CategoryTabItem[] = [
 ]
 
 const MAX_VISIBLE_PAGE_COUNT = 5
+const SKELETON_ROW_COUNT = 8
 
 export function CommunityPage() {
   const navigate = useNavigate()
@@ -187,9 +194,17 @@ export function CommunityPage() {
 
         <PostList aria-label="게시글 목록" aria-busy={isLoading}>
           {isLoading && (
-            <StatusState role="status">
-              <StatusMessage>게시글을 불러오는 중입니다.</StatusMessage>
-            </StatusState>
+            <div role="status" aria-label="게시글을 불러오는 중입니다.">
+              {Array.from({ length: SKELETON_ROW_COUNT }, (_, index) => (
+                <SkeletonRow key={index} aria-hidden="true">
+                  <SkeletonCategory />
+                  <SkeletonTitle />
+                  <SkeletonAuthor />
+                  <SkeletonDate />
+                  <SkeletonStats />
+                </SkeletonRow>
+              ))}
+            </div>
           )}
 
           {!isLoading && loadError && (
