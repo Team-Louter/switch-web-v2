@@ -10,7 +10,7 @@ export const Page = styled.section`
   justify-content: flex-start;
   box-sizing: border-box;
   min-height: 100dvh;
-  padding: clamp(32px, 5.1dvh, 50px) clamp(24px, 6.62vw, 100px);
+  padding: clamp(32px, 5.1dvh, 50px) clamp(24px, 8.31%, 100px);
   container-name: community-page;
   container-type: inline-size;
   background: ${token.colors.white};
@@ -254,6 +254,10 @@ export const SkeletonStats = styled.span`
   @container community-page (max-width: 430px) {
     flex-basis: 120px;
   }
+
+  @container community-page (max-width: 300px) {
+    display: none;
+  }
 `
 
 export const CategoryCell = styled.div`
@@ -399,6 +403,10 @@ export const Stats = styled.div`
   @container community-page (max-width: 430px) {
     flex-basis: 128px;
     gap: 4px;
+  }
+
+  @container community-page (max-width: 300px) {
+    display: none;
   }
 `
 
