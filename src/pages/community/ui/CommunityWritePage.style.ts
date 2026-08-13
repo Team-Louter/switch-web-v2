@@ -14,10 +14,11 @@ export const Page = styled.section`
 export const Content = styled.div`
   ${token.flexColumn}
   gap: 20px;
-  width: 100%;
-  max-width: 1003px;
+  width: calc(100% / 0.9);
+  max-width: calc(1003px / 0.9);
   min-height: calc(100dvh - 100px);
   margin: 0 auto;
+  zoom: 0.9;
 `
 
 export const Header = styled.header`
