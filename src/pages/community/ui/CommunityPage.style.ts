@@ -79,6 +79,19 @@ export const PostList = styled.section`
   background: ${token.colors.white};
 `
 
+export const StatusState = styled.div`
+  ${token.flexColumnCenter}
+  gap: 16px;
+  width: min(1000px, 100%);
+  min-height: 240px;
+  color: ${token.colors.gray.gray50};
+  ${token.typography('body', 'lg', 'medium')}
+`
+
+export const StatusMessage = styled.p`
+  margin: 0;
+`
+
 export const PostRow = styled.article`
   display: flex;
   gap: 10px;
@@ -235,4 +248,8 @@ export const PageButton = styled.button<{ $active: boolean }>`
   ${token.typography('heading', 'sm', 'semibold')}
   line-height: 1;
   cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
 `
