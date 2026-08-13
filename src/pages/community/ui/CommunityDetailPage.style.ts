@@ -1,11 +1,17 @@
-import styled from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
+
+interface SkeletonBlockProps {
+  $height: number
+  $width?: string
+}
 
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
-  padding: 50px 100px;
+  padding: clamp(32px, 5.1dvh, 50px) clamp(24px, 6.62vw, 100px);
+  container-name: community-detail;
   container-type: inline-size;
   background: ${token.colors.white};
 `
@@ -13,9 +19,71 @@ export const Page = styled.section`
 export const Content = styled.div`
   ${token.flexColumn}
   gap: 40px;
-  width: 1003px;
+  width: 100%;
+  max-width: 1003px;
   margin: 0 auto;
-  zoom: min(1, calc(100cqw / 1003px));
+
+  @container community-detail (max-width: 700px) {
+    gap: 28px;
+  }
+`
+
+const skeletonShimmer = keyframes`
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+`
+
+const skeletonSurface = css`
+  background: linear-gradient(
+    90deg,
+    ${token.colors.gray.gray0} 25%,
+    ${token.colors.gray.gray10} 50%,
+    ${token.colors.gray.gray0} 75%
+  );
+  background-size: 200% 100%;
+  animation: ${skeletonShimmer} 1.4s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
+export const DetailSkeleton = styled.div`
+  ${token.flexColumn}
+  gap: 28px;
+  width: 100%;
+`
+
+export const SkeletonGroup = styled.div`
+  ${token.flexColumn}
+  gap: 16px;
+  width: 100%;
+`
+
+export const SkeletonMetaRow = styled.div`
+  ${token.flexBetween}
+  gap: 24px;
+  width: 100%;
+
+  @container community-detail (max-width: 700px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+`
+
+export const SkeletonBlock = styled.span<SkeletonBlockProps>`
+  ${skeletonSurface}
+  display: block;
+  width: ${({ $width = '100%' }) => $width};
+  max-width: 100%;
+  height: ${({ $height }) => $height}px;
+  border-radius: ${token.shapes.small};
 `
 
 export const PageStatus = styled.div`
@@ -85,7 +153,14 @@ export const CategoryBadge = styled.span`
 
 export const TitleRow = styled.div`
   ${token.flexBetween}
+  gap: 24px;
   width: 100%;
+
+  @container community-detail (max-width: 700px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 `
 
 export const Title = styled.h1`
@@ -93,7 +168,7 @@ export const Title = styled.h1`
   color: ${token.colors.gray.gray100};
   ${token.typography('heading', 'lg', 'semibold')}
   line-height: 1.18;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 `
 
 export const PostMeta = styled.div`
@@ -150,6 +225,7 @@ export const BodyText = styled.p`
   color: ${token.colors.gray.gray100};
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1.4;
+  overflow-wrap: anywhere;
   white-space: pre-line;
 `
 
@@ -161,8 +237,9 @@ export const Engagement = styled.section`
 
 export const EngagementRow = styled.div`
   ${token.flexLeft}
+  flex-wrap: wrap;
   gap: 16px;
-  height: 36px;
+  min-height: 36px;
 `
 
 export const StatGroup = styled.div`
@@ -211,6 +288,7 @@ export const AttachmentButton = styled.button`
   ${token.flexLeft}
   gap: 12px;
   box-sizing: border-box;
+  max-width: 100%;
   height: 36px;
   padding: 8px 12px;
   overflow: hidden;
@@ -224,8 +302,11 @@ export const AttachmentButton = styled.button`
 export const AttachmentLabel = styled.span`
   ${token.flexLeft}
   gap: 4px;
+  min-width: 0;
+  overflow: hidden;
   ${token.typography('body', 'md', 'medium')}
   line-height: 1;
+  text-overflow: ellipsis;
   white-space: nowrap;
 `
 
@@ -371,9 +452,10 @@ export const ActionError = styled.p`
 
 export const CommentRow = styled.article`
   ${token.flexLeft}
+  align-items: flex-start;
   gap: 10px;
   width: 100%;
-  height: 80px;
+  min-height: 80px;
 `
 
 export const ReplyGuide = styled.span`
@@ -394,9 +476,11 @@ export const ReplyGuide = styled.span`
 
 export const CommentItem = styled.div`
   display: flex;
-  flex: 0 0 521px;
+  flex: 1 1 521px;
   gap: 6px;
   align-items: flex-start;
+  max-width: 521px;
+  min-width: 0;
 `
 
 export const CommentAuthorImage = styled.img`
@@ -410,18 +494,20 @@ export const CommentAuthorImage = styled.img`
 
 export const CommentContent = styled.div`
   ${token.flexColumn}
-  flex: 0 0 483px;
+  flex: 1 1 0;
   gap: 8px;
+  min-width: 0;
 `
 
 export const CommentHeader = styled.div`
-  ${token.flexLeft}
-  gap: 28px;
-  height: 32px;
+  ${token.flexBetween}
+  gap: 16px;
+  min-height: 32px;
 `
 
 export const CommentMeta = styled.div`
   ${token.flexLeft}
+  flex-wrap: wrap;
   gap: 8px;
   padding: 4px 0;
 `
@@ -460,4 +546,5 @@ export const CommentText = styled.p`
   color: #404040;
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1.17;
+  overflow-wrap: anywhere;
 `
