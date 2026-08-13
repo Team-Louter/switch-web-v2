@@ -7,7 +7,7 @@ import type {
   PostResponse,
 } from '../model/types'
 
-const DEFAULT_POST_PAGE_SIZE = 8
+const DEFAULT_POST_PAGE_SIZE = 16
 
 export async function getPosts({
   category,
