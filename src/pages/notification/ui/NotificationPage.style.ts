@@ -151,6 +151,11 @@ export const SkeletonList = styled.div`
   gap: 14px;
 `
 
+export const InfiniteScrollTrigger = styled.div`
+  width: 100%;
+  min-height: 1px;
+`
+
 export const SkeletonItem = styled.div`
   ${token.flexBetween}
   align-items: flex-start;
