@@ -148,10 +148,12 @@ export const NotificationCount = styled.span<{
   }
 `
 
-export const Divider = styled.img`
+export const Divider = styled.div`
   flex: 0 0 auto;
   width: 100%;
   height: 1px;
+  border-radius: ${token.shapes.circle};
+  background: ${token.colors.gray.gray30};
 `
 
 export const Spacer = styled.div`

@@ -3,12 +3,11 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
 import { getUnreadNotificationCount } from '@/entities/notification'
-import {
-  SIDEBAR_MENU,
-  type SidebarItemId,
-} from '@/shared/constants/sidebar'
+import { SIDEBAR_MENU } from '@/shared/constants/sidebar'
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
+
+import type { SidebarItemId } from '@/shared/constants/sidebar'
 
 const UNREAD_NOTIFICATION_COUNT_STORAGE_KEY = 'switch:unread-notification-count'
 
@@ -42,6 +41,9 @@ export function AppLayout() {
   const [notificationCount, setNotificationCount] = useState(
     getStoredUnreadNotificationCount,
   )
+  const shouldShowSidebar =
+    !location.pathname.startsWith('/my/edit') &&
+    !location.pathname.startsWith('/my/withdraw-complete')
 
   const activeSidebarItemId = useMemo(() => {
     return (
@@ -83,13 +85,15 @@ export function AppLayout() {
 
   return (
     <Layout>
-      <Side>
-        <Sidebar
-          activeItemId={activeSidebarItemId}
-          notificationCount={notificationCount}
-          onItemSelect={handleSidebarItemSelect}
-        />
-      </Side>
+      {shouldShowSidebar && (
+        <Side>
+          <Sidebar
+            activeItemId={activeSidebarItemId}
+            notificationCount={notificationCount}
+            onItemSelect={handleSidebarItemSelect}
+          />
+        </Side>
+      )}
       <Body>
         <Outlet context={{ setNotificationCount: updateNotificationCount }} />
       </Body>
