@@ -206,9 +206,37 @@ export function CommunityDetailPage() {
         </S.BackButton>
 
         {isLoading && (
-          <S.PageStatus role="status">
-            <S.StatusMessage>게시글을 불러오는 중입니다.</S.StatusMessage>
-          </S.PageStatus>
+          <S.DetailSkeleton
+            role="status"
+            aria-label="게시글을 불러오는 중입니다."
+          >
+            <S.SkeletonGroup aria-hidden="true">
+              <S.SkeletonBlock $width="80px" $height={29} />
+              <S.SkeletonMetaRow>
+                <S.SkeletonBlock $width="56%" $height={33} />
+                <S.SkeletonBlock $width="240px" $height={22} />
+              </S.SkeletonMetaRow>
+              <S.Divider />
+            </S.SkeletonGroup>
+
+            <S.SkeletonGroup aria-hidden="true">
+              <S.SkeletonBlock $width="92%" $height={21} />
+              <S.SkeletonBlock $width="78%" $height={21} />
+              <S.SkeletonBlock $width="64%" $height={21} />
+            </S.SkeletonGroup>
+
+            <S.SkeletonGroup aria-hidden="true">
+              <S.SkeletonBlock $width="310px" $height={36} />
+              <S.Divider />
+            </S.SkeletonGroup>
+
+            <S.SkeletonGroup aria-hidden="true">
+              <S.SkeletonBlock $width="48px" $height={24} />
+              <S.SkeletonBlock $height={52} />
+              <S.SkeletonBlock $width="52%" $height={54} />
+              <S.SkeletonBlock $width="46%" $height={54} />
+            </S.SkeletonGroup>
+          </S.DetailSkeleton>
         )}
 
         {!isLoading && loadError && (
