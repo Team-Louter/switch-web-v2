@@ -282,7 +282,7 @@ export const HeartButton = styled.button`
 export const StatIcon = styled.img`
   width: 20px;
   height: 20px;
-  object-fit: contain;
+  object-fit: scale-down;
 `
 
 export const AttachmentButton = styled.button`
@@ -505,6 +505,10 @@ export const CommentHeader = styled.div`
   gap: 28px;
   width: 100%;
   min-height: 32px;
+
+  @container community-detail (max-width: 430px) {
+    gap: 8px;
+  }
 `
 
 export const CommentMeta = styled.div`
@@ -512,6 +516,12 @@ export const CommentMeta = styled.div`
   flex: 0 0 auto;
   gap: 8px;
   padding: 4px 0;
+
+  @container community-detail (max-width: 430px) {
+    flex: 1 1 0;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
 `
 
 export const CommentAuthor = styled.span`
