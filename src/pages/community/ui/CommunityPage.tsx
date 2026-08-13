@@ -194,6 +194,10 @@ export function CommunityPage() {
     setSelectedCategory(category)
   }
 
+  const handleWritePost = () => {
+    navigate('/community/write')
+  }
+
   const handlePostSelect = (postId: number) => {
     navigate(`/community/${postId}`)
   }
@@ -219,7 +223,9 @@ export function CommunityPage() {
                 동아리의 최신 소식을 부원들과 공유해 보세요!
               </HeadingDescription>
             </HeadingGroup>
-            <Button size="md">새 글 쓰기</Button>
+            <Button size="md" onClick={handleWritePost}>
+              새 글 쓰기
+            </Button>
           </HeadingRow>
           <CategoryTabs role="tablist" aria-label="게시글 카테고리">
             {CATEGORIES.map((category) => (
