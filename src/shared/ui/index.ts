@@ -4,3 +4,4 @@ export type {
   ButtonSize,
   ButtonVariant,
 } from './Button'
+export { Modal } from './Modal'
