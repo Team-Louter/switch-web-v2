@@ -45,7 +45,39 @@ function formatRelativeTime(createdAt: string): string {
     return createdAt
   }
 
-  const differenceInMilliseconds = Math.max(0, Date.now() - createdTime)
+  const now = new Date()
+  const createdDate = new Date(createdTime)
+  const todayStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  ).getTime()
+  const createdDateStart = new Date(
+    createdDate.getFullYear(),
+    createdDate.getMonth(),
+    createdDate.getDate(),
+  ).getTime()
+  const differenceInDays = Math.floor(
+    (todayStart - createdDateStart) / (1000 * 60 * 60 * 24),
+  )
+
+  if (differenceInDays === 1) {
+    return '어제'
+  }
+
+  if (differenceInDays >= 2 && differenceInDays <= 6) {
+    return `${differenceInDays}일 전`
+  }
+
+  if (differenceInDays >= 7) {
+    return new Intl.DateTimeFormat('ko-KR', {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+    }).format(createdTime)
+  }
+
+  const differenceInMilliseconds = Math.max(0, now.getTime() - createdTime)
   const differenceInMinutes = Math.floor(
     differenceInMilliseconds / (1000 * 60),
   )
@@ -62,12 +94,6 @@ function formatRelativeTime(createdAt: string): string {
 
   if (differenceInHours < 24) {
     return `${differenceInHours}시간 전`
-  }
-
-  const differenceInDays = Math.floor(differenceInHours / 24)
-
-  if (differenceInDays < 7) {
-    return `${differenceInDays}일 전`
   }
 
   return new Intl.DateTimeFormat('ko-KR', {
