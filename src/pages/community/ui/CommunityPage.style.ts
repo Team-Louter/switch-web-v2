@@ -76,7 +76,7 @@ export const HeadingGroup = styled.div`
 export const CategoryTabs = styled.div`
   ${token.flexBetween}
   box-sizing: border-box;
-  width: min(1000px, 100%);
+  width: min(calc(1000px / 0.9), 100%);
   min-height: 56px;
   padding: 4px;
   overflow-x: auto;
@@ -120,7 +120,7 @@ export const PostList = styled.section`
 export const StatusState = styled.div`
   ${token.flexColumnCenter}
   gap: 16px;
-  width: min(1000px, 100%);
+  width: min(calc(1000px / 0.9), 100%);
   min-height: 240px;
   color: ${token.colors.gray.gray50};
   ${token.typography('body', 'lg', 'medium')}
@@ -135,7 +135,7 @@ export const PostRow = styled.article`
   gap: 10px;
   align-items: center;
   box-sizing: border-box;
-  width: min(1000px, 100%);
+  width: min(calc(1000px / 0.9), 100%);
   height: 72px;
   padding: 10px;
   overflow: hidden;
@@ -184,7 +184,7 @@ export const SkeletonRow = styled.div`
   gap: 10px;
   align-items: center;
   box-sizing: border-box;
-  width: min(1000px, 100%);
+  width: min(calc(1000px / 0.9), 100%);
   height: 72px;
   padding: 10px;
 `
