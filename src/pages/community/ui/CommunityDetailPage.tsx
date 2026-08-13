@@ -4,7 +4,11 @@ import {
   useEffect,
   useState,
 } from 'react'
+import ReactMarkdown from 'react-markdown'
 import { useNavigate, useParams } from 'react-router-dom'
+import rehypeRaw from 'rehype-raw'
+import rehypeSanitize from 'rehype-sanitize'
+import remarkGfm from 'remark-gfm'
 
 import {
   formatCommunityDate,
@@ -281,7 +285,14 @@ export function CommunityDetailPage() {
                 <S.Divider />
               </S.ArticleHeading>
 
-              <S.BodyText>{post.postContent}</S.BodyText>
+              <S.BodyText>
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeRaw, rehypeSanitize]}
+                >
+                  {post.postContent}
+                </ReactMarkdown>
+              </S.BodyText>
             </S.Article>
 
             <S.Engagement aria-label="게시글 반응과 첨부파일">
