@@ -47,7 +47,6 @@ export function AppLayout() {
     !location.pathname.startsWith('/my/withdraw-complete') &&
     location.pathname !== '/typing/daily' &&
     !location.pathname.startsWith('/typing/code/')
-    !location.pathname.startsWith('/my/withdraw-complete')
 
   const activeSidebarItemId = useMemo(() => {
     return (
