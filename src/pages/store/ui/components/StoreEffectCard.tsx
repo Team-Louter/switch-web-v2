@@ -5,6 +5,7 @@ import type { StoreEffect } from '../../types'
 
 type StoreEffectCardProps = {
   effect: StoreEffect
+  isActionPending: boolean
   onEquip: (effectId: number) => void
   onPurchaseOpen: (effect: StoreEffect) => void
   onRemove: (effectId: number) => void
@@ -12,6 +13,7 @@ type StoreEffectCardProps = {
 
 export function StoreEffectCard({
   effect,
+  isActionPending,
   onEquip,
   onPurchaseOpen,
   onRemove,
@@ -61,6 +63,7 @@ export function StoreEffectCard({
           )}
           <S.CardButton
             $isDanger={isEquipped}
+            disabled={isActionPending}
             onClick={handleActionClick}
             type="button"
           >

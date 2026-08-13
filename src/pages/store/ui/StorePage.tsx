@@ -10,6 +10,9 @@ export function StorePage() {
   const {
     activeModal,
     categories,
+    errorMessage,
+    isActionPending,
+    isLoading,
     ownedEffects,
     point,
     pointHistories,
@@ -46,42 +49,50 @@ export function StorePage() {
           </S.PointButton>
         </S.Toolbar>
 
+        {(isLoading || errorMessage) && (
+          <S.FeedbackMessage role={errorMessage ? 'alert' : 'status'}>
+            {errorMessage || '상점 아이템을 불러오는 중이에요'}
+          </S.FeedbackMessage>
+        )}
+
         <S.EffectSections>
           <S.Section>
             <S.SectionTitle>내 효과</S.SectionTitle>
             <S.CardGrid>
-              {ownedEffects.length > 0 ? (
+              {!isLoading && ownedEffects.length > 0 ? (
                 ownedEffects.map((effect) => (
                   <StoreEffectCard
                     effect={effect}
+                    isActionPending={isActionPending}
                     key={effect.id}
                     onEquip={onEffectEquip}
                     onPurchaseOpen={onPurchaseOpen}
                     onRemove={onEffectRemove}
                   />
                 ))
-              ) : (
+              ) : !isLoading ? (
                 <S.EmptyGridMessage>보유한 효과가 없어요</S.EmptyGridMessage>
-              )}
+              ) : null}
             </S.CardGrid>
           </S.Section>
 
           <S.Section>
             <S.SectionTitle>추천 효과</S.SectionTitle>
             <S.CardGrid>
-              {recommendedEffects.length > 0 ? (
+              {!isLoading && recommendedEffects.length > 0 ? (
                 recommendedEffects.map((effect) => (
                   <StoreEffectCard
                     effect={effect}
+                    isActionPending={isActionPending}
                     key={effect.id}
                     onEquip={onEffectEquip}
                     onPurchaseOpen={onPurchaseOpen}
                     onRemove={onEffectRemove}
                   />
                 ))
-              ) : (
+              ) : !isLoading ? (
                 <S.EmptyGridMessage>추천 효과가 없어요</S.EmptyGridMessage>
-              )}
+              ) : null}
             </S.CardGrid>
           </S.Section>
         </S.EffectSections>
@@ -95,6 +106,7 @@ export function StorePage() {
           <StorePurchaseModal
             effect={selectedEffect}
             isComplete={activeModal === 'purchaseComplete'}
+            isActionPending={isActionPending}
             point={point}
             onClose={onModalClose}
             onEquip={onEffectEquip}

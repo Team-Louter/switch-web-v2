@@ -107,6 +107,12 @@ export const EffectSections = styled.div`
   width: 100%;
 `
 
+export const FeedbackMessage = styled.p`
+  margin: 0;
+  color: ${token.colors.gray.gray50};
+  ${token.typography('body', 'sm', 'medium')}
+`
+
 export const SectionTitle = styled.h2`
   margin: 0;
   color: ${token.colors.gray.gray80};
@@ -298,6 +304,11 @@ export const CardButton = styled.button<{ $isDanger?: boolean }>`
   &:hover {
     background: ${token.colors.primary.primary60};
     transform: translateY(-1px);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 `
 

@@ -8,13 +8,16 @@ export type StoreModalType = 'pointHistory' | 'purchase' | 'purchaseComplete'
 
 export type StoreEffect = {
   id: number
+  itemType: 'BORDER' | 'NAME_COLOR' | 'TITLE'
   title: string
   category: StoreCategory
   type: StoreEffectType
   status: StoreEffectStatus
   price: number
+  thumbnailUrl?: string
   hasConditions?: boolean
   canPurchase?: boolean
+  conditionLabels?: string[]
 }
 
 export type PointHistory = {

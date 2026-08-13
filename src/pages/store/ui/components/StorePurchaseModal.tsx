@@ -6,17 +6,17 @@ import type { StoreEffect } from '../../types'
 type StorePurchaseModalProps = {
   effect: StoreEffect
   isComplete: boolean
+  isActionPending: boolean
   point: number
   onClose: () => void
   onEquip: (effectId: number) => void
   onPurchase: () => void
 }
 
-const CONDITION_LABELS = ['조건1', '조건2', '조건3']
-
 export function StorePurchaseModal({
   effect,
   isComplete,
+  isActionPending,
   point,
   onClose,
   onEquip,
@@ -38,13 +38,13 @@ export function StorePurchaseModal({
           <S.PreviewName>이윤지</S.PreviewName>
         </S.PreviewSection>
         <S.PurchaseEffectTitle>{effect.title}</S.PurchaseEffectTitle>
-        {effect.hasConditions && (
+        {effect.hasConditions && effect.conditionLabels && (
           <S.ConditionList>
             <S.ConditionFirstRow>
               <S.ConditionText>조건</S.ConditionText>
-              <S.ConditionText>{CONDITION_LABELS[0]}</S.ConditionText>
+              <S.ConditionText>{effect.conditionLabels[0]}</S.ConditionText>
             </S.ConditionFirstRow>
-            {CONDITION_LABELS.slice(1).map((condition) => (
+            {effect.conditionLabels.slice(1).map((condition) => (
               <S.ConditionRow key={condition}>
                 <S.ConditionText>{condition}</S.ConditionText>
               </S.ConditionRow>
@@ -65,13 +65,17 @@ export function StorePurchaseModal({
               >
                 닫기
               </S.ModalButton>
-              <S.ModalButton onClick={() => onEquip(effect.id)} type="button">
+              <S.ModalButton
+                disabled={isActionPending}
+                onClick={() => onEquip(effect.id)}
+                type="button"
+              >
                 장착하기
               </S.ModalButton>
             </S.ModalButtonRow>
           ) : (
             <S.ModalButton
-              disabled={!canPurchase}
+              disabled={!canPurchase || isActionPending}
               onClick={onPurchase}
               type="button"
             >
