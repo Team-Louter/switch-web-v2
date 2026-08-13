@@ -266,3 +266,18 @@ export const ContentInput = styled.textarea`
     opacity: 1;
   }
 `
+
+export const SubmitError = styled.p`
+  position: fixed;
+  z-index: 20;
+  right: 32px;
+  bottom: 32px;
+  max-width: 420px;
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: ${token.shapes.small};
+  color: ${token.colors.danger.danger30};
+  background: ${token.colors.danger.danger0};
+  ${token.typography('body', 'md', 'medium')}
+  line-height: 1.4;
+`
