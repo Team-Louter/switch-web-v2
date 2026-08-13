@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
@@ -10,23 +10,44 @@ import {
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 
+const UNREAD_NOTIFICATION_COUNT_STORAGE_KEY = 'switch:unread-notification-count'
+
+function getStoredUnreadNotificationCount(): number {
+  if (typeof window === 'undefined') {
+    return 0
+  }
+
+  const storedCount = Number.parseInt(
+    window.localStorage.getItem(UNREAD_NOTIFICATION_COUNT_STORAGE_KEY) ?? '',
+    10,
+  )
+
+  return Number.isFinite(storedCount) && storedCount > 0 ? storedCount : 0
+}
+
+function saveUnreadNotificationCount(count: number) {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  window.localStorage.setItem(
+    UNREAD_NOTIFICATION_COUNT_STORAGE_KEY,
+    String(count),
+  )
+}
+
 export function AppLayout() {
   const location = useLocation()
   const navigate = useNavigate()
-  const [notificationCount, setNotificationCount] = useState(0)
+  const [notificationCount, setNotificationCount] = useState(
+    getStoredUnreadNotificationCount,
+  )
 
   const activeSidebarItemId = useMemo(() => {
     return (
       SIDEBAR_MENU.find((item) => item.path === location.pathname)?.id ?? 'home'
     )
   }, [location.pathname])
-  const notificationCountLabel =
-    notificationCount >= 15
-      ? '15+'
-      : notificationCount > 0
-        ? String(notificationCount)
-        : undefined
-
   const handleSidebarItemSelect = (itemId: SidebarItemId) => {
     const path = SIDEBAR_MENU.find((item) => item.id === itemId)?.path
 
@@ -35,13 +56,22 @@ export function AppLayout() {
     }
   }
 
+  const updateNotificationCount = useCallback((count: number) => {
+    const normalizedCount = Number.isFinite(count)
+      ? Math.max(0, Math.floor(count))
+      : 0
+
+    setNotificationCount(normalizedCount)
+    saveUnreadNotificationCount(normalizedCount)
+  }, [])
+
   useEffect(() => {
     let isCancelled = false
 
     getUnreadNotificationCount()
       .then((unreadCount) => {
         if (!isCancelled) {
-          setNotificationCount(unreadCount)
+          updateNotificationCount(unreadCount)
         }
       })
       .catch(() => {})
@@ -49,19 +79,19 @@ export function AppLayout() {
     return () => {
       isCancelled = true
     }
-  }, [])
+  }, [updateNotificationCount])
 
   return (
     <Layout>
       <Side>
         <Sidebar
           activeItemId={activeSidebarItemId}
-          notificationCount={notificationCountLabel}
+          notificationCount={notificationCount}
           onItemSelect={handleSidebarItemSelect}
         />
       </Side>
       <Body>
-        <Outlet context={{ setNotificationCount }} />
+        <Outlet context={{ setNotificationCount: updateNotificationCount }} />
       </Body>
     </Layout>
   )
