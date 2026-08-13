@@ -1,14 +1,17 @@
-import styled from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
 type StatIconKind = 'heart' | 'comment' | 'view'
 
 export const Page = styled.section`
-  ${token.flexColumnCenter}
+  ${token.flexColumn}
+  align-items: center;
+  justify-content: flex-start;
   box-sizing: border-box;
   min-height: 100dvh;
-  padding: 50px 100px;
+  padding: clamp(32px, 5.1dvh, 50px) clamp(24px, 6.62vw, 100px);
+  container-name: community-page;
   container-type: inline-size;
   background: ${token.colors.white};
 `
@@ -16,8 +19,12 @@ export const Page = styled.section`
 export const Content = styled.div`
   ${token.flexColumn}
   gap: 40px;
-  width: 1003px;
-  zoom: min(1, calc(100cqw / 1003px));
+  width: 100%;
+  max-width: 1003px;
+
+  @container community-page (max-width: 760px) {
+    gap: 28px;
+  }
 `
 
 export const Header = styled.header`
@@ -28,6 +35,10 @@ export const Header = styled.header`
 export const HeadingRow = styled.div`
   ${token.flexBetween}
   gap: 24px;
+
+  @container community-page (max-width: 600px) {
+    align-items: flex-start;
+  }
 `
 
 export const Heading = styled.h1`
@@ -42,11 +53,23 @@ export const HeadingDescription = styled.p`
   color: ${token.colors.gray.gray50};
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1.17;
+
+  @container community-page (max-width: 700px) {
+    margin: 8px 0 0;
+  }
+
+  @container community-page (max-width: 430px) {
+    display: none;
+  }
 `
 
 export const HeadingGroup = styled.div`
   ${token.flexLeft}
   min-width: 0;
+
+  @container community-page (max-width: 700px) {
+    display: block;
+  }
 `
 
 export const CategoryTabs = styled.div`
@@ -55,8 +78,18 @@ export const CategoryTabs = styled.div`
   width: min(1000px, 100%);
   min-height: 56px;
   padding: 4px;
+  overflow-x: auto;
   border-radius: ${token.shapes.xlarge};
   background: ${token.colors.gray.gray0};
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @container community-page (max-width: 930px) {
+    justify-content: flex-start;
+  }
 `
 
 export const CategoryTab = styled.button<{ $active: boolean }>`
@@ -71,6 +104,10 @@ export const CategoryTab = styled.button<{ $active: boolean }>`
   ${token.typography('heading', 'sm', 'medium')}
   line-height: 1;
   cursor: pointer;
+
+  @container community-page (max-width: 600px) {
+    flex-basis: 104px;
+  }
 `
 
 export const PostList = styled.section`
@@ -115,11 +152,119 @@ export const PostRow = styled.article`
   }
 `
 
+const skeletonShimmer = keyframes`
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+`
+
+const skeletonSurface = css`
+  border-radius: ${token.shapes.small};
+  background: linear-gradient(
+    90deg,
+    ${token.colors.gray.gray0} 25%,
+    ${token.colors.gray.gray10} 50%,
+    ${token.colors.gray.gray0} 75%
+  );
+  background-size: 200% 100%;
+  animation: ${skeletonShimmer} 1.4s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
+export const SkeletonRow = styled.div`
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  box-sizing: border-box;
+  width: min(1000px, 100%);
+  height: 72px;
+  padding: 10px;
+`
+
+export const SkeletonCategory = styled.span`
+  ${skeletonSurface}
+  flex: 0 0 80px;
+  height: 29px;
+
+  @container community-page (max-width: 430px) {
+    flex-basis: 72px;
+  }
+`
+
+export const SkeletonTitle = styled.span`
+  ${skeletonSurface}
+  flex: 1 1 0;
+  min-width: 0;
+  height: 20px;
+`
+
+export const SkeletonAuthor = styled.span`
+  ${skeletonSurface}
+  flex: 0 0 120px;
+  height: 32px;
+
+  @container community-page (max-width: 900px) {
+    flex-basis: 110px;
+  }
+
+  @container community-page (max-width: 600px) {
+    display: none;
+  }
+`
+
+export const SkeletonDate = styled.span`
+  ${skeletonSurface}
+  flex: 0 0 156px;
+  height: 20px;
+  margin: 0 10px;
+
+  @container community-page (max-width: 900px) {
+    flex-basis: 142px;
+    margin-inline: 4px;
+  }
+
+  @container community-page (max-width: 760px) {
+    display: none;
+  }
+`
+
+export const SkeletonStats = styled.span`
+  ${skeletonSurface}
+  flex: 0 0 183px;
+  height: 24px;
+  margin: 0 15.5px;
+
+  @container community-page (max-width: 900px) {
+    flex-basis: 158px;
+    margin-inline: 8px;
+  }
+
+  @container community-page (max-width: 600px) {
+    flex-basis: 142px;
+    margin-inline: 4px;
+  }
+
+  @container community-page (max-width: 430px) {
+    flex-basis: 120px;
+  }
+`
+
 export const CategoryCell = styled.div`
   ${token.flexCenter}
   flex: 0 0 80px;
   height: 100%;
   overflow: hidden;
+
+  @container community-page (max-width: 430px) {
+    flex-basis: 72px;
+  }
 `
 
 export const PostCategory = styled.span`
@@ -136,17 +281,29 @@ export const PostCategory = styled.span`
   ${token.typography('body', 'sm', 'bold')}
   line-height: 1.2;
   white-space: nowrap;
+
+  @container community-page (max-width: 430px) {
+    min-width: 72px;
+    padding-inline: 8px;
+    font-size: ${token.fontSize.caption.lg};
+  }
 `
 
 export const PinnedIcon = styled.img`
   flex: 0 0 28px;
   width: 28px;
   height: 28px;
+
+  @container community-page (max-width: 430px) {
+    width: 22px;
+    height: 22px;
+  }
 `
 
 export const PostTitle = styled.p<{ $pinned: boolean }>`
   display: flex;
-  flex: 0 0 ${({ $pinned }) => ($pinned ? '310px' : '348px')};
+  flex: 1 1 0;
+  min-width: 0;
   align-items: center;
   box-sizing: border-box;
   height: 100%;
@@ -168,6 +325,14 @@ export const Author = styled.div`
   height: 100%;
   padding: 12px 4px;
   overflow: hidden;
+
+  @container community-page (max-width: 900px) {
+    flex-basis: 110px;
+  }
+
+  @container community-page (max-width: 600px) {
+    display: none;
+  }
 `
 
 export const AuthorImage = styled.img`
@@ -200,6 +365,15 @@ export const Date = styled.time`
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1.2;
   white-space: nowrap;
+
+  @container community-page (max-width: 900px) {
+    flex-basis: 150px;
+    padding-inline: 4px;
+  }
+
+  @container community-page (max-width: 760px) {
+    display: none;
+  }
 `
 
 export const Stats = styled.div`
@@ -210,6 +384,22 @@ export const Stats = styled.div`
   height: 100%;
   padding: 12px 15.5px;
   overflow: hidden;
+
+  @container community-page (max-width: 900px) {
+    flex-basis: 174px;
+    gap: 8px;
+    padding-inline: 8px;
+  }
+
+  @container community-page (max-width: 600px) {
+    flex-basis: 150px;
+    padding-inline: 4px;
+  }
+
+  @container community-page (max-width: 430px) {
+    flex-basis: 128px;
+    gap: 4px;
+  }
 `
 
 export const Stat = styled.span`
@@ -220,6 +410,16 @@ export const Stat = styled.span`
   color: ${token.colors.gray.gray80};
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1;
+
+  @container community-page (max-width: 600px) {
+    flex: 1 1 0;
+    width: auto;
+  }
+
+  @container community-page (max-width: 430px) {
+    gap: 2px;
+    font-size: ${token.fontSize.body.sm};
+  }
 `
 
 export const StatIcon = styled.img<{ $kind: StatIconKind }>`
@@ -227,11 +427,20 @@ export const StatIcon = styled.img<{ $kind: StatIconKind }>`
   width: 24px;
   height: 24px;
   object-fit: none;
+
+  @container community-page (max-width: 600px) {
+    width: 20px;
+    height: 20px;
+  }
 `
 
 export const Pagination = styled.nav`
   ${token.flexCenter}
   gap: 12px;
+
+  @container community-page (max-width: 430px) {
+    gap: 6px;
+  }
 `
 
 export const PageButton = styled.button<{ $active: boolean }>`
