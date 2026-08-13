@@ -10,6 +10,7 @@ export const Page = styled.section`
   min-height: 100dvh;
   padding: 50px 100px;
   background: ${token.colors.white};
+  zoom: 0.9;
 `
 
 export const Content = styled.div`
