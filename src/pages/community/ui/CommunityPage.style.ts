@@ -89,6 +89,17 @@ export const PostRow = styled.article`
   padding: 10px;
   overflow: hidden;
   background: ${token.colors.white};
+  cursor: pointer;
+  transition: background-color 120ms ease;
+
+  &:hover {
+    background: ${token.colors.gray.gray0};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: -2px;
+  }
 `
 
 export const CategoryCell = styled.div`
