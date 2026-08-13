@@ -1,19 +1,27 @@
-import { type KeyboardEvent, useState } from 'react'
+import {
+  type KeyboardEvent,
+  type SyntheticEvent,
+  useEffect,
+  useState,
+} from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import authorChoiHyeonSu from '../assets/images/author-choi-hyeon-su.png'
-import authorIdoYeon from '../assets/images/author-ido-yeon.png'
-import authorJeonSuAn from '../assets/images/author-jeon-su-an.png'
-import authorJeongMinSeong from '../assets/images/author-jeong-min-seong.png'
-import authorJoSangCheol from '../assets/images/author-jo-sang-cheol.png'
-import authorLeeDaYeon from '../assets/images/author-lee-da-yeon.png'
-import authorLeeJunHyeon from '../assets/images/author-lee-jun-hyeon.png'
-import pinIcon from '../assets/svg/pin-solid.svg'
+import {
+  formatCommunityDate,
+  getPostCategoryLabel,
+  getPosts,
+  POST_CATEGORY_OPTIONS,
+  resolveCommunityAssetUrl,
+  type PostCategory,
+  type PostResponse,
+} from '@/entities/community'
+import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
 import commentIcon from '@/shared/assets/my/comment-icon.svg'
 import eyeIcon from '@/shared/assets/my/eye-icon.svg'
 import heartIcon from '@/shared/assets/my/heart-icon.svg'
 import { Button } from '@/shared/ui'
 
+import pinIcon from '../assets/svg/pin-solid.svg'
 import {
   Author,
   AuthorImage,
@@ -32,166 +40,52 @@ import {
   PageButton,
   Pagination,
   PinnedIcon,
-  PostCategory,
+  PostCategory as PostCategoryBadge,
   PostList,
   PostRow,
   PostTitle,
   Stat,
   StatIcon,
   Stats,
+  StatusMessage,
+  StatusState,
 } from './CommunityPage.style'
 
-type CommunityCategory =
-  | '전체 글'
-  | '공지사항'
-  | '자유게시판'
-  | '정보 공유'
-  | '과제'
-  | '로드맵'
-  | '대회'
-  | 'Q&A'
-
-type PostCategory = Exclude<CommunityCategory, '전체 글'>
-
-interface CommunityPost {
-  id: number
-  category: PostCategory
-  title: string
-  isPinned: boolean
-  author: string
-  authorImage: string
-  date: string
-  dateTime: string
-  likeCount: number
-  commentCount: number
-  viewCount: number
+interface CategoryTabItem {
+  value: PostCategory | null
+  label: string
 }
 
-const CATEGORIES: readonly CommunityCategory[] = [
-  '전체 글',
-  '공지사항',
-  '자유게시판',
-  '정보 공유',
-  '과제',
-  '로드맵',
-  '대회',
-  'Q&A',
+const CATEGORY_TABS: readonly CategoryTabItem[] = [
+  { value: null, label: '전체 글' },
+  ...POST_CATEGORY_OPTIONS,
 ]
 
-const POSTS: readonly CommunityPost[] = [
-  {
-    id: 1,
-    category: '공지사항',
-    title: '[필독] 라우터 커뮤니티 규칙',
-    isPinned: true,
-    author: '이도연',
-    authorImage: authorIdoYeon,
-    date: '2026.01.01 23:59',
-    dateTime: '2026-01-01T23:59:00',
-    likeCount: 12,
-    commentCount: 1,
-    viewCount: 32,
-  },
-  {
-    id: 2,
-    category: '과제',
-    title: '[기획] 2213최현수 과제 제출',
-    isPinned: false,
-    author: '최현수',
-    authorImage: authorChoiHyeonSu,
-    date: '2026.01.01 23:59',
-    dateTime: '2026-01-01T23:59:00',
-    likeCount: 2,
-    commentCount: 0,
-    viewCount: 21,
-  },
-  {
-    id: 3,
-    category: 'Q&A',
-    title: '깃허브 사용법이 궁금해요',
-    isPinned: false,
-    author: '조상철',
-    authorImage: authorJoSangCheol,
-    date: '2026.01.01 23:59',
-    dateTime: '2026-01-01T23:59:00',
-    likeCount: 21,
-    commentCount: 7,
-    viewCount: 57,
-  },
-  {
-    id: 4,
-    category: 'Q&A',
-    title: '다음 주 동아리 시간에 뭐하나요?',
-    isPinned: false,
-    author: '이준현',
-    authorImage: authorLeeJunHyeon,
-    date: '2026.01.01 23:59',
-    dateTime: '2026-01-01T23:59:00',
-    likeCount: 2,
-    commentCount: 1,
-    viewCount: 12,
-  },
-  {
-    id: 5,
-    category: '대회',
-    title: '2026 SW미래채움 고교 AI·SW챌린지',
-    isPinned: false,
-    author: '정민성',
-    authorImage: authorJeongMinSeong,
-    date: '2026.01.01 23:59',
-    dateTime: '2026-01-01T23:59:00',
-    likeCount: 12,
-    commentCount: 6,
-    viewCount: 22,
-  },
-  {
-    id: 6,
-    category: '정보 공유',
-    title: '피그마 필수 플러그인 공유',
-    isPinned: false,
-    author: '이윤지',
-    authorImage: authorJoSangCheol,
-    date: '2026.01.01 23:59',
-    dateTime: '2026-01-01T23:59:00',
-    likeCount: 3,
-    commentCount: 12,
-    viewCount: 60,
-  },
-  {
-    id: 7,
-    category: '과제',
-    title: '7월 둘째 주 과제 예시자료',
-    isPinned: false,
-    author: '전수안',
-    authorImage: authorJeonSuAn,
-    date: '2026.01.01 23:59',
-    dateTime: '2026-01-01T23:59:00',
-    likeCount: 0,
-    commentCount: 1,
-    viewCount: 11,
-  },
-  {
-    id: 8,
-    category: '자유게시판',
-    title: '작년 시험지 나눔',
-    isPinned: false,
-    author: '이다연',
-    authorImage: authorLeeDaYeon,
-    date: '2026.01.01 23:59',
-    dateTime: '2026-01-01T23:59:00',
-    likeCount: 31,
-    commentCount: 0,
-    viewCount: 61,
-  },
-]
+const MAX_VISIBLE_PAGE_COUNT = 5
 
 export function CommunityPage() {
   const navigate = useNavigate()
   const [selectedCategory, setSelectedCategory] =
-    useState<CommunityCategory>('전체 글')
+    useState<PostCategory | null>(null)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [posts, setPosts] = useState<PostResponse[]>([])
+  const [totalPages, setTotalPages] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
 
-  const handleCategorySelect = (category: CommunityCategory) => {
+  const firstVisiblePage = Math.min(
+    Math.max(currentPage - Math.floor(MAX_VISIBLE_PAGE_COUNT / 2), 0),
+    Math.max(totalPages - MAX_VISIBLE_PAGE_COUNT, 0),
+  )
+  const visiblePages = Array.from(
+    { length: Math.min(totalPages, MAX_VISIBLE_PAGE_COUNT) },
+    (_, index) => firstVisiblePage + index,
+  )
+
+  const handleCategorySelect = (category: PostCategory | null) => {
     setSelectedCategory(category)
+    setCurrentPage(0)
   }
 
   const handleWritePost = () => {
@@ -212,6 +106,54 @@ export function CommunityPage() {
     }
   }
 
+  const handleProfileImageError = (
+    event: SyntheticEvent<HTMLImageElement>,
+  ) => {
+    event.currentTarget.onerror = null
+    event.currentTarget.src = fallbackProfileImage
+  }
+
+  const handleRetry = () => {
+    setReloadKey((currentKey) => currentKey + 1)
+  }
+
+  useEffect(() => {
+    let isCancelled = false
+
+    async function loadPosts() {
+      setIsLoading(true)
+      setLoadError(null)
+
+      try {
+        const response = await getPosts({
+          category: selectedCategory ?? undefined,
+          page: currentPage,
+        })
+
+        if (!isCancelled) {
+          setPosts(response.content)
+          setTotalPages(response.totalPages)
+        }
+      } catch {
+        if (!isCancelled) {
+          setPosts([])
+          setTotalPages(0)
+          setLoadError('게시글을 불러오지 못했습니다.')
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    void loadPosts()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [currentPage, reloadKey, selectedCategory])
+
   return (
     <Page>
       <Content>
@@ -228,72 +170,119 @@ export function CommunityPage() {
             </Button>
           </HeadingRow>
           <CategoryTabs role="tablist" aria-label="게시글 카테고리">
-            {CATEGORIES.map((category) => (
+            {CATEGORY_TABS.map((category) => (
               <CategoryTab
-                key={category}
+                key={category.label}
                 type="button"
                 role="tab"
-                aria-selected={selectedCategory === category}
-                $active={selectedCategory === category}
-                onClick={() => handleCategorySelect(category)}
+                aria-selected={selectedCategory === category.value}
+                $active={selectedCategory === category.value}
+                onClick={() => handleCategorySelect(category.value)}
               >
-                {category}
+                {category.label}
               </CategoryTab>
             ))}
           </CategoryTabs>
         </Header>
 
-        <PostList aria-label="게시글 목록">
-          {POSTS.map((post) => (
-            <PostRow
-              key={post.id}
-              role="link"
-              tabIndex={0}
-              onClick={() => handlePostSelect(post.id)}
-              onKeyDown={(event) => handlePostKeyDown(event, post.id)}
-            >
-              <CategoryCell>
-                <PostCategory>{post.category}</PostCategory>
-              </CategoryCell>
-              {post.isPinned && (
-                <PinnedIcon src={pinIcon} alt="고정된 게시글" />
-              )}
-              <PostTitle $pinned={post.isPinned}>{post.title}</PostTitle>
-              <Author>
-                <AuthorImage src={post.authorImage} alt={`${post.author} 프로필`} />
-                <AuthorName>{post.author}</AuthorName>
-              </Author>
-              <Date dateTime={post.dateTime}>{post.date}</Date>
-              <Stats aria-label={`좋아요 ${post.likeCount}, 댓글 ${post.commentCount}, 조회 ${post.viewCount}`}>
-                <Stat>
-                  <StatIcon src={heartIcon} alt="" $kind="heart" />
-                  {post.likeCount}
-                </Stat>
-                <Stat>
-                  <StatIcon src={commentIcon} alt="" $kind="comment" />
-                  {post.commentCount}
-                </Stat>
-                <Stat>
-                  <StatIcon src={eyeIcon} alt="" $kind="view" />
-                  {post.viewCount}
-                </Stat>
-              </Stats>
-            </PostRow>
-          ))}
+        <PostList aria-label="게시글 목록" aria-busy={isLoading}>
+          {isLoading && (
+            <StatusState role="status">
+              <StatusMessage>게시글을 불러오는 중입니다.</StatusMessage>
+            </StatusState>
+          )}
+
+          {!isLoading && loadError && (
+            <StatusState role="alert">
+              <StatusMessage>{loadError}</StatusMessage>
+              <Button size="sm" variant="neutral" onClick={handleRetry}>
+                다시 시도
+              </Button>
+            </StatusState>
+          )}
+
+          {!isLoading && !loadError && posts.length === 0 && (
+            <StatusState>
+              <StatusMessage>아직 등록된 게시글이 없습니다.</StatusMessage>
+            </StatusState>
+          )}
+
+          {!isLoading &&
+            !loadError &&
+            posts.map((post) => {
+              const authorImage =
+                resolveCommunityAssetUrl(post.userProfileImageUrl) ??
+                fallbackProfileImage
+
+              return (
+                <PostRow
+                  key={post.postId}
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => handlePostSelect(post.postId)}
+                  onKeyDown={(event) =>
+                    handlePostKeyDown(event, post.postId)
+                  }
+                >
+                  <CategoryCell>
+                    <PostCategoryBadge>
+                      {getPostCategoryLabel(post.category)}
+                    </PostCategoryBadge>
+                  </CategoryCell>
+                  {post.pinned && (
+                    <PinnedIcon src={pinIcon} alt="고정된 게시글" />
+                  )}
+                  <PostTitle $pinned={post.pinned}>
+                    {post.postTitle}
+                  </PostTitle>
+                  <Author>
+                    <AuthorImage
+                      src={authorImage}
+                      alt={`${post.userName} 프로필`}
+                      onError={handleProfileImageError}
+                    />
+                    <AuthorName>{post.userName}</AuthorName>
+                  </Author>
+                  <Date dateTime={post.createdAt}>
+                    {formatCommunityDate(post.createdAt)}
+                  </Date>
+                  <Stats
+                    aria-label={`좋아요 ${post.likeCount}, 댓글 ${post.commentCount}, 조회 ${post.viewers}`}
+                  >
+                    <Stat>
+                      <StatIcon src={heartIcon} alt="" $kind="heart" />
+                      {post.likeCount}
+                    </Stat>
+                    <Stat>
+                      <StatIcon src={commentIcon} alt="" $kind="comment" />
+                      {post.commentCount}
+                    </Stat>
+                    <Stat>
+                      <StatIcon src={eyeIcon} alt="" $kind="view" />
+                      {post.viewers}
+                    </Stat>
+                  </Stats>
+                </PostRow>
+              )
+            })}
         </PostList>
 
-        <Pagination aria-label="게시글 페이지">
-          {[1, 2, 3, 4, 5].map((page) => (
-            <PageButton
-              key={page}
-              type="button"
-              aria-current={page === 1 ? 'page' : undefined}
-              $active={page === 1}
-            >
-              {page}
-            </PageButton>
-          ))}
-        </Pagination>
+        {!isLoading && !loadError && totalPages > 1 && (
+          <Pagination aria-label="게시글 페이지">
+            {visiblePages.map((page) => (
+              <PageButton
+                key={page}
+                type="button"
+                aria-current={page === currentPage ? 'page' : undefined}
+                $active={page === currentPage}
+                disabled={page === currentPage}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page + 1}
+              </PageButton>
+            ))}
+          </Pagination>
+        )}
       </Content>
     </Page>
   )
