@@ -34,7 +34,7 @@ import {
   EmptyState,
   Header,
   HeaderActions,
-  LoadMoreButton,
+  InfiniteScrollTrigger,
   NewNotification,
   NotificationList,
   Page,
@@ -66,6 +66,7 @@ const NOTIFICATION_TYPE_ICONS: Partial<Record<NotificationType, string>> = {
 }
 
 const SKELETON_ITEM_COUNT = 4
+const LOAD_MORE_SKELETON_ITEM_COUNT = 2
 const NOTIFICATION_POLLING_INTERVAL = 15_000
 
 const INITIAL_NOTIFICATION_SETTINGS: NotificationSettings = {
@@ -81,6 +82,7 @@ export function NotificationPage() {
   const { setNotificationCount } =
     useOutletContext<NotificationOutletContext>()
   const [notifications, setNotifications] = useState<Notification[]>([])
+  const loadMoreTriggerRef = useRef<HTMLDivElement>(null)
   const notificationIdsRef = useRef<Set<number>>(new Set())
   const hasLoadedNotificationsRef = useRef(false)
   const [newNotificationIds, setNewNotificationIds] = useState<Set<number>>(
@@ -183,7 +185,7 @@ export function NotificationPage() {
     }
   }, [setNotificationCount])
 
-  const handleLoadMore = async () => {
+  const handleLoadMore = useCallback(async () => {
     if (!hasNextPage || isLoadingMore) {
       return
     }
@@ -224,7 +226,7 @@ export function NotificationPage() {
     } finally {
       setIsLoadingMore(false)
     }
-  }
+  }, [hasNextPage, isLoadingMore, nextPage])
 
   const loadSettings = useCallback(async () => {
     setIsSettingsLoading(true)
@@ -524,6 +526,29 @@ export function NotificationPage() {
     }
   }, [refreshNotifications])
 
+  useEffect(() => {
+    const loadMoreTrigger = loadMoreTriggerRef.current
+
+    if (!loadMoreTrigger || !hasNextPage || isLoadingMore) {
+      return
+    }
+
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          void handleLoadMore()
+        }
+      },
+      { rootMargin: '0px 0px 180px' },
+    )
+
+    intersectionObserver.observe(loadMoreTrigger)
+
+    return () => {
+      intersectionObserver.disconnect()
+    }
+  }, [handleLoadMore, hasNextPage, isLoadingMore])
+
   return (
     <Page>
       <Content>
@@ -604,13 +629,31 @@ export function NotificationPage() {
                 </NewNotification>
               ))}
               {hasNextPage && (
-                <LoadMoreButton
-                  type="button"
-                  disabled={isLoadingMore}
-                  onClick={handleLoadMore}
-                >
-                  {isLoadingMore ? '불러오는 중' : '알림 더 보기'}
-                </LoadMoreButton>
+                <InfiniteScrollTrigger ref={loadMoreTriggerRef}>
+                  {isLoadingMore && (
+                    <SkeletonList aria-label="추가 알림을 불러오는 중입니다.">
+                      {Array.from(
+                        { length: LOAD_MORE_SKELETON_ITEM_COUNT },
+                        (_, index) => (
+                          <SkeletonItem key={index} aria-hidden="true">
+                            <SkeletonMain>
+                              <SkeletonAvatar />
+                              <SkeletonText>
+                                <SkeletonLine $width="64px" />
+                                <SkeletonLine $width="260px" />
+                                <SkeletonLine $width="180px" />
+                              </SkeletonText>
+                            </SkeletonMain>
+                            <SkeletonControls>
+                              <SkeletonIndicator />
+                              <SkeletonOccurredAt />
+                            </SkeletonControls>
+                          </SkeletonItem>
+                        ),
+                      )}
+                    </SkeletonList>
+                  )}
+                </InfiniteScrollTrigger>
               )}
             </>
           ) : (
