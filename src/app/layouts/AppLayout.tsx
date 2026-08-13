@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
 import { getUnreadNotificationCount } from '@/entities/notification'
-import { readAllNotifications } from '@/features/notification'
 import { SIDEBAR_MENU } from '@/shared/constants/sidebar'
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
@@ -43,8 +42,6 @@ export function AppLayout() {
   const [notificationCount, setNotificationCount] = useState(
     getStoredUnreadNotificationCount,
   )
-  const previousPathnameRef = useRef(location.pathname)
-  const notificationCountRef = useRef(notificationCount)
   const shouldShowSidebar =
     !location.pathname.startsWith('/my/edit') &&
     !location.pathname.startsWith('/my/withdraw-complete')
@@ -70,32 +67,6 @@ export function AppLayout() {
     setNotificationCount(normalizedCount)
     saveUnreadNotificationCount(normalizedCount)
   }, [])
-
-  useEffect(() => {
-    notificationCountRef.current = notificationCount
-  }, [notificationCount])
-
-  useEffect(() => {
-    const previousPathname = previousPathnameRef.current
-
-    previousPathnameRef.current = location.pathname
-
-    if (
-      previousPathname !== '/notification' ||
-      location.pathname === '/notification' ||
-      notificationCountRef.current === 0
-    ) {
-      return
-    }
-
-    void readAllNotifications()
-      .then(() => {
-        updateNotificationCount(0)
-      })
-      .catch(() => {
-        // Keep the unread count when the read request fails.
-      })
-  }, [location.pathname, updateNotificationCount])
 
   useEffect(() => {
     let isCancelled = false
