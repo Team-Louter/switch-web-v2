@@ -4,7 +4,11 @@ export {
   GoogleOAuthCallbackPage,
 } from './auth'
 export { CalendarPage } from './calendar'
-export { CommunityDetailPage, CommunityPage } from './community'
+export {
+  CommunityDetailPage,
+  CommunityPage,
+  CommunityWritePage,
+} from './community'
 export { HomePage } from './home'
 export { LearningPage } from './study'
 export { MentoringPage } from './mentoring'
