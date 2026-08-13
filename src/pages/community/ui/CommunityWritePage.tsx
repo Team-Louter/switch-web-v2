@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import {
@@ -26,29 +26,166 @@ import { Button } from '@/shared/ui'
 import * as S from './CommunityWritePage.style'
 
 interface EditorTool {
+  action: EditorAction
   label: string
   icon: string
   width: number
   height: number
 }
 
+interface EditorInsertion {
+  value: string
+  selectionStart: number
+  selectionEnd: number
+}
+
+type EditorAction =
+  | 'bold'
+  | 'italic'
+  | 'underline'
+  | 'strike'
+  | 'headingOne'
+  | 'headingTwo'
+  | 'unorderedList'
+  | 'orderedList'
+  | 'code'
+  | 'quote'
+  | 'link'
+  | 'image'
+
 const EDITOR_TOOLS: readonly EditorTool[] = [
-  { label: '굵게', icon: boldIcon, width: 15.001, height: 21.314 },
-  { label: '기울임', icon: italicIcon, width: 11, height: 21.314 },
-  { label: '밑줄', icon: underlineIcon, width: 14.999, height: 21.314 },
-  { label: '취소선', icon: strikeIcon, width: 16.999, height: 21.314 },
-  { label: '제목 1', icon: headingOneIcon, width: 24, height: 24 },
-  { label: '제목 2', icon: headingTwoIcon, width: 24, height: 24 },
-  { label: '글머리표 목록', icon: unorderedListIcon, width: 20, height: 20 },
-  { label: '번호 목록', icon: orderedListIcon, width: 20, height: 20 },
-  { label: '코드', icon: codeIcon, width: 22, height: 22 },
-  { label: '인용', icon: quoteIcon, width: 24, height: 24 },
-  { label: '링크', icon: linkIcon, width: 21.001, height: 21 },
-  { label: '이미지', icon: imageIcon, width: 20, height: 20 },
+  {
+    action: 'bold',
+    label: '굵게',
+    icon: boldIcon,
+    width: 15.001,
+    height: 21.314,
+  },
+  {
+    action: 'italic',
+    label: '기울임',
+    icon: italicIcon,
+    width: 11,
+    height: 21.314,
+  },
+  {
+    action: 'underline',
+    label: '밑줄',
+    icon: underlineIcon,
+    width: 14.999,
+    height: 21.314,
+  },
+  {
+    action: 'strike',
+    label: '취소선',
+    icon: strikeIcon,
+    width: 16.999,
+    height: 21.314,
+  },
+  {
+    action: 'headingOne',
+    label: '제목 1',
+    icon: headingOneIcon,
+    width: 24,
+    height: 24,
+  },
+  {
+    action: 'headingTwo',
+    label: '제목 2',
+    icon: headingTwoIcon,
+    width: 24,
+    height: 24,
+  },
+  {
+    action: 'unorderedList',
+    label: '글머리표 목록',
+    icon: unorderedListIcon,
+    width: 20,
+    height: 20,
+  },
+  {
+    action: 'orderedList',
+    label: '번호 목록',
+    icon: orderedListIcon,
+    width: 20,
+    height: 20,
+  },
+  { action: 'code', label: '코드', icon: codeIcon, width: 22, height: 22 },
+  { action: 'quote', label: '인용', icon: quoteIcon, width: 24, height: 24 },
+  { action: 'link', label: '링크', icon: linkIcon, width: 21.001, height: 21 },
+  { action: 'image', label: '이미지', icon: imageIcon, width: 20, height: 20 },
 ]
+
+function wrapEditorText(
+  selectedText: string,
+  fallbackText: string,
+  prefix: string,
+  suffix: string,
+): EditorInsertion {
+  const text = selectedText || fallbackText
+
+  return {
+    value: `${prefix}${text}${suffix}`,
+    selectionStart: prefix.length,
+    selectionEnd: prefix.length + text.length,
+  }
+}
+
+function createEditorInsertion(
+  action: EditorAction,
+  selectedText: string,
+): EditorInsertion {
+  switch (action) {
+    case 'bold':
+      return wrapEditorText(selectedText, '굵은 텍스트', '**', '**')
+    case 'italic':
+      return wrapEditorText(selectedText, '기울임 텍스트', '*', '*')
+    case 'underline':
+      return wrapEditorText(selectedText, '밑줄 텍스트', '<u>', '</u>')
+    case 'strike':
+      return wrapEditorText(selectedText, '취소선 텍스트', '~~', '~~')
+    case 'headingOne':
+      return wrapEditorText(selectedText, '제목 1', '# ', '')
+    case 'headingTwo':
+      return wrapEditorText(selectedText, '제목 2', '## ', '')
+    case 'unorderedList': {
+      const value = (selectedText || '목록 항목')
+        .split('\n')
+        .map((line) => `- ${line}`)
+        .join('\n')
+
+      return { value, selectionStart: 0, selectionEnd: value.length }
+    }
+    case 'orderedList': {
+      const value = (selectedText || '목록 항목')
+        .split('\n')
+        .map((line, index) => `${index + 1}. ${line}`)
+        .join('\n')
+
+      return { value, selectionStart: 0, selectionEnd: value.length }
+    }
+    case 'code':
+      return selectedText.includes('\n')
+        ? wrapEditorText(selectedText, '코드', '```\n', '\n```')
+        : wrapEditorText(selectedText, '코드', '`', '`')
+    case 'quote': {
+      const value = (selectedText || '인용문')
+        .split('\n')
+        .map((line) => `> ${line}`)
+        .join('\n')
+
+      return { value, selectionStart: 0, selectionEnd: value.length }
+    }
+    case 'link':
+      return wrapEditorText(selectedText, '링크 텍스트', '[', '](https://)')
+    case 'image':
+      return wrapEditorText(selectedText, '이미지 설명', '![', '](https://)')
+  }
+}
 
 export function CommunityWritePage() {
   const navigate = useNavigate()
+  const contentInputRef = useRef<HTMLTextAreaElement>(null)
   const [category, setCategory] = useState<PostCategory | ''>('')
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -58,6 +195,32 @@ export function CommunityWritePage() {
 
   const handleBackToList = () => {
     navigate('/community')
+  }
+
+  const handleEditorToolClick = (action: EditorAction) => {
+    const contentInput = contentInputRef.current
+
+    if (!contentInput) {
+      return
+    }
+
+    const selectionStart = contentInput.selectionStart
+    const selectionEnd = contentInput.selectionEnd
+    const selectedText = contentInput.value.slice(selectionStart, selectionEnd)
+    const insertion = createEditorInsertion(action, selectedText)
+    const nextContent =
+      contentInput.value.slice(0, selectionStart) +
+      insertion.value +
+      contentInput.value.slice(selectionEnd)
+
+    setContent(nextContent)
+    window.requestAnimationFrame(() => {
+      contentInput.focus()
+      contentInput.setSelectionRange(
+        selectionStart + insertion.selectionStart,
+        selectionStart + insertion.selectionEnd,
+      )
+    })
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -149,6 +312,8 @@ export function CommunityWritePage() {
                   key={tool.label}
                   type="button"
                   aria-label={tool.label}
+                  disabled={isSubmitting}
+                  onClick={() => handleEditorToolClick(tool.action)}
                 >
                   <S.ToolbarIcon
                     src={tool.icon}
@@ -174,6 +339,7 @@ export function CommunityWritePage() {
 
           <S.EditorDivider />
           <S.ContentInput
+            ref={contentInputRef}
             aria-label="게시글 내용"
             placeholder="어떤 내용을 공유하고 싶으신가요?"
             value={content}
