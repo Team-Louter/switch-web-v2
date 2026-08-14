@@ -5,7 +5,13 @@ import type { Block } from '@blocknote/core'
 import { ko } from '@blocknote/core/locales'
 import { BlockNoteView } from '@blocknote/mantine'
 import { useCreateBlockNote } from '@blocknote/react'
-import { type FormEvent, useCallback, useState } from 'react'
+import {
+  type ChangeEvent,
+  type FormEvent,
+  useCallback,
+  useRef,
+  useState,
+} from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import {
@@ -21,12 +27,71 @@ import { Button } from '@/shared/ui'
 
 import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg'
 import backChevronIcon from '../assets/svg/back-chevron.svg'
+import boldIcon from '../assets/svg/editor-bold.svg'
+import codeIcon from '../assets/svg/editor-code.svg'
+import headingOneIcon from '../assets/svg/editor-heading-one.svg'
+import headingTwoIcon from '../assets/svg/editor-heading-two.svg'
+import imageIcon from '../assets/svg/editor-image.svg'
+import italicIcon from '../assets/svg/editor-italic.svg'
+import linkIcon from '../assets/svg/editor-link.svg'
+import orderedListIcon from '../assets/svg/editor-ordered-list.svg'
+import quoteIcon from '../assets/svg/editor-quote.svg'
+import strikeIcon from '../assets/svg/editor-strike.svg'
+import underlineIcon from '../assets/svg/editor-underline.svg'
+import unorderedListIcon from '../assets/svg/editor-unordered-list.svg'
 
 import * as S from './CommunityWritePage.style'
 
 interface UploadedImage extends PostFileRequest {
   id: string
 }
+
+type EditorAction =
+  | 'bold'
+  | 'italic'
+  | 'underline'
+  | 'strike'
+  | 'headingOne'
+  | 'headingTwo'
+  | 'unorderedList'
+  | 'orderedList'
+  | 'code'
+  | 'quote'
+  | 'link'
+  | 'image'
+
+interface EditorTool {
+  action: EditorAction
+  label: string
+  icon: string
+}
+
+const COMMUNITY_EDITOR_DICTIONARY = {
+  ...ko,
+  placeholders: {
+    ...ko.placeholders,
+    default: '내용을 입력해주세요.',
+  },
+}
+
+const EDITOR_TOOLS: EditorTool[] = [
+  { action: 'bold', label: '굵게', icon: boldIcon },
+  { action: 'italic', label: '기울임', icon: italicIcon },
+  { action: 'underline', label: '밑줄', icon: underlineIcon },
+  { action: 'strike', label: '취소선', icon: strikeIcon },
+  { action: 'headingOne', label: '제목 1', icon: headingOneIcon },
+  { action: 'headingTwo', label: '제목 2', icon: headingTwoIcon },
+  {
+    action: 'unorderedList',
+    label: '글머리 기호 목록',
+    icon: unorderedListIcon,
+  },
+  { action: 'orderedList', label: '번호 목록', icon: orderedListIcon },
+  { action: 'code', label: '코드 블록', icon: codeIcon },
+  { action: 'quote', label: '인용문', icon: quoteIcon },
+  { action: 'link', label: '링크', icon: linkIcon },
+  { action: 'image', label: '이미지', icon: imageIcon },
+]
 
 function getEmbeddedImageUrls(blocks: readonly Block[]): Set<string> {
   const urls = new Set<string>()
@@ -53,6 +118,7 @@ function hasPostContent(content: string): boolean {
 
 export function CommunityWritePage() {
   const navigate = useNavigate()
+  const imageInputRef = useRef<HTMLInputElement>(null)
   const [category, setCategory] = useState<PostCategory | ''>('')
   const [title, setTitle] = useState('')
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
@@ -102,7 +168,7 @@ export function CommunityWritePage() {
 
   const editor = useCreateBlockNote(
     {
-      dictionary: ko,
+      dictionary: COMMUNITY_EDITOR_DICTIONARY,
       domAttributes: {
         editor: { 'aria-label': '게시글 내용' },
       },
@@ -125,6 +191,103 @@ export function CommunityWritePage() {
 
       return remainingImages.length === images.length ? images : remainingImages
     })
+  }
+
+  const handleEditorToolClick = (action: EditorAction) => {
+    if (action === 'image') {
+      imageInputRef.current?.click()
+      return
+    }
+
+    if (action === 'link') {
+      const url = window.prompt('링크 주소를 입력해주세요.')
+
+      if (url?.trim()) {
+        editor.createLink(url.trim(), editor.getSelectedText() || undefined)
+      }
+
+      editor.focus()
+      return
+    }
+
+    const currentBlock = editor.getTextCursorPosition().block
+
+    switch (action) {
+      case 'bold':
+        editor.toggleStyles({ bold: true })
+        break
+      case 'italic':
+        editor.toggleStyles({ italic: true })
+        break
+      case 'underline':
+        editor.toggleStyles({ underline: true })
+        break
+      case 'strike':
+        editor.toggleStyles({ strike: true })
+        break
+      case 'headingOne':
+        editor.updateBlock(currentBlock, {
+          type: 'heading',
+          props: { level: 1 },
+        })
+        break
+      case 'headingTwo':
+        editor.updateBlock(currentBlock, {
+          type: 'heading',
+          props: { level: 2 },
+        })
+        break
+      case 'unorderedList':
+        editor.updateBlock(currentBlock, { type: 'bulletListItem' })
+        break
+      case 'orderedList':
+        editor.updateBlock(currentBlock, { type: 'numberedListItem' })
+        break
+      case 'code':
+        editor.updateBlock(currentBlock, { type: 'codeBlock' })
+        break
+      case 'quote':
+        editor.updateBlock(currentBlock, { type: 'quote' })
+        break
+      default:
+        break
+    }
+
+    editor.focus()
+  }
+
+  const handleImageSelection = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const [file] = Array.from(event.target.files ?? [])
+
+    event.target.value = ''
+
+    if (!file) {
+      return
+    }
+
+    try {
+      const uploadedImage = await handleImageUpload(file)
+      const currentBlock = editor.getTextCursorPosition().block
+      const [imageBlock] = editor.insertBlocks(
+        [
+          {
+            type: 'image',
+            props: {
+              url: uploadedImage.url,
+              name: uploadedImage.name,
+            },
+          },
+        ],
+        currentBlock,
+        'after',
+      )
+
+      editor.setTextCursorPosition(imageBlock, 'end')
+    } catch {
+      // 이미지 업로드 실패 메시지는 handleImageUpload에서 표시합니다.
+    }
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -228,9 +391,21 @@ export function CommunityWritePage() {
 
         <S.Editor aria-label="게시글 내용 편집기">
           <S.Toolbar>
-            <p className="community-editor-guide">
-              <strong>/</strong>를 입력해 블록을 추가하세요.
-            </p>
+            <div className="community-toolbar-actions" aria-label="서식 도구">
+              {EDITOR_TOOLS.map((tool) => (
+                <button
+                  key={tool.action}
+                  className="community-toolbar-button"
+                  type="button"
+                  aria-label={tool.label}
+                  title={tool.label}
+                  disabled={isSubmitting}
+                  onClick={() => handleEditorToolClick(tool.action)}
+                >
+                  <img src={tool.icon} alt="" />
+                </button>
+              ))}
+            </div>
             <S.AnonymousLabel>
               익명으로 게시하기
               <S.AnonymousToggle
@@ -244,6 +419,15 @@ export function CommunityWritePage() {
           </S.Toolbar>
 
           <S.EditorDivider />
+          <input
+            ref={imageInputRef}
+            className="community-image-input"
+            type="file"
+            accept="image/*"
+            tabIndex={-1}
+            aria-hidden="true"
+            onChange={handleImageSelection}
+          />
           <div className="community-block-editor">
             <BlockNoteView
               editor={editor}
