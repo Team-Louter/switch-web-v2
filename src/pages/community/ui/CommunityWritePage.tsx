@@ -1,5 +1,6 @@
 import {
   type ChangeEvent,
+  type CompositionEvent,
   type FocusEvent,
   Fragment,
   type FormEvent,
@@ -80,6 +81,12 @@ interface SelectionToolbarPosition {
   top: number
   left: number
   placement: 'above' | 'below'
+}
+
+interface EditorCaretPosition {
+  top: number
+  left: number
+  height: number
 }
 
 interface UploadedImage extends PostFileRequest {
@@ -185,7 +192,7 @@ const MIN_IMAGE_WIDTH = 160
 const MAX_IMAGE_WIDTH = 960
 
 const INLINE_MARKDOWN_PATTERN =
-  /(\*\*[^*\n]+?\*\*|__[^_\n]+?__|~~[^~\n]+?~~|<u>[^<\n]+?<\/u>|`[^`\n]+?`|!\[[^\]\n]*?\]\([^)\n]+?\)|\[[^\]\n]+?\]\([^)\n]+?\)|\*[^*\n]+?\*)/g
+  /(\*\*[^*\n]*?\*\*|__[^_\n]*?__|~~[^~\n]*?~~|<u>[^<\n]+?<\/u>|`[^`\n]+?`|!\[[^\]\n]*?\]\([^)\n]+?\)|\[[^\]\n]+?\]\([^)\n]+?\)|\*[^*\n]*?\*)/g
 
 const CODE_LANGUAGE_ALIASES: Readonly<Record<string, string>> = {
   py: 'python',
@@ -215,6 +222,16 @@ const CODE_LANGUAGE_ALIASES: Readonly<Record<string, string>> = {
 const OPENING_CODE_FENCE_PATTERN = /^\s*```([^\s`]*)?.*$/
 const CLOSING_CODE_FENCE_PATTERN = /^\s*```\s*$/
 
+function renderEditorPlaceholder(label: string): ReactNode {
+  return (
+    <S.EditorPlaceholder data-editor-placeholder>{label}</S.EditorPlaceholder>
+  )
+}
+
+function renderFormattedValue(value: string, placeholder: string): ReactNode {
+  return value || renderEditorPlaceholder(placeholder)
+}
+
 function renderInlineMarkdown(value: string): ReactNode[] {
   const nodes: ReactNode[] = []
   let sourceIndex = 0
@@ -231,7 +248,9 @@ function renderInlineMarkdown(value: string): ReactNode[] {
       nodes.push(
         <Fragment key={matchIndex}>
           <S.MarkdownSyntax>**</S.MarkdownSyntax>
-          <S.FormattedText $format="bold">{token.slice(2, -2)}</S.FormattedText>
+          <S.FormattedText $format="bold">
+            {renderFormattedValue(token.slice(2, -2), '굵게 텍스트')}
+          </S.FormattedText>
           <S.MarkdownSyntax>**</S.MarkdownSyntax>
         </Fragment>,
       )
@@ -240,7 +259,7 @@ function renderInlineMarkdown(value: string): ReactNode[] {
         <Fragment key={matchIndex}>
           <S.MarkdownSyntax>__</S.MarkdownSyntax>
           <S.FormattedText $format="underline">
-            {token.slice(2, -2)}
+            {renderFormattedValue(token.slice(2, -2), '밑줄 텍스트')}
           </S.FormattedText>
           <S.MarkdownSyntax>__</S.MarkdownSyntax>
         </Fragment>,
@@ -250,7 +269,7 @@ function renderInlineMarkdown(value: string): ReactNode[] {
         <Fragment key={matchIndex}>
           <S.MarkdownSyntax>~~</S.MarkdownSyntax>
           <S.FormattedText $format="strike">
-            {token.slice(2, -2)}
+            {renderFormattedValue(token.slice(2, -2), '취소선 텍스트')}
           </S.FormattedText>
           <S.MarkdownSyntax>~~</S.MarkdownSyntax>
         </Fragment>,
@@ -302,7 +321,7 @@ function renderInlineMarkdown(value: string): ReactNode[] {
         <Fragment key={matchIndex}>
           <S.MarkdownSyntax>*</S.MarkdownSyntax>
           <S.FormattedText $format="italic">
-            {token.slice(1, -1)}
+            {renderFormattedValue(token.slice(1, -1), '기울임 텍스트')}
           </S.FormattedText>
           <S.MarkdownSyntax>*</S.MarkdownSyntax>
         </Fragment>,
@@ -469,14 +488,20 @@ function renderEditorLineContent(line: string): ReactNode {
   const heading = line.match(/^(#{1,6})(\s+)(.*)$/)
 
   if (heading) {
+    const headingLevel = heading[1].length
+
     return (
       <>
-        <S.MarkdownSyntax>{heading[1]}</S.MarkdownSyntax>
-        {heading[2]}
+        <S.HiddenMarkdownSyntax>
+          {heading[1]}
+          {heading[2]}
+        </S.HiddenMarkdownSyntax>
         <S.FormattedText
-          $format={heading[1].length === 1 ? 'headingOne' : 'headingTwo'}
+          $format={headingLevel === 1 ? 'headingOne' : 'headingTwo'}
         >
-          {renderInlineMarkdown(heading[3])}
+          {heading[3]
+            ? renderInlineMarkdown(heading[3])
+            : renderEditorPlaceholder(`제목${headingLevel}`)}
         </S.FormattedText>
       </>
     )
@@ -492,7 +517,9 @@ function renderEditorLineContent(line: string): ReactNode {
           {/^\d+\.$/.test(listItem[2]) ? listItem[2] : '•'}
         </S.ListMarker>
         {listItem[3]}
-        {renderInlineMarkdown(listItem[4])}
+        {listItem[4]
+          ? renderInlineMarkdown(listItem[4])
+          : renderEditorPlaceholder('리스트')}
       </>
     )
   }
@@ -529,7 +556,9 @@ function renderEditorLine(line: string, lineIndex: number): ReactNode {
     return (
       <S.EditorLine key={lineIndex} $format="quote">
         <S.HiddenQuoteMarker>{quote[1]}</S.HiddenQuoteMarker>
-        {renderEditorLineContent(quote[2])}
+        {quote[2]
+          ? renderEditorLineContent(quote[2])
+          : renderEditorPlaceholder('비어 있는 인용')}
       </S.EditorLine>
     )
   }
@@ -645,7 +674,12 @@ function getLinePosition(value: string, offset: number): LinePosition {
 }
 
 function getTextPosition(element: Element, offset: number): TextPosition | null {
-  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
+    acceptNode: (node) =>
+      node.parentElement?.closest('[data-editor-placeholder]')
+        ? NodeFilter.FILTER_REJECT
+        : NodeFilter.FILTER_ACCEPT,
+  })
   let remainingOffset = offset
   let currentNode = walker.nextNode()
 
@@ -661,6 +695,34 @@ function getTextPosition(element: Element, offset: number): TextPosition | null 
   }
 
   return null
+}
+
+function getCaretClientRect(
+  preview: HTMLDivElement,
+  value: string,
+  offset: number,
+): DOMRect | null {
+  const position = getLinePosition(value, offset)
+  const line = preview.children.item(position.lineIndex)
+
+  if (!line) {
+    return null
+  }
+
+  const textPosition = getTextPosition(line, position.column)
+
+  if (!textPosition) {
+    return line.getBoundingClientRect()
+  }
+
+  const range = document.createRange()
+
+  range.setStart(textPosition.node, textPosition.offset)
+  range.collapse(true)
+
+  const rangeRect = range.getClientRects().item(0) ?? range.getBoundingClientRect()
+
+  return rangeRect.height > 0 ? rangeRect : line.getBoundingClientRect()
 }
 
 function getSelectionClientRect(
@@ -800,6 +862,7 @@ export function CommunityWritePage() {
   const contentInputRef = useRef<HTMLTextAreaElement>(null)
   const inlinePreviewRef = useRef<HTMLDivElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const isComposingRef = useRef(false)
   const contentHistoryRef = useRef<EditorHistoryEntry[]>([
     { value: '', selectionStart: 0, selectionEnd: 0 },
   ])
@@ -813,6 +876,9 @@ export function CommunityWritePage() {
   const [imageUploadError, setImageUploadError] = useState<string | null>(null)
   const [selectionToolbarPosition, setSelectionToolbarPosition] =
     useState<SelectionToolbarPosition | null>(null)
+  const [editorCaretPosition, setEditorCaretPosition] =
+    useState<EditorCaretPosition | null>(null)
+  const [isComposing, setIsComposing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
@@ -848,6 +914,43 @@ export function CommunityWritePage() {
     setContent(nextValue)
   }
 
+  const updateEditorCaret = () => {
+    const editorBody = editorBodyRef.current
+    const contentInput = contentInputRef.current
+    const preview = inlinePreviewRef.current
+
+    if (
+      !editorBody ||
+      !contentInput ||
+      !preview ||
+      isComposingRef.current ||
+      document.activeElement !== contentInput ||
+      contentInput.selectionStart !== contentInput.selectionEnd
+    ) {
+      setEditorCaretPosition(null)
+      return
+    }
+
+    const caretRect = getCaretClientRect(
+      preview,
+      contentInput.value,
+      contentInput.selectionStart,
+    )
+
+    if (!caretRect) {
+      setEditorCaretPosition(null)
+      return
+    }
+
+    const editorBodyRect = editorBody.getBoundingClientRect()
+
+    setEditorCaretPosition({
+      top: caretRect.top - editorBodyRect.top,
+      left: caretRect.left - editorBodyRect.left,
+      height: caretRect.height,
+    })
+  }
+
   const restoreContentFromHistory = (direction: -1 | 1) => {
     const history = contentHistoryRef.current
     const nextIndex = Math.min(
@@ -870,6 +973,7 @@ export function CommunityWritePage() {
         nextEntry.selectionStart,
         nextEntry.selectionEnd,
       )
+      updateEditorCaret()
     })
   }
 
@@ -917,6 +1021,7 @@ export function CommunityWritePage() {
     window.requestAnimationFrame(() => {
       contentInput.focus()
       contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
+      updateEditorCaret()
     })
   }
 
@@ -974,7 +1079,10 @@ export function CommunityWritePage() {
   }
 
   const handleContentSelection = () => {
-    window.requestAnimationFrame(updateSelectionToolbar)
+    window.requestAnimationFrame(() => {
+      updateSelectionToolbar()
+      updateEditorCaret()
+    })
   }
 
   const handleContentBlur = (event: FocusEvent<HTMLTextAreaElement>) => {
@@ -988,6 +1096,7 @@ export function CommunityWritePage() {
     }
 
     setSelectionToolbarPosition(null)
+    setEditorCaretPosition(null)
   }
 
   const handleImageSelection = async (
@@ -1042,6 +1151,7 @@ export function CommunityWritePage() {
 
         currentInput.focus()
         currentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
+        updateEditorCaret()
       })
     } catch {
       setImageUploadError(
@@ -1078,10 +1188,52 @@ export function CommunityWritePage() {
 
     inlinePreviewRef.current.scrollTop = event.currentTarget.scrollTop
     inlinePreviewRef.current.scrollLeft = event.currentTarget.scrollLeft
-    window.requestAnimationFrame(updateSelectionToolbar)
+    window.requestAnimationFrame(() => {
+      updateSelectionToolbar()
+      updateEditorCaret()
+    })
+  }
+
+  const handleContentChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    if (isComposingRef.current) {
+      setContent(event.target.value)
+    } else {
+      commitContent(
+        event.target.value,
+        event.target.selectionStart,
+        event.target.selectionEnd,
+      )
+    }
+
+    setSelectionToolbarPosition(null)
+    window.requestAnimationFrame(updateEditorCaret)
+  }
+
+  const handleContentCompositionStart = () => {
+    isComposingRef.current = true
+    setIsComposing(true)
+    setSelectionToolbarPosition(null)
+    setEditorCaretPosition(null)
+  }
+
+  const handleContentCompositionEnd = (
+    event: CompositionEvent<HTMLTextAreaElement>,
+  ) => {
+    isComposingRef.current = false
+    setIsComposing(false)
+    commitContent(
+      event.currentTarget.value,
+      event.currentTarget.selectionStart,
+      event.currentTarget.selectionEnd,
+    )
+    window.requestAnimationFrame(updateEditorCaret)
   }
 
   const handleContentKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (isComposingRef.current || event.nativeEvent.isComposing) {
+      return
+    }
+
     const normalizedKey = event.key.toLowerCase()
     const hasHistoryModifier = event.metaKey || event.ctrlKey
     const isUndo =
@@ -1111,6 +1263,32 @@ export function CommunityWritePage() {
     const quote = line.match(/^(\s*)>\s?(.*)$/)
     const listItem = line.match(/^(\s*)([-+*]|\d+\.)(\s+)(.*)$/)
 
+    if (
+      event.key === 'Backspace' &&
+      listItem &&
+      selectionStart === selectionEnd &&
+      selectionStart === lineEnd &&
+      !listItem[4]
+    ) {
+      event.preventDefault()
+
+      const indentation = listItem[1]
+      const nextContent =
+        contentInput.value.slice(0, lineStart) +
+        indentation +
+        contentInput.value.slice(lineEnd)
+      const nextCaretPosition = lineStart + indentation.length
+
+      commitContent(nextContent, nextCaretPosition)
+      setSelectionToolbarPosition(null)
+      window.requestAnimationFrame(() => {
+        contentInput.focus()
+        contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
+        updateEditorCaret()
+      })
+      return
+    }
+
     if (event.key === 'Enter' && event.shiftKey && quote) {
       event.preventDefault()
 
@@ -1127,6 +1305,7 @@ export function CommunityWritePage() {
       window.requestAnimationFrame(() => {
         contentInput.focus()
         contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
+        updateEditorCaret()
       })
       return
     }
@@ -1152,6 +1331,7 @@ export function CommunityWritePage() {
         window.requestAnimationFrame(() => {
           contentInput.focus()
           contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
+          updateEditorCaret()
         })
         return
       }
@@ -1173,6 +1353,7 @@ export function CommunityWritePage() {
       window.requestAnimationFrame(() => {
         contentInput.focus()
         contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
+        updateEditorCaret()
       })
       return
     }
@@ -1206,6 +1387,7 @@ export function CommunityWritePage() {
     window.requestAnimationFrame(() => {
       contentInput.focus()
       contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
+      updateEditorCaret()
     })
   }
 
@@ -1363,7 +1545,11 @@ export function CommunityWritePage() {
 
           <S.EditorDivider />
           <S.EditorBody ref={editorBodyRef}>
-            <S.InlineMarkdownPreview ref={inlinePreviewRef} aria-hidden="true">
+            <S.InlineMarkdownPreview
+              ref={inlinePreviewRef}
+              aria-hidden="true"
+              data-composing={isComposing}
+            >
               <InlineMarkdownPreview value={content} />
             </S.InlineMarkdownPreview>
             <S.ContentInput
@@ -1373,19 +1559,24 @@ export function CommunityWritePage() {
               value={content}
               required={uploadedImages.length === 0}
               disabled={isSubmitting}
+              data-composing={isComposing}
               onBlur={handleContentBlur}
-              onChange={(event) => {
-                commitContent(
-                  event.target.value,
-                  event.target.selectionStart,
-                  event.target.selectionEnd,
-                )
-                setSelectionToolbarPosition(null)
-              }}
+              onChange={handleContentChange}
+              onCompositionEnd={handleContentCompositionEnd}
+              onCompositionStart={handleContentCompositionStart}
+              onFocus={handleContentSelection}
               onKeyDown={handleContentKeyDown}
               onSelect={handleContentSelection}
               onScroll={handleContentScroll}
             />
+            {editorCaretPosition && !isComposing && (
+              <S.EditorCaret
+                aria-hidden="true"
+                $top={editorCaretPosition.top}
+                $left={editorCaretPosition.left}
+                $height={editorCaretPosition.height}
+              />
+            )}
             {selectionToolbarPosition && (
               <S.SelectionToolbar
                 data-selection-toolbar
