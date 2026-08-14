@@ -541,6 +541,40 @@ export const ContentInput = styled.textarea`
   }
 `
 
+export const RichTextInput = styled.div`
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  overflow: auto;
+  border: 0;
+  outline: none;
+  color: ${token.colors.gray.gray100};
+  background: transparent;
+  caret-color: ${token.colors.gray.gray100};
+  ${token.typography('body', 'lg', 'medium')}
+  line-height: 1.4;
+  letter-spacing: normal;
+  overflow-wrap: break-word;
+  tab-size: 4;
+  white-space: pre-wrap;
+
+  &[data-empty='true']::before {
+    color: ${token.colors.gray.gray40};
+    content: attr(data-placeholder);
+    pointer-events: none;
+  }
+
+  &[aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+`
+
 export const InlineMarkdownPreview = styled.div`
   position: absolute;
   z-index: 0;
