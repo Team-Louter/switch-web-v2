@@ -486,7 +486,6 @@ export function CommunityWritePage() {
           <S.EditorDivider />
           <S.EditorBody>
             <S.RichTextInput
-              as="textarea"
               ref={contentInputRef}
               aria-label="게시글 내용"
               placeholder="어떤 내용을 공유하고 싶으신가요?"
