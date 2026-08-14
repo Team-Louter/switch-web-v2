@@ -1,7 +1,7 @@
 import '@blocknote/core/fonts/inter.css'
 import '@blocknote/mantine/style.css'
 
-import { cleanHTMLToMarkdown, type Block } from '@blocknote/core'
+import type { Block } from '@blocknote/core'
 import { ko } from '@blocknote/core/locales'
 import { BlockNoteView } from '@blocknote/mantine'
 import { useCreateBlockNote } from '@blocknote/react'
@@ -23,6 +23,7 @@ import {
   type PostFileRequest,
   uploadCommunityImage,
 } from '@/features/community'
+import { serializeBlockNotePostContent } from '@/shared/lib/blockNotePostContent'
 import { Button } from '@/shared/ui'
 
 import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg'
@@ -114,15 +115,6 @@ function hasPostContent(content: string): boolean {
     .trim()
 
   return Boolean(textContent) || /<(img|audio|video)\b/i.test(content)
-}
-
-function blocksToPostMarkdown(html: string): string {
-  const markdownReadyHtml = html.replaceAll(
-    /<u>([\s\S]*?)<\/u>/gi,
-    '__$1__',
-  )
-
-  return cleanHTMLToMarkdown(markdownReadyHtml)
 }
 
 export function CommunityWritePage() {
@@ -307,12 +299,14 @@ export function CommunityWritePage() {
       return
     }
 
-    const postContent = blocksToPostMarkdown(editor.blocksToHTMLLossy())
+    const postContentHtml = editor.blocksToHTMLLossy()
 
-    if (!category || !title.trim() || !hasPostContent(postContent)) {
+    if (!category || !title.trim() || !hasPostContent(postContentHtml)) {
       setSubmitError('카테고리와 제목, 내용을 모두 입력해주세요.')
       return
     }
+
+    const postContent = serializeBlockNotePostContent(editor.document)
 
     setIsSubmitting(true)
     setSubmitError(null)
