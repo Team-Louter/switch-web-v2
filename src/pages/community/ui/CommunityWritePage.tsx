@@ -2,6 +2,7 @@ import '@blocknote/core/fonts/inter.css'
 import '@blocknote/mantine/style.css'
 
 import type { Block } from '@blocknote/core'
+import { SideMenuExtension } from '@blocknote/core/extensions'
 import { ko } from '@blocknote/core/locales'
 import { BlockNoteView } from '@blocknote/mantine'
 import {
@@ -14,6 +15,7 @@ import {
   type ChangeEvent,
   type FormEvent,
   useCallback,
+  useEffect,
   useRef,
   useState,
 } from 'react'
@@ -134,6 +136,7 @@ function CommunityBlockSideMenu(props: SideMenuProps) {
 export function CommunityWritePage() {
   const navigate = useNavigate()
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const editorAreaRef = useRef<HTMLElement>(null)
   const [category, setCategory] = useState<PostCategory | ''>('')
   const [title, setTitle] = useState('')
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
@@ -349,6 +352,31 @@ export function CommunityWritePage() {
     }
   }
 
+  useEffect(() => {
+    const handleDocumentMouseMove = (event: MouseEvent) => {
+      const editorBounds = editorAreaRef.current?.getBoundingClientRect()
+
+      if (!editorBounds) {
+        return
+      }
+
+      const isWithinEditorWidth =
+        event.clientX >= editorBounds.left && event.clientX <= editorBounds.right
+
+      if (!isWithinEditorWidth) {
+        editor
+          .getExtension(SideMenuExtension)
+          ?.hideMenuIfNotFrozen()
+      }
+    }
+
+    document.addEventListener('mousemove', handleDocumentMouseMove)
+
+    return () => {
+      document.removeEventListener('mousemove', handleDocumentMouseMove)
+    }
+  }, [editor])
+
   return (
     <S.Page>
       <S.Content>
@@ -406,7 +434,7 @@ export function CommunityWritePage() {
           </S.WriteForm>
         </S.Header>
 
-        <S.Editor aria-label="게시글 내용 편집기">
+        <S.Editor ref={editorAreaRef} aria-label="게시글 내용 편집기">
           <S.Toolbar>
             <div className="community-toolbar-actions" aria-label="서식 도구">
               {EDITOR_TOOLS.map((tool) => (
@@ -451,12 +479,10 @@ export function CommunityWritePage() {
               editor={editor}
               editable={!isSubmitting}
               sideMenu={false}
+              portalElements={{ default: null }}
               onChange={handleEditorChange}
             >
-              <SideMenuController
-                sideMenu={CommunityBlockSideMenu}
-                portalElement={null}
-              />
+              <SideMenuController sideMenu={CommunityBlockSideMenu} />
             </BlockNoteView>
           </div>
         </S.Editor>
