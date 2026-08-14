@@ -141,7 +141,56 @@ const markdownSanitizeSchema = {
   attributes: {
     ...defaultSchema.attributes,
     img: [...(defaultSchema.attributes?.img ?? []), 'alt', 'width'],
+    span: [...(defaultSchema.attributes?.span ?? []), 'className'],
   },
+}
+
+function createMarkdownPreviewPlaceholder(label: string): string {
+  return `<span class="markdown-preview-placeholder">${label}</span>`
+}
+
+function createMarkdownPreviewContent(value: string): string {
+  let isFencedCode = false
+
+  return value
+    .split('\n')
+    .map((line) => {
+      if (/^\s*```/.test(line)) {
+        isFencedCode = !isFencedCode
+        return line
+      }
+
+      if (isFencedCode) {
+        return line
+      }
+
+      const heading = line.match(/^(\s*)(#{1,3})\s*$/)
+
+      if (heading) {
+        return `${heading[1]}${heading[2]} ${createMarkdownPreviewPlaceholder(`제목${heading[2].length}`)}`
+      }
+
+      const unorderedList = line.match(/^(\s*)([-+*])\s*$/)
+
+      if (unorderedList) {
+        return `${unorderedList[1]}${unorderedList[2]} ${createMarkdownPreviewPlaceholder('리스트')}`
+      }
+
+      const orderedList = line.match(/^(\s*)(\d+\.)\s*$/)
+
+      if (orderedList) {
+        return `${orderedList[1]}${orderedList[2]} ${createMarkdownPreviewPlaceholder('리스트')}`
+      }
+
+      const quote = line.match(/^(\s*)>\s*$/)
+
+      if (quote) {
+        return `${quote[1]}> ${createMarkdownPreviewPlaceholder('비어 있는 인용')}`
+      }
+
+      return line
+    })
+    .join('\n')
 }
 
 function wrapEditorText(
@@ -185,11 +234,15 @@ function createEditorInsertion(
     case 'strike':
       return wrapEditorText(selectedText, '취소선 텍스트', '~~', '~~')
     case 'headingOne':
-      return wrapEditorText(selectedText, '제목 1', '# ', '')
+      return wrapEditorText(selectedText, '', '# ', '')
     case 'headingTwo':
-      return wrapEditorText(selectedText, '제목 2', '## ', '')
+      return wrapEditorText(selectedText, '', '## ', '')
     case 'unorderedList': {
-      const value = (selectedText || '목록 항목')
+      if (!selectedText) {
+        return { value: '- ', selectionStart: 2, selectionEnd: 2 }
+      }
+
+      const value = selectedText
         .split('\n')
         .map((line) => `- ${line}`)
         .join('\n')
@@ -197,7 +250,11 @@ function createEditorInsertion(
       return { value, selectionStart: 0, selectionEnd: value.length }
     }
     case 'orderedList': {
-      const value = (selectedText || '목록 항목')
+      if (!selectedText) {
+        return { value: '1. ', selectionStart: 3, selectionEnd: 3 }
+      }
+
+      const value = selectedText
         .split('\n')
         .map((line, index) => `${index + 1}. ${line}`)
         .join('\n')
@@ -212,7 +269,7 @@ function createEditorInsertion(
         '\n```',
       )
     case 'quote':
-      return wrapEditorText(selectedText, '인용문', '> ', '')
+      return wrapEditorText(selectedText, '', '> ', '')
     case 'link':
       return wrapEditorText(selectedText, '링크 텍스트', '[', '](https://)')
   }
@@ -237,6 +294,7 @@ export function CommunityWritePage() {
   ]
     .filter(Boolean)
     .join('\n\n')
+  const renderedPreviewContent = createMarkdownPreviewContent(previewContent)
 
   const handleBackToList = () => {
     navigate('/community')
@@ -517,7 +575,7 @@ export function CommunityWritePage() {
             <S.EditorPane aria-label="마크다운 미리보기 영역">
               <S.EditorPaneLabel>미리보기</S.EditorPaneLabel>
               <S.MarkdownPreview>
-                {previewContent ? (
+                {renderedPreviewContent ? (
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     rehypePlugins={[
@@ -525,7 +583,7 @@ export function CommunityWritePage() {
                       [rehypeSanitize, markdownSanitizeSchema],
                     ]}
                   >
-                    {previewContent}
+                    {renderedPreviewContent}
                   </ReactMarkdown>
                 ) : (
                   <S.PreviewPlaceholder>
