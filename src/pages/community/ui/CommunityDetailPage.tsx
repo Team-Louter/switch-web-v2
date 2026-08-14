@@ -38,6 +38,10 @@ import * as S from './CommunityDetailPage.style'
 const markdownSanitizeSchema = {
   ...defaultSchema,
   tagNames: [...(defaultSchema.tagNames ?? []), 'u'],
+  attributes: {
+    ...defaultSchema.attributes,
+    img: [...(defaultSchema.attributes?.img ?? []), 'alt', 'width'],
+  },
 }
 
 export function CommunityDetailPage() {
