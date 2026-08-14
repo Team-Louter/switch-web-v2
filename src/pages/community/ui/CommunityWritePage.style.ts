@@ -223,7 +223,7 @@ export const Editor = styled.section`
 
   .community-block-editor .bn-editor {
     min-height: 620px;
-    padding: 8px 12px 32px;
+    padding: 8px 12px 32px 54px;
     background: transparent;
     ${token.typography('body', 'lg', 'medium')}
     line-height: 1.5;
@@ -287,7 +287,7 @@ export const Editor = styled.section`
 
     .community-block-editor .bn-editor {
       min-height: 430px;
-      padding-inline: 12px;
+      padding-inline: 54px 12px;
     }
   }
 `
