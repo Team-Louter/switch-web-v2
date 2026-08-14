@@ -2,6 +2,7 @@ export {
   createComment,
   createPost,
   togglePostHeart,
+  uploadCommunityImage,
 } from './api/communityActions'
 export type {
   CreateCommentRequest,
