@@ -528,6 +528,10 @@ export const RichTextInput = styled.div`
     pointer-events: none;
   }
 
+  &[data-composing='true'] [data-editor-placeholder] {
+    display: none;
+  }
+
   &[aria-disabled='true'] {
     cursor: not-allowed;
     opacity: 0.6;
