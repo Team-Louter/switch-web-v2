@@ -958,26 +958,52 @@ export function CommunityWritePage() {
   }
 
   const handleContentKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key !== 'Backspace') {
+    if (event.key !== 'Backspace' && event.key !== 'Enter') {
       return
     }
 
     const contentInput = event.currentTarget
     const selectionStart = contentInput.selectionStart
     const selectionEnd = contentInput.selectionEnd
-
-    if (selectionStart !== selectionEnd) {
-      return
-    }
-
     const lineStart = contentInput.value.lastIndexOf('\n', selectionStart - 1) + 1
     const nextLineBreak = contentInput.value.indexOf('\n', selectionStart)
     const lineEnd =
       nextLineBreak === -1 ? contentInput.value.length : nextLineBreak
     const line = contentInput.value.slice(lineStart, lineEnd)
-    const emptyQuote = line.match(/^(\s*)>\s?$/)
+    const quote = line.match(/^(\s*)>\s?(.*)$/)
 
-    if (!emptyQuote || selectionStart !== lineEnd) {
+    if (event.key === 'Enter' && event.shiftKey && quote) {
+      event.preventDefault()
+
+      const nextQuotePrefix = `${quote[1]}> `
+      const nextContent =
+        contentInput.value.slice(0, selectionStart) +
+        `\n${nextQuotePrefix}` +
+        contentInput.value.slice(selectionEnd)
+      const nextCaretPosition =
+        selectionStart + nextQuotePrefix.length + 1
+
+      setContent(nextContent)
+      setSelectionToolbarPosition(null)
+      window.requestAnimationFrame(() => {
+        contentInput.focus()
+        contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
+      })
+      return
+    }
+
+    if (selectionStart !== selectionEnd) {
+      return
+    }
+
+    const emptyQuote = line.match(/^(\s*)>\s?$/)
+    const shouldExitEmptyQuote =
+      emptyQuote &&
+      selectionStart === lineEnd &&
+      (event.key === 'Backspace' ||
+        (event.key === 'Enter' && !event.shiftKey))
+
+    if (!shouldExitEmptyQuote) {
       return
     }
 
@@ -991,6 +1017,7 @@ export function CommunityWritePage() {
     const nextCaretPosition = lineStart + indentation.length
 
     setContent(nextContent)
+    setSelectionToolbarPosition(null)
     window.requestAnimationFrame(() => {
       contentInput.focus()
       contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
