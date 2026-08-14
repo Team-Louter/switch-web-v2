@@ -1,5 +1,9 @@
 import { type ChangeEvent, type FormEvent, useRef, useState } from 'react'
+import ReactMarkdown from 'react-markdown'
 import { useNavigate } from 'react-router-dom'
+import rehypeRaw from 'rehype-raw'
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
+import remarkGfm from 'remark-gfm'
 
 import {
   POST_CATEGORY_OPTIONS,
@@ -131,6 +135,15 @@ const DEFAULT_IMAGE_WIDTH = 520
 const MIN_IMAGE_WIDTH = 160
 const MAX_IMAGE_WIDTH = 960
 
+const markdownSanitizeSchema = {
+  ...defaultSchema,
+  tagNames: [...(defaultSchema.tagNames ?? []), 'u'],
+  attributes: {
+    ...defaultSchema.attributes,
+    img: [...(defaultSchema.attributes?.img ?? []), 'alt', 'width'],
+  },
+}
+
 function wrapEditorText(
   selectedText: string,
   fallbackText: string,
@@ -218,6 +231,12 @@ export function CommunityWritePage() {
   const [imageUploadError, setImageUploadError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const previewContent = [
+    content.trim(),
+    uploadedImages.map(createUploadedImageMarkup).join('\n'),
+  ]
+    .filter(Boolean)
+    .join('\n\n')
 
   const handleBackToList = () => {
     navigate('/community')
@@ -339,11 +358,7 @@ export function CommunityWritePage() {
       return
     }
 
-    const textContent = content.trim()
-    const imageContent = uploadedImages
-      .map(createUploadedImageMarkup)
-      .join('\n')
-    const postContent = [textContent, imageContent].filter(Boolean).join('\n\n')
+    const postContent = previewContent
 
     if (!category || !title.trim() || !postContent) {
       setSubmitError('카테고리와 제목, 내용을 모두 입력해주세요.')
@@ -484,17 +499,42 @@ export function CommunityWritePage() {
           />
 
           <S.EditorDivider />
-          <S.EditorBody>
-            <S.RichTextInput
-              ref={contentInputRef}
-              aria-label="게시글 내용"
-              placeholder="어떤 내용을 공유하고 싶으신가요?"
-              value={content}
-              required
-              disabled={isSubmitting}
-              onChange={(event) => setContent(event.target.value)}
-            />
-          </S.EditorBody>
+          <S.EditorContent>
+            <S.EditorPane aria-label="마크다운 작성 영역">
+              <S.EditorPaneLabel>작성</S.EditorPaneLabel>
+              <S.EditorBody>
+                <S.RichTextInput
+                  ref={contentInputRef}
+                  aria-label="게시글 내용"
+                  placeholder="어떤 내용을 공유하고 싶으신가요?"
+                  value={content}
+                  required
+                  disabled={isSubmitting}
+                  onChange={(event) => setContent(event.target.value)}
+                />
+              </S.EditorBody>
+            </S.EditorPane>
+            <S.EditorPane aria-label="마크다운 미리보기 영역">
+              <S.EditorPaneLabel>미리보기</S.EditorPaneLabel>
+              <S.MarkdownPreview>
+                {previewContent ? (
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[
+                      rehypeRaw,
+                      [rehypeSanitize, markdownSanitizeSchema],
+                    ]}
+                  >
+                    {previewContent}
+                  </ReactMarkdown>
+                ) : (
+                  <S.PreviewPlaceholder>
+                    작성한 마크다운이 여기에 표시됩니다.
+                  </S.PreviewPlaceholder>
+                )}
+              </S.MarkdownPreview>
+            </S.EditorPane>
+          </S.EditorContent>
           {uploadedImages.length > 0 && (
             <S.UploadedImageList aria-label="첨부 이미지 미리보기">
               {uploadedImages.map((image) => (
