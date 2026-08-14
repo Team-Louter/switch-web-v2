@@ -1,4 +1,6 @@
 import {
+  type ChangeEvent,
+  type FocusEvent,
   Fragment,
   type FormEvent,
   type KeyboardEvent,
@@ -15,7 +17,11 @@ import {
   POST_CATEGORY_OPTIONS,
   type PostCategory,
 } from '@/entities/community'
-import { createPost } from '@/features/community'
+import {
+  createPost,
+  type PostFileRequest,
+  uploadCommunityImage,
+} from '@/features/community'
 
 import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg'
 import backChevronIcon from '../assets/svg/back-chevron.svg'
@@ -49,6 +55,27 @@ interface EditorInsertion {
   selectionEnd: number
 }
 
+interface EditorSelection {
+  start: number
+  end: number
+}
+
+interface TextPosition {
+  node: Text
+  offset: number
+}
+
+interface LinePosition {
+  lineIndex: number
+  column: number
+}
+
+interface SelectionToolbarPosition {
+  top: number
+  left: number
+  placement: 'above' | 'below'
+}
+
 type EditorAction =
   | 'bold'
   | 'italic'
@@ -62,6 +89,8 @@ type EditorAction =
   | 'quote'
   | 'link'
   | 'image'
+
+type FormattingAction = Exclude<EditorAction, 'image'>
 
 const EDITOR_TOOLS: readonly EditorTool[] = [
   {
@@ -126,8 +155,23 @@ const EDITOR_TOOLS: readonly EditorTool[] = [
   { action: 'image', label: '이미지', icon: imageIcon, width: 20, height: 20 },
 ]
 
+const SELECTION_EDITOR_TOOLS = EDITOR_TOOLS.filter(({ action }) =>
+  ['bold', 'italic', 'underline', 'strike', 'quote', 'code', 'link'].includes(
+    action,
+  ),
+)
+
+const LINE_EDITOR_ACTIONS: readonly FormattingAction[] = [
+  'headingOne',
+  'headingTwo',
+  'unorderedList',
+  'orderedList',
+  'quote',
+  'code',
+]
+
 const INLINE_MARKDOWN_PATTERN =
-  /(\*\*[^*\n]+?\*\*|~~[^~\n]+?~~|<u>[^<\n]+?<\/u>|`[^`\n]+?`|!\[[^\]\n]*?\]\([^)\n]+?\)|\[[^\]\n]+?\]\([^)\n]+?\)|\*[^*\n]+?\*)/g
+  /(\*\*[^*\n]+?\*\*|__[^_\n]+?__|~~[^~\n]+?~~|<u>[^<\n]+?<\/u>|`[^`\n]+?`|!\[[^\]\n]*?\]\([^)\n]+?\)|\[[^\]\n]+?\]\([^)\n]+?\)|\*[^*\n]+?\*)/g
 
 const CODE_LANGUAGE_ALIASES: Readonly<Record<string, string>> = {
   py: 'python',
@@ -175,6 +219,16 @@ function renderInlineMarkdown(value: string): ReactNode[] {
           <S.MarkdownSyntax>**</S.MarkdownSyntax>
           <S.FormattedText $format="bold">{token.slice(2, -2)}</S.FormattedText>
           <S.MarkdownSyntax>**</S.MarkdownSyntax>
+        </Fragment>,
+      )
+    } else if (token.startsWith('__')) {
+      nodes.push(
+        <Fragment key={matchIndex}>
+          <S.MarkdownSyntax>__</S.MarkdownSyntax>
+          <S.FormattedText $format="underline">
+            {token.slice(2, -2)}
+          </S.FormattedText>
+          <S.MarkdownSyntax>__</S.MarkdownSyntax>
         </Fragment>,
       )
     } else if (token.startsWith('~~')) {
@@ -397,15 +451,56 @@ function getCodeLanguages(value: string): string[] {
   return [...languages].sort()
 }
 
+function renderEditorLineContent(line: string): ReactNode {
+  const heading = line.match(/^(#{1,6})(\s+)(.*)$/)
+
+  if (heading) {
+    return (
+      <>
+        <S.MarkdownSyntax>{heading[1]}</S.MarkdownSyntax>
+        {heading[2]}
+        <S.FormattedText $format="heading">
+          {renderInlineMarkdown(heading[3])}
+        </S.FormattedText>
+      </>
+    )
+  }
+
+  const listItem = line.match(/^(\s*)([-+*]|\d+\.)(\s+)(.*)$/)
+
+  if (listItem) {
+    return (
+      <>
+        {listItem[1]}
+        <S.MarkdownSyntax>{listItem[2]}</S.MarkdownSyntax>
+        {listItem[3]}
+        {renderInlineMarkdown(listItem[4])}
+      </>
+    )
+  }
+
+  const fence = line.match(/^(\s*)(```)(.*)$/)
+
+  if (fence) {
+    return (
+      <>
+        {fence[1]}
+        <S.MarkdownSyntax>{fence[2]}</S.MarkdownSyntax>
+        <S.CodeToken $format="type">{fence[3]}</S.CodeToken>
+      </>
+    )
+  }
+
+  return line ? renderInlineMarkdown(line) : '\u200b'
+}
+
 function renderEditorLine(line: string, lineIndex: number): ReactNode {
   const fence = line.match(/^(\s*)(```)(.*)$/)
 
   if (fence) {
     return (
       <S.EditorLine key={lineIndex} $format="code">
-        {fence[1]}
-        <S.MarkdownSyntax>{fence[2]}</S.MarkdownSyntax>
-        <S.CodeToken $format="type">{fence[3]}</S.CodeToken>
+        {renderEditorLineContent(line)}
       </S.EditorLine>
     )
   }
@@ -416,41 +511,14 @@ function renderEditorLine(line: string, lineIndex: number): ReactNode {
     return (
       <S.EditorLine key={lineIndex} $format="quote">
         <S.HiddenQuoteMarker>{quote[1]}</S.HiddenQuoteMarker>
-        {renderInlineMarkdown(quote[2])}
-      </S.EditorLine>
-    )
-  }
-
-  const heading = line.match(/^(#{1,6})(\s+)(.*)$/)
-
-  if (heading) {
-    return (
-      <S.EditorLine key={lineIndex} $format="default">
-        <S.MarkdownSyntax>{heading[1]}</S.MarkdownSyntax>
-        {heading[2]}
-        <S.FormattedText $format="heading">
-          {renderInlineMarkdown(heading[3])}
-        </S.FormattedText>
-      </S.EditorLine>
-    )
-  }
-
-  const listItem = line.match(/^(\s*)([-+*]|\d+\.)(\s+)(.*)$/)
-
-  if (listItem) {
-    return (
-      <S.EditorLine key={lineIndex} $format="default">
-        {listItem[1]}
-        <S.MarkdownSyntax>{listItem[2]}</S.MarkdownSyntax>
-        {listItem[3]}
-        {renderInlineMarkdown(listItem[4])}
+        {renderEditorLineContent(quote[2])}
       </S.EditorLine>
     )
   }
 
   return (
     <S.EditorLine key={lineIndex} $format="default">
-      {line ? renderInlineMarkdown(line) : '\u200b'}
+      {renderEditorLineContent(line)}
     </S.EditorLine>
   )
 }
@@ -527,6 +595,85 @@ function InlineMarkdownPreview({ value }: { value: string }) {
   return renderedLines
 }
 
+function isLineEditorAction(
+  action: FormattingAction,
+): action is (typeof LINE_EDITOR_ACTIONS)[number] {
+  return LINE_EDITOR_ACTIONS.includes(action)
+}
+
+function getLineSelection(
+  value: string,
+  selectionStart: number,
+  selectionEnd: number,
+): EditorSelection {
+  const start = value.lastIndexOf('\n', selectionStart - 1) + 1
+  const endSearchStart =
+    selectionEnd > selectionStart && value[selectionEnd - 1] === '\n'
+      ? selectionEnd - 1
+      : selectionEnd
+  const nextLineBreak = value.indexOf('\n', endSearchStart)
+  const end = nextLineBreak === -1 ? value.length : nextLineBreak
+
+  return { start, end }
+}
+
+function getLinePosition(value: string, offset: number): LinePosition {
+  const linesBeforeOffset = value.slice(0, offset).split('\n')
+
+  return {
+    lineIndex: linesBeforeOffset.length - 1,
+    column: linesBeforeOffset.at(-1)?.length ?? 0,
+  }
+}
+
+function getTextPosition(element: Element, offset: number): TextPosition | null {
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+  let remainingOffset = offset
+  let currentNode = walker.nextNode()
+
+  while (currentNode) {
+    const textLength = currentNode.textContent?.length ?? 0
+
+    if (remainingOffset <= textLength) {
+      return { node: currentNode as Text, offset: remainingOffset }
+    }
+
+    remainingOffset -= textLength
+    currentNode = walker.nextNode()
+  }
+
+  return null
+}
+
+function getSelectionClientRect(
+  preview: HTMLDivElement,
+  value: string,
+  selection: EditorSelection,
+): DOMRect | null {
+  const start = getLinePosition(value, selection.start)
+  const end = getLinePosition(value, selection.end)
+  const startLine = preview.children.item(start.lineIndex)
+  const endLine = preview.children.item(end.lineIndex)
+
+  if (!startLine || !endLine) {
+    return null
+  }
+
+  const startPosition = getTextPosition(startLine, start.column)
+  const endPosition = getTextPosition(endLine, end.column)
+
+  if (!startPosition || !endPosition) {
+    return null
+  }
+
+  const range = document.createRange()
+
+  range.setStart(startPosition.node, startPosition.offset)
+  range.setEnd(endPosition.node, endPosition.offset)
+
+  return range.getClientRects().item(0) ?? range.getBoundingClientRect()
+}
+
 function wrapEditorText(
   selectedText: string,
   fallbackText: string,
@@ -543,7 +690,7 @@ function wrapEditorText(
 }
 
 function createEditorInsertion(
-  action: EditorAction,
+  action: FormattingAction,
   selectedText: string,
 ): EditorInsertion {
   switch (action) {
@@ -552,13 +699,25 @@ function createEditorInsertion(
     case 'italic':
       return wrapEditorText(selectedText, '기울임 텍스트', '*', '*')
     case 'underline':
-      return wrapEditorText(selectedText, '밑줄 텍스트', '<u>', '</u>')
+      return wrapEditorText(selectedText, '밑줄 텍스트', '__', '__')
     case 'strike':
       return wrapEditorText(selectedText, '취소선 텍스트', '~~', '~~')
-    case 'headingOne':
-      return wrapEditorText(selectedText, '제목 1', '# ', '')
-    case 'headingTwo':
-      return wrapEditorText(selectedText, '제목 2', '## ', '')
+    case 'headingOne': {
+      const value = (selectedText || '제목 1')
+        .split('\n')
+        .map((line) => `# ${line}`)
+        .join('\n')
+
+      return { value, selectionStart: 0, selectionEnd: value.length }
+    }
+    case 'headingTwo': {
+      const value = (selectedText || '제목 2')
+        .split('\n')
+        .map((line) => `## ${line}`)
+        .join('\n')
+
+      return { value, selectionStart: 0, selectionEnd: value.length }
+    }
     case 'unorderedList': {
       const value = (selectedText || '목록 항목')
         .split('\n')
@@ -587,19 +746,24 @@ function createEditorInsertion(
     }
     case 'link':
       return wrapEditorText(selectedText, '링크 텍스트', '[', '](https://)')
-    case 'image':
-      return wrapEditorText(selectedText, '이미지 설명', '![', '](https://)')
   }
 }
 
 export function CommunityWritePage() {
   const navigate = useNavigate()
+  const editorBodyRef = useRef<HTMLDivElement>(null)
   const contentInputRef = useRef<HTMLTextAreaElement>(null)
   const inlinePreviewRef = useRef<HTMLDivElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
   const [category, setCategory] = useState<PostCategory | ''>('')
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  const [uploadedFiles, setUploadedFiles] = useState<PostFileRequest[]>([])
   const [isAnonymous, setIsAnonymous] = useState(false)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null)
+  const [selectionToolbarPosition, setSelectionToolbarPosition] =
+    useState<SelectionToolbarPosition | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
@@ -608,14 +772,30 @@ export function CommunityWritePage() {
   }
 
   const handleEditorToolClick = (action: EditorAction) => {
+    if (action === 'image') {
+      imageInputRef.current?.click()
+      setSelectionToolbarPosition(null)
+      return
+    }
+
     const contentInput = contentInputRef.current
 
     if (!contentInput) {
       return
     }
 
-    const selectionStart = contentInput.selectionStart
-    const selectionEnd = contentInput.selectionEnd
+    const selection = isLineEditorAction(action)
+      ? getLineSelection(
+          contentInput.value,
+          contentInput.selectionStart,
+          contentInput.selectionEnd,
+        )
+      : {
+          start: contentInput.selectionStart,
+          end: contentInput.selectionEnd,
+        }
+    const selectionStart = selection.start
+    const selectionEnd = selection.end
     const selectedText = contentInput.value.slice(selectionStart, selectionEnd)
     const insertion = createEditorInsertion(action, selectedText)
     const nextContent =
@@ -624,6 +804,7 @@ export function CommunityWritePage() {
       contentInput.value.slice(selectionEnd)
 
     setContent(nextContent)
+    setSelectionToolbarPosition(null)
     window.requestAnimationFrame(() => {
       contentInput.focus()
       contentInput.setSelectionRange(
@@ -633,6 +814,141 @@ export function CommunityWritePage() {
     })
   }
 
+  const updateSelectionToolbar = () => {
+    const editorBody = editorBodyRef.current
+    const contentInput = contentInputRef.current
+    const preview = inlinePreviewRef.current
+
+    if (!editorBody || !contentInput || !preview) {
+      setSelectionToolbarPosition(null)
+      return
+    }
+
+    const selection = {
+      start: contentInput.selectionStart,
+      end: contentInput.selectionEnd,
+    }
+
+    if (selection.start === selection.end) {
+      setSelectionToolbarPosition(null)
+      return
+    }
+
+    const selectionRect = getSelectionClientRect(
+      preview,
+      contentInput.value,
+      selection,
+    )
+
+    if (!selectionRect) {
+      setSelectionToolbarPosition(null)
+      return
+    }
+
+    const editorBodyRect = editorBody.getBoundingClientRect()
+    const relativeTop = selectionRect.top - editorBodyRect.top
+    const placement = relativeTop >= 52 ? 'above' : 'below'
+    const toolbarHalfWidth = 116
+    const left = Math.min(
+      Math.max(
+        selectionRect.left - editorBodyRect.left + selectionRect.width / 2,
+        toolbarHalfWidth,
+      ),
+      Math.max(toolbarHalfWidth, editorBodyRect.width - toolbarHalfWidth),
+    )
+
+    setSelectionToolbarPosition({
+      top:
+        placement === 'above'
+          ? relativeTop
+          : selectionRect.bottom - editorBodyRect.top,
+      left,
+      placement,
+    })
+  }
+
+  const handleContentSelection = () => {
+    window.requestAnimationFrame(updateSelectionToolbar)
+  }
+
+  const handleContentBlur = (event: FocusEvent<HTMLTextAreaElement>) => {
+    const nextTarget = event.relatedTarget
+
+    if (
+      nextTarget instanceof HTMLElement &&
+      nextTarget.closest('[data-selection-toolbar]')
+    ) {
+      return
+    }
+
+    setSelectionToolbarPosition(null)
+  }
+
+  const handleImageSelection = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.currentTarget.files?.[0]
+
+    event.currentTarget.value = ''
+
+    if (!file || isUploadingImage) {
+      return
+    }
+
+    if (!file.type.startsWith('image/')) {
+      setImageUploadError('이미지 파일만 업로드할 수 있어요.')
+      return
+    }
+
+    const contentInput = contentInputRef.current
+    const selectionStart = contentInput?.selectionStart ?? content.length
+    const selectionEnd = contentInput?.selectionEnd ?? selectionStart
+
+    setIsUploadingImage(true)
+    setImageUploadError(null)
+
+    try {
+      const uploadedFile = await uploadCommunityImage(file)
+      const currentContent = contentInputRef.current?.value ?? content
+      const safeSelectionStart = Math.min(selectionStart, currentContent.length)
+      const safeSelectionEnd = Math.min(selectionEnd, currentContent.length)
+      const imageName = (uploadedFile.fileName || file.name)
+        .replace(/[[\]\n]/g, ' ')
+        .trim()
+      const imageMarkdown = `![${imageName || '업로드한 이미지'}](${uploadedFile.url})`
+      const nextContent =
+        currentContent.slice(0, safeSelectionStart) +
+        imageMarkdown +
+        currentContent.slice(safeSelectionEnd)
+      const nextCaretPosition = safeSelectionStart + imageMarkdown.length
+
+      setContent(nextContent)
+      setUploadedFiles((files) => [
+        ...files,
+        {
+          fileUrl: uploadedFile.url,
+          fileName: uploadedFile.fileName || file.name,
+          fileType: uploadedFile.fileType || file.type,
+          fileSize: uploadedFile.fileSize || file.size,
+        },
+      ])
+
+      window.requestAnimationFrame(() => {
+        contentInputRef.current?.focus()
+        contentInputRef.current?.setSelectionRange(
+          nextCaretPosition,
+          nextCaretPosition,
+        )
+      })
+    } catch {
+      setImageUploadError(
+        '이미지를 업로드하지 못했습니다. 잠시 후 다시 시도해주세요.',
+      )
+    } finally {
+      setIsUploadingImage(false)
+    }
+  }
+
   const handleContentScroll = (event: UIEvent<HTMLTextAreaElement>) => {
     if (!inlinePreviewRef.current) {
       return
@@ -640,6 +956,7 @@ export function CommunityWritePage() {
 
     inlinePreviewRef.current.scrollTop = event.currentTarget.scrollTop
     inlinePreviewRef.current.scrollLeft = event.currentTarget.scrollLeft
+    window.requestAnimationFrame(updateSelectionToolbar)
   }
 
   const handleContentKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -685,6 +1002,11 @@ export function CommunityWritePage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
+    if (isUploadingImage) {
+      setSubmitError('이미지 업로드가 완료될 때까지 기다려주세요.')
+      return
+    }
+
     if (!category || !title.trim() || !content.trim()) {
       setSubmitError('카테고리와 제목, 내용을 모두 입력해주세요.')
       return
@@ -699,7 +1021,7 @@ export function CommunityWritePage() {
         content: content.trim(),
         isAnonymous,
         category,
-        files: [],
+        files: uploadedFiles,
       })
 
       navigate(`/community/${post.postId}`, { replace: true })
@@ -722,7 +1044,11 @@ export function CommunityWritePage() {
           <S.WriteForm id="community-write-form" onSubmit={handleSubmit}>
             <S.TitleRow>
               <S.Heading>게시글 작성</S.Heading>
-              <Button size="md" type="submit" disabled={isSubmitting}>
+              <Button
+                size="md"
+                type="submit"
+                disabled={isSubmitting || isUploadingImage}
+              >
                 {isSubmitting ? '게시 중' : '게시하기'}
               </Button>
             </S.TitleRow>
@@ -770,8 +1096,15 @@ export function CommunityWritePage() {
                 <S.ToolbarButton
                   key={tool.label}
                   type="button"
-                  aria-label={tool.label}
-                  disabled={isSubmitting}
+                  aria-label={
+                    tool.action === 'image' && isUploadingImage
+                      ? '이미지 업로드 중'
+                      : tool.label
+                  }
+                  disabled={
+                    isSubmitting ||
+                    (tool.action === 'image' && isUploadingImage)
+                  }
                   onClick={() => handleEditorToolClick(tool.action)}
                 >
                   <S.ToolbarIcon
@@ -796,8 +1129,17 @@ export function CommunityWritePage() {
             </S.AnonymousLabel>
           </S.Toolbar>
 
+          <S.ImageInput
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            aria-label="게시글 이미지 선택"
+            disabled={isSubmitting || isUploadingImage}
+            onChange={handleImageSelection}
+          />
+
           <S.EditorDivider />
-          <S.EditorBody>
+          <S.EditorBody ref={editorBodyRef}>
             <S.InlineMarkdownPreview ref={inlinePreviewRef} aria-hidden="true">
               <InlineMarkdownPreview value={content} />
             </S.InlineMarkdownPreview>
@@ -808,12 +1150,53 @@ export function CommunityWritePage() {
               value={content}
               required
               disabled={isSubmitting}
-              onChange={(event) => setContent(event.target.value)}
+              onBlur={handleContentBlur}
+              onChange={(event) => {
+                setContent(event.target.value)
+                setSelectionToolbarPosition(null)
+              }}
               onKeyDown={handleContentKeyDown}
+              onSelect={handleContentSelection}
               onScroll={handleContentScroll}
             />
+            {selectionToolbarPosition && (
+              <S.SelectionToolbar
+                data-selection-toolbar
+                role="toolbar"
+                aria-label="선택한 글 서식"
+                $top={selectionToolbarPosition.top}
+                $left={selectionToolbarPosition.left}
+                $placement={selectionToolbarPosition.placement}
+              >
+                {SELECTION_EDITOR_TOOLS.map((tool) => (
+                  <S.SelectionToolbarButton
+                    key={tool.label}
+                    type="button"
+                    aria-label={tool.label}
+                    disabled={isSubmitting}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => handleEditorToolClick(tool.action)}
+                  >
+                    <S.SelectionToolbarIcon
+                      src={tool.icon}
+                      alt=""
+                      $width={tool.width}
+                      $height={tool.height}
+                    />
+                  </S.SelectionToolbarButton>
+                ))}
+              </S.SelectionToolbar>
+            )}
           </S.EditorBody>
         </S.Editor>
+        {isUploadingImage && (
+          <S.ImageUploadStatus role="status">
+            이미지를 업로드하고 있어요.
+          </S.ImageUploadStatus>
+        )}
+        {imageUploadError && (
+          <S.SubmitError role="alert">{imageUploadError}</S.SubmitError>
+        )}
         {submitError && (
           <S.SubmitError role="alert">{submitError}</S.SubmitError>
         )}
