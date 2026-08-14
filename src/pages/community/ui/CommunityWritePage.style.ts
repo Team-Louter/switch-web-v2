@@ -155,13 +155,62 @@ export const Editor = styled.section`
   width: 100%;
   min-height: 706px;
   padding: 16px;
-  overflow: hidden;
+  overflow: visible;
   border-radius: ${token.shapes.small};
   background: #f5f5f5;
+
+  .community-editor-guide {
+    margin: 0;
+    color: ${token.colors.gray.gray40};
+    ${token.typography('body', 'sm', 'medium')}
+    line-height: 1;
+  }
+
+  .community-editor-guide strong {
+    color: ${token.colors.gray.gray70};
+  }
+
+  .community-block-editor {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+
+  .community-block-editor .bn-root {
+    --bn-colors-editor-text: ${token.colors.gray.gray100};
+    --bn-colors-editor-background: transparent;
+    --bn-colors-menu-text: ${token.colors.gray.gray100};
+    --bn-colors-menu-background: ${token.colors.white};
+    --bn-colors-hovered-text: ${token.colors.gray.gray100};
+    --bn-colors-hovered-background: ${token.colors.gray.gray10};
+    --bn-colors-selected-background: ${token.colors.gray.gray100};
+    --bn-colors-side-menu: ${token.colors.gray.gray40};
+    --bn-colors-border: ${token.colors.gray.gray20};
+    --bn-font-family: ${token.fontFamily.system};
+  }
+
+  .community-block-editor .bn-editor {
+    min-height: 620px;
+    padding: 8px 48px 32px;
+    background: transparent;
+    ${token.typography('body', 'lg', 'medium')}
+    line-height: 1.5;
+  }
+
+  .community-block-editor .bn-editor em {
+    display: inline-block;
+    font-style: italic;
+    transform: skewX(-12deg);
+    transform-origin: left center;
+  }
 
   @container community-write (max-width: 560px) {
     flex-basis: 520px;
     min-height: 520px;
+
+    .community-block-editor .bn-editor {
+      min-height: 430px;
+      padding-inline: 36px 12px;
+    }
   }
 `
 
@@ -174,73 +223,15 @@ export const Toolbar = styled.div`
   min-height: 24px;
 `
 
-export const ToolbarActions = styled.div`
-  ${token.flexLeft}
-  flex: 0 0 420px;
-  gap: 12px;
-  height: 24px;
-
-  @container community-write (max-width: 650px) {
-    flex: 1 1 100%;
-    flex-wrap: wrap;
-    height: auto;
-  }
-
-  @container community-write (max-width: 430px) {
-    gap: 10px;
-  }
-`
-
-export const ToolbarButton = styled.button`
-  ${token.flexCenter}
-  flex: 0 0 24px;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 0;
-  border-radius: ${token.shapes.xsmall};
-  background: transparent;
-  cursor: pointer;
-
-  &:hover {
-    background: ${token.colors.gray.gray10};
-  }
-
-  &:focus-visible {
-    outline: 2px solid ${token.colors.primary.primary50};
-    outline-offset: 1px;
-  }
-`
-
-export const ToolbarIcon = styled.img<{ $width: number; $height: number }>`
-  width: ${({ $width }) => $width}px;
-  height: ${({ $height }) => $height}px;
-  object-fit: contain;
-`
-
-export const ImageInput = styled.input`
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-`
-
 export const AnonymousLabel = styled.label`
   ${token.flexLeft}
   gap: 6px;
+  margin-left: auto;
   color: ${token.colors.gray.gray40};
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
-
-  @container community-write (max-width: 650px) {
-    margin-left: auto;
-  }
 `
 
 export const AnonymousToggle = styled.input`
@@ -290,305 +281,6 @@ export const EditorDivider = styled.hr`
   margin: 4px 0 -4px;
   border: 0;
   background: ${token.colors.gray.gray10};
-`
-
-export const EditorContent = styled.div`
-  display: grid;
-  flex: 1 1 0;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  width: 100%;
-  min-height: 0;
-
-  @container community-write (max-width: 760px) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-`
-
-export const EditorPane = styled.section`
-  ${token.flexColumn}
-  gap: 10px;
-  min-width: 0;
-  min-height: 0;
-`
-
-export const EditorPaneLabel = styled.h2`
-  margin: 0;
-  color: ${token.colors.gray.gray60};
-  ${token.typography('body', 'sm', 'semibold')}
-  line-height: 1;
-`
-
-export const EditorBody = styled.div`
-  position: relative;
-  flex: 1 1 0;
-  width: 100%;
-  min-height: 0;
-`
-
-export const UploadedImageList = styled.section`
-  ${token.flexColumn}
-  flex: 0 0 auto;
-  gap: 12px;
-  width: 100%;
-  max-height: 440px;
-  padding-top: 12px;
-  overflow-y: auto;
-  border-top: 1px solid ${token.colors.gray.gray10};
-`
-
-export const UploadedImageCard = styled.article`
-  ${token.flexColumn}
-  gap: 10px;
-  box-sizing: border-box;
-  width: 100%;
-  padding: 12px;
-  border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.small};
-  background: ${token.colors.white};
-`
-
-export const UploadedImagePreview = styled.div`
-  ${token.flexCenter}
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 120px;
-  max-height: 320px;
-  padding: 12px;
-  overflow: auto;
-  border-radius: ${token.shapes.xsmall};
-  background: ${token.colors.gray.gray0};
-`
-
-export const UploadedImage = styled.img<{ $width: number }>`
-  display: block;
-  width: ${({ $width }) => $width}px;
-  max-width: 100%;
-  height: auto;
-  max-height: 292px;
-  border-radius: ${token.shapes.xsmall};
-  object-fit: contain;
-`
-
-export const UploadedImageControls = styled.div`
-  ${token.flexLeft}
-  flex-wrap: wrap;
-  gap: 10px 14px;
-  width: 100%;
-`
-
-export const UploadedImageName = styled.span`
-  flex: 1 1 180px;
-  min-width: 0;
-  overflow: hidden;
-  color: ${token.colors.gray.gray70};
-  ${token.typography('body', 'md', 'medium')}
-  line-height: 1.3;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`
-
-export const ImageSizeLabel = styled.label`
-  ${token.flexLeft}
-  flex: 0 1 auto;
-  gap: 8px;
-  color: ${token.colors.gray.gray60};
-  ${token.typography('body', 'sm', 'medium')}
-  line-height: 1;
-  white-space: nowrap;
-`
-
-export const ImageSizeInput = styled.input`
-  width: clamp(100px, 16vw, 180px);
-  margin: 0;
-  accent-color: ${token.colors.primary.primary50};
-  cursor: pointer;
-`
-
-export const ImageSizeValue = styled.span`
-  min-width: 46px;
-  color: ${token.colors.gray.gray50};
-  text-align: right;
-`
-
-export const ImageRemoveButton = styled.button`
-  padding: 5px 9px;
-  border: 0;
-  border-radius: ${token.shapes.xsmall};
-  color: ${token.colors.danger.danger20};
-  background: ${token.colors.danger.danger0};
-  ${token.typography('body', 'sm', 'medium')}
-  line-height: 1;
-  cursor: pointer;
-
-  &:focus-visible {
-    outline: 2px solid ${token.colors.danger.danger10};
-    outline-offset: 2px;
-  }
-`
-
-export const RichTextInput = styled.textarea`
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  padding: 0;
-  overflow: auto;
-  resize: none;
-  border: 0;
-  outline: none;
-  color: ${token.colors.gray.gray100};
-  background: transparent;
-  caret-color: ${token.colors.gray.gray100};
-  ${token.typography('body', 'lg', 'medium')}
-  line-height: 1.4;
-  letter-spacing: normal;
-  overflow-wrap: break-word;
-  tab-size: 4;
-  white-space: pre-wrap;
-
-  &::placeholder {
-    color: ${token.colors.gray.gray40};
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
-`
-
-export const MarkdownPreview = styled.div`
-  flex: 1 1 0;
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  min-height: 0;
-  overflow: auto;
-  color: ${token.colors.gray.gray100};
-  ${token.typography('body', 'lg', 'medium')}
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-
-  > :first-child {
-    margin-top: 0;
-  }
-
-  > :last-child {
-    margin-bottom: 0;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    margin: 28px 0 12px;
-    color: ${token.colors.gray.gray100};
-    line-height: 1.3;
-  }
-
-  h1 {
-    ${token.typography('heading', 'lg', 'semibold')}
-  }
-
-  h2 {
-    ${token.typography('heading', 'md', 'semibold')}
-  }
-
-  h3,
-  h4,
-  h5,
-  h6 {
-    ${token.typography('heading', 'sm', 'semibold')}
-  }
-
-  p,
-  ul,
-  ol,
-  blockquote,
-  pre,
-  table {
-    margin: 0 0 16px;
-  }
-
-  ul,
-  ol {
-    padding-left: 24px;
-  }
-
-  blockquote {
-    margin-left: 0;
-    padding: 4px 12px;
-    border-left: 4px solid ${token.colors.gray.gray100};
-    color: ${token.colors.gray.gray60};
-    background: transparent;
-  }
-
-  pre {
-    padding: 14px;
-    overflow-x: auto;
-    border-radius: ${token.shapes.xsmall};
-    background: ${token.colors.gray.gray10};
-  }
-
-  code {
-    padding: 2px 5px;
-    border-radius: 3px;
-    background: ${token.colors.gray.gray10};
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-      monospace;
-  }
-
-  pre code {
-    padding: 0;
-    background: transparent;
-  }
-
-  em {
-    display: inline-block;
-    font-style: italic;
-    transform: skewX(-12deg);
-    transform-origin: left center;
-  }
-
-  a {
-    color: ${token.colors.primary.primary70};
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  img {
-    display: block;
-    max-width: 100%;
-    height: auto;
-  }
-
-  table {
-    display: block;
-    max-width: 100%;
-    overflow-x: auto;
-    border-collapse: collapse;
-  }
-
-  th,
-  td {
-    padding: 8px 10px;
-    border: 1px solid ${token.colors.gray.gray20};
-    text-align: left;
-  }
-
-  .markdown-preview-placeholder {
-    color: ${token.colors.gray.gray40};
-  }
-`
-
-export const PreviewPlaceholder = styled.p`
-  margin: 0;
-  color: ${token.colors.gray.gray40};
 `
 
 export const SubmitError = styled.p`
