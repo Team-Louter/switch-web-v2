@@ -229,6 +229,16 @@ export const Editor = styled.section`
     line-height: 1.5;
   }
 
+  .community-block-editor .bn-block-outer,
+  .community-block-editor .bn-block,
+  .community-block-editor .bn-block-content {
+    width: 100%;
+  }
+
+  .community-block-editor .bn-block-content {
+    min-height: 30px;
+  }
+
   .community-block-editor .bn-block-content[data-content-type='heading'] {
     padding-top: 12px;
     font-weight: ${token.fontWeight.semibold};
@@ -289,6 +299,32 @@ export const Editor = styled.section`
       min-height: 430px;
       padding-inline: 54px 12px;
     }
+  }
+`
+
+export const BlockSideMenu = styled.div`
+  display: flex;
+  color: ${token.colors.gray.gray40};
+  --bn-colors-side-menu: ${token.colors.gray.gray40};
+
+  .bn-side-menu {
+    gap: 2px;
+  }
+
+  .bn-side-menu .mantine-UnstyledButton-root:not(.mantine-Menu-item) {
+    box-sizing: border-box;
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    min-height: 24px;
+    padding: 4px;
+    color: ${token.colors.gray.gray40};
+  }
+
+  .bn-side-menu .mantine-UnstyledButton-root:not(.mantine-Menu-item) svg {
+    width: 16px;
+    height: 16px;
+    color: ${token.colors.gray.gray40};
   }
 `
 
