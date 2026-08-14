@@ -12,6 +12,7 @@ type InlineMarkdownFormat =
   | 'image'
   | 'headingOne'
   | 'headingTwo'
+  | 'headingThree'
 
 type EditorLineFormat = 'default' | 'quote' | 'code'
 
@@ -532,6 +533,12 @@ export const ContentInput = styled.textarea`
     opacity: 1;
     -webkit-text-fill-color: ${token.colors.gray.gray40};
   }
+
+  &[data-composing='true'] {
+    color: ${token.colors.gray.gray100};
+    caret-color: ${token.colors.gray.gray100};
+    -webkit-text-fill-color: ${token.colors.gray.gray100};
+  }
 `
 
 export const InlineMarkdownPreview = styled.div`
@@ -553,6 +560,10 @@ export const InlineMarkdownPreview = styled.div`
   tab-size: 4;
   white-space: pre-wrap;
   pointer-events: none;
+
+  &[data-composing='true'] {
+    visibility: hidden;
+  }
 `
 
 export const EditorCaret = styled.span<{
@@ -651,7 +662,11 @@ export const FormattedText = styled.span<{
       return 800
     }
 
-    if ($format === 'bold' || $format === 'headingTwo') {
+    if (
+      $format === 'bold' ||
+      $format === 'headingTwo' ||
+      $format === 'headingThree'
+    ) {
       return 700
     }
 
@@ -667,10 +682,18 @@ export const FormattedText = styled.span<{
       return '1.18em'
     }
 
+    if ($format === 'headingThree') {
+      return '1.05em'
+    }
+
     return 'inherit'
   }};
   line-height: ${({ $format }) =>
-    $format === 'headingOne' || $format === 'headingTwo' ? 1 : 'inherit'};
+    $format === 'headingOne' ||
+    $format === 'headingTwo' ||
+    $format === 'headingThree'
+      ? 1
+      : 'inherit'};
   text-shadow: none;
   transform: ${({ $format }) =>
     $format === 'italic' ? 'skewX(-12deg)' : 'none'};
