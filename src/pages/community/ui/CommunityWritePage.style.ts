@@ -370,6 +370,10 @@ export const MarkdownSyntax = styled.span`
   color: ${token.colors.gray.gray40};
 `
 
+export const HiddenQuoteMarker = styled.span`
+  visibility: hidden;
+`
+
 export const FormattedText = styled.span<{
   $format: InlineMarkdownFormat
 }>`
