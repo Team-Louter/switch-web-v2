@@ -1,9 +1,12 @@
-import { type ChangeEvent, type FormEvent, useRef, useState } from 'react'
-import ReactMarkdown from 'react-markdown'
+import '@blocknote/core/fonts/inter.css'
+import '@blocknote/mantine/style.css'
+
+import type { Block } from '@blocknote/core'
+import { ko } from '@blocknote/core/locales'
+import { BlockNoteView } from '@blocknote/mantine'
+import { useCreateBlockNote } from '@blocknote/react'
+import { type FormEvent, useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import rehypeRaw from 'rehype-raw'
-import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
-import remarkGfm from 'remark-gfm'
 
 import {
   POST_CATEGORY_OPTIONS,
@@ -14,345 +17,61 @@ import {
   type PostFileRequest,
   uploadCommunityImage,
 } from '@/features/community'
+import { Button } from '@/shared/ui'
 
 import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg'
 import backChevronIcon from '../assets/svg/back-chevron.svg'
-import boldIcon from '../assets/svg/editor-bold.svg'
-import codeIcon from '../assets/svg/editor-code.svg'
-import headingOneIcon from '../assets/svg/editor-heading-one.svg'
-import headingTwoIcon from '../assets/svg/editor-heading-two.svg'
-import imageIcon from '../assets/svg/editor-image.svg'
-import italicIcon from '../assets/svg/editor-italic.svg'
-import linkIcon from '../assets/svg/editor-link.svg'
-import orderedListIcon from '../assets/svg/editor-ordered-list.svg'
-import quoteIcon from '../assets/svg/editor-quote.svg'
-import strikeIcon from '../assets/svg/editor-strike.svg'
-import underlineIcon from '../assets/svg/editor-underline.svg'
-import unorderedListIcon from '../assets/svg/editor-unordered-list.svg'
-import { renderCustomUnderlineMarkdown } from '@/shared/lib/markdown'
-import { Button } from '@/shared/ui'
 
 import * as S from './CommunityWritePage.style'
 
-interface EditorTool {
-  action: EditorAction
-  label: string
-  icon: string
-  width: number
-  height: number
-}
-
-interface EditorInsertion {
-  value: string
-  selectionStart: number
-  selectionEnd: number
-}
-
 interface UploadedImage extends PostFileRequest {
   id: string
-  width: number
 }
 
-type EditorAction =
-  | 'bold'
-  | 'italic'
-  | 'underline'
-  | 'strike'
-  | 'headingOne'
-  | 'headingTwo'
-  | 'unorderedList'
-  | 'orderedList'
-  | 'code'
-  | 'quote'
-  | 'link'
-  | 'image'
+function getEmbeddedImageUrls(blocks: readonly Block[]): Set<string> {
+  const urls = new Set<string>()
 
-type FormattingAction = Exclude<EditorAction, 'image'>
-
-const EDITOR_TOOLS: readonly EditorTool[] = [
-  {
-    action: 'bold',
-    label: '굵게',
-    icon: boldIcon,
-    width: 15.001,
-    height: 21.314,
-  },
-  {
-    action: 'italic',
-    label: '기울임',
-    icon: italicIcon,
-    width: 11,
-    height: 21.314,
-  },
-  {
-    action: 'underline',
-    label: '밑줄',
-    icon: underlineIcon,
-    width: 14.999,
-    height: 21.314,
-  },
-  {
-    action: 'strike',
-    label: '취소선',
-    icon: strikeIcon,
-    width: 16.999,
-    height: 21.314,
-  },
-  {
-    action: 'headingOne',
-    label: '제목 1',
-    icon: headingOneIcon,
-    width: 24,
-    height: 24,
-  },
-  {
-    action: 'headingTwo',
-    label: '제목 2',
-    icon: headingTwoIcon,
-    width: 24,
-    height: 24,
-  },
-  {
-    action: 'unorderedList',
-    label: '글머리표 목록',
-    icon: unorderedListIcon,
-    width: 20,
-    height: 20,
-  },
-  {
-    action: 'orderedList',
-    label: '번호 목록',
-    icon: orderedListIcon,
-    width: 20,
-    height: 20,
-  },
-  { action: 'code', label: '코드', icon: codeIcon, width: 22, height: 22 },
-  { action: 'quote', label: '인용', icon: quoteIcon, width: 24, height: 24 },
-  { action: 'link', label: '링크', icon: linkIcon, width: 21.001, height: 21 },
-  { action: 'image', label: '이미지', icon: imageIcon, width: 20, height: 20 },
-]
-
-const DEFAULT_IMAGE_WIDTH = 520
-const MIN_IMAGE_WIDTH = 160
-const MAX_IMAGE_WIDTH = 960
-
-const markdownSanitizeSchema = {
-  ...defaultSchema,
-  tagNames: [...(defaultSchema.tagNames ?? []), 'u'],
-  attributes: {
-    ...defaultSchema.attributes,
-    img: [...(defaultSchema.attributes?.img ?? []), 'alt', 'width'],
-    span: [...(defaultSchema.attributes?.span ?? []), 'className'],
-  },
-}
-
-function createMarkdownPreviewPlaceholder(label: string): string {
-  return `<span class="markdown-preview-placeholder">${label}</span>`
-}
-
-function createMarkdownPreviewContent(value: string): string {
-  let isFencedCode = false
-
-  return value
-    .split('\n')
-    .map((line) => {
-      if (/^\s*```/.test(line)) {
-        isFencedCode = !isFencedCode
-        return line
-      }
-
-      if (isFencedCode) {
-        return line
-      }
-
-      const heading = line.match(/^(\s*)(#{1,3})\s*$/)
-
-      if (heading) {
-        return `${heading[1]}${heading[2]} ${createMarkdownPreviewPlaceholder(`제목${heading[2].length}`)}`
-      }
-
-      const unorderedList = line.match(/^(\s*)([-+*])\s*$/)
-
-      if (unorderedList) {
-        return `${unorderedList[1]}${unorderedList[2]} ${createMarkdownPreviewPlaceholder('리스트')}`
-      }
-
-      const orderedList = line.match(/^(\s*)(\d+\.)\s*$/)
-
-      if (orderedList) {
-        return `${orderedList[1]}${orderedList[2]} ${createMarkdownPreviewPlaceholder('리스트')}`
-      }
-
-      const quote = line.match(/^(\s*)>\s*$/)
-
-      if (quote) {
-        return `${quote[1]}> ${createMarkdownPreviewPlaceholder('비어 있는 인용')}`
-      }
-
-      return line
-    })
-    .join('\n')
-}
-
-function wrapEditorText(
-  selectedText: string,
-  fallbackText: string,
-  prefix: string,
-  suffix: string,
-): EditorInsertion {
-  const text = selectedText || fallbackText
-
-  return {
-    value: `${prefix}${text}${suffix}`,
-    selectionStart: prefix.length,
-    selectionEnd: prefix.length + text.length,
-  }
-}
-
-function escapeHtmlAttribute(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('"', '&quot;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-}
-
-function createUploadedImageMarkup(image: UploadedImage): string {
-  return `<img src="${escapeHtmlAttribute(image.fileUrl)}" alt="${escapeHtmlAttribute(image.fileName)}" width="${image.width}" />`
-}
-
-function createEditorInsertion(
-  action: FormattingAction,
-  selectedText: string,
-): EditorInsertion {
-  switch (action) {
-    case 'bold':
-      return wrapEditorText(selectedText, '굵게 텍스트', '**', '**')
-    case 'italic':
-      return wrapEditorText(selectedText, '기울임 텍스트', '*', '*')
-    case 'underline':
-      return wrapEditorText(selectedText, '밑줄 텍스트', '__', '__')
-    case 'strike':
-      return wrapEditorText(selectedText, '취소선 텍스트', '~~', '~~')
-    case 'headingOne':
-      return wrapEditorText(selectedText, '', '# ', '')
-    case 'headingTwo':
-      return wrapEditorText(selectedText, '', '## ', '')
-    case 'unorderedList': {
-      if (!selectedText) {
-        return { value: '- ', selectionStart: 2, selectionEnd: 2 }
-      }
-
-      const value = selectedText
-        .split('\n')
-        .map((line) => `- ${line}`)
-        .join('\n')
-
-      return { value, selectionStart: 0, selectionEnd: value.length }
+  blocks.forEach((block) => {
+    if ('url' in block.props && typeof block.props.url === 'string') {
+      urls.add(block.props.url)
     }
-    case 'orderedList': {
-      if (!selectedText) {
-        return { value: '1. ', selectionStart: 3, selectionEnd: 3 }
-      }
 
-      const value = selectedText
-        .split('\n')
-        .map((line, index) => `${index + 1}. ${line}`)
-        .join('\n')
+    getEmbeddedImageUrls(block.children).forEach((url) => urls.add(url))
+  })
 
-      return { value, selectionStart: 0, selectionEnd: value.length }
-    }
-    case 'code':
-      return wrapEditorText(
-        selectedText,
-        'print("Hello, World!")',
-        '```py\n',
-        '\n```',
-      )
-    case 'quote':
-      return wrapEditorText(selectedText, '', '> ', '')
-    case 'link':
-      return wrapEditorText(selectedText, '링크 텍스트', '[', '](https://)')
-  }
+  return urls
+}
+
+function hasPostContent(content: string): boolean {
+  const textContent = content
+    .replaceAll(/<[^>]*>/g, '')
+    .replaceAll('&nbsp;', ' ')
+    .trim()
+
+  return Boolean(textContent) || /<(img|audio|video)\b/i.test(content)
 }
 
 export function CommunityWritePage() {
   const navigate = useNavigate()
-  const contentInputRef = useRef<HTMLTextAreaElement>(null)
-  const imageInputRef = useRef<HTMLInputElement>(null)
   const [category, setCategory] = useState<PostCategory | ''>('')
   const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [isAnonymous, setIsAnonymous] = useState(false)
-  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [pendingImageUploadCount, setPendingImageUploadCount] = useState(0)
   const [imageUploadError, setImageUploadError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const previewContent = [
-    content.trim(),
-    uploadedImages.map(createUploadedImageMarkup).join('\n'),
-  ]
-    .filter(Boolean)
-    .join('\n\n')
-  const renderedPreviewContent = createMarkdownPreviewContent(
-    renderCustomUnderlineMarkdown(previewContent),
-  )
+  const isUploadingImage = pendingImageUploadCount > 0
 
-  const handleBackToList = () => {
-    navigate('/community')
-  }
-
-  const handleEditorToolClick = (action: EditorAction) => {
-    if (action === 'image') {
-      imageInputRef.current?.click()
-      return
-    }
-
-    const contentInput = contentInputRef.current
-
-    if (!contentInput) {
-      return
-    }
-
-    const selectionStart = contentInput.selectionStart
-    const selectionEnd = contentInput.selectionEnd
-    const selectedText = contentInput.value.slice(selectionStart, selectionEnd)
-    const insertion = createEditorInsertion(action, selectedText)
-    const nextContent =
-      contentInput.value.slice(0, selectionStart) +
-      insertion.value +
-      contentInput.value.slice(selectionEnd)
-
-    setContent(nextContent)
-    window.requestAnimationFrame(() => {
-      contentInput.focus()
-      contentInput.setSelectionRange(
-        selectionStart + insertion.selectionStart,
-        selectionStart + insertion.selectionEnd,
-      )
-    })
-  }
-
-  const handleImageSelection = async (
-    event: ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.currentTarget.files?.[0]
-
-    event.currentTarget.value = ''
-
-    if (!file || isUploadingImage) {
-      return
-    }
-
+  const handleImageUpload = useCallback(async (file: File) => {
     if (!file.type.startsWith('image/')) {
-      setImageUploadError('이미지 파일만 업로드할 수 있어요.')
-      return
+      const message = '이미지 파일만 업로드할 수 있어요.'
+
+      setImageUploadError(message)
+      throw new Error(message)
     }
 
-    const caretPosition = contentInputRef.current?.selectionStart ?? content.length
-
-    setIsUploadingImage(true)
+    setPendingImageUploadCount((count) => count + 1)
     setImageUploadError(null)
 
     try {
@@ -363,7 +82,6 @@ export function CommunityWritePage() {
         ...images,
         {
           id: uploadedFile.key || `${file.name}-${Date.now()}`,
-          width: DEFAULT_IMAGE_WIDTH,
           fileUrl: uploadedFile.url,
           fileName: imageName,
           fileType: uploadedFile.fileType || file.type,
@@ -371,44 +89,42 @@ export function CommunityWritePage() {
         },
       ])
 
-      window.requestAnimationFrame(() => {
-        const contentInput = contentInputRef.current
-
-        if (!contentInput) {
-          return
-        }
-
-        const nextCaretPosition = Math.min(caretPosition, content.length)
-
-        contentInput.focus()
-        contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
-      })
-    } catch {
+      return { url: uploadedFile.url, name: imageName }
+    } catch (error) {
       setImageUploadError(
         '이미지를 업로드하지 못했습니다. 잠시 후 다시 시도해주세요.',
       )
+      throw error
     } finally {
-      setIsUploadingImage(false)
+      setPendingImageUploadCount((count) => count - 1)
     }
+  }, [])
+
+  const editor = useCreateBlockNote(
+    {
+      dictionary: ko,
+      domAttributes: {
+        editor: { 'aria-label': '게시글 내용' },
+      },
+      uploadFile: handleImageUpload,
+    },
+    [handleImageUpload],
+  )
+
+  const handleBackToList = () => {
+    navigate('/community')
   }
 
-  const handleImageWidthChange = (imageId: string, width: number) => {
-    const nextWidth = Math.min(
-      Math.max(width, MIN_IMAGE_WIDTH),
-      MAX_IMAGE_WIDTH,
-    )
+  const handleEditorChange = () => {
+    const embeddedImageUrls = getEmbeddedImageUrls(editor.document)
 
-    setUploadedImages((images) =>
-      images.map((image) =>
-        image.id === imageId ? { ...image, width: nextWidth } : image,
-      ),
-    )
-  }
+    setUploadedImages((images) => {
+      const remainingImages = images.filter((image) =>
+        embeddedImageUrls.has(image.fileUrl),
+      )
 
-  const handleImageRemove = (imageId: string) => {
-    setUploadedImages((images) =>
-      images.filter((image) => image.id !== imageId),
-    )
+      return remainingImages.length === images.length ? images : remainingImages
+    })
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -419,9 +135,9 @@ export function CommunityWritePage() {
       return
     }
 
-    const postContent = previewContent
+    const postContent = editor.blocksToHTMLLossy()
 
-    if (!category || !title.trim() || !postContent) {
+    if (!category || !title.trim() || !hasPostContent(postContent)) {
       setSubmitError('카테고리와 제목, 내용을 모두 입력해주세요.')
       return
     }
@@ -512,32 +228,9 @@ export function CommunityWritePage() {
 
         <S.Editor aria-label="게시글 내용 편집기">
           <S.Toolbar>
-            <S.ToolbarActions aria-label="서식 도구">
-              {EDITOR_TOOLS.map((tool) => (
-                <S.ToolbarButton
-                  key={tool.label}
-                  type="button"
-                  aria-label={
-                    tool.action === 'image' && isUploadingImage
-                      ? '이미지 업로드 중'
-                      : tool.label
-                  }
-                  disabled={
-                    isSubmitting ||
-                    (tool.action === 'image' && isUploadingImage)
-                  }
-                  onClick={() => handleEditorToolClick(tool.action)}
-                >
-                  <S.ToolbarIcon
-                    src={tool.icon}
-                    alt=""
-                    $width={tool.width}
-                    $height={tool.height}
-                  />
-                </S.ToolbarButton>
-              ))}
-            </S.ToolbarActions>
-
+            <p className="community-editor-guide">
+              <strong>/</strong>를 입력해 블록을 추가하세요.
+            </p>
             <S.AnonymousLabel>
               익명으로 게시하기
               <S.AnonymousToggle
@@ -550,95 +243,14 @@ export function CommunityWritePage() {
             </S.AnonymousLabel>
           </S.Toolbar>
 
-          <S.ImageInput
-            ref={imageInputRef}
-            type="file"
-            accept="image/*"
-            aria-label="게시글 이미지 선택"
-            disabled={isSubmitting || isUploadingImage}
-            onChange={handleImageSelection}
-          />
-
           <S.EditorDivider />
-          <S.EditorContent>
-            <S.EditorPane aria-label="마크다운 작성 영역">
-              <S.EditorPaneLabel>작성</S.EditorPaneLabel>
-              <S.EditorBody>
-                <S.RichTextInput
-                  ref={contentInputRef}
-                  aria-label="게시글 내용"
-                  placeholder="어떤 내용을 공유하고 싶으신가요?"
-                  value={content}
-                  required
-                  disabled={isSubmitting}
-                  onChange={(event) => setContent(event.target.value)}
-                />
-              </S.EditorBody>
-            </S.EditorPane>
-            <S.EditorPane aria-label="마크다운 미리보기 영역">
-              <S.EditorPaneLabel>미리보기</S.EditorPaneLabel>
-              <S.MarkdownPreview>
-                {renderedPreviewContent ? (
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[
-                      rehypeRaw,
-                      [rehypeSanitize, markdownSanitizeSchema],
-                    ]}
-                  >
-                    {renderedPreviewContent}
-                  </ReactMarkdown>
-                ) : (
-                  <S.PreviewPlaceholder>
-                    작성한 마크다운이 여기에 표시됩니다.
-                  </S.PreviewPlaceholder>
-                )}
-              </S.MarkdownPreview>
-            </S.EditorPane>
-          </S.EditorContent>
-          {uploadedImages.length > 0 && (
-            <S.UploadedImageList aria-label="첨부 이미지 미리보기">
-              {uploadedImages.map((image) => (
-                <S.UploadedImageCard key={image.id}>
-                  <S.UploadedImagePreview>
-                    <S.UploadedImage
-                      src={image.fileUrl}
-                      alt={image.fileName}
-                      $width={image.width}
-                    />
-                  </S.UploadedImagePreview>
-                  <S.UploadedImageControls>
-                    <S.UploadedImageName>{image.fileName}</S.UploadedImageName>
-                    <S.ImageSizeLabel>
-                      이미지 크기
-                      <S.ImageSizeInput
-                        type="range"
-                        min={MIN_IMAGE_WIDTH}
-                        max={MAX_IMAGE_WIDTH}
-                        step={40}
-                        value={image.width}
-                        aria-label={`${image.fileName} 크기`}
-                        onChange={(event) =>
-                          handleImageWidthChange(
-                            image.id,
-                            Number(event.target.value),
-                          )
-                        }
-                      />
-                      <S.ImageSizeValue>{image.width}px</S.ImageSizeValue>
-                    </S.ImageSizeLabel>
-                    <S.ImageRemoveButton
-                      type="button"
-                      aria-label={`${image.fileName} 삭제`}
-                      onClick={() => handleImageRemove(image.id)}
-                    >
-                      삭제
-                    </S.ImageRemoveButton>
-                  </S.UploadedImageControls>
-                </S.UploadedImageCard>
-              ))}
-            </S.UploadedImageList>
-          )}
+          <div className="community-block-editor">
+            <BlockNoteView
+              editor={editor}
+              editable={!isSubmitting}
+              onChange={handleEditorChange}
+            />
+          </div>
         </S.Editor>
         {isUploadingImage && (
           <S.ImageUploadStatus role="status">
