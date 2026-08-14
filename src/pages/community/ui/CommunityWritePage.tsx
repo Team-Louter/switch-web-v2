@@ -4,9 +4,11 @@ import {
   type KeyboardEvent,
   type ReactNode,
   type UIEvent,
+  useEffect,
   useRef,
   useState,
 } from 'react'
+import * as monaco from 'monaco-editor'
 import { useNavigate } from 'react-router-dom'
 
 import {
@@ -127,6 +129,34 @@ const EDITOR_TOOLS: readonly EditorTool[] = [
 const INLINE_MARKDOWN_PATTERN =
   /(\*\*[^*\n]+?\*\*|~~[^~\n]+?~~|<u>[^<\n]+?<\/u>|`[^`\n]+?`|!\[[^\]\n]*?\]\([^)\n]+?\)|\[[^\]\n]+?\]\([^)\n]+?\)|\*[^*\n]+?\*)/g
 
+const CODE_LANGUAGE_ALIASES: Readonly<Record<string, string>> = {
+  py: 'python',
+  python3: 'python',
+  js: 'javascript',
+  jsx: 'javascript',
+  node: 'javascript',
+  ts: 'typescript',
+  tsx: 'typescript',
+  sh: 'shell',
+  bash: 'shell',
+  zsh: 'shell',
+  cs: 'csharp',
+  'c#': 'csharp',
+  'c++': 'cpp',
+  cxx: 'cpp',
+  md: 'markdown',
+  yml: 'yaml',
+  rb: 'ruby',
+  rs: 'rust',
+  kt: 'kotlin',
+  kts: 'kotlin',
+  text: 'plaintext',
+  txt: 'plaintext',
+}
+
+const OPENING_CODE_FENCE_PATTERN = /^\s*```([^\s`]*)?.*$/
+const CLOSING_CODE_FENCE_PATTERN = /^\s*```\s*$/
+
 function renderInlineMarkdown(value: string): ReactNode[] {
   const nodes: ReactNode[] = []
   let sourceIndex = 0
@@ -221,11 +251,153 @@ function renderInlineMarkdown(value: string): ReactNode[] {
   return nodes
 }
 
-function renderEditorLine(
+function getCodeTokenFormat(tokenType: string): S.CodeTokenFormat {
+  const normalizedType = tokenType.toLowerCase()
+
+  if (normalizedType.includes('comment')) {
+    return 'comment'
+  }
+
+  if (normalizedType.includes('regexp')) {
+    return 'regexp'
+  }
+
+  if (normalizedType.includes('string')) {
+    return 'string'
+  }
+
+  if (
+    normalizedType.includes('number') ||
+    normalizedType.includes('numeric')
+  ) {
+    return 'number'
+  }
+
+  if (
+    normalizedType.includes('keyword') ||
+    normalizedType.includes('storage')
+  ) {
+    return 'keyword'
+  }
+
+  if (
+    normalizedType.includes('type') ||
+    normalizedType.includes('class') ||
+    normalizedType.includes('constructor') ||
+    normalizedType.includes('namespace')
+  ) {
+    return 'type'
+  }
+
+  if (normalizedType.includes('tag')) {
+    return 'tag'
+  }
+
+  if (normalizedType.includes('attribute')) {
+    return 'attribute'
+  }
+
+  if (
+    normalizedType.includes('delimiter') ||
+    normalizedType.includes('operator')
+  ) {
+    return 'operator'
+  }
+
+  return 'default'
+}
+
+function resolveCodeLanguage(language: string): string {
+  const normalizedLanguage = language.trim().toLowerCase()
+
+  if (!normalizedLanguage) {
+    return 'plaintext'
+  }
+
+  return CODE_LANGUAGE_ALIASES[normalizedLanguage] ?? normalizedLanguage
+}
+
+function renderCodeEditorLine(
   line: string,
   lineIndex: number,
-  isFencedCode: boolean,
+  tokens: readonly monaco.Token[],
 ): ReactNode {
+  const renderedTokens: ReactNode[] = []
+  let sourceIndex = 0
+
+  tokens.forEach((token, tokenIndex) => {
+    const tokenEnd = tokens[tokenIndex + 1]?.offset ?? line.length
+
+    if (token.offset > sourceIndex) {
+      renderedTokens.push(line.slice(sourceIndex, token.offset))
+    }
+
+    if (tokenEnd > token.offset) {
+      renderedTokens.push(
+        <S.CodeToken
+          key={`${token.offset}-${token.type}`}
+          $format={getCodeTokenFormat(token.type)}
+        >
+          {line.slice(token.offset, tokenEnd)}
+        </S.CodeToken>,
+      )
+    }
+
+    sourceIndex = tokenEnd
+  })
+
+  if (sourceIndex < line.length) {
+    renderedTokens.push(line.slice(sourceIndex))
+  }
+
+  return (
+    <S.EditorLine key={lineIndex} $format="code">
+      {renderedTokens.length > 0 ? renderedTokens : line || '\u200b'}
+    </S.EditorLine>
+  )
+}
+
+function tokenizeCodeLines(
+  lines: readonly string[],
+  language: string,
+): monaco.Token[][] {
+  try {
+    return monaco.editor.tokenize(
+      lines.join('\n'),
+      resolveCodeLanguage(language),
+    )
+  } catch {
+    return lines.map(() => [])
+  }
+}
+
+function getCodeLanguages(value: string): string[] {
+  const languages = new Set<string>()
+  let isFencedCode = false
+
+  value.split('\n').forEach((line) => {
+    if (isFencedCode) {
+      if (CLOSING_CODE_FENCE_PATTERN.test(line)) {
+        isFencedCode = false
+      }
+
+      return
+    }
+
+    const openingFence = line.match(OPENING_CODE_FENCE_PATTERN)
+
+    if (!openingFence) {
+      return
+    }
+
+    languages.add(resolveCodeLanguage(openingFence[1] ?? ''))
+    isFencedCode = true
+  })
+
+  return [...languages].sort()
+}
+
+function renderEditorLine(line: string, lineIndex: number): ReactNode {
   const fence = line.match(/^(\s*)(```)(.*)$/)
 
   if (fence) {
@@ -233,15 +405,7 @@ function renderEditorLine(
       <S.EditorLine key={lineIndex} $format="code">
         {fence[1]}
         <S.MarkdownSyntax>{fence[2]}</S.MarkdownSyntax>
-        {fence[3]}
-      </S.EditorLine>
-    )
-  }
-
-  if (isFencedCode) {
-    return (
-      <S.EditorLine key={lineIndex} $format="code">
-        {line || '\u200b'}
+        <S.CodeToken $format="type">{fence[3]}</S.CodeToken>
       </S.EditorLine>
     )
   }
@@ -292,18 +456,75 @@ function renderEditorLine(
 }
 
 function InlineMarkdownPreview({ value }: { value: string }) {
+  const codeLanguageKey = getCodeLanguages(value).join(',')
+  const [, refreshTokenization] = useState(0)
+
+  useEffect(() => {
+    let isActive = true
+    const languages = codeLanguageKey ? codeLanguageKey.split(',') : []
+
+    void Promise.allSettled(
+      languages.map((language) =>
+        monaco.editor.colorize('', language, { tabSize: 4 }),
+      ),
+    ).then(() => {
+      if (isActive) {
+        refreshTokenization((revision) => revision + 1)
+      }
+    })
+
+    return () => {
+      isActive = false
+    }
+  }, [codeLanguageKey])
+
   const lines = value.split('\n')
-  let isFencedCode = false
+  const renderedLines: ReactNode[] = []
+  let lineIndex = 0
 
-  return lines.map((line, index) => {
-    const renderedLine = renderEditorLine(line, index, isFencedCode)
+  while (lineIndex < lines.length) {
+    const openingFence = lines[lineIndex].match(OPENING_CODE_FENCE_PATTERN)
 
-    if (/^\s*```/.test(line)) {
-      isFencedCode = !isFencedCode
+    if (!openingFence) {
+      renderedLines.push(renderEditorLine(lines[lineIndex], lineIndex))
+      lineIndex += 1
+      continue
     }
 
-    return renderedLine
-  })
+    renderedLines.push(renderEditorLine(lines[lineIndex], lineIndex))
+
+    const codeStartIndex = lineIndex + 1
+    let codeEndIndex = codeStartIndex
+
+    while (
+      codeEndIndex < lines.length &&
+      !CLOSING_CODE_FENCE_PATTERN.test(lines[codeEndIndex])
+    ) {
+      codeEndIndex += 1
+    }
+
+    const codeLines = lines.slice(codeStartIndex, codeEndIndex)
+    const tokenizedLines = tokenizeCodeLines(codeLines, openingFence[1] ?? '')
+
+    codeLines.forEach((line, codeLineIndex) => {
+      renderedLines.push(
+        renderCodeEditorLine(
+          line,
+          codeStartIndex + codeLineIndex,
+          tokenizedLines[codeLineIndex] ?? [],
+        ),
+      )
+    })
+
+    if (codeEndIndex < lines.length) {
+      renderedLines.push(renderEditorLine(lines[codeEndIndex], codeEndIndex))
+      lineIndex = codeEndIndex + 1
+    } else {
+      lineIndex = codeEndIndex
+    }
+  }
+
+  return renderedLines
 }
 
 function wrapEditorText(
