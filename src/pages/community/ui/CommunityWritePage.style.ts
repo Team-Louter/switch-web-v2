@@ -515,13 +515,22 @@ export const FormattedText = styled.span<{
       return 700
     }
 
-    if ($format === 'italic') {
-      return 600
+    return 'inherit'
+  }};
+  font-family: inherit;
+  font-size: ${({ $format }) => {
+    if ($format === 'headingOne') {
+      return '1.35em'
+    }
+
+    if ($format === 'headingTwo') {
+      return '1.18em'
     }
 
     return 'inherit'
   }};
-  font-family: inherit;
+  line-height: ${({ $format }) =>
+    $format === 'headingOne' || $format === 'headingTwo' ? 1 : 'inherit'};
   text-shadow: none;
   transform: ${({ $format }) =>
     $format === 'italic' ? 'skewX(-8deg)' : 'none'};
