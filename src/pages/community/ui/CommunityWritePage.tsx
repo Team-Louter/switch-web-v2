@@ -1,7 +1,7 @@
 import '@blocknote/core/fonts/inter.css'
 import '@blocknote/mantine/style.css'
 
-import type { Block } from '@blocknote/core'
+import { cleanHTMLToMarkdown, type Block } from '@blocknote/core'
 import { ko } from '@blocknote/core/locales'
 import { BlockNoteView } from '@blocknote/mantine'
 import { useCreateBlockNote } from '@blocknote/react'
@@ -114,6 +114,15 @@ function hasPostContent(content: string): boolean {
     .trim()
 
   return Boolean(textContent) || /<(img|audio|video)\b/i.test(content)
+}
+
+function blocksToPostMarkdown(html: string): string {
+  const markdownReadyHtml = html.replaceAll(
+    /<u>([\s\S]*?)<\/u>/gi,
+    '__$1__',
+  )
+
+  return cleanHTMLToMarkdown(markdownReadyHtml)
 }
 
 export function CommunityWritePage() {
@@ -298,7 +307,7 @@ export function CommunityWritePage() {
       return
     }
 
-    const postContent = editor.blocksToHTMLLossy()
+    const postContent = blocksToPostMarkdown(editor.blocksToHTMLLossy())
 
     if (!category || !title.trim() || !hasPostContent(postContent)) {
       setSubmitError('카테고리와 제목, 내용을 모두 입력해주세요.')
@@ -400,6 +409,7 @@ export function CommunityWritePage() {
                   aria-label={tool.label}
                   title={tool.label}
                   disabled={isSubmitting}
+                  onMouseDown={(event) => event.preventDefault()}
                   onClick={() => handleEditorToolClick(tool.action)}
                 >
                   <img src={tool.icon} alt="" />
