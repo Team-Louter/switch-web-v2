@@ -522,10 +522,10 @@ export const MarkdownPreview = styled.div`
 
   blockquote {
     margin-left: 0;
-    padding: 8px 12px;
-    border-left: 4px solid ${token.colors.primary.primary40};
+    padding: 4px 12px;
+    border-left: 4px solid ${token.colors.gray.gray100};
     color: ${token.colors.gray.gray60};
-    background: ${token.colors.primary.primary10};
+    background: transparent;
   }
 
   pre {
@@ -572,6 +572,10 @@ export const MarkdownPreview = styled.div`
     padding: 8px 10px;
     border: 1px solid ${token.colors.gray.gray20};
     text-align: left;
+  }
+
+  .markdown-preview-placeholder {
+    color: ${token.colors.gray.gray40};
   }
 `
 
