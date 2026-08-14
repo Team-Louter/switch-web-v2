@@ -149,6 +149,7 @@ export const TitleInput = styled.input`
 
 export const Editor = styled.section`
   ${token.flexColumn}
+  position: relative;
   flex: 1 1 706px;
   gap: 16px;
   box-sizing: border-box;
@@ -326,6 +327,35 @@ export const BlockSideMenu = styled.div`
     height: 16px;
     color: ${token.colors.gray.gray40};
   }
+
+  .bn-drag-handle-menu {
+    top: 32px !important;
+    left: 0 !important;
+  }
+
+  .bn-color-picker-dropdown {
+    top: 0 !important;
+    left: calc(100% + 4px) !important;
+    max-height: 360px !important;
+    overflow-y: auto;
+  }
+`
+
+export const BlockDropIndicator = styled.div<{
+  $left: number
+  $top: number
+  $width: number
+}>`
+  position: absolute;
+  z-index: 50;
+  top: ${({ $top }) => $top}px;
+  left: ${({ $left }) => $left}px;
+  width: ${({ $width }) => $width}px;
+  height: 2px;
+  border-radius: ${token.shapes.circle};
+  background: ${token.colors.info.info10};
+  pointer-events: none;
+  transform: translateY(-1px);
 `
 
 export const Toolbar = styled.div`
