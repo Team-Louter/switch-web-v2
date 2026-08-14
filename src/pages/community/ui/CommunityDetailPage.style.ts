@@ -315,6 +315,13 @@ export const BodyText = styled.div`
     background: transparent;
   }
 
+  em {
+    display: inline-block;
+    font-style: italic;
+    transform: skewX(-12deg);
+    transform-origin: left center;
+  }
+
   img {
     max-width: 100%;
     height: auto;
