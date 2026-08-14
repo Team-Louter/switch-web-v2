@@ -82,6 +82,11 @@ interface SelectionToolbarPosition {
   placement: 'above' | 'below'
 }
 
+interface UploadedImage extends PostFileRequest {
+  id: string
+  width: number
+}
+
 type EditorAction =
   | 'bold'
   | 'italic'
@@ -175,6 +180,9 @@ const LINE_EDITOR_ACTIONS: readonly FormattingAction[] = [
 ]
 
 const MAX_EDITOR_HISTORY_LENGTH = 100
+const DEFAULT_IMAGE_WIDTH = 520
+const MIN_IMAGE_WIDTH = 160
+const MAX_IMAGE_WIDTH = 960
 
 const INLINE_MARKDOWN_PATTERN =
   /(\*\*[^*\n]+?\*\*|__[^_\n]+?__|~~[^~\n]+?~~|<u>[^<\n]+?<\/u>|`[^`\n]+?`|!\[[^\]\n]*?\]\([^)\n]+?\)|\[[^\]\n]+?\]\([^)\n]+?\)|\*[^*\n]+?\*)/g
@@ -699,50 +707,70 @@ function wrapEditorText(
   }
 }
 
+function escapeHtmlAttribute(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+}
+
+function createUploadedImageMarkup(image: UploadedImage): string {
+  return `<img src="${escapeHtmlAttribute(image.fileUrl)}" alt="${escapeHtmlAttribute(image.fileName)}" width="${image.width}" />`
+}
+
 function createEditorInsertion(
   action: FormattingAction,
   selectedText: string,
 ): EditorInsertion {
   switch (action) {
     case 'bold':
-      return wrapEditorText(selectedText, '굵은 텍스트', '**', '**')
+      return wrapEditorText(selectedText, '', '**', '**')
     case 'italic':
-      return wrapEditorText(selectedText, '기울임 텍스트', '*', '*')
+      return wrapEditorText(selectedText, '', '*', '*')
     case 'underline':
-      return wrapEditorText(selectedText, '밑줄 텍스트', '__', '__')
+      return wrapEditorText(selectedText, '', '__', '__')
     case 'strike':
-      return wrapEditorText(selectedText, '취소선 텍스트', '~~', '~~')
+      return wrapEditorText(selectedText, '', '~~', '~~')
     case 'headingOne': {
-      const value = (selectedText || '제목 1')
-        .split('\n')
-        .map((line) => `# ${line}`)
-        .join('\n')
+      const value = selectedText
+        ? selectedText
+            .split('\n')
+            .map((line) => `# ${line}`)
+            .join('\n')
+        : '# '
 
-      return { value, selectionStart: 0, selectionEnd: value.length }
+      return { value, selectionStart: value.length, selectionEnd: value.length }
     }
     case 'headingTwo': {
-      const value = (selectedText || '제목 2')
-        .split('\n')
-        .map((line) => `## ${line}`)
-        .join('\n')
+      const value = selectedText
+        ? selectedText
+            .split('\n')
+            .map((line) => `## ${line}`)
+            .join('\n')
+        : '## '
 
-      return { value, selectionStart: 0, selectionEnd: value.length }
+      return { value, selectionStart: value.length, selectionEnd: value.length }
     }
     case 'unorderedList': {
-      const value = (selectedText || '목록 항목')
-        .split('\n')
-        .map((line) => `- ${line}`)
-        .join('\n')
+      const value = selectedText
+        ? selectedText
+            .split('\n')
+            .map((line) => `- ${line}`)
+            .join('\n')
+        : '- '
 
-      return { value, selectionStart: 0, selectionEnd: value.length }
+      return { value, selectionStart: value.length, selectionEnd: value.length }
     }
     case 'orderedList': {
-      const value = (selectedText || '목록 항목')
-        .split('\n')
-        .map((line, index) => `${index + 1}. ${line}`)
-        .join('\n')
+      const value = selectedText
+        ? selectedText
+            .split('\n')
+            .map((line, index) => `${index + 1}. ${line}`)
+            .join('\n')
+        : '1. '
 
-      return { value, selectionStart: 0, selectionEnd: value.length }
+      return { value, selectionStart: value.length, selectionEnd: value.length }
     }
     case 'code':
       return wrapEditorText(
@@ -752,12 +780,14 @@ function createEditorInsertion(
         '\n```',
       )
     case 'quote': {
-      const value = (selectedText || '인용문')
-        .split('\n')
-        .map((line) => `> ${line}`)
-        .join('\n')
+      const value = selectedText
+        ? selectedText
+            .split('\n')
+            .map((line) => `> ${line}`)
+            .join('\n')
+        : '> '
 
-      return { value, selectionStart: 0, selectionEnd: value.length }
+      return { value, selectionStart: value.length, selectionEnd: value.length }
     }
     case 'link':
       return wrapEditorText(selectedText, '링크 텍스트', '[', '](https://)')
@@ -777,7 +807,7 @@ export function CommunityWritePage() {
   const [category, setCategory] = useState<PostCategory | ''>('')
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [uploadedFiles, setUploadedFiles] = useState<PostFileRequest[]>([])
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [imageUploadError, setImageUploadError] = useState<string | null>(null)
@@ -878,7 +908,9 @@ export function CommunityWritePage() {
       contentInput.value.slice(0, selectionStart) +
       insertion.value +
       contentInput.value.slice(selectionEnd)
-    const nextCaretPosition = selectionStart + insertion.value.length
+    const nextCaretPosition =
+      selectionStart +
+      (selectedText ? insertion.value.length : insertion.selectionEnd)
 
     commitContent(nextContent, nextCaretPosition)
     setSelectionToolbarPosition(null)
@@ -975,44 +1007,41 @@ export function CommunityWritePage() {
     }
 
     const contentInput = contentInputRef.current
-    const selectionStart = contentInput?.selectionStart ?? content.length
-    const selectionEnd = contentInput?.selectionEnd ?? selectionStart
+    const caretPosition = contentInput?.selectionStart ?? content.length
 
     setIsUploadingImage(true)
     setImageUploadError(null)
 
     try {
       const uploadedFile = await uploadCommunityImage(file)
-      const currentContent = contentInputRef.current?.value ?? content
-      const safeSelectionStart = Math.min(selectionStart, currentContent.length)
-      const safeSelectionEnd = Math.min(selectionEnd, currentContent.length)
-      const imageName = (uploadedFile.fileName || file.name)
-        .replace(/[[\]\n]/g, ' ')
-        .trim()
-      const imageMarkdown = `![${imageName || '업로드한 이미지'}](${uploadedFile.url})`
-      const nextContent =
-        currentContent.slice(0, safeSelectionStart) +
-        imageMarkdown +
-        currentContent.slice(safeSelectionEnd)
-      const nextCaretPosition = safeSelectionStart + imageMarkdown.length
+      const imageName = uploadedFile.fileName || file.name
 
-      commitContent(nextContent, nextCaretPosition)
-      setUploadedFiles((files) => [
-        ...files,
+      setUploadedImages((images) => [
+        ...images,
         {
+          id: uploadedFile.key || `${file.name}-${Date.now()}`,
+          width: DEFAULT_IMAGE_WIDTH,
           fileUrl: uploadedFile.url,
-          fileName: uploadedFile.fileName || file.name,
+          fileName: imageName,
           fileType: uploadedFile.fileType || file.type,
           fileSize: uploadedFile.fileSize || file.size,
         },
       ])
 
       window.requestAnimationFrame(() => {
-        contentInputRef.current?.focus()
-        contentInputRef.current?.setSelectionRange(
-          nextCaretPosition,
-          nextCaretPosition,
+        const currentInput = contentInputRef.current
+
+        if (!currentInput) {
+          return
+        }
+
+        const nextCaretPosition = Math.min(
+          caretPosition,
+          currentInput.value.length,
         )
+
+        currentInput.focus()
+        currentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
       })
     } catch {
       setImageUploadError(
@@ -1021,6 +1050,25 @@ export function CommunityWritePage() {
     } finally {
       setIsUploadingImage(false)
     }
+  }
+
+  const handleImageWidthChange = (imageId: string, width: number) => {
+    const nextWidth = Math.min(
+      Math.max(width, MIN_IMAGE_WIDTH),
+      MAX_IMAGE_WIDTH,
+    )
+
+    setUploadedImages((images) =>
+      images.map((image) =>
+        image.id === imageId ? { ...image, width: nextWidth } : image,
+      ),
+    )
+  }
+
+  const handleImageRemove = (imageId: string) => {
+    setUploadedImages((images) =>
+      images.filter((image) => image.id !== imageId),
+    )
   }
 
   const handleContentScroll = (event: UIEvent<HTMLTextAreaElement>) => {
@@ -1169,7 +1217,13 @@ export function CommunityWritePage() {
       return
     }
 
-    if (!category || !title.trim() || !content.trim()) {
+    const textContent = content.trim()
+    const imageContent = uploadedImages
+      .map(createUploadedImageMarkup)
+      .join('\n')
+    const postContent = [textContent, imageContent].filter(Boolean).join('\n\n')
+
+    if (!category || !title.trim() || !postContent) {
       setSubmitError('카테고리와 제목, 내용을 모두 입력해주세요.')
       return
     }
@@ -1180,10 +1234,17 @@ export function CommunityWritePage() {
     try {
       const post = await createPost({
         title: title.trim(),
-        content: content.trim(),
+        content: postContent,
         isAnonymous,
         category,
-        files: uploadedFiles,
+        files: uploadedImages.map(
+          ({ fileUrl, fileName, fileType, fileSize }) => ({
+            fileUrl,
+            fileName,
+            fileType,
+            fileSize,
+          }),
+        ),
       })
 
       navigate(`/community/${post.postId}`, { replace: true })
@@ -1310,7 +1371,7 @@ export function CommunityWritePage() {
               aria-label="게시글 내용"
               placeholder="어떤 내용을 공유하고 싶으신가요?"
               value={content}
-              required
+              required={uploadedImages.length === 0}
               disabled={isSubmitting}
               onBlur={handleContentBlur}
               onChange={(event) => {
@@ -1354,6 +1415,49 @@ export function CommunityWritePage() {
               </S.SelectionToolbar>
             )}
           </S.EditorBody>
+          {uploadedImages.length > 0 && (
+            <S.UploadedImageList aria-label="첨부 이미지 미리보기">
+              {uploadedImages.map((image) => (
+                <S.UploadedImageCard key={image.id}>
+                  <S.UploadedImagePreview>
+                    <S.UploadedImage
+                      src={image.fileUrl}
+                      alt={image.fileName}
+                      $width={image.width}
+                    />
+                  </S.UploadedImagePreview>
+                  <S.UploadedImageControls>
+                    <S.UploadedImageName>{image.fileName}</S.UploadedImageName>
+                    <S.ImageSizeLabel>
+                      이미지 크기
+                      <S.ImageSizeInput
+                        type="range"
+                        min={MIN_IMAGE_WIDTH}
+                        max={MAX_IMAGE_WIDTH}
+                        step={40}
+                        value={image.width}
+                        aria-label={`${image.fileName} 크기`}
+                        onChange={(event) =>
+                          handleImageWidthChange(
+                            image.id,
+                            Number(event.target.value),
+                          )
+                        }
+                      />
+                      <S.ImageSizeValue>{image.width}px</S.ImageSizeValue>
+                    </S.ImageSizeLabel>
+                    <S.ImageRemoveButton
+                      type="button"
+                      aria-label={`${image.fileName} 삭제`}
+                      onClick={() => handleImageRemove(image.id)}
+                    >
+                      삭제
+                    </S.ImageRemoveButton>
+                  </S.UploadedImageControls>
+                </S.UploadedImageCard>
+              ))}
+            </S.UploadedImageList>
+          )}
         </S.Editor>
         {isUploadingImage && (
           <S.ImageUploadStatus role="status">
