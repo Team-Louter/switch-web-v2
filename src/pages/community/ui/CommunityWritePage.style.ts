@@ -548,6 +548,13 @@ export const MarkdownPreview = styled.div`
     background: transparent;
   }
 
+  em {
+    display: inline-block;
+    font-style: italic;
+    transform: skewX(-12deg);
+    transform-origin: left center;
+  }
+
   a {
     color: ${token.colors.primary.primary70};
     text-decoration: underline;
