@@ -308,13 +308,8 @@ export const EditorContent = styled.div`
 export const EditorPane = styled.section`
   ${token.flexColumn}
   gap: 10px;
-  box-sizing: border-box;
   min-width: 0;
   min-height: 0;
-  padding: 12px;
-  border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.small};
-  background: ${token.colors.white};
 `
 
 export const EditorPaneLabel = styled.h2`
