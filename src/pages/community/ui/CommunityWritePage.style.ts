@@ -1,4 +1,4 @@
-import styled, { keyframes } from 'styled-components'
+import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
@@ -27,16 +27,6 @@ export type CodeTokenFormat =
   | 'attribute'
   | 'regexp'
   | 'operator'
-
-const caretBlink = keyframes`
-  0%, 45% {
-    opacity: 1;
-  }
-
-  55%, 100% {
-    opacity: 0;
-  }
-`
 
 export const Page = styled.section`
   box-sizing: border-box;
@@ -506,41 +496,6 @@ export const SelectionToolbarIcon = styled.img<{
   opacity: 0.9;
 `
 
-export const ContentInput = styled.textarea`
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  padding: 0;
-  resize: none;
-  border: 0;
-  outline: none;
-  color: transparent;
-  background: transparent;
-  caret-color: transparent;
-  ${token.typography('body', 'lg', 'medium')}
-  line-height: 1.4;
-  letter-spacing: normal;
-  overflow-wrap: break-word;
-  tab-size: 4;
-  -webkit-text-fill-color: transparent;
-
-  &::placeholder {
-    color: ${token.colors.gray.gray40};
-    opacity: 1;
-    -webkit-text-fill-color: ${token.colors.gray.gray40};
-  }
-
-  &[data-composing='true'] {
-    color: ${token.colors.gray.gray100};
-    caret-color: ${token.colors.gray.gray100};
-    -webkit-text-fill-color: ${token.colors.gray.gray100};
-  }
-`
-
 export const RichTextInput = styled.div`
   position: absolute;
   z-index: 1;
@@ -563,6 +518,10 @@ export const RichTextInput = styled.div`
   tab-size: 4;
   white-space: pre-wrap;
 
+  > [data-editor-content] {
+    min-height: 100%;
+  }
+
   &[data-empty='true']::before {
     color: ${token.colors.gray.gray40};
     content: attr(data-placeholder);
@@ -573,47 +532,6 @@ export const RichTextInput = styled.div`
     cursor: not-allowed;
     opacity: 0.6;
   }
-`
-
-export const InlineMarkdownPreview = styled.div`
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
-  padding: 0;
-  overflow: hidden;
-  color: ${token.colors.gray.gray100};
-  ${token.typography('body', 'lg', 'medium')}
-  line-height: 1.4;
-  letter-spacing: normal;
-  overflow-wrap: break-word;
-  tab-size: 4;
-  white-space: pre-wrap;
-  pointer-events: none;
-
-  &[data-composing='true'] {
-    visibility: hidden;
-  }
-`
-
-export const EditorCaret = styled.span<{
-  $top: number
-  $left: number
-  $height: number
-}>`
-  position: absolute;
-  z-index: 2;
-  top: ${({ $top }) => $top}px;
-  left: ${({ $left }) => $left}px;
-  width: 2px;
-  height: ${({ $height }) => $height}px;
-  background: ${token.colors.gray.gray100};
-  pointer-events: none;
-  animation: ${caretBlink} 1s steps(1, end) infinite;
 `
 
 export const EditorLine = styled.div<{ $format: EditorLineFormat }>`
