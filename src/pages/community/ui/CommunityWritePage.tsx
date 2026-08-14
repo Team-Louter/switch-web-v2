@@ -55,6 +55,12 @@ interface EditorInsertion {
   selectionEnd: number
 }
 
+interface EditorHistoryEntry {
+  value: string
+  selectionStart: number
+  selectionEnd: number
+}
+
 interface EditorSelection {
   start: number
   end: number
@@ -167,6 +173,8 @@ const LINE_EDITOR_ACTIONS: readonly FormattingAction[] = [
   'quote',
   'code',
 ]
+
+const MAX_EDITOR_HISTORY_LENGTH = 100
 
 const INLINE_MARKDOWN_PATTERN =
   /(\*\*[^*\n]+?\*\*|__[^_\n]+?__|~~[^~\n]+?~~|<u>[^<\n]+?<\/u>|`[^`\n]+?`|!\[[^\]\n]*?\]\([^)\n]+?\)|\[[^\]\n]+?\]\([^)\n]+?\)|\*[^*\n]+?\*)/g
@@ -457,7 +465,9 @@ function renderEditorLineContent(line: string): ReactNode {
       <>
         <S.MarkdownSyntax>{heading[1]}</S.MarkdownSyntax>
         {heading[2]}
-        <S.FormattedText $format="heading">
+        <S.FormattedText
+          $format={heading[1].length === 1 ? 'headingOne' : 'headingTwo'}
+        >
           {renderInlineMarkdown(heading[3])}
         </S.FormattedText>
       </>
@@ -470,7 +480,9 @@ function renderEditorLineContent(line: string): ReactNode {
     return (
       <>
         {listItem[1]}
-        <S.MarkdownSyntax>{listItem[2]}</S.MarkdownSyntax>
+        <S.ListMarker>
+          {/^\d+\.$/.test(listItem[2]) ? listItem[2] : '•'}
+        </S.ListMarker>
         {listItem[3]}
         {renderInlineMarkdown(listItem[4])}
       </>
@@ -733,7 +745,12 @@ function createEditorInsertion(
       return { value, selectionStart: 0, selectionEnd: value.length }
     }
     case 'code':
-      return wrapEditorText(selectedText, '코드', '```\n', '\n```')
+      return wrapEditorText(
+        selectedText,
+        'print("Hello, World!")',
+        '```py\n',
+        '\n```',
+      )
     case 'quote': {
       const value = (selectedText || '인용문')
         .split('\n')
@@ -753,6 +770,10 @@ export function CommunityWritePage() {
   const contentInputRef = useRef<HTMLTextAreaElement>(null)
   const inlinePreviewRef = useRef<HTMLDivElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const contentHistoryRef = useRef<EditorHistoryEntry[]>([
+    { value: '', selectionStart: 0, selectionEnd: 0 },
+  ])
+  const contentHistoryIndexRef = useRef(0)
   const [category, setCategory] = useState<PostCategory | ''>('')
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -764,6 +785,63 @@ export function CommunityWritePage() {
     useState<SelectionToolbarPosition | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+
+  const commitContent = (
+    nextValue: string,
+    selectionStart = nextValue.length,
+    selectionEnd = selectionStart,
+  ) => {
+    const history = contentHistoryRef.current
+    const currentIndex = contentHistoryIndexRef.current
+    const currentEntry = history[currentIndex]
+
+    if (currentEntry?.value === nextValue) {
+      history[currentIndex] = {
+        value: nextValue,
+        selectionStart,
+        selectionEnd,
+      }
+      setContent(nextValue)
+      return
+    }
+
+    const nextHistory = history.slice(0, currentIndex + 1)
+
+    nextHistory.push({ value: nextValue, selectionStart, selectionEnd })
+
+    if (nextHistory.length > MAX_EDITOR_HISTORY_LENGTH) {
+      nextHistory.shift()
+    }
+
+    contentHistoryRef.current = nextHistory
+    contentHistoryIndexRef.current = nextHistory.length - 1
+    setContent(nextValue)
+  }
+
+  const restoreContentFromHistory = (direction: -1 | 1) => {
+    const history = contentHistoryRef.current
+    const nextIndex = Math.min(
+      Math.max(contentHistoryIndexRef.current + direction, 0),
+      history.length - 1,
+    )
+
+    if (nextIndex === contentHistoryIndexRef.current) {
+      return
+    }
+
+    const nextEntry = history[nextIndex]
+
+    contentHistoryIndexRef.current = nextIndex
+    setContent(nextEntry.value)
+    setSelectionToolbarPosition(null)
+    window.requestAnimationFrame(() => {
+      contentInputRef.current?.focus()
+      contentInputRef.current?.setSelectionRange(
+        nextEntry.selectionStart,
+        nextEntry.selectionEnd,
+      )
+    })
+  }
 
   const handleBackToList = () => {
     navigate('/community')
@@ -800,14 +878,16 @@ export function CommunityWritePage() {
       contentInput.value.slice(0, selectionStart) +
       insertion.value +
       contentInput.value.slice(selectionEnd)
+    const nextSelectionStart = selectionStart + insertion.selectionStart
+    const nextSelectionEnd = selectionStart + insertion.selectionEnd
 
-    setContent(nextContent)
+    commitContent(nextContent, nextSelectionStart, nextSelectionEnd)
     setSelectionToolbarPosition(null)
     window.requestAnimationFrame(() => {
       contentInput.focus()
       contentInput.setSelectionRange(
-        selectionStart + insertion.selectionStart,
-        selectionStart + insertion.selectionEnd,
+        nextSelectionStart,
+        nextSelectionEnd,
       )
     })
   }
@@ -920,7 +1000,7 @@ export function CommunityWritePage() {
         currentContent.slice(safeSelectionEnd)
       const nextCaretPosition = safeSelectionStart + imageMarkdown.length
 
-      setContent(nextContent)
+      commitContent(nextContent, nextCaretPosition)
       setUploadedFiles((files) => [
         ...files,
         {
@@ -958,6 +1038,20 @@ export function CommunityWritePage() {
   }
 
   const handleContentKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    const normalizedKey = event.key.toLowerCase()
+    const hasHistoryModifier = event.metaKey || event.ctrlKey
+    const isUndo =
+      hasHistoryModifier && normalizedKey === 'z' && !event.shiftKey
+    const isRedo =
+      hasHistoryModifier &&
+      ((normalizedKey === 'z' && event.shiftKey) || normalizedKey === 'y')
+
+    if (isUndo || isRedo) {
+      event.preventDefault()
+      restoreContentFromHistory(isUndo ? -1 : 1)
+      return
+    }
+
     if (event.key !== 'Backspace' && event.key !== 'Enter') {
       return
     }
@@ -971,6 +1065,7 @@ export function CommunityWritePage() {
       nextLineBreak === -1 ? contentInput.value.length : nextLineBreak
     const line = contentInput.value.slice(lineStart, lineEnd)
     const quote = line.match(/^(\s*)>\s?(.*)$/)
+    const listItem = line.match(/^(\s*)([-+*]|\d+\.)(\s+)(.*)$/)
 
     if (event.key === 'Enter' && event.shiftKey && quote) {
       event.preventDefault()
@@ -983,7 +1078,53 @@ export function CommunityWritePage() {
       const nextCaretPosition =
         selectionStart + nextQuotePrefix.length + 1
 
-      setContent(nextContent)
+      commitContent(nextContent, nextCaretPosition)
+      setSelectionToolbarPosition(null)
+      window.requestAnimationFrame(() => {
+        contentInput.focus()
+        contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
+      })
+      return
+    }
+
+    if (event.key === 'Enter' && !event.shiftKey && listItem) {
+      event.preventDefault()
+
+      const isEmptyListItem =
+        selectionStart === selectionEnd &&
+        selectionStart === lineEnd &&
+        !listItem[4]
+
+      if (isEmptyListItem) {
+        const indentation = listItem[1]
+        const nextContent =
+          contentInput.value.slice(0, lineStart) +
+          indentation +
+          contentInput.value.slice(lineEnd)
+        const nextCaretPosition = lineStart + indentation.length
+
+        commitContent(nextContent, nextCaretPosition)
+        setSelectionToolbarPosition(null)
+        window.requestAnimationFrame(() => {
+          contentInput.focus()
+          contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
+        })
+        return
+      }
+
+      const isOrderedList = /^\d+\.$/.test(listItem[2])
+      const nextMarker = isOrderedList
+        ? `${Number.parseInt(listItem[2], 10) + 1}.`
+        : '-'
+      const nextListPrefix = `${listItem[1]}${nextMarker} `
+      const nextContent =
+        contentInput.value.slice(0, selectionStart) +
+        `\n${nextListPrefix}` +
+        contentInput.value.slice(selectionEnd)
+      const nextCaretPosition =
+        selectionStart + nextListPrefix.length + 1
+
+      commitContent(nextContent, nextCaretPosition)
       setSelectionToolbarPosition(null)
       window.requestAnimationFrame(() => {
         contentInput.focus()
@@ -1016,7 +1157,7 @@ export function CommunityWritePage() {
       contentInput.value.slice(lineEnd)
     const nextCaretPosition = lineStart + indentation.length
 
-    setContent(nextContent)
+    commitContent(nextContent, nextCaretPosition)
     setSelectionToolbarPosition(null)
     window.requestAnimationFrame(() => {
       contentInput.focus()
@@ -1177,7 +1318,11 @@ export function CommunityWritePage() {
               disabled={isSubmitting}
               onBlur={handleContentBlur}
               onChange={(event) => {
-                setContent(event.target.value)
+                commitContent(
+                  event.target.value,
+                  event.target.selectionStart,
+                  event.target.selectionEnd,
+                )
                 setSelectionToolbarPosition(null)
               }}
               onKeyDown={handleContentKeyDown}
