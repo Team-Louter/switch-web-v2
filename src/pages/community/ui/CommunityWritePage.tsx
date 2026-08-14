@@ -8,6 +8,7 @@ import {
   type MouseEvent,
   type ReactNode,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react'
@@ -184,6 +185,7 @@ const MAX_EDITOR_HISTORY_LENGTH = 100
 const DEFAULT_IMAGE_WIDTH = 520
 const MIN_IMAGE_WIDTH = 160
 const MAX_IMAGE_WIDTH = 960
+const EMPTY_ITALIC_MARKER = '\u200b'
 
 const INLINE_MARKDOWN_PATTERN =
   /(\*\*[^*\n]*?\*\*|__[^_\n]*?__|~~[^~\n]*?~~|<u>[^<\n]+?<\/u>|`[^`\n]+?`|!\[[^\]\n]*?\]\([^)\n]+?\)|\[[^\]\n]+?\]\([^)\n]+?\)|\*[^*\n]*?\*)/g
@@ -225,7 +227,9 @@ function renderEditorPlaceholder(label: string): ReactNode {
 }
 
 function renderFormattedValue(value: string, placeholder: string): ReactNode {
-  return value || renderEditorPlaceholder(placeholder)
+  const visibleValue = value.replaceAll(EMPTY_ITALIC_MARKER, '')
+
+  return visibleValue || renderEditorPlaceholder(placeholder)
 }
 
 function getHeadingFormat(
@@ -683,6 +687,57 @@ function getLinePosition(value: string, offset: number): LinePosition {
   }
 }
 
+function getEmptyInlineFormatRange(
+  value: string,
+  caretPosition: number,
+): EditorSelection | null {
+  const formats = [
+    { value: '****', caretOffsets: [2] },
+    { value: '____', caretOffsets: [2] },
+    { value: '~~~~', caretOffsets: [2] },
+    {
+      value: `*${EMPTY_ITALIC_MARKER}*`,
+      caretOffsets: [1, 2],
+    },
+  ]
+
+  for (const format of formats) {
+    for (const caretOffset of format.caretOffsets) {
+      const start = caretPosition - caretOffset
+
+      if (
+        start >= 0 &&
+        value.slice(start, start + format.value.length) === format.value
+      ) {
+        return { start, end: start + format.value.length }
+      }
+    }
+  }
+
+  return null
+}
+
+function getSingleCharacterItalicRange(
+  value: string,
+  caretPosition: number,
+): EditorSelection | null {
+  const start = caretPosition - 2
+
+  if (
+    start < 0 ||
+    value[start] !== '*' ||
+    value[caretPosition] !== '*' ||
+    value[caretPosition - 1] === '*' ||
+    value[caretPosition - 1] === '\n' ||
+    value[start - 1] === '*' ||
+    value[caretPosition + 1] === '*'
+  ) {
+    return null
+  }
+
+  return { start, end: caretPosition + 1 }
+}
+
 function getTextPosition(element: Element, offset: number): TextPosition | null {
   const placeholder = element.querySelector('[data-editor-placeholder]')
 
@@ -890,6 +945,16 @@ function setContentEditableSelection(
     return
   }
 
+  if (
+    !editor.isConnected ||
+    !startPosition.node.isConnected ||
+    !endPosition.node.isConnected ||
+    !editor.contains(startPosition.node) ||
+    !editor.contains(endPosition.node)
+  ) {
+    return
+  }
+
   const range = document.createRange()
 
   range.setStart(startPosition.node, startPosition.offset)
@@ -932,8 +997,17 @@ function createEditorInsertion(
   switch (action) {
     case 'bold':
       return wrapEditorText(selectedText, '', '**', '**')
-    case 'italic':
-      return wrapEditorText(selectedText, '', '*', '*')
+    case 'italic': {
+      if (selectedText) {
+        return wrapEditorText(selectedText, '', '*', '*')
+      }
+
+      return {
+        value: `*${EMPTY_ITALIC_MARKER}*`,
+        selectionStart: 1,
+        selectionEnd: 1,
+      }
+    }
     case 'underline':
       return wrapEditorText(selectedText, '', '__', '__')
     case 'strike':
@@ -1004,8 +1078,10 @@ export function CommunityWritePage() {
   const navigate = useNavigate()
   const editorBodyRef = useRef<HTMLDivElement>(null)
   const contentInputRef = useRef<HTMLDivElement>(null)
+  const editorRenderSourceRef = useRef<HTMLDivElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const isComposingRef = useRef(false)
+  const hasPendingCompositionEndRef = useRef(false)
   const contentHistoryRef = useRef<EditorHistoryEntry[]>([
     { value: '', selectionStart: 0, selectionEnd: 0 },
   ])
@@ -1324,12 +1400,7 @@ export function CommunityWritePage() {
     window.requestAnimationFrame(updateSelectionToolbar)
   }
 
-  const handleContentInput = (event: FormEvent<HTMLDivElement>) => {
-    if (isComposingRef.current) {
-      return
-    }
-
-    const editor = event.currentTarget
+  const syncContentFromEditor = (editor: HTMLDivElement) => {
     const nextContent = getEditorContent(editor)
     const selection = getContentEditableSelection(editor) ?? {
       start: nextContent.length,
@@ -1349,8 +1420,18 @@ export function CommunityWritePage() {
     })
   }
 
+  const handleContentInput = (event: FormEvent<HTMLDivElement>) => {
+    if (isComposingRef.current) {
+      return
+    }
+
+    hasPendingCompositionEndRef.current = false
+    syncContentFromEditor(event.currentTarget)
+  }
+
   const handleContentCompositionStart = () => {
     isComposingRef.current = true
+    hasPendingCompositionEndRef.current = false
     setSelectionToolbarPosition(null)
   }
 
@@ -1358,22 +1439,16 @@ export function CommunityWritePage() {
     event: CompositionEvent<HTMLDivElement>,
   ) => {
     const editor = event.currentTarget
-    const nextContent = getEditorContent(editor)
-    const selection = getContentEditableSelection(editor) ?? {
-      start: nextContent.length,
-      end: nextContent.length,
-    }
 
     isComposingRef.current = false
-    removeEditorDomArtifacts(editor)
-    commitContent(nextContent, selection.start, selection.end)
+    hasPendingCompositionEndRef.current = true
     window.requestAnimationFrame(() => {
-      setContentEditableSelection(
-        editor,
-        nextContent,
-        selection.start,
-        selection.end,
-      )
+      if (!hasPendingCompositionEndRef.current) {
+        return
+      }
+
+      hasPendingCompositionEndRef.current = false
+      syncContentFromEditor(editor)
     })
   }
 
@@ -1425,6 +1500,48 @@ export function CommunityWritePage() {
           nextCaretPosition,
         )
       })
+    }
+
+    const emptyInlineFormat = getEmptyInlineFormatRange(
+      content,
+      selectionStart,
+    )
+
+    if (
+      event.key === 'Backspace' &&
+      selectionStart === selectionEnd &&
+      emptyInlineFormat
+    ) {
+      event.preventDefault()
+
+      const nextContent =
+        content.slice(0, emptyInlineFormat.start) +
+        content.slice(emptyInlineFormat.end)
+
+      commitAndRestore(nextContent, emptyInlineFormat.start)
+      return
+    }
+
+    const singleCharacterItalic = getSingleCharacterItalicRange(
+      content,
+      selectionStart,
+    )
+
+    if (
+      event.key === 'Backspace' &&
+      selectionStart === selectionEnd &&
+      singleCharacterItalic
+    ) {
+      event.preventDefault()
+
+      const nextContent =
+        content.slice(0, singleCharacterItalic.start) +
+        `*${EMPTY_ITALIC_MARKER}*` +
+        content.slice(singleCharacterItalic.end)
+      const nextCaretPosition = singleCharacterItalic.start + 1
+
+      commitAndRestore(nextContent, nextCaretPosition)
+      return
     }
 
     if (
@@ -1542,7 +1659,7 @@ export function CommunityWritePage() {
       return
     }
 
-    const textContent = content.trim()
+    const textContent = content.replaceAll(EMPTY_ITALIC_MARKER, '').trim()
     const imageContent = uploadedImages
       .map(createUploadedImageMarkup)
       .join('\n')
@@ -1579,6 +1696,19 @@ export function CommunityWritePage() {
       setIsSubmitting(false)
     }
   }
+
+  useLayoutEffect(() => {
+    const editor = contentInputRef.current
+    const renderSource = editorRenderSourceRef.current
+
+    if (!editor || !renderSource || isComposingRef.current) {
+      return
+    }
+
+    editor.replaceChildren(
+      ...Array.from(renderSource.childNodes).map((node) => node.cloneNode(true)),
+    )
+  }, [content])
 
   return (
     <S.Page>
@@ -1709,11 +1839,12 @@ export function CommunityWritePage() {
               onMouseUp={handleContentSelection}
               onSelect={handleContentSelection}
               onScroll={handleContentScroll}
-            >
-              <div key={content} data-editor-content>
+            />
+            <div ref={editorRenderSourceRef} aria-hidden="true" hidden>
+              <div data-editor-content>
                 {content ? <InlineMarkdownPreview value={content} /> : null}
               </div>
-            </S.RichTextInput>
+            </div>
             {selectionToolbarPosition && (
               <S.SelectionToolbar
                 data-selection-toolbar
