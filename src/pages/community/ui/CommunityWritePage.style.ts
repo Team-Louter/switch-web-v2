@@ -324,6 +324,107 @@ export const EditorBody = styled.div`
   min-height: 0;
 `
 
+export const UploadedImageList = styled.section`
+  ${token.flexColumn}
+  flex: 0 0 auto;
+  gap: 12px;
+  width: 100%;
+  max-height: 440px;
+  padding-top: 12px;
+  overflow-y: auto;
+  border-top: 1px solid ${token.colors.gray.gray10};
+`
+
+export const UploadedImageCard = styled.article`
+  ${token.flexColumn}
+  gap: 10px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.small};
+  background: ${token.colors.white};
+`
+
+export const UploadedImagePreview = styled.div`
+  ${token.flexCenter}
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 120px;
+  max-height: 320px;
+  padding: 12px;
+  overflow: auto;
+  border-radius: ${token.shapes.xsmall};
+  background: ${token.colors.gray.gray0};
+`
+
+export const UploadedImage = styled.img<{ $width: number }>`
+  display: block;
+  width: ${({ $width }) => $width}px;
+  max-width: 100%;
+  height: auto;
+  max-height: 292px;
+  border-radius: ${token.shapes.xsmall};
+  object-fit: contain;
+`
+
+export const UploadedImageControls = styled.div`
+  ${token.flexLeft}
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  width: 100%;
+`
+
+export const UploadedImageName = styled.span`
+  flex: 1 1 180px;
+  min-width: 0;
+  overflow: hidden;
+  color: ${token.colors.gray.gray70};
+  ${token.typography('body', 'md', 'medium')}
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`
+
+export const ImageSizeLabel = styled.label`
+  ${token.flexLeft}
+  flex: 0 1 auto;
+  gap: 8px;
+  color: ${token.colors.gray.gray60};
+  ${token.typography('body', 'sm', 'medium')}
+  line-height: 1;
+  white-space: nowrap;
+`
+
+export const ImageSizeInput = styled.input`
+  width: clamp(100px, 16vw, 180px);
+  margin: 0;
+  accent-color: ${token.colors.primary.primary50};
+  cursor: pointer;
+`
+
+export const ImageSizeValue = styled.span`
+  min-width: 46px;
+  color: ${token.colors.gray.gray50};
+  text-align: right;
+`
+
+export const ImageRemoveButton = styled.button`
+  padding: 5px 9px;
+  border: 0;
+  border-radius: ${token.shapes.xsmall};
+  color: ${token.colors.danger.danger20};
+  background: ${token.colors.danger.danger0};
+  ${token.typography('body', 'sm', 'medium')}
+  line-height: 1;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.danger.danger10};
+    outline-offset: 2px;
+  }
+`
+
 export const SelectionToolbar = styled.div<{
   $top: number
   $left: number
