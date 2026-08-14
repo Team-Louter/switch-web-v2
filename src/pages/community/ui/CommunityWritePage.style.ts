@@ -242,6 +242,17 @@ export const ToolbarIcon = styled.img<{ $width: number; $height: number }>`
   object-fit: contain;
 `
 
+export const ImageInput = styled.input`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+`
+
 export const AnonymousLabel = styled.label`
   ${token.flexLeft}
   gap: 6px;
@@ -310,6 +321,76 @@ export const EditorBody = styled.div`
   flex: 1 1 0;
   width: 100%;
   min-height: 0;
+`
+
+export const SelectionToolbar = styled.div<{
+  $top: number
+  $left: number
+  $placement: 'above' | 'below'
+}>`
+  ${token.flexCenter}
+  position: absolute;
+  z-index: 3;
+  top: ${({ $top }) => $top}px;
+  left: ${({ $left }) => $left}px;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid ${token.colors.gray.gray70};
+  border-radius: ${token.shapes.small};
+  background: ${token.colors.gray.gray100};
+  box-shadow: 0 6px 18px rgb(14 13 12 / 22%);
+  pointer-events: auto;
+  transform: ${({ $placement }) =>
+    $placement === 'above'
+      ? 'translate(-50%, calc(-100% - 9px))'
+      : 'translate(-50%, 9px)'};
+
+  &::after {
+    position: absolute;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    background: ${token.colors.gray.gray100};
+    content: '';
+    transform: translateX(-50%) rotate(45deg);
+    ${({ $placement }) =>
+      $placement === 'above'
+        ? `bottom: -4px; border-right: 1px solid ${token.colors.gray.gray70}; border-bottom: 1px solid ${token.colors.gray.gray70};`
+        : `top: -4px; border-left: 1px solid ${token.colors.gray.gray70}; border-top: 1px solid ${token.colors.gray.gray70};`}
+  }
+`
+
+export const SelectionToolbarButton = styled.button`
+  ${token.flexCenter}
+  position: relative;
+  z-index: 1;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: ${token.shapes.xsmall};
+  background: transparent;
+  cursor: pointer;
+
+  &:hover {
+    background: ${token.colors.gray.gray80};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary30};
+    outline-offset: -2px;
+  }
+`
+
+export const SelectionToolbarIcon = styled.img<{
+  $width: number
+  $height: number
+}>`
+  width: ${({ $width }) => Math.min($width, 19)}px;
+  height: ${({ $height }) => Math.min($height, 19)}px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
 `
 
 export const ContentInput = styled.textarea`
@@ -458,5 +539,25 @@ export const SubmitError = styled.p`
     bottom: 24px;
     left: 24px;
     max-width: none;
+  }
+`
+
+export const ImageUploadStatus = styled.p`
+  position: fixed;
+  z-index: 20;
+  right: 32px;
+  bottom: 32px;
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: ${token.shapes.small};
+  color: ${token.colors.white};
+  background: ${token.colors.gray.gray90};
+  ${token.typography('body', 'md', 'medium')}
+  line-height: 1.4;
+
+  @media (max-width: 700px) {
+    right: 24px;
+    bottom: 24px;
+    left: 24px;
   }
 `
