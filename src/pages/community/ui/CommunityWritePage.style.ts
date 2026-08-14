@@ -12,6 +12,8 @@ type InlineMarkdownFormat =
   | 'image'
   | 'heading'
 
+type EditorLineFormat = 'default' | 'quote' | 'code'
+
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
@@ -315,7 +317,9 @@ export const ContentInput = styled.textarea`
   caret-color: ${token.colors.gray.gray100};
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1.4;
+  letter-spacing: normal;
   overflow-wrap: break-word;
+  tab-size: 4;
   -webkit-text-fill-color: transparent;
 
   &::placeholder {
@@ -335,18 +339,31 @@ export const InlineMarkdownPreview = styled.div`
   min-width: 0;
   min-height: 0;
   padding: 0;
-  overflow: auto;
+  overflow: hidden;
   color: ${token.colors.gray.gray100};
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1.4;
+  letter-spacing: normal;
   overflow-wrap: break-word;
+  tab-size: 4;
   white-space: pre-wrap;
   pointer-events: none;
-  scrollbar-width: none;
+`
 
-  &::-webkit-scrollbar {
-    display: none;
-  }
+export const EditorLine = styled.div<{ $format: EditorLineFormat }>`
+  display: block;
+  min-height: 1.4em;
+  background: ${({ $format }) => {
+    if ($format === 'quote') {
+      return `linear-gradient(90deg, ${token.colors.primary.primary40} 0 4px, ${token.colors.primary.primary10} 4px)`
+    }
+
+    if ($format === 'code') {
+      return token.colors.gray.gray10
+    }
+
+    return 'transparent'
+  }};
 `
 
 export const MarkdownSyntax = styled.span`
@@ -362,14 +379,12 @@ export const FormattedText = styled.span<{
       : 'inherit'};
   font-style: ${({ $format }) =>
     $format === 'italic' ? 'italic' : 'inherit'};
-  font-weight: ${({ $format }) =>
+  font-weight: inherit;
+  font-family: inherit;
+  text-shadow: ${({ $format }) =>
     $format === 'bold' || $format === 'heading'
-      ? token.fontWeight.bold
-      : 'inherit'};
-  font-family: ${({ $format }) =>
-    $format === 'code'
-      ? 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace'
-      : 'inherit'};
+      ? '0.35px 0 currentColor, -0.35px 0 currentColor'
+      : 'none'};
   text-decoration: ${({ $format }) => {
     if ($format === 'underline' || $format === 'link') {
       return 'underline'
