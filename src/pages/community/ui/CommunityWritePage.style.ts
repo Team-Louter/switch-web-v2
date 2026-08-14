@@ -515,12 +515,16 @@ export const FormattedText = styled.span<{
       return 700
     }
 
+    if ($format === 'italic') {
+      return 600
+    }
+
     return 'inherit'
   }};
   font-family: inherit;
   text-shadow: none;
   transform: ${({ $format }) =>
-    $format === 'italic' ? 'skewX(-4deg)' : 'none'};
+    $format === 'italic' ? 'skewX(-8deg)' : 'none'};
   transform-origin: left center;
   display: ${({ $format }) =>
     $format === 'italic' ? 'inline-block' : 'inline'};
