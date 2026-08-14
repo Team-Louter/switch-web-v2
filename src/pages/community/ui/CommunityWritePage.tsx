@@ -187,8 +187,13 @@ const MIN_IMAGE_WIDTH = 160
 const MAX_IMAGE_WIDTH = 960
 const EMPTY_ITALIC_MARKER = '\u200b'
 
+/**
+ * A delimiter must be complete before it receives an inline format. Without
+ * the boundary checks, deleting one `*` from `**text**` lets the remaining
+ * characters be reinterpreted as `*text*`.
+ */
 const INLINE_MARKDOWN_PATTERN =
-  /(\*\*[^*\n]*?\*\*|__[^_\n]*?__|~~[^~\n]*?~~|<u>[^<\n]+?<\/u>|`[^`\n]+?`|!\[[^\]\n]*?\]\([^)\n]+?\)|\[[^\]\n]+?\]\([^)\n]+?\)|\*[^*\n]*?\*)/g
+  /((?<!\*)\*\*(?:[^*\n]+?\*\*(?!\*)|\*\*(?!\*))|(?<!_)__(?:[^_\n]+?__(?!_)|__(?!_))|(?<!~)~~(?:[^~\n]+?~~(?!~)|~~(?!~))|<u>[^<\n]+?<\/u>|`[^`\n]+?`|!\[[^\]\n]*?\]\([^)\n]+?\)|\[[^\]\n]+?\]\([^)\n]+?\)|(?<!\*)\*(?!\*)[^*\n]+?\*(?!\*))/g
 
 const CODE_LANGUAGE_ALIASES: Readonly<Record<string, string>> = {
   py: 'python',
