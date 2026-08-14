@@ -2,6 +2,7 @@ import {
   type KeyboardEvent,
   type SyntheticEvent,
   useEffect,
+  useMemo,
   useState,
 } from 'react'
 import ReactMarkdown from 'react-markdown'
@@ -25,6 +26,7 @@ import commentIcon from '@/shared/assets/my/comment-icon.svg'
 import eyeIcon from '@/shared/assets/my/eye-icon.svg'
 import heartIcon from '@/shared/assets/my/heart-icon.svg'
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
+import { parseBlockNotePostContent } from '@/shared/lib/blockNotePostContent'
 import { renderCustomUnderlineMarkdown } from '@/shared/lib/markdown'
 import { Button } from '@/shared/ui'
 
@@ -34,6 +36,7 @@ import heartColoredIcon from '../assets/svg/heart-colored.svg'
 import kebabIcon from '../assets/svg/kebab.svg'
 import paperclipIcon from '../assets/svg/paperclip.svg'
 import sendIcon from '../assets/svg/send.svg'
+import { CommunityPostBlockContent } from './CommunityPostBlockContent'
 import * as S from './CommunityDetailPage.style'
 
 const markdownSanitizeSchema = {
@@ -62,6 +65,14 @@ export function CommunityDetailPage() {
 
   const firstAttachment = post?.files?.[0]
   const attachmentCount = post?.files?.length ?? 0
+  const serializedPostContent = post?.postContent
+  const postBlocks = useMemo(
+    () =>
+      serializedPostContent
+        ? parseBlockNotePostContent(serializedPostContent)
+        : null,
+    [serializedPostContent],
+  )
 
   const handleBackToList = () => {
     navigate('/community')
@@ -296,15 +307,22 @@ export function CommunityDetailPage() {
               </S.ArticleHeading>
 
               <S.BodyText>
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[
-                    rehypeRaw,
-                    [rehypeSanitize, markdownSanitizeSchema],
-                  ]}
-                >
-                  {renderCustomUnderlineMarkdown(post.postContent)}
-                </ReactMarkdown>
+                {postBlocks ? (
+                  <CommunityPostBlockContent
+                    key={post.postId}
+                    blocks={postBlocks}
+                  />
+                ) : (
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[
+                      rehypeRaw,
+                      [rehypeSanitize, markdownSanitizeSchema],
+                    ]}
+                  >
+                    {renderCustomUnderlineMarkdown(post.postContent)}
+                  </ReactMarkdown>
+                )}
               </S.BodyText>
             </S.Article>
 
