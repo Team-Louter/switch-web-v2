@@ -241,6 +241,81 @@ export const BodyText = styled.div`
     margin-bottom: 0;
   }
 
+  .community-post-blocks {
+    width: 100%;
+    color: inherit;
+    background: transparent;
+    --bn-colors-editor-text: ${token.colors.gray.gray100};
+    --bn-colors-editor-background: transparent;
+    --bn-font-family: ${token.fontFamily.system};
+  }
+
+  .community-post-blocks .bn-editor {
+    min-height: 0;
+    padding: 0;
+    color: inherit;
+    background: transparent;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+  }
+
+  .community-post-blocks .bn-block-content p,
+  .community-post-blocks .bn-block-content h1,
+  .community-post-blocks .bn-block-content h2,
+  .community-post-blocks .bn-block-content h3,
+  .community-post-blocks .bn-block-content h4,
+  .community-post-blocks .bn-block-content h5,
+  .community-post-blocks .bn-block-content h6 {
+    margin: 0;
+  }
+
+  .community-post-blocks .bn-block-content[data-content-type='heading'] {
+    padding-top: 12px;
+    font-weight: ${token.fontWeight.semibold};
+    line-height: 1.25;
+  }
+
+  .community-post-blocks
+    .bn-block-outer:not([data-prev-type])
+    > .bn-block
+    > .bn-block-content[data-content-type='heading'] {
+    font-size: ${token.fontSize.heading.lg};
+  }
+
+  .community-post-blocks
+    .bn-block-outer:not([data-prev-type])
+    > .bn-block
+    > .bn-block-content[data-content-type='heading'][data-level='2'] {
+    font-size: ${token.fontSize.heading.md};
+  }
+
+  .community-post-blocks
+    .bn-block-outer:not([data-prev-type])
+    > .bn-block
+    > .bn-block-content[data-content-type='heading'][data-level='3'] {
+    font-size: ${token.fontSize.heading.sm};
+  }
+
+  .community-post-blocks
+    .bn-block-outer:not([data-prev-type])
+    > .bn-block
+    > .bn-block-content[data-content-type='heading'][data-level='4'] {
+    font-size: ${token.fontSize.body.lg};
+  }
+
+  .community-post-blocks
+    .bn-block-outer:not([data-prev-type])
+    > .bn-block
+    > .bn-block-content[data-content-type='heading'][data-level='5'],
+  .community-post-blocks
+    .bn-block-outer:not([data-prev-type])
+    > .bn-block
+    > .bn-block-content[data-content-type='heading'][data-level='6'] {
+    font-size: ${token.fontSize.body.md};
+  }
+
   h1,
   h2,
   h3 {
