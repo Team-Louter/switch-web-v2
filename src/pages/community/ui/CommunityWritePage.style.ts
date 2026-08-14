@@ -2,32 +2,6 @@ import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
-type InlineMarkdownFormat =
-  | 'bold'
-  | 'italic'
-  | 'underline'
-  | 'strike'
-  | 'code'
-  | 'link'
-  | 'image'
-  | 'headingOne'
-  | 'headingTwo'
-  | 'headingThree'
-
-type EditorLineFormat = 'default' | 'quote' | 'code'
-
-export type CodeTokenFormat =
-  | 'default'
-  | 'comment'
-  | 'string'
-  | 'number'
-  | 'keyword'
-  | 'type'
-  | 'tag'
-  | 'attribute'
-  | 'regexp'
-  | 'operator'
-
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
@@ -426,77 +400,7 @@ export const ImageRemoveButton = styled.button`
   }
 `
 
-export const SelectionToolbar = styled.div<{
-  $top: number
-  $left: number
-  $placement: 'above' | 'below'
-}>`
-  ${token.flexCenter}
-  position: absolute;
-  z-index: 3;
-  top: ${({ $top }) => $top}px;
-  left: ${({ $left }) => $left}px;
-  gap: 2px;
-  padding: 6px;
-  border: 1px solid ${token.colors.gray.gray70};
-  border-radius: ${token.shapes.small};
-  background: ${token.colors.gray.gray100};
-  box-shadow: 0 6px 18px rgb(14 13 12 / 22%);
-  pointer-events: auto;
-  transform: ${({ $placement }) =>
-    $placement === 'above'
-      ? 'translate(-50%, calc(-100% - 9px))'
-      : 'translate(-50%, 9px)'};
-
-  &::after {
-    position: absolute;
-    left: 50%;
-    width: 8px;
-    height: 8px;
-    background: ${token.colors.gray.gray100};
-    content: '';
-    transform: translateX(-50%) rotate(45deg);
-    ${({ $placement }) =>
-      $placement === 'above'
-        ? `bottom: -4px; border-right: 1px solid ${token.colors.gray.gray70}; border-bottom: 1px solid ${token.colors.gray.gray70};`
-        : `top: -4px; border-left: 1px solid ${token.colors.gray.gray70}; border-top: 1px solid ${token.colors.gray.gray70};`}
-  }
-`
-
-export const SelectionToolbarButton = styled.button`
-  ${token.flexCenter}
-  position: relative;
-  z-index: 1;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 0;
-  border-radius: ${token.shapes.xsmall};
-  background: transparent;
-  cursor: pointer;
-
-  &:hover {
-    background: ${token.colors.gray.gray80};
-  }
-
-  &:focus-visible {
-    outline: 2px solid ${token.colors.primary.primary30};
-    outline-offset: -2px;
-  }
-`
-
-export const SelectionToolbarIcon = styled.img<{
-  $width: number
-  $height: number
-}>`
-  width: ${({ $width }) => Math.min($width, 19)}px;
-  height: ${({ $height }) => Math.min($height, 19)}px;
-  object-fit: contain;
-  filter: brightness(0) invert(1);
-  opacity: 0.9;
-`
-
-export const RichTextInput = styled.div`
+export const RichTextInput = styled.textarea`
   position: absolute;
   z-index: 1;
   inset: 0;
@@ -506,6 +410,7 @@ export const RichTextInput = styled.div`
   min-height: 0;
   padding: 0;
   overflow: auto;
+  resize: none;
   border: 0;
   outline: none;
   color: ${token.colors.gray.gray100};
@@ -518,156 +423,14 @@ export const RichTextInput = styled.div`
   tab-size: 4;
   white-space: pre-wrap;
 
-  > [data-editor-content] {
-    min-height: 100%;
-  }
-
-  &[data-empty='true']::before {
+  &::placeholder {
     color: ${token.colors.gray.gray40};
-    content: attr(data-placeholder);
-    pointer-events: none;
   }
 
-  &[data-composing='true'] [data-editor-placeholder] {
-    display: none;
-  }
-
-  &[aria-disabled='true'] {
+  &:disabled {
     cursor: not-allowed;
     opacity: 0.6;
   }
-`
-
-export const EditorLine = styled.div<{ $format: EditorLineFormat }>`
-  display: block;
-  min-height: 1.4em;
-  background: ${({ $format }) => {
-    if ($format === 'quote') {
-      return `linear-gradient(90deg, ${token.colors.primary.primary40} 0 4px, ${token.colors.primary.primary10} 4px)`
-    }
-
-    if ($format === 'code') {
-      return token.colors.gray.gray10
-    }
-
-    return 'transparent'
-  }};
-`
-
-export const MarkdownSyntax = styled.span`
-  color: ${token.colors.gray.gray40};
-`
-
-export const HiddenMarkdownSyntax = styled.span`
-  display: inline-block;
-  width: 0;
-  overflow: hidden;
-  opacity: 0;
-  white-space: pre;
-`
-
-export const EditorPlaceholder = styled.span`
-  color: ${token.colors.gray.gray40};
-  text-decoration: none;
-`
-
-export const ListMarker = styled.span`
-  color: ${token.colors.gray.gray70};
-  font-weight: 700;
-`
-
-export const HiddenQuoteMarker = styled.span`
-  visibility: hidden;
-`
-
-export const CodeToken = styled.span<{ $format: CodeTokenFormat }>`
-  color: ${({ $format }) => {
-    switch ($format) {
-      case 'comment':
-        return token.colors.gray.gray50
-      case 'string':
-        return token.colors.success.success20
-      case 'number':
-      case 'attribute':
-        return token.colors.info.info20
-      case 'keyword':
-      case 'regexp':
-        return token.colors.danger.danger20
-      case 'type':
-      case 'tag':
-        return token.colors.primary.primary70
-      case 'operator':
-        return token.colors.gray.gray70
-      default:
-        return 'inherit'
-    }
-  }};
-`
-
-export const FormattedText = styled.span<{
-  $format: InlineMarkdownFormat
-}>`
-  color: ${({ $format }) =>
-    $format === 'link' || $format === 'image'
-      ? token.colors.primary.primary70
-      : 'inherit'};
-  font-style: ${({ $format }) =>
-    $format === 'italic' ? 'italic' : 'inherit'};
-  font-weight: ${({ $format }) => {
-    if ($format === 'headingOne') {
-      return 800
-    }
-
-    if (
-      $format === 'bold' ||
-      $format === 'headingTwo' ||
-      $format === 'headingThree'
-    ) {
-      return 700
-    }
-
-    return 'inherit'
-  }};
-  font-family: inherit;
-  font-size: ${({ $format }) => {
-    if ($format === 'headingOne') {
-      return '1.35em'
-    }
-
-    if ($format === 'headingTwo') {
-      return '1.18em'
-    }
-
-    if ($format === 'headingThree') {
-      return '1.05em'
-    }
-
-    return 'inherit'
-  }};
-  line-height: ${({ $format }) =>
-    $format === 'headingOne' ||
-    $format === 'headingTwo' ||
-    $format === 'headingThree'
-      ? 1
-      : 'inherit'};
-  text-shadow: none;
-  transform: ${({ $format }) =>
-    $format === 'italic' ? 'skewX(-12deg)' : 'none'};
-  transform-origin: left center;
-  display: ${({ $format }) =>
-    $format === 'italic' ? 'inline-block' : 'inline'};
-  text-decoration: ${({ $format }) => {
-    if ($format === 'underline' || $format === 'link') {
-      return 'underline'
-    }
-
-    if ($format === 'strike') {
-      return 'line-through'
-    }
-
-    return 'none'
-  }};
-  text-underline-offset: 3px;
 `
 
 export const SubmitError = styled.p`
