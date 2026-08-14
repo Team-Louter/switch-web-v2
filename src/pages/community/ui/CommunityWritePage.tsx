@@ -220,35 +220,89 @@ function renderInlineMarkdown(value: string): ReactNode[] {
   return nodes
 }
 
-function renderEditorLine(line: string, lineIndex: number): ReactNode {
+function renderEditorLine(
+  line: string,
+  lineIndex: number,
+  isFencedCode: boolean,
+): ReactNode {
+  const fence = line.match(/^(\s*)(```)(.*)$/)
+
+  if (fence) {
+    return (
+      <S.EditorLine key={lineIndex} $format="code">
+        {fence[1]}
+        <S.MarkdownSyntax>{fence[2]}</S.MarkdownSyntax>
+        {fence[3]}
+      </S.EditorLine>
+    )
+  }
+
+  if (isFencedCode) {
+    return (
+      <S.EditorLine key={lineIndex} $format="code">
+        {line || '\u200b'}
+      </S.EditorLine>
+    )
+  }
+
+  const quote = line.match(/^(\s*>\s?)(.*)$/)
+
+  if (quote) {
+    return (
+      <S.EditorLine key={lineIndex} $format="quote">
+        <S.MarkdownSyntax>{quote[1]}</S.MarkdownSyntax>
+        {renderInlineMarkdown(quote[2])}
+      </S.EditorLine>
+    )
+  }
+
   const heading = line.match(/^(#{1,6})(\s+)(.*)$/)
 
-  if (!heading) {
+  if (heading) {
     return (
-      <Fragment key={lineIndex}>{renderInlineMarkdown(line)}</Fragment>
+      <S.EditorLine key={lineIndex} $format="default">
+        <S.MarkdownSyntax>{heading[1]}</S.MarkdownSyntax>
+        {heading[2]}
+        <S.FormattedText $format="heading">
+          {renderInlineMarkdown(heading[3])}
+        </S.FormattedText>
+      </S.EditorLine>
+    )
+  }
+
+  const listItem = line.match(/^(\s*)([-+*]|\d+\.)(\s+)(.*)$/)
+
+  if (listItem) {
+    return (
+      <S.EditorLine key={lineIndex} $format="default">
+        {listItem[1]}
+        <S.MarkdownSyntax>{listItem[2]}</S.MarkdownSyntax>
+        {listItem[3]}
+        {renderInlineMarkdown(listItem[4])}
+      </S.EditorLine>
     )
   }
 
   return (
-    <Fragment key={lineIndex}>
-      <S.MarkdownSyntax>{heading[1]}</S.MarkdownSyntax>
-      {heading[2]}
-      <S.FormattedText $format="heading">
-        {renderInlineMarkdown(heading[3])}
-      </S.FormattedText>
-    </Fragment>
+    <S.EditorLine key={lineIndex} $format="default">
+      {line ? renderInlineMarkdown(line) : '\u200b'}
+    </S.EditorLine>
   )
 }
 
 function InlineMarkdownPreview({ value }: { value: string }) {
   const lines = value.split('\n')
+  let isFencedCode = false
 
-  return lines.map((line, index) => (
-    <Fragment key={index}>
-      {renderEditorLine(line, index)}
-      {index < lines.length - 1 && '\n'}
-    </Fragment>
-  ))
+  return lines.map((line, index) => {
+    const renderedLine = renderEditorLine(line, index, isFencedCode)
+
+    if (/^\s*```/.test(line)) {
+      isFencedCode = !isFencedCode
+    }
+
+    return renderedLine
+  })
 }
 
 function wrapEditorText(
@@ -300,9 +354,7 @@ function createEditorInsertion(
       return { value, selectionStart: 0, selectionEnd: value.length }
     }
     case 'code':
-      return selectedText.includes('\n')
-        ? wrapEditorText(selectedText, '코드', '```\n', '\n```')
-        : wrapEditorText(selectedText, '코드', '`', '`')
+      return wrapEditorText(selectedText, '코드', '```\n', '\n```')
     case 'quote': {
       const value = (selectedText || '인용문')
         .split('\n')
