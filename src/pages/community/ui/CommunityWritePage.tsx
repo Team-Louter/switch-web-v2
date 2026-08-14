@@ -1,6 +1,7 @@
 import {
   Fragment,
   type FormEvent,
+  type KeyboardEvent,
   type ReactNode,
   type UIEvent,
   useRef,
@@ -250,7 +251,7 @@ function renderEditorLine(
   if (quote) {
     return (
       <S.EditorLine key={lineIndex} $format="quote">
-        <S.MarkdownSyntax>{quote[1]}</S.MarkdownSyntax>
+        <S.HiddenQuoteMarker>{quote[1]}</S.HiddenQuoteMarker>
         {renderInlineMarkdown(quote[2])}
       </S.EditorLine>
     )
@@ -420,6 +421,46 @@ export function CommunityWritePage() {
     inlinePreviewRef.current.scrollLeft = event.currentTarget.scrollLeft
   }
 
+  const handleContentKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== 'Backspace') {
+      return
+    }
+
+    const contentInput = event.currentTarget
+    const selectionStart = contentInput.selectionStart
+    const selectionEnd = contentInput.selectionEnd
+
+    if (selectionStart !== selectionEnd) {
+      return
+    }
+
+    const lineStart = contentInput.value.lastIndexOf('\n', selectionStart - 1) + 1
+    const nextLineBreak = contentInput.value.indexOf('\n', selectionStart)
+    const lineEnd =
+      nextLineBreak === -1 ? contentInput.value.length : nextLineBreak
+    const line = contentInput.value.slice(lineStart, lineEnd)
+    const emptyQuote = line.match(/^(\s*)>\s?$/)
+
+    if (!emptyQuote || selectionStart !== lineEnd) {
+      return
+    }
+
+    event.preventDefault()
+
+    const indentation = emptyQuote[1]
+    const nextContent =
+      contentInput.value.slice(0, lineStart) +
+      indentation +
+      contentInput.value.slice(lineEnd)
+    const nextCaretPosition = lineStart + indentation.length
+
+    setContent(nextContent)
+    window.requestAnimationFrame(() => {
+      contentInput.focus()
+      contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
+    })
+  }
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
@@ -547,6 +588,7 @@ export function CommunityWritePage() {
               required
               disabled={isSubmitting}
               onChange={(event) => setContent(event.target.value)}
+              onKeyDown={handleContentKeyDown}
               onScroll={handleContentScroll}
             />
           </S.EditorBody>
