@@ -232,6 +232,20 @@ function renderFormattedValue(value: string, placeholder: string): ReactNode {
   return value || renderEditorPlaceholder(placeholder)
 }
 
+function getHeadingFormat(
+  level: number,
+): 'headingOne' | 'headingTwo' | 'headingThree' {
+  if (level === 1) {
+    return 'headingOne'
+  }
+
+  if (level === 2) {
+    return 'headingTwo'
+  }
+
+  return 'headingThree'
+}
+
 function renderInlineMarkdown(value: string): ReactNode[] {
   const nodes: ReactNode[] = []
   let sourceIndex = 0
@@ -496,9 +510,7 @@ function renderEditorLineContent(line: string): ReactNode {
           {heading[1]}
           {heading[2]}
         </S.HiddenMarkdownSyntax>
-        <S.FormattedText
-          $format={headingLevel === 1 ? 'headingOne' : 'headingTwo'}
-        >
+        <S.FormattedText $format={getHeadingFormat(headingLevel)}>
           {heading[3]
             ? renderInlineMarkdown(heading[3])
             : renderEditorPlaceholder(`제목${headingLevel}`)}
