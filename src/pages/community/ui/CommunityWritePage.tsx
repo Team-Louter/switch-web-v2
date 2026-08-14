@@ -4,7 +4,12 @@ import '@blocknote/mantine/style.css'
 import type { Block } from '@blocknote/core'
 import { ko } from '@blocknote/core/locales'
 import { BlockNoteView } from '@blocknote/mantine'
-import { useCreateBlockNote } from '@blocknote/react'
+import {
+  SideMenu,
+  SideMenuController,
+  type SideMenuProps,
+  useCreateBlockNote,
+} from '@blocknote/react'
 import {
   type ChangeEvent,
   type FormEvent,
@@ -115,6 +120,14 @@ function hasPostContent(content: string): boolean {
     .trim()
 
   return Boolean(textContent) || /<(img|audio|video)\b/i.test(content)
+}
+
+function CommunityBlockSideMenu(props: SideMenuProps) {
+  return (
+    <S.BlockSideMenu>
+      <SideMenu {...props} />
+    </S.BlockSideMenu>
+  )
 }
 
 export function CommunityWritePage() {
@@ -436,9 +449,14 @@ export function CommunityWritePage() {
             <BlockNoteView
               editor={editor}
               editable={!isSubmitting}
-              portalElements={{ sideMenu: null }}
+              sideMenu={false}
               onChange={handleEditorChange}
-            />
+            >
+              <SideMenuController
+                sideMenu={CommunityBlockSideMenu}
+                portalElement={null}
+              />
+            </BlockNoteView>
           </div>
         </S.Editor>
         {isUploadingImage && (
