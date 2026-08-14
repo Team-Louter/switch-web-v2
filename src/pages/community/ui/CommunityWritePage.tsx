@@ -878,17 +878,13 @@ export function CommunityWritePage() {
       contentInput.value.slice(0, selectionStart) +
       insertion.value +
       contentInput.value.slice(selectionEnd)
-    const nextSelectionStart = selectionStart + insertion.selectionStart
-    const nextSelectionEnd = selectionStart + insertion.selectionEnd
+    const nextCaretPosition = selectionStart + insertion.value.length
 
-    commitContent(nextContent, nextSelectionStart, nextSelectionEnd)
+    commitContent(nextContent, nextCaretPosition)
     setSelectionToolbarPosition(null)
     window.requestAnimationFrame(() => {
       contentInput.focus()
-      contentInput.setSelectionRange(
-        nextSelectionStart,
-        nextSelectionEnd,
-      )
+      contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
     })
   }
 
