@@ -10,7 +10,8 @@ type InlineMarkdownFormat =
   | 'code'
   | 'link'
   | 'image'
-  | 'heading'
+  | 'headingOne'
+  | 'headingTwo'
 
 type EditorLineFormat = 'default' | 'quote' | 'code'
 
@@ -463,6 +464,11 @@ export const MarkdownSyntax = styled.span`
   color: ${token.colors.gray.gray40};
 `
 
+export const ListMarker = styled.span`
+  color: ${token.colors.gray.gray70};
+  font-weight: 700;
+`
+
 export const HiddenQuoteMarker = styled.span`
   visibility: hidden;
 `
@@ -500,12 +506,24 @@ export const FormattedText = styled.span<{
       : 'inherit'};
   font-style: ${({ $format }) =>
     $format === 'italic' ? 'italic' : 'inherit'};
-  font-weight: inherit;
+  font-weight: ${({ $format }) => {
+    if ($format === 'headingOne') {
+      return 800
+    }
+
+    if ($format === 'bold' || $format === 'headingTwo') {
+      return 700
+    }
+
+    return 'inherit'
+  }};
   font-family: inherit;
-  text-shadow: ${({ $format }) =>
-    $format === 'bold' || $format === 'heading'
-      ? '0.35px 0 currentColor, -0.35px 0 currentColor'
-      : 'none'};
+  text-shadow: none;
+  transform: ${({ $format }) =>
+    $format === 'italic' ? 'skewX(-4deg)' : 'none'};
+  transform-origin: left center;
+  display: ${({ $format }) =>
+    $format === 'italic' ? 'inline-block' : 'inline'};
   text-decoration: ${({ $format }) => {
     if ($format === 'underline' || $format === 'link') {
       return 'underline'
