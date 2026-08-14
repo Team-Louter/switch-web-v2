@@ -155,11 +155,9 @@ const EDITOR_TOOLS: readonly EditorTool[] = [
   { action: 'image', label: '이미지', icon: imageIcon, width: 20, height: 20 },
 ]
 
-const SELECTION_EDITOR_TOOLS = EDITOR_TOOLS.filter(({ action }) =>
-  ['bold', 'italic', 'underline', 'strike', 'quote', 'code', 'link'].includes(
-    action,
-  ),
-)
+const SELECTION_EDITOR_TOOLS = (
+  ['bold', 'italic', 'underline', 'strike', 'quote', 'code', 'link'] as const
+).flatMap((action) => EDITOR_TOOLS.filter((tool) => tool.action === action))
 
 const LINE_EDITOR_ACTIONS: readonly FormattingAction[] = [
   'headingOne',
