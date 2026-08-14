@@ -5,8 +5,8 @@ import {
   Fragment,
   type FormEvent,
   type KeyboardEvent,
+  type MouseEvent,
   type ReactNode,
-  type UIEvent,
   useEffect,
   useRef,
   useState,
@@ -68,7 +68,7 @@ interface EditorSelection {
 }
 
 interface TextPosition {
-  node: Text
+  node: Node
   offset: number
 }
 
@@ -81,12 +81,6 @@ interface SelectionToolbarPosition {
   top: number
   left: number
   placement: 'above' | 'below'
-}
-
-interface EditorCaretPosition {
-  top: number
-  left: number
-  height: number
 }
 
 interface UploadedImage extends PostFileRequest {
@@ -224,7 +218,9 @@ const CLOSING_CODE_FENCE_PATTERN = /^\s*```\s*$/
 
 function renderEditorPlaceholder(label: string): ReactNode {
   return (
-    <S.EditorPlaceholder data-editor-placeholder>{label}</S.EditorPlaceholder>
+    <S.EditorPlaceholder contentEditable={false} data-editor-placeholder>
+      {label}
+    </S.EditorPlaceholder>
   )
 }
 
@@ -453,7 +449,9 @@ function renderCodeEditorLine(
 
   return (
     <S.EditorLine key={lineIndex} $format="code">
-      {renderedTokens.length > 0 ? renderedTokens : line || '\u200b'}
+      {renderedTokens.length > 0
+        ? renderedTokens
+        : line || renderEditorPlaceholder('\u200b')}
     </S.EditorLine>
   )
 }
@@ -548,7 +546,7 @@ function renderEditorLineContent(line: string): ReactNode {
     )
   }
 
-  return line ? renderInlineMarkdown(line) : '\u200b'
+  return line ? renderInlineMarkdown(line) : renderEditorPlaceholder('\u200b')
 }
 
 function renderEditorLine(line: string, lineIndex: number): ReactNode {
@@ -686,6 +684,19 @@ function getLinePosition(value: string, offset: number): LinePosition {
 }
 
 function getTextPosition(element: Element, offset: number): TextPosition | null {
+  const placeholder = element.querySelector('[data-editor-placeholder]')
+
+  if (
+    placeholder &&
+    getTextOffsetBeforeElement(element, placeholder) === offset &&
+    placeholder.parentNode
+  ) {
+    return {
+      node: placeholder.parentNode,
+      offset: Array.from(placeholder.parentNode.childNodes).indexOf(placeholder),
+    }
+  }
+
   const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
     acceptNode: (node) =>
       node.parentElement?.closest('[data-editor-placeholder]')
@@ -698,8 +709,16 @@ function getTextPosition(element: Element, offset: number): TextPosition | null 
   while (currentNode) {
     const textLength = currentNode.textContent?.length ?? 0
 
-    if (remainingOffset <= textLength) {
-      return { node: currentNode as Text, offset: remainingOffset }
+    if (remainingOffset < textLength) {
+      return { node: currentNode, offset: remainingOffset }
+    }
+
+    if (remainingOffset === textLength) {
+      const nextNode = walker.nextNode()
+
+      return nextNode
+        ? { node: nextNode, offset: 0 }
+        : { node: currentNode, offset: textLength }
     }
 
     remainingOffset -= textLength
@@ -709,61 +728,174 @@ function getTextPosition(element: Element, offset: number): TextPosition | null 
   return null
 }
 
-function getCaretClientRect(
-  preview: HTMLDivElement,
-  value: string,
-  offset: number,
-): DOMRect | null {
-  const position = getLinePosition(value, offset)
-  const line = preview.children.item(position.lineIndex)
+function getTextOffsetBeforeElement(element: Element, target: Element): number {
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+  let offset = 0
+  let currentNode = walker.nextNode()
 
-  if (!line) {
-    return null
+  while (currentNode) {
+    if (target.contains(currentNode)) {
+      return offset
+    }
+
+    if (!currentNode.parentElement?.closest('[data-editor-placeholder]')) {
+      offset += currentNode.textContent?.length ?? 0
+    }
+
+    currentNode = walker.nextNode()
   }
 
-  const textPosition = getTextPosition(line, position.column)
-
-  if (!textPosition) {
-    return line.getBoundingClientRect()
-  }
-
-  const range = document.createRange()
-
-  range.setStart(textPosition.node, textPosition.offset)
-  range.collapse(true)
-
-  const rangeRect = range.getClientRects().item(0) ?? range.getBoundingClientRect()
-
-  return rangeRect.height > 0 ? rangeRect : line.getBoundingClientRect()
+  return offset
 }
 
-function getSelectionClientRect(
-  preview: HTMLDivElement,
-  value: string,
-  selection: EditorSelection,
-): DOMRect | null {
-  const start = getLinePosition(value, selection.start)
-  const end = getLinePosition(value, selection.end)
-  const startLine = preview.children.item(start.lineIndex)
-  const endLine = preview.children.item(end.lineIndex)
+function getEditorNodeText(node: Node): string {
+  if (
+    node instanceof HTMLElement &&
+    node.matches('[data-editor-placeholder]')
+  ) {
+    return ''
+  }
 
-  if (!startLine || !endLine) {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return node.textContent ?? ''
+  }
+
+  if (node instanceof HTMLBRElement) {
+    return '\n'
+  }
+
+  return Array.from(node.childNodes).map(getEditorNodeText).join('')
+}
+
+function getEditorContent(editor: HTMLDivElement): string {
+  const contentRoot =
+    editor.querySelector<HTMLElement>(':scope > [data-editor-content]') ??
+    editor
+
+  if (contentRoot === editor) {
+    return Array.from(contentRoot.childNodes).map(getEditorNodeText).join('\n')
+  }
+
+  return Array.from(editor.childNodes)
+    .map((node) =>
+      node === contentRoot
+        ? Array.from(contentRoot.childNodes).map(getEditorNodeText).join('\n')
+        : getEditorNodeText(node),
+    )
+    .join('')
+}
+
+function removeEditorDomArtifacts(editor: HTMLDivElement) {
+  const contentRoot = editor.querySelector(':scope > [data-editor-content]')
+
+  if (!contentRoot) {
+    return
+  }
+
+  Array.from(editor.childNodes).forEach((node) => {
+    if (node !== contentRoot) {
+      node.remove()
+    }
+  })
+}
+
+function getEditorOffsetAtPoint(
+  editor: HTMLDivElement,
+  node: Node,
+  offset: number,
+): number {
+  const range = document.createRange()
+  const fragmentContainer = document.createElement('div')
+
+  range.selectNodeContents(editor)
+  range.setEnd(node, offset)
+  fragmentContainer.append(range.cloneContents())
+
+  return getEditorContent(fragmentContainer).length
+}
+
+function getContentEditableSelection(
+  editor: HTMLDivElement,
+): EditorSelection | null {
+  const selection = window.getSelection()
+
+  if (
+    !selection ||
+    !selection.anchorNode ||
+    !selection.focusNode ||
+    !editor.contains(selection.anchorNode) ||
+    !editor.contains(selection.focusNode)
+  ) {
     return null
   }
 
-  const startPosition = getTextPosition(startLine, start.column)
-  const endPosition = getTextPosition(endLine, end.column)
+  const anchor = getEditorOffsetAtPoint(
+    editor,
+    selection.anchorNode,
+    selection.anchorOffset,
+  )
+  const focus = getEditorOffsetAtPoint(
+    editor,
+    selection.focusNode,
+    selection.focusOffset,
+  )
+
+  return {
+    start: Math.min(anchor, focus),
+    end: Math.max(anchor, focus),
+  }
+}
+
+function setContentEditableSelection(
+  editor: HTMLDivElement,
+  value: string,
+  start: number,
+  end = start,
+) {
+  const selection = window.getSelection()
+
+  if (!selection) {
+    return
+  }
+
+  if (!value || editor.children.length === 0) {
+    const range = document.createRange()
+    const contentRoot =
+      editor.querySelector<HTMLElement>(':scope > [data-editor-content]') ??
+      editor
+
+    range.selectNodeContents(contentRoot)
+    range.collapse(true)
+    selection.removeAllRanges()
+    selection.addRange(range)
+    return
+  }
+
+  const startLinePosition = getLinePosition(value, start)
+  const endLinePosition = getLinePosition(value, end)
+  const contentRoot =
+    editor.querySelector<HTMLElement>(':scope > [data-editor-content]') ??
+    editor
+  const startLine = contentRoot.children.item(startLinePosition.lineIndex)
+  const endLine = contentRoot.children.item(endLinePosition.lineIndex)
+
+  if (!startLine || !endLine) {
+    return
+  }
+
+  const startPosition = getTextPosition(startLine, startLinePosition.column)
+  const endPosition = getTextPosition(endLine, endLinePosition.column)
 
   if (!startPosition || !endPosition) {
-    return null
+    return
   }
 
   const range = document.createRange()
 
   range.setStart(startPosition.node, startPosition.offset)
   range.setEnd(endPosition.node, endPosition.offset)
-
-  return range.getClientRects().item(0) ?? range.getBoundingClientRect()
+  selection.removeAllRanges()
+  selection.addRange(range)
 }
 
 function wrapEditorText(
@@ -871,8 +1003,7 @@ function createEditorInsertion(
 export function CommunityWritePage() {
   const navigate = useNavigate()
   const editorBodyRef = useRef<HTMLDivElement>(null)
-  const contentInputRef = useRef<HTMLTextAreaElement>(null)
-  const inlinePreviewRef = useRef<HTMLDivElement>(null)
+  const contentInputRef = useRef<HTMLDivElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const isComposingRef = useRef(false)
   const contentHistoryRef = useRef<EditorHistoryEntry[]>([
@@ -888,9 +1019,6 @@ export function CommunityWritePage() {
   const [imageUploadError, setImageUploadError] = useState<string | null>(null)
   const [selectionToolbarPosition, setSelectionToolbarPosition] =
     useState<SelectionToolbarPosition | null>(null)
-  const [editorCaretPosition, setEditorCaretPosition] =
-    useState<EditorCaretPosition | null>(null)
-  const [isComposing, setIsComposing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
@@ -926,43 +1054,6 @@ export function CommunityWritePage() {
     setContent(nextValue)
   }
 
-  const updateEditorCaret = () => {
-    const editorBody = editorBodyRef.current
-    const contentInput = contentInputRef.current
-    const preview = inlinePreviewRef.current
-
-    if (
-      !editorBody ||
-      !contentInput ||
-      !preview ||
-      isComposingRef.current ||
-      document.activeElement !== contentInput ||
-      contentInput.selectionStart !== contentInput.selectionEnd
-    ) {
-      setEditorCaretPosition(null)
-      return
-    }
-
-    const caretRect = getCaretClientRect(
-      preview,
-      contentInput.value,
-      contentInput.selectionStart,
-    )
-
-    if (!caretRect) {
-      setEditorCaretPosition(null)
-      return
-    }
-
-    const editorBodyRect = editorBody.getBoundingClientRect()
-
-    setEditorCaretPosition({
-      top: caretRect.top - editorBodyRect.top,
-      left: caretRect.left - editorBodyRect.left,
-      height: caretRect.height,
-    })
-  }
-
   const restoreContentFromHistory = (direction: -1 | 1) => {
     const history = contentHistoryRef.current
     const nextIndex = Math.min(
@@ -981,11 +1072,14 @@ export function CommunityWritePage() {
     setSelectionToolbarPosition(null)
     window.requestAnimationFrame(() => {
       contentInputRef.current?.focus()
-      contentInputRef.current?.setSelectionRange(
-        nextEntry.selectionStart,
-        nextEntry.selectionEnd,
-      )
-      updateEditorCaret()
+      if (contentInputRef.current) {
+        setContentEditableSelection(
+          contentInputRef.current,
+          nextEntry.value,
+          nextEntry.selectionStart,
+          nextEntry.selectionEnd,
+        )
+      }
     })
   }
 
@@ -1006,24 +1100,25 @@ export function CommunityWritePage() {
       return
     }
 
+    const currentSelection = getContentEditableSelection(contentInput) ?? {
+      start: content.length,
+      end: content.length,
+    }
     const selection = isLineEditorAction(action)
       ? getLineSelection(
-          contentInput.value,
-          contentInput.selectionStart,
-          contentInput.selectionEnd,
+          content,
+          currentSelection.start,
+          currentSelection.end,
         )
-      : {
-          start: contentInput.selectionStart,
-          end: contentInput.selectionEnd,
-        }
+      : currentSelection
     const selectionStart = selection.start
     const selectionEnd = selection.end
-    const selectedText = contentInput.value.slice(selectionStart, selectionEnd)
+    const selectedText = content.slice(selectionStart, selectionEnd)
     const insertion = createEditorInsertion(action, selectedText)
     const nextContent =
-      contentInput.value.slice(0, selectionStart) +
+      content.slice(0, selectionStart) +
       insertion.value +
-      contentInput.value.slice(selectionEnd)
+      content.slice(selectionEnd)
     const nextCaretPosition =
       selectionStart +
       (selectedText ? insertion.value.length : insertion.selectionEnd)
@@ -1032,36 +1127,34 @@ export function CommunityWritePage() {
     setSelectionToolbarPosition(null)
     window.requestAnimationFrame(() => {
       contentInput.focus()
-      contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
-      updateEditorCaret()
+      setContentEditableSelection(
+        contentInput,
+        nextContent,
+        nextCaretPosition,
+      )
     })
   }
 
   const updateSelectionToolbar = () => {
     const editorBody = editorBodyRef.current
     const contentInput = contentInputRef.current
-    const preview = inlinePreviewRef.current
+    const domSelection = window.getSelection()
 
-    if (!editorBody || !contentInput || !preview) {
+    if (!editorBody || !contentInput || !domSelection?.rangeCount) {
       setSelectionToolbarPosition(null)
       return
     }
 
-    const selection = {
-      start: contentInput.selectionStart,
-      end: contentInput.selectionEnd,
-    }
+    const selection = getContentEditableSelection(contentInput)
 
-    if (selection.start === selection.end) {
+    if (!selection || selection.start === selection.end) {
       setSelectionToolbarPosition(null)
       return
     }
 
-    const selectionRect = getSelectionClientRect(
-      preview,
-      contentInput.value,
-      selection,
-    )
+    const range = domSelection.getRangeAt(0)
+    const selectionRect =
+      range.getClientRects().item(0) ?? range.getBoundingClientRect()
 
     if (!selectionRect) {
       setSelectionToolbarPosition(null)
@@ -1091,13 +1184,43 @@ export function CommunityWritePage() {
   }
 
   const handleContentSelection = () => {
-    window.requestAnimationFrame(() => {
-      updateSelectionToolbar()
-      updateEditorCaret()
-    })
+    window.requestAnimationFrame(updateSelectionToolbar)
   }
 
-  const handleContentBlur = (event: FocusEvent<HTMLTextAreaElement>) => {
+  const handleContentMouseDown = (event: MouseEvent<HTMLDivElement>) => {
+    const target = event.target
+
+    if (!(target instanceof HTMLElement)) {
+      return
+    }
+
+    const placeholder = target.closest('[data-editor-placeholder]')
+
+    if (!placeholder?.parentNode) {
+      return
+    }
+
+    event.preventDefault()
+
+    const editor = event.currentTarget
+    const placeholderIndex = Array.from(
+      placeholder.parentNode.childNodes,
+    ).indexOf(placeholder)
+    const nextCaretPosition = getEditorOffsetAtPoint(
+      editor,
+      placeholder.parentNode,
+      placeholderIndex,
+    )
+
+    editor.focus()
+    setContentEditableSelection(
+      editor,
+      content,
+      nextCaretPosition,
+    )
+  }
+
+  const handleContentBlur = (event: FocusEvent<HTMLDivElement>) => {
     const nextTarget = event.relatedTarget
 
     if (
@@ -1108,7 +1231,6 @@ export function CommunityWritePage() {
     }
 
     setSelectionToolbarPosition(null)
-    setEditorCaretPosition(null)
   }
 
   const handleImageSelection = async (
@@ -1128,7 +1250,9 @@ export function CommunityWritePage() {
     }
 
     const contentInput = contentInputRef.current
-    const caretPosition = contentInput?.selectionStart ?? content.length
+    const caretPosition = contentInput
+      ? (getContentEditableSelection(contentInput)?.start ?? content.length)
+      : content.length
 
     setIsUploadingImage(true)
     setImageUploadError(null)
@@ -1158,12 +1282,15 @@ export function CommunityWritePage() {
 
         const nextCaretPosition = Math.min(
           caretPosition,
-          currentInput.value.length,
+          content.length,
         )
 
         currentInput.focus()
-        currentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
-        updateEditorCaret()
+        setContentEditableSelection(
+          currentInput,
+          content,
+          nextCaretPosition,
+        )
       })
     } catch {
       setImageUploadError(
@@ -1193,55 +1320,64 @@ export function CommunityWritePage() {
     )
   }
 
-  const handleContentScroll = (event: UIEvent<HTMLTextAreaElement>) => {
-    if (!inlinePreviewRef.current) {
+  const handleContentScroll = () => {
+    window.requestAnimationFrame(updateSelectionToolbar)
+  }
+
+  const handleContentInput = (event: FormEvent<HTMLDivElement>) => {
+    if (isComposingRef.current) {
       return
     }
 
-    inlinePreviewRef.current.scrollTop = event.currentTarget.scrollTop
-    inlinePreviewRef.current.scrollLeft = event.currentTarget.scrollLeft
-    window.requestAnimationFrame(() => {
-      updateSelectionToolbar()
-      updateEditorCaret()
-    })
-  }
-
-  const handleContentChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    if (isComposingRef.current) {
-      setContent(event.target.value)
-    } else {
-      commitContent(
-        event.target.value,
-        event.target.selectionStart,
-        event.target.selectionEnd,
-      )
+    const editor = event.currentTarget
+    const nextContent = getEditorContent(editor)
+    const selection = getContentEditableSelection(editor) ?? {
+      start: nextContent.length,
+      end: nextContent.length,
     }
 
+    removeEditorDomArtifacts(editor)
+    commitContent(nextContent, selection.start, selection.end)
     setSelectionToolbarPosition(null)
-    window.requestAnimationFrame(updateEditorCaret)
+    window.requestAnimationFrame(() => {
+      setContentEditableSelection(
+        editor,
+        nextContent,
+        selection.start,
+        selection.end,
+      )
+    })
   }
 
   const handleContentCompositionStart = () => {
     isComposingRef.current = true
-    setIsComposing(true)
     setSelectionToolbarPosition(null)
-    setEditorCaretPosition(null)
   }
 
   const handleContentCompositionEnd = (
-    event: CompositionEvent<HTMLTextAreaElement>,
+    event: CompositionEvent<HTMLDivElement>,
   ) => {
+    const editor = event.currentTarget
+    const nextContent = getEditorContent(editor)
+    const selection = getContentEditableSelection(editor) ?? {
+      start: nextContent.length,
+      end: nextContent.length,
+    }
+
     isComposingRef.current = false
-    setIsComposing(false)
-    commitContent(
-      event.currentTarget.value,
-      event.currentTarget.selectionStart,
-      event.currentTarget.selectionEnd,
-    )
-    window.requestAnimationFrame(updateEditorCaret)
+    removeEditorDomArtifacts(editor)
+    commitContent(nextContent, selection.start, selection.end)
+    window.requestAnimationFrame(() => {
+      setContentEditableSelection(
+        editor,
+        nextContent,
+        selection.start,
+        selection.end,
+      )
+    })
   }
 
-  const handleContentKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleContentKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (isComposingRef.current || event.nativeEvent.isComposing) {
       return
     }
@@ -1265,15 +1401,31 @@ export function CommunityWritePage() {
     }
 
     const contentInput = event.currentTarget
-    const selectionStart = contentInput.selectionStart
-    const selectionEnd = contentInput.selectionEnd
-    const lineStart = contentInput.value.lastIndexOf('\n', selectionStart - 1) + 1
-    const nextLineBreak = contentInput.value.indexOf('\n', selectionStart)
+    const selection = getContentEditableSelection(contentInput) ?? {
+      start: content.length,
+      end: content.length,
+    }
+    const selectionStart = selection.start
+    const selectionEnd = selection.end
+    const lineStart = content.lastIndexOf('\n', selectionStart - 1) + 1
+    const nextLineBreak = content.indexOf('\n', selectionStart)
     const lineEnd =
-      nextLineBreak === -1 ? contentInput.value.length : nextLineBreak
-    const line = contentInput.value.slice(lineStart, lineEnd)
+      nextLineBreak === -1 ? content.length : nextLineBreak
+    const line = content.slice(lineStart, lineEnd)
     const quote = line.match(/^(\s*)>\s?(.*)$/)
     const listItem = line.match(/^(\s*)([-+*]|\d+\.)(\s+)(.*)$/)
+    const commitAndRestore = (nextContent: string, nextCaretPosition: number) => {
+      commitContent(nextContent, nextCaretPosition)
+      setSelectionToolbarPosition(null)
+      window.requestAnimationFrame(() => {
+        contentInput.focus()
+        setContentEditableSelection(
+          contentInput,
+          nextContent,
+          nextCaretPosition,
+        )
+      })
+    }
 
     if (
       event.key === 'Backspace' &&
@@ -1286,18 +1438,12 @@ export function CommunityWritePage() {
 
       const indentation = listItem[1]
       const nextContent =
-        contentInput.value.slice(0, lineStart) +
+        content.slice(0, lineStart) +
         indentation +
-        contentInput.value.slice(lineEnd)
+        content.slice(lineEnd)
       const nextCaretPosition = lineStart + indentation.length
 
-      commitContent(nextContent, nextCaretPosition)
-      setSelectionToolbarPosition(null)
-      window.requestAnimationFrame(() => {
-        contentInput.focus()
-        contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
-        updateEditorCaret()
-      })
+      commitAndRestore(nextContent, nextCaretPosition)
       return
     }
 
@@ -1306,19 +1452,13 @@ export function CommunityWritePage() {
 
       const nextQuotePrefix = `${quote[1]}> `
       const nextContent =
-        contentInput.value.slice(0, selectionStart) +
+        content.slice(0, selectionStart) +
         `\n${nextQuotePrefix}` +
-        contentInput.value.slice(selectionEnd)
+        content.slice(selectionEnd)
       const nextCaretPosition =
         selectionStart + nextQuotePrefix.length + 1
 
-      commitContent(nextContent, nextCaretPosition)
-      setSelectionToolbarPosition(null)
-      window.requestAnimationFrame(() => {
-        contentInput.focus()
-        contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
-        updateEditorCaret()
-      })
+      commitAndRestore(nextContent, nextCaretPosition)
       return
     }
 
@@ -1333,18 +1473,12 @@ export function CommunityWritePage() {
       if (isEmptyListItem) {
         const indentation = listItem[1]
         const nextContent =
-          contentInput.value.slice(0, lineStart) +
+          content.slice(0, lineStart) +
           indentation +
-          contentInput.value.slice(lineEnd)
+          content.slice(lineEnd)
         const nextCaretPosition = lineStart + indentation.length
 
-        commitContent(nextContent, nextCaretPosition)
-        setSelectionToolbarPosition(null)
-        window.requestAnimationFrame(() => {
-          contentInput.focus()
-          contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
-          updateEditorCaret()
-        })
+        commitAndRestore(nextContent, nextCaretPosition)
         return
       }
 
@@ -1354,19 +1488,13 @@ export function CommunityWritePage() {
         : '-'
       const nextListPrefix = `${listItem[1]}${nextMarker} `
       const nextContent =
-        contentInput.value.slice(0, selectionStart) +
+        content.slice(0, selectionStart) +
         `\n${nextListPrefix}` +
-        contentInput.value.slice(selectionEnd)
+        content.slice(selectionEnd)
       const nextCaretPosition =
         selectionStart + nextListPrefix.length + 1
 
-      commitContent(nextContent, nextCaretPosition)
-      setSelectionToolbarPosition(null)
-      window.requestAnimationFrame(() => {
-        contentInput.focus()
-        contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
-        updateEditorCaret()
-      })
+      commitAndRestore(nextContent, nextCaretPosition)
       return
     }
 
@@ -1381,26 +1509,29 @@ export function CommunityWritePage() {
       (event.key === 'Backspace' ||
         (event.key === 'Enter' && !event.shiftKey))
 
-    if (!shouldExitEmptyQuote) {
+    if (shouldExitEmptyQuote) {
+      event.preventDefault()
+
+      const indentation = emptyQuote[1]
+      const nextContent =
+        content.slice(0, lineStart) + indentation + content.slice(lineEnd)
+      const nextCaretPosition = lineStart + indentation.length
+
+      commitAndRestore(nextContent, nextCaretPosition)
       return
     }
 
-    event.preventDefault()
+    if (event.key === 'Enter') {
+      event.preventDefault()
 
-    const indentation = emptyQuote[1]
-    const nextContent =
-      contentInput.value.slice(0, lineStart) +
-      indentation +
-      contentInput.value.slice(lineEnd)
-    const nextCaretPosition = lineStart + indentation.length
+      const nextContent =
+        content.slice(0, selectionStart) +
+        '\n' +
+        content.slice(selectionEnd)
+      const nextCaretPosition = selectionStart + 1
 
-    commitContent(nextContent, nextCaretPosition)
-    setSelectionToolbarPosition(null)
-    window.requestAnimationFrame(() => {
-      contentInput.focus()
-      contentInput.setSelectionRange(nextCaretPosition, nextCaretPosition)
-      updateEditorCaret()
-    })
+      commitAndRestore(nextContent, nextCaretPosition)
+    }
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -1557,38 +1688,32 @@ export function CommunityWritePage() {
 
           <S.EditorDivider />
           <S.EditorBody ref={editorBodyRef}>
-            <S.InlineMarkdownPreview
-              ref={inlinePreviewRef}
-              aria-hidden="true"
-              data-composing={isComposing}
-            >
-              <InlineMarkdownPreview value={content} />
-            </S.InlineMarkdownPreview>
-            <S.ContentInput
+            <S.RichTextInput
               ref={contentInputRef}
+              role="textbox"
               aria-label="게시글 내용"
-              placeholder="어떤 내용을 공유하고 싶으신가요?"
-              value={content}
-              required={uploadedImages.length === 0}
-              disabled={isSubmitting}
-              data-composing={isComposing}
+              aria-disabled={isSubmitting}
+              aria-multiline="true"
+              contentEditable={!isSubmitting}
+              data-empty={content.length === 0}
+              data-placeholder="어떤 내용을 공유하고 싶으신가요?"
+              suppressContentEditableWarning
               onBlur={handleContentBlur}
-              onChange={handleContentChange}
               onCompositionEnd={handleContentCompositionEnd}
               onCompositionStart={handleContentCompositionStart}
               onFocus={handleContentSelection}
+              onInput={handleContentInput}
               onKeyDown={handleContentKeyDown}
+              onKeyUp={handleContentSelection}
+              onMouseDown={handleContentMouseDown}
+              onMouseUp={handleContentSelection}
               onSelect={handleContentSelection}
               onScroll={handleContentScroll}
-            />
-            {editorCaretPosition && !isComposing && (
-              <S.EditorCaret
-                aria-hidden="true"
-                $top={editorCaretPosition.top}
-                $left={editorCaretPosition.left}
-                $height={editorCaretPosition.height}
-              />
-            )}
+            >
+              <div key={content} data-editor-content>
+                {content ? <InlineMarkdownPreview value={content} /> : null}
+              </div>
+            </S.RichTextInput>
             {selectionToolbarPosition && (
               <S.SelectionToolbar
                 data-selection-toolbar
