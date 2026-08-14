@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
@@ -26,6 +26,16 @@ export type CodeTokenFormat =
   | 'attribute'
   | 'regexp'
   | 'operator'
+
+const caretBlink = keyframes`
+  0%, 45% {
+    opacity: 1;
+  }
+
+  55%, 100% {
+    opacity: 0;
+  }
+`
 
 export const Page = styled.section`
   box-sizing: border-box;
@@ -509,7 +519,7 @@ export const ContentInput = styled.textarea`
   outline: none;
   color: transparent;
   background: transparent;
-  caret-color: ${token.colors.gray.gray100};
+  caret-color: transparent;
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1.4;
   letter-spacing: normal;
@@ -545,6 +555,22 @@ export const InlineMarkdownPreview = styled.div`
   pointer-events: none;
 `
 
+export const EditorCaret = styled.span<{
+  $top: number
+  $left: number
+  $height: number
+}>`
+  position: absolute;
+  z-index: 2;
+  top: ${({ $top }) => $top}px;
+  left: ${({ $left }) => $left}px;
+  width: 2px;
+  height: ${({ $height }) => $height}px;
+  background: ${token.colors.gray.gray100};
+  pointer-events: none;
+  animation: ${caretBlink} 1s steps(1, end) infinite;
+`
+
 export const EditorLine = styled.div<{ $format: EditorLineFormat }>`
   display: block;
   min-height: 1.4em;
@@ -563,6 +589,19 @@ export const EditorLine = styled.div<{ $format: EditorLineFormat }>`
 
 export const MarkdownSyntax = styled.span`
   color: ${token.colors.gray.gray40};
+`
+
+export const HiddenMarkdownSyntax = styled.span`
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  white-space: pre;
+`
+
+export const EditorPlaceholder = styled.span`
+  color: ${token.colors.gray.gray40};
+  text-decoration: none;
 `
 
 export const ListMarker = styled.span`
@@ -634,7 +673,7 @@ export const FormattedText = styled.span<{
     $format === 'headingOne' || $format === 'headingTwo' ? 1 : 'inherit'};
   text-shadow: none;
   transform: ${({ $format }) =>
-    $format === 'italic' ? 'skewX(-8deg)' : 'none'};
+    $format === 'italic' ? 'skewX(-12deg)' : 'none'};
   transform-origin: left center;
   display: ${({ $format }) =>
     $format === 'italic' ? 'inline-block' : 'inline'};
