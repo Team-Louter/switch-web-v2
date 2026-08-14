@@ -76,7 +76,8 @@ const COMMUNITY_EDITOR_DICTIONARY = {
   ...ko,
   placeholders: {
     ...ko.placeholders,
-    default: '내용을 입력해주세요.',
+    default: undefined,
+    emptyDocument: '내용을 입력해주세요.',
   },
 }
 
