@@ -25,6 +25,7 @@ import commentIcon from '@/shared/assets/my/comment-icon.svg'
 import eyeIcon from '@/shared/assets/my/eye-icon.svg'
 import heartIcon from '@/shared/assets/my/heart-icon.svg'
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
+import { renderCustomUnderlineMarkdown } from '@/shared/lib/markdown'
 import { Button } from '@/shared/ui'
 
 import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg'
@@ -302,7 +303,7 @@ export function CommunityDetailPage() {
                     [rehypeSanitize, markdownSanitizeSchema],
                   ]}
                 >
-                  {post.postContent}
+                  {renderCustomUnderlineMarkdown(post.postContent)}
                 </ReactMarkdown>
               </S.BodyText>
             </S.Article>
