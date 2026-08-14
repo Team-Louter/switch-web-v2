@@ -436,6 +436,7 @@ export function CommunityWritePage() {
             <BlockNoteView
               editor={editor}
               editable={!isSubmitting}
+              portalElements={{ sideMenu: null }}
               onChange={handleEditorChange}
             />
           </div>
