@@ -14,6 +14,18 @@ type InlineMarkdownFormat =
 
 type EditorLineFormat = 'default' | 'quote' | 'code'
 
+export type CodeTokenFormat =
+  | 'default'
+  | 'comment'
+  | 'string'
+  | 'number'
+  | 'keyword'
+  | 'type'
+  | 'tag'
+  | 'attribute'
+  | 'regexp'
+  | 'operator'
+
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
@@ -372,6 +384,30 @@ export const MarkdownSyntax = styled.span`
 
 export const HiddenQuoteMarker = styled.span`
   visibility: hidden;
+`
+
+export const CodeToken = styled.span<{ $format: CodeTokenFormat }>`
+  color: ${({ $format }) => {
+    switch ($format) {
+      case 'comment':
+        return token.colors.gray.gray50
+      case 'string':
+        return token.colors.success.success20
+      case 'number':
+      case 'attribute':
+        return token.colors.info.info20
+      case 'keyword':
+      case 'regexp':
+        return token.colors.danger.danger20
+      case 'type':
+      case 'tag':
+        return token.colors.primary.primary70
+      case 'operator':
+        return token.colors.gray.gray70
+      default:
+        return 'inherit'
+    }
+  }};
 `
 
 export const FormattedText = styled.span<{
