@@ -29,6 +29,7 @@ import quoteIcon from '../assets/svg/editor-quote.svg'
 import strikeIcon from '../assets/svg/editor-strike.svg'
 import underlineIcon from '../assets/svg/editor-underline.svg'
 import unorderedListIcon from '../assets/svg/editor-unordered-list.svg'
+import { renderCustomUnderlineMarkdown } from '@/shared/lib/markdown'
 import { Button } from '@/shared/ui'
 
 import * as S from './CommunityWritePage.style'
@@ -230,7 +231,7 @@ function createEditorInsertion(
     case 'italic':
       return wrapEditorText(selectedText, '기울임 텍스트', '*', '*')
     case 'underline':
-      return wrapEditorText(selectedText, '밑줄 텍스트', '<u>', '</u>')
+      return wrapEditorText(selectedText, '밑줄 텍스트', '__', '__')
     case 'strike':
       return wrapEditorText(selectedText, '취소선 텍스트', '~~', '~~')
     case 'headingOne':
@@ -294,7 +295,9 @@ export function CommunityWritePage() {
   ]
     .filter(Boolean)
     .join('\n\n')
-  const renderedPreviewContent = createMarkdownPreviewContent(previewContent)
+  const renderedPreviewContent = createMarkdownPreviewContent(
+    renderCustomUnderlineMarkdown(previewContent),
+  )
 
   const handleBackToList = () => {
     navigate('/community')
