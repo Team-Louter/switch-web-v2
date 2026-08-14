@@ -1425,13 +1425,21 @@ export function CommunityWritePage() {
       return
     }
 
+    const editor = event.currentTarget
+
     hasPendingCompositionEndRef.current = false
-    syncContentFromEditor(event.currentTarget)
+    syncContentFromEditor(editor)
+    window.requestAnimationFrame(() => {
+      delete editor.dataset.composing
+    })
   }
 
-  const handleContentCompositionStart = () => {
+  const handleContentCompositionStart = (
+    event: CompositionEvent<HTMLDivElement>,
+  ) => {
     isComposingRef.current = true
     hasPendingCompositionEndRef.current = false
+    event.currentTarget.dataset.composing = 'true'
     setSelectionToolbarPosition(null)
   }
 
@@ -1449,6 +1457,9 @@ export function CommunityWritePage() {
 
       hasPendingCompositionEndRef.current = false
       syncContentFromEditor(editor)
+      window.requestAnimationFrame(() => {
+        delete editor.dataset.composing
+      })
     })
   }
 
