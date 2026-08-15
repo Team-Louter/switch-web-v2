@@ -2,7 +2,10 @@ import '@blocknote/core/fonts/inter.css'
 import '@blocknote/mantine/style.css'
 
 import type { Block } from '@blocknote/core'
-import { SideMenuExtension } from '@blocknote/core/extensions'
+import {
+  type ComputeDropPositionContext,
+  SideMenuExtension,
+} from '@blocknote/core/extensions'
 import { ko } from '@blocknote/core/locales'
 import { BlockNoteView } from '@blocknote/mantine'
 import {
@@ -13,6 +16,7 @@ import {
 } from '@blocknote/react'
 import {
   type ChangeEvent,
+  type DragEvent as ReactDragEvent,
   type FormEvent,
   useCallback,
   useEffect,
@@ -52,6 +56,12 @@ import * as S from './CommunityWritePage.style'
 
 interface UploadedImage extends PostFileRequest {
   id: string
+}
+
+interface BlockDropIndicatorPosition {
+  left: number
+  top: number
+  width: number
 }
 
 type EditorAction =
@@ -125,6 +135,15 @@ function hasPostContent(content: string): boolean {
   return Boolean(textContent) || /<(img|audio|video)\b/i.test(content)
 }
 
+function getCommunityDropCursorPosition({
+  event,
+  defaultPosition,
+}: ComputeDropPositionContext) {
+  return event.dataTransfer?.types.includes('blocknote/html')
+    ? null
+    : defaultPosition
+}
+
 function CommunityBlockSideMenu(props: SideMenuProps) {
   return (
     <S.BlockSideMenu>
@@ -145,6 +164,8 @@ export function CommunityWritePage() {
   const [imageUploadError, setImageUploadError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [blockDropIndicator, setBlockDropIndicator] =
+    useState<BlockDropIndicatorPosition | null>(null)
   const isUploadingImage = pendingImageUploadCount > 0
 
   const handleImageUpload = useCallback(async (file: File) => {
@@ -189,6 +210,9 @@ export function CommunityWritePage() {
       dictionary: COMMUNITY_EDITOR_DICTIONARY,
       domAttributes: {
         editor: { 'aria-label': '게시글 내용' },
+      },
+      dropCursor: {
+        hooks: { computeDropPosition: getCommunityDropCursorPosition },
       },
       uploadFile: handleImageUpload,
     },
@@ -352,6 +376,68 @@ export function CommunityWritePage() {
     }
   }
 
+  const handleEditorDragOver = (event: ReactDragEvent<HTMLElement>) => {
+    if (!event.dataTransfer.types.includes('blocknote/html')) {
+      return
+    }
+
+    const editorArea = editorAreaRef.current
+    const target = event.target
+
+    if (!editorArea || !(target instanceof Element)) {
+      return
+    }
+
+    const blockElement = target.closest<HTMLElement>(
+      '[data-node-type="blockContainer"]',
+    )
+
+    if (!blockElement) {
+      return
+    }
+
+    const editorBounds = editorArea.getBoundingClientRect()
+    const blockBounds = blockElement.getBoundingClientRect()
+    const scaleX = editorBounds.width / editorArea.offsetWidth
+    const scaleY = editorBounds.height / editorArea.offsetHeight
+    const targetTop =
+      event.clientY < blockBounds.top + blockBounds.height / 2
+        ? blockBounds.top
+        : blockBounds.bottom
+    const nextIndicator = {
+      left: (blockBounds.left - editorBounds.left) / scaleX,
+      top: (targetTop - editorBounds.top) / scaleY,
+      width: blockBounds.width / scaleX,
+    }
+
+    setBlockDropIndicator((indicator) => {
+      if (
+        indicator?.left === nextIndicator.left &&
+        indicator.top === nextIndicator.top &&
+        indicator.width === nextIndicator.width
+      ) {
+        return indicator
+      }
+
+      return nextIndicator
+    })
+  }
+
+  const handleEditorDragLeave = (event: ReactDragEvent<HTMLElement>) => {
+    if (
+      event.relatedTarget instanceof Node &&
+      event.currentTarget.contains(event.relatedTarget)
+    ) {
+      return
+    }
+
+    setBlockDropIndicator(null)
+  }
+
+  const hideBlockDropIndicator = () => {
+    setBlockDropIndicator(null)
+  }
+
   useEffect(() => {
     const handleDocumentMouseMove = (event: MouseEvent) => {
       const editorBounds = editorAreaRef.current?.getBoundingClientRect()
@@ -371,9 +457,11 @@ export function CommunityWritePage() {
     }
 
     document.addEventListener('mousemove', handleDocumentMouseMove)
+    document.addEventListener('dragend', hideBlockDropIndicator)
 
     return () => {
       document.removeEventListener('mousemove', handleDocumentMouseMove)
+      document.removeEventListener('dragend', hideBlockDropIndicator)
     }
   }, [editor])
 
@@ -434,7 +522,20 @@ export function CommunityWritePage() {
           </S.WriteForm>
         </S.Header>
 
-        <S.Editor ref={editorAreaRef} aria-label="게시글 내용 편집기">
+        <S.Editor
+          ref={editorAreaRef}
+          aria-label="게시글 내용 편집기"
+          onDragOver={handleEditorDragOver}
+          onDragLeave={handleEditorDragLeave}
+          onDrop={hideBlockDropIndicator}
+        >
+          {blockDropIndicator && (
+            <S.BlockDropIndicator
+              $left={blockDropIndicator.left}
+              $top={blockDropIndicator.top}
+              $width={blockDropIndicator.width}
+            />
+          )}
           <S.Toolbar>
             <div className="community-toolbar-actions" aria-label="서식 도구">
               {EDITOR_TOOLS.map((tool) => (
