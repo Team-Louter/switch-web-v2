@@ -1,33 +1,27 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { hasApiAccessToken } from '@/shared/api'
+import { formatProfileClassInfo } from '@/entities/profile'
 
 import {
   getMyComments,
   getMyLikedPosts,
+  getMyPoint,
   getMyPosts,
   getMyProfile,
   getMyReceivedLikeCount,
-} from './myApi'
+} from '../api'
 import type {
   MyActivityTab,
   MyActivityTabId,
   MyPost,
   MyProfile,
   MyStat,
+  ProfileMajor,
 } from '../types'
 import type {
   MyPostResponse,
-  ProfileMajor,
   ProfileResponse,
-} from './myApi'
-
-const myProfile: MyProfile = {
-  name: '이윤지',
-  classInfo: '2학년 2반 2번',
-  role: '프론트엔드 · 디자이너',
-  email: 'djfnskdjsdhkg@dgsw.hs.kr',
-}
+} from '../api'
 
 const majorLabelMap: Record<ProfileMajor, string> = {
   AI: 'AI',
@@ -41,91 +35,83 @@ const majorLabelMap: Record<ProfileMajor, string> = {
   SECURITY: '보안',
 }
 
-const roleLabelMap: Record<ProfileResponse['role'], string> = {
-  LEADER: '부장',
-  MENTEE: '멘티',
-  MENTOR: '멘토',
-  STUDENT: '학생',
+const initialProfile: MyProfile = {
+  name: '',
+  classInfo: '',
+  majors: '',
+  email: '',
 }
 
-const myStats: MyStat[] = [
-  { id: 'point', label: '포인트', value: '3,500' },
-  { id: 'badge', label: '뱃지', value: '3' },
-  { id: 'view', label: '총 조회수', value: '400' },
+const initialActivityTabs: MyActivityTab[] = [
+  { id: 'posts', label: '작성한 글', count: 0 },
+  { id: 'comments', label: '댓글', count: 0 },
+  { id: 'likes', label: '좋아요', count: 0 },
 ]
 
-const myActivityTabs: MyActivityTab[] = [
-  { id: 'posts', label: '작성한 글', count: 12 },
-  { id: 'comments', label: '댓글', count: 12 },
-  { id: 'likes', label: '좋아요', count: 12 },
+const initialStats: MyStat[] = [
+  { id: 'point', label: '포인트', value: '-' },
+  { id: 'badge', label: '뱃지', value: '-' },
+  { id: 'view', label: '총 조회수', value: '-' },
 ]
 
-const myPosts: MyPost[] = Array.from({ length: 4 }, (_, index) => ({
-  id: index + 1,
-  category: '정보 공유',
-  title: '게시물 제목 예시입니다.',
-  author: '작성자',
-  createdAt: '2026.01.01 23:59',
-  likes: 99,
-  comments: 99,
-  views: 99,
-}))
-
-const myCommentPosts: MyPost[] = myPosts.map((post) => ({
-  ...post,
-  commentPreview: '댓글내용댓글내용댓글내용댓글내용댓글내용댓글내용댓글내용',
-}))
-
-const fallbackPostsByTab: Record<MyActivityTabId, MyPost[]> = {
-  posts: myPosts,
-  comments: myCommentPosts,
-  likes: myPosts,
+const initialPostsByTab: Record<MyActivityTabId, MyPost[]> = {
+  posts: [],
+  comments: [],
+  likes: [],
 }
 
 const getStringValue = (
   record: MyPostResponse,
   keys: string[],
-  fallback = '',
 ) => {
   const value = keys.map((key) => record[key]).find(Boolean)
 
-  return typeof value === 'string' ? value : fallback
+  return typeof value === 'string' ? value : ''
 }
 
 const getNumberValue = (
-  record: MyPostResponse,
+  record: MyPostResponse | ProfileResponse,
   keys: string[],
-  fallback = 0,
 ) => {
-  const value = keys.map((key) => record[key]).find(Boolean)
+  const value = keys.map((key) => record[key as keyof typeof record]).find(
+    (item) => item !== undefined && item !== null,
+  )
 
-  return typeof value === 'number' ? value : fallback
+  return typeof value === 'number' ? value : undefined
 }
 
 const getPostId = (record: MyPostResponse, fallback: number) => {
   const value = ['postId', 'id', 'commentId']
     .map((key) => record[key])
-    .find(Boolean)
+    .find((item) => item !== undefined && item !== null)
 
-  return typeof value === 'number' ? value : fallback
+  return typeof value === 'number' || typeof value === 'string'
+    ? String(value)
+    : `post-${fallback}`
 }
 
 const getPageItems = (response: { content?: MyPostResponse[] }) =>
   Array.isArray(response.content) ? response.content : []
 
-const formatProfile = (profile: ProfileResponse): MyProfile => {
-  const majorText = profile.majors
+const formatMajorText = (majors?: ProfileMajor[]) =>
+  majors
     ?.map((major) => majorLabelMap[major])
     .filter(Boolean)
-    .join(' · ')
+    .join(' · ') ?? ''
 
-  return {
+const formatProfile = (profile: ProfileResponse): MyProfile => {
+  const nextProfile: MyProfile = {
     name: profile.userName,
-    classInfo: `${profile.grade}학년 ${profile.classRoom}반 ${profile.number}번`,
-    role: majorText || roleLabelMap[profile.role],
+    classInfo: formatProfileClassInfo(profile),
+    majors: formatMajorText(profile.majors),
     email: profile.userEmail,
-    imageUrl: profile.profileImageUrl,
   }
+
+  if (profile.profileImageUrl) {
+    nextProfile.imageUrl = profile.profileImageUrl
+  }
+
+  return nextProfile
 }
 
 const formatPost = (
@@ -134,31 +120,34 @@ const formatPost = (
   shouldShowComment = false,
 ): MyPost => ({
   id: getPostId(post, index + 1),
-  category: getStringValue(post, ['category', 'categoryName'], '정보 공유'),
-  title: getStringValue(post, ['title', 'postTitle'], '게시물 제목 예시입니다.'),
-  author: getStringValue(post, ['author', 'writer', 'userName'], '작성자'),
-  createdAt: getStringValue(
-    post,
-    ['createdAt', 'createdDate', 'createdDateTime'],
-    '',
-  ),
-  likes: getNumberValue(post, ['likes', 'likeCount', 'heartCount']),
-  comments: getNumberValue(post, ['comments', 'commentCount']),
-  views: getNumberValue(post, ['views', 'viewCount']),
+  category: getStringValue(post, ['category', 'categoryName']),
+  title: getStringValue(post, ['title', 'postTitle']),
+  author: getStringValue(post, ['author', 'writer', 'userName']),
+  createdAt: getStringValue(post, [
+    'createdAt',
+    'createdDate',
+    'createdDateTime',
+  ]),
+  likes: getNumberValue(post, ['likes', 'likeCount', 'heartCount']) ?? 0,
+  comments: getNumberValue(post, ['comments', 'commentCount']) ?? 0,
+  views: getNumberValue(post, ['views', 'viewCount']) ?? 0,
   commentPreview: shouldShowComment
     ? getStringValue(post, ['comment', 'commentContent', 'content'])
     : undefined,
 })
 
-// 마이 페이지의 프로필과 탭별 활동 데이터를 서버에서 가져온다.
+const formatOptionalStatValue = (value?: number) =>
+  typeof value === 'number' ? value.toLocaleString() : '-'
+
+// 마이 페이지의 프로필과 활동 데이터를 서버 응답 기준으로 구성한다.
 export function useMyPage() {
   const [activeTabId, setActiveTabId] = useState<MyActivityTabId>('posts')
-  const [profile, setProfile] = useState<MyProfile>(myProfile)
-  const [stats, setStats] = useState<MyStat[]>(myStats)
+  const [profile, setProfile] = useState<MyProfile>(initialProfile)
+  const [stats, setStats] = useState<MyStat[]>(initialStats)
   const [activityTabs, setActivityTabs] =
-    useState<MyActivityTab[]>(myActivityTabs)
+    useState<MyActivityTab[]>(initialActivityTabs)
   const [postsByTab, setPostsByTab] =
-    useState<Record<MyActivityTabId, MyPost[]>>(fallbackPostsByTab)
+    useState<Record<MyActivityTabId, MyPost[]>>(initialPostsByTab)
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
 
@@ -166,11 +155,6 @@ export function useMyPage() {
     let shouldIgnore = false
 
     const fetchMyPage = async () => {
-      if (!hasApiAccessToken()) {
-        setIsLoading(false)
-        return
-      }
-
       try {
         setIsLoading(true)
         const [
@@ -178,28 +162,20 @@ export function useMyPage() {
           postsResponse,
           commentsResponse,
           likedPostsResponse,
+          point,
           receivedLikeCount,
         ] = await Promise.all([
           getMyProfile(),
           getMyPosts(),
           getMyComments(),
           getMyLikedPosts(),
-          getMyReceivedLikeCount().catch(() => 0),
+          getMyPoint(),
+          getMyReceivedLikeCount(),
         ])
 
         if (shouldIgnore) {
           return
         }
-
-        const nextPosts = getPageItems(postsResponse).map((post, index) =>
-          formatPost(post, index),
-        )
-        const nextComments = getPageItems(commentsResponse).map((post, index) =>
-          formatPost(post, index, true),
-        )
-        const nextLikedPosts = getPageItems(likedPostsResponse).map(
-          (post, index) => formatPost(post, index),
-        )
 
         setProfile(formatProfile(profileResponse))
         setActivityTabs([
@@ -214,25 +190,53 @@ export function useMyPage() {
         setStats([
           {
             id: 'point',
-            label: '작성한 글',
-            value: profileResponse.postCount.toLocaleString(),
+            label: '포인트',
+            value: formatOptionalStatValue(point),
           },
           {
             id: 'badge',
-            label: '댓글',
-            value: profileResponse.commentCount.toLocaleString(),
+            label: '뱃지',
+            value: formatOptionalStatValue(
+              getNumberValue(profileResponse, ['badgeCount']),
+            ),
           },
           {
             id: 'view',
-            label: '받은 좋아요',
-            value: receivedLikeCount.toLocaleString(),
+            label: '총 조회수',
+            value: formatOptionalStatValue(
+              getNumberValue(profileResponse, ['totalViewCount', 'viewCount']),
+            ),
           },
         ])
         setPostsByTab({
-          posts: nextPosts,
-          comments: nextComments,
-          likes: nextLikedPosts,
+          posts: getPageItems(postsResponse).map((post, index) =>
+            formatPost(post, index),
+          ),
+          comments: getPageItems(commentsResponse).map((post, index) =>
+            formatPost(post, index, true),
+          ),
+          likes: getPageItems(likedPostsResponse).map((post, index) =>
+            formatPost(post, index),
+          ),
         })
+        setErrorMessage('')
+
+        if (typeof receivedLikeCount === 'number') {
+          setStats((currentStats) =>
+            currentStats.map((stat) =>
+              stat.id === 'view' &&
+              stat.value === '-' &&
+              profileResponse.totalViewCount === undefined &&
+              profileResponse.viewCount === undefined
+                ? {
+                    ...stat,
+                    label: '받은 좋아요',
+                    value: receivedLikeCount.toLocaleString(),
+                  }
+                : stat,
+            ),
+          )
+        }
       } catch {
         if (!shouldIgnore) {
           setErrorMessage('마이 페이지 정보를 불러오지 못했어요')

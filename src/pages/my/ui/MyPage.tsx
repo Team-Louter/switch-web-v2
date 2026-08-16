@@ -1,22 +1,26 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import profileImage from '@/shared/assets/sidebar/profile.png'
-import { hasApiAccessToken } from '@/shared/api'
+import {
+  clearAccessToken,
+  clearPendingAccessToken,
+} from '@/shared/lib/authToken'
 
 import {
   sendWithdrawalVerificationCode,
   verifyWithdrawalCode,
-} from '../model/myApi'
+} from '../api'
 import { useMyPage } from '../model/useMyPage'
-import { ActivityFilterBar } from './component/ActivityFilterBar'
-import { ActivityPost } from './component/ActivityPost'
-import { MemberActionToast } from './component/MemberActionToast'
-import { MemberManagementModal } from './component/MemberManagementModal'
-import { WithdrawModal } from './component/WithdrawModal'
+import {
+  ActivityFilterBar,
+  ActivityPost,
+  MemberActionToast,
+  MemberManagementModal,
+  WithdrawModal,
+} from './components'
 import { MyStatIcon } from './icons/MyStatIcon'
 import * as S from './MyPage.style'
-import type { WithdrawModalStep } from './component/WithdrawModal'
+import type { WithdrawModalStep } from './components'
 
 export function MyPage() {
   const navigate = useNavigate()
@@ -25,6 +29,7 @@ export function MyPage() {
   )
   const [isMemberManagementOpen, setIsMemberManagementOpen] = useState(false)
   const [memberActionToastMessage, setMemberActionToastMessage] = useState('')
+  const [withdrawConfirmText, setWithdrawConfirmText] = useState('')
   const [verificationCode, setVerificationCode] = useState('')
   const {
     activeTabId,
@@ -37,20 +42,26 @@ export function MyPage() {
   } = useMyPage()
 
   const hasPosts = posts.length > 0
-  const profileImageSrc = profile.imageUrl || profileImage
+
+  const handleLogout = () => {
+    clearAccessToken()
+    clearPendingAccessToken()
+    navigate('/login', { replace: true })
+  }
 
   const handleOpenWithdrawModal = async () => {
-    if (!hasApiAccessToken()) {
-      window.alert('로그인 기능이 연결된 뒤 사용할 수 있어요')
-      return
-    }
+    setWithdrawConfirmText('')
+    setVerificationCode('')
+    setWithdrawStep('acknowledge')
+  }
 
-    setWithdrawStep('verify')
-
+  const handleRequestWithdrawalCode = async () => {
     try {
       await sendWithdrawalVerificationCode()
+      setVerificationCode('')
+      setWithdrawStep('verify')
     } catch {
-      window.alert('인증 코드를 발송하지 못했어요')
+      window.alert('이메일 인증 요청을 보내지 못했어요')
     }
   }
 
@@ -63,12 +74,18 @@ export function MyPage() {
     }
   }
 
+  const handleCloseWithdrawModal = () => {
+    setWithdrawConfirmText('')
+    setVerificationCode('')
+    setWithdrawStep(null)
+  }
+
   return (
     <S.Page>
       <S.Content>
         <S.ProfileSection>
           <S.ProfileImageWrap>
-            <S.ProfileImage src={profileImageSrc} alt="" />
+            {profile.imageUrl && <S.ProfileImage src={profile.imageUrl} alt="" />}
           </S.ProfileImageWrap>
 
           <S.ProfileInfo>
@@ -76,7 +93,9 @@ export function MyPage() {
               <S.ProfileIdentity>
                 <S.ProfileName>{profile.name}</S.ProfileName>
                 <S.ProfileDescription>{profile.classInfo}</S.ProfileDescription>
-                <S.ProfileDescription>{profile.role}</S.ProfileDescription>
+                {profile.majors && (
+                  <S.ProfileDescription>{profile.majors}</S.ProfileDescription>
+                )}
               </S.ProfileIdentity>
               <S.ProfileEmail>{profile.email}</S.ProfileEmail>
             </S.ProfileTextGroup>
@@ -138,7 +157,9 @@ export function MyPage() {
         <S.Divider />
 
         <S.FooterActions>
-          <S.FooterButton type="button">로그아웃</S.FooterButton>
+          <S.FooterButton type="button" onClick={handleLogout}>
+            로그아웃
+          </S.FooterButton>
           <S.FooterDivider />
           <S.FooterButton
             type="button"
@@ -153,10 +174,16 @@ export function MyPage() {
       {withdrawStep && (
         <WithdrawModal
           step={withdrawStep}
+          confirmText={withdrawConfirmText}
+          onConfirmTextChange={setWithdrawConfirmText}
           verificationCode={verificationCode}
           onVerificationCodeChange={setVerificationCode}
-          onCancel={() => setWithdrawStep(null)}
-          onNext={handleVerifyWithdrawalCode}
+          onCancel={handleCloseWithdrawModal}
+          onNext={
+            withdrawStep === 'acknowledge'
+              ? handleRequestWithdrawalCode
+              : handleVerifyWithdrawalCode
+          }
           onWithdraw={() => navigate('/my/withdraw-complete')}
         />
       )}
