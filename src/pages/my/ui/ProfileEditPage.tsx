@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import profileImage from '@/shared/assets/sidebar/profile.png'
-import { hasApiAccessToken } from '@/shared/api'
 import { Button } from '@/shared/ui'
 
-import { getMyProfile, updateMyProfile } from '../model/myApi'
-import { ProfileCropModal } from './component/ProfileCropModal'
-import { ProfileFormField } from './component/ProfileFormField'
-import { ProfileMajorDropdown } from './component/ProfileMajorDropdown'
+import { getMyProfile, updateMyProfile } from '../api'
+import {
+  createStudentId,
+  isValidStudentId,
+  profileMajorOptions,
+} from '../model/profileEditModel'
+import {
+  ProfileCropModal,
+  ProfileFormField,
+  ProfileMajorDropdown,
+} from './components'
 import { ProfileInputIcon } from './icons/ProfileInputIcon'
 import * as S from './ProfileEditPage.style'
-import type { MajorOption } from './component/ProfileMajorDropdown'
 import type { ProfileCropState } from '../model/useProfileCropModal'
-import type { ProfileMajor } from '../model/myApi'
+import type { ProfileMajor } from '../types'
 
 const defaultProfileCropState: ProfileCropState = {
   position: {
@@ -21,22 +25,6 @@ const defaultProfileCropState: ProfileCropState = {
     y: 0,
   },
   zoomValue: 0,
-}
-
-const majorOptions: MajorOption[] = [
-  { id: 'FRONTEND', label: '프론트엔드' },
-  { id: 'BACKEND', label: '백엔드' },
-  { id: 'DESIGN', label: '디자인' },
-  { id: 'IOS', label: 'ios' },
-  { id: 'ANDROID', label: '안드로이드' },
-]
-
-const createStudentId = (grade?: number, classRoom?: number, number?: number) => {
-  if (!grade || !classRoom || !number) {
-    return ''
-  }
-
-  return `${grade}${classRoom}${number}`
 }
 
 export function ProfileEditPage() {
@@ -48,7 +36,7 @@ export function ProfileEditPage() {
   const [githubId, setGithubId] = useState('')
   const [linkedinId, setLinkedinId] = useState('')
   const [profileImageUrl, setProfileImageUrl] = useState('')
-  const [profileImageSrc, setProfileImageSrc] = useState(profileImage)
+  const [profileImageSrc, setProfileImageSrc] = useState('')
   const [profileCropState, setProfileCropState] = useState(
     defaultProfileCropState,
   )
@@ -60,10 +48,6 @@ export function ProfileEditPage() {
     let shouldIgnore = false
 
     const fetchProfile = async () => {
-      if (!hasApiAccessToken()) {
-        return
-      }
-
       try {
         const profile = await getMyProfile()
 
@@ -73,13 +57,15 @@ export function ProfileEditPage() {
 
         setUserName(profile.userName)
         setStudentId(
-          createStudentId(profile.grade, profile.classRoom, profile.number),
+          profile.studentId
+            ? String(profile.studentId)
+            : createStudentId(profile.grade, profile.classRoom, profile.number),
         )
         setEmail(profile.userEmail)
         setGithubId(profile.githubUrl ?? '')
         setLinkedinId(profile.linkedinUrl ?? '')
         setProfileImageUrl(profile.profileImageUrl ?? '')
-        setProfileImageSrc(profile.profileImageUrl || profileImage)
+        setProfileImageSrc(profile.profileImageUrl ?? '')
         setSelectedMajorIds(profile.majors ?? [])
       } catch {
         window.alert('프로필 정보를 불러오지 못했어요')
@@ -107,12 +93,16 @@ export function ProfileEditPage() {
     setStudentId(value.replace(/\D/g, '').slice(0, 4))
   }
 
-  const handleSaveProfile = async () => {
-    if (!hasApiAccessToken()) {
-      window.alert('로그인 기능이 연결된 뒤 저장할 수 있어요')
+  const handleOpenCropModal = () => {
+    if (!profileImageSrc) {
+      window.alert('수정할 프로필 이미지가 없어요')
       return
     }
 
+    setIsCropModalOpen(true)
+  }
+
+  const handleSaveProfile = async () => {
     const nextUserName = userName.trim()
     const nextStudentId = Number(studentId)
 
@@ -121,8 +111,8 @@ export function ProfileEditPage() {
       return
     }
 
-    if (!studentId || Number.isNaN(nextStudentId)) {
-      window.alert('학번을 입력해 주세요')
+    if (!isValidStudentId(studentId) || Number.isNaN(nextStudentId)) {
+      window.alert('학번을 2202 형식으로 입력해 주세요')
       return
     }
 
@@ -149,13 +139,21 @@ export function ProfileEditPage() {
       <S.Content>
         <S.ProfileImageSection>
           <S.ProfileImageWrap>
-            <S.ProfileImage src={profileImageSrc} alt="" />
+            {profileImageSrc && <S.ProfileImage src={profileImageSrc} alt="" />}
           </S.ProfileImageWrap>
           <S.ImageActions>
-            <S.LineButton type="button" onClick={() => setIsCropModalOpen(true)}>
+            <S.LineButton type="button" onClick={handleOpenCropModal}>
               이미지 업로드
             </S.LineButton>
-            <S.DangerLineButton type="button">이미지 삭제</S.DangerLineButton>
+            <S.DangerLineButton
+              type="button"
+              onClick={() => {
+                setProfileImageUrl('')
+                setProfileImageSrc('')
+              }}
+            >
+              이미지 삭제
+            </S.DangerLineButton>
           </S.ImageActions>
         </S.ProfileImageSection>
 
@@ -181,7 +179,7 @@ export function ProfileEditPage() {
               disabled
             />
             <ProfileMajorDropdown
-              options={majorOptions}
+              options={profileMajorOptions}
               selectedIds={selectedMajorIds}
               isOpen={isMajorOpen}
               onToggleOpen={() => setIsMajorOpen((prev) => !prev)}
@@ -223,7 +221,7 @@ export function ProfileEditPage() {
 
       {isCropModalOpen && (
         <ProfileCropModal
-          imageSrc={profileImage}
+          imageSrc={profileImageSrc}
           initialState={profileCropState}
           onCancel={() => setIsCropModalOpen(false)}
           onComplete={(croppedImageSrc, nextCropState) => {
