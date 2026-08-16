@@ -6,6 +6,7 @@ export function Button({
   size = 'sm',
   type = 'button',
   variant = 'primary',
+  fullWidth = false,
   ...buttonProps
 }: ButtonProps) {
   return (
@@ -13,6 +14,7 @@ export function Button({
       type={type}
       $size={size}
       $variant={variant}
+      $fullWidth={fullWidth}
       {...buttonProps}
     >
       {children}

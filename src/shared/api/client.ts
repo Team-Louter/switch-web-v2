@@ -6,6 +6,16 @@ type ApiRequestOptions = Omit<RequestInit, 'body'> & {
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
 const protectedPathPrefixes = ['/me', '/mentoring']
 
+const createRequestUrl = (
+  path: string,
+  query: ApiRequestOptions['query'],
+) => {
+  const baseUrl = apiBaseUrl.replace(/\/$/, '')
+  const requestPath = path.startsWith('/') ? path : `/${path}`
+
+  return `${baseUrl}${requestPath}${createQueryString(query)}`
+}
+
 const createQueryString = (query: ApiRequestOptions['query']) => {
   if (!query) {
     return ''
@@ -31,16 +41,6 @@ const createQueryString = (query: ApiRequestOptions['query']) => {
   return queryString ? `?${queryString}` : ''
 }
 
-const createRequestUrl = (
-  path: string,
-  query: ApiRequestOptions['query'],
-) => {
-  const baseUrl = apiBaseUrl.replace(/\/$/, '')
-  const requestPath = path.startsWith('/') ? path : `/${path}`
-
-  return `${baseUrl}${requestPath}${createQueryString(query)}`
-}
-
 export const getApiAccessToken = () =>
   localStorage.getItem('accessToken') ??
   localStorage.getItem('access_token') ??
@@ -50,7 +50,7 @@ export const isProtectedApiEnabled = () =>
   import.meta.env.VITE_ENABLE_PROTECTED_API === 'true'
 
 export const hasApiAccessToken = () =>
-  Boolean(getApiAccessToken())
+  isProtectedApiEnabled() && Boolean(getApiAccessToken())
 
 const isProtectedPath = (path: string) =>
   protectedPathPrefixes.some(
@@ -85,7 +85,7 @@ export async function apiRequest<T>(
   const { body, headers, query, ...requestOptions } = options
   const token = getApiAccessToken()
 
-  if (isProtectedApiEnabled() && isProtectedPath(path) && !hasApiAccessToken()) {
+  if (isProtectedApiEnabled() && isProtectedPath(path) && !getApiAccessToken()) {
     throw new ApiError(401, '로그인 기능이 연결된 뒤 사용할 수 있어요')
   }
 

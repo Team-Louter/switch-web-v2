@@ -1,4 +1,5 @@
-import dividerImage from '@/shared/assets/sidebar/divider.svg'
+import { useEffect, useRef, useState } from 'react'
+
 import profileImage from '@/shared/assets/sidebar/profile.png'
 import switchLogo from '@/shared/assets/sidebar/switch-logo.svg'
 import {
@@ -18,20 +19,54 @@ import {
   MenuButton,
   MenuLabel,
   MenuList,
+  NotificationCount,
   ProfileButton,
   ProfileMeta,
   ProfileName,
   ProfileText,
   Spacer,
+  type NotificationCountAnimationDirection,
 } from './Sidebar.style'
 import { SidebarIcon } from './SidebarIcon'
 
-type SidebarProps = {
+interface SidebarProps {
   activeItemId?: SidebarItemId
+  notificationCount?: number
   onItemSelect?: (itemId: SidebarItemId) => void
 }
 
-export function Sidebar({ activeItemId = 'home', onItemSelect }: SidebarProps) {
+export function Sidebar({
+  activeItemId = 'home',
+  notificationCount = 0,
+  onItemSelect,
+}: SidebarProps) {
+  const previousNotificationCountRef = useRef(notificationCount)
+  const [notificationCountDirection, setNotificationCountDirection] =
+    useState<NotificationCountAnimationDirection>()
+  const notificationCountLabel =
+    notificationCount >= 15 ? '15+' : String(notificationCount)
+
+  useEffect(() => {
+    const previousNotificationCount = previousNotificationCountRef.current
+
+    if (notificationCount === previousNotificationCount) {
+      return
+    }
+
+    previousNotificationCountRef.current = notificationCount
+    setNotificationCountDirection(
+      notificationCount > previousNotificationCount ? 'increase' : 'decrease',
+    )
+
+    const animationTimer = window.setTimeout(() => {
+      setNotificationCountDirection(undefined)
+    }, 220)
+
+    return () => {
+      window.clearTimeout(animationTimer)
+    }
+  }, [notificationCount])
+
   return (
     <Aside aria-label="주요 메뉴">
       <LogoArea>
@@ -53,7 +88,7 @@ export function Sidebar({ activeItemId = 'home', onItemSelect }: SidebarProps) {
         ))}
       </MenuList>
 
-      <Divider src={dividerImage} alt="" aria-hidden="true" />
+      <Divider aria-hidden="true" />
 
       <MenuList>
         {UTILITY_SIDEBAR_MENU.map((item) => (
@@ -66,6 +101,14 @@ export function Sidebar({ activeItemId = 'home', onItemSelect }: SidebarProps) {
           >
             <SidebarIcon item={item} active={activeItemId === item.id} />
             <MenuLabel $active={activeItemId === item.id}>{item.label}</MenuLabel>
+            {item.id === 'notification' && notificationCount > 0 && (
+              <NotificationCount
+                key={notificationCount}
+                $direction={notificationCountDirection}
+              >
+                {notificationCountLabel}
+              </NotificationCount>
+            )}
           </MenuButton>
         ))}
       </MenuList>

@@ -1,0 +1,8 @@
+export { ArrowDownIcon } from './ArrowDownIcon'
+export { BadgeStatIcon } from './BadgeStatIcon'
+export { GithubIcon } from './GithubIcon'
+export { LinkedinIcon } from './LinkedinIcon'
+export { MyStatIcon } from './MyStatIcon'
+export { PointStatIcon } from './PointStatIcon'
+export { ProfileInputIcon } from './ProfileInputIcon'
+export { ViewStatIcon } from './ViewStatIcon'
