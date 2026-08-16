@@ -1,4 +1,4 @@
-import * as S from './WithdrawCodeInput.style'
+import * as S from './WithdrawModalInput.style'
 
 import type { ChangeEvent } from 'react'
 
@@ -9,6 +9,7 @@ type WithdrawCodeInputProps = {
 
 const codeLength = 6
 
+// 회원 탈퇴 이메일 인증 코드를 숫자 6자리로 제한해 입력받는다.
 export function WithdrawCodeInput({
   value,
   onChange,

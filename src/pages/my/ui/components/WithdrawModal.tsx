@@ -1,11 +1,17 @@
 import { MyDialog } from './MyDialog'
 import { WithdrawCodeInput } from './WithdrawCodeInput'
+import {
+  WITHDRAW_CONFIRM_TEXT,
+  WithdrawConfirmInput,
+} from './WithdrawConfirmInput'
 import * as S from './WithdrawModal.style'
 
-export type WithdrawModalStep = 'verify' | 'confirm'
+export type WithdrawModalStep = 'acknowledge' | 'verify' | 'confirm'
 
 type WithdrawModalProps = {
   step: WithdrawModalStep
+  confirmText: string
+  onConfirmTextChange: (value: string) => void
   verificationCode: string
   onVerificationCodeChange: (value: string) => void
   onCancel: () => void
@@ -15,12 +21,16 @@ type WithdrawModalProps = {
 
 export function WithdrawModal({
   step,
+  confirmText,
+  onConfirmTextChange,
   verificationCode,
   onVerificationCodeChange,
   onCancel,
   onNext,
   onWithdraw,
 }: WithdrawModalProps) {
+  const isConfirmTextMatched = confirmText.trim() === WITHDRAW_CONFIRM_TEXT
+
   if (step === 'confirm') {
     return (
       <MyDialog
@@ -44,6 +54,34 @@ export function WithdrawModal({
     )
   }
 
+  if (step === 'verify') {
+    return (
+      <MyDialog
+        title="회원 탈퇴"
+        descriptions={['이메일로 전송된 인증 코드를 입력해 주세요']}
+        actions={
+          <>
+            <S.SecondaryButton type="button" onClick={onCancel}>
+              취소
+            </S.SecondaryButton>
+            <S.PrimaryButton
+              type="button"
+              disabled={verificationCode.length < 6}
+              onClick={onNext}
+            >
+              다음
+            </S.PrimaryButton>
+          </>
+        }
+      >
+        <WithdrawCodeInput
+          value={verificationCode}
+          onChange={onVerificationCodeChange}
+        />
+      </MyDialog>
+    )
+  }
+
   return (
     <MyDialog
       title="회원 탈퇴"
@@ -55,7 +93,7 @@ export function WithdrawModal({
           </S.SecondaryButton>
           <S.PrimaryButton
             type="button"
-            disabled={verificationCode.length < 6}
+            disabled={!isConfirmTextMatched}
             onClick={onNext}
           >
             다음
@@ -63,9 +101,9 @@ export function WithdrawModal({
         </>
       }
     >
-      <WithdrawCodeInput
-        value={verificationCode}
-        onChange={onVerificationCodeChange}
+      <WithdrawConfirmInput
+        value={confirmText}
+        onChange={onConfirmTextChange}
       />
     </MyDialog>
   )

@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import profileImage from '@/shared/assets/sidebar/profile.png'
-
 import memberCheckboxIcon from '../assets/member-checkbox.svg'
 import memberCloseIcon from '../assets/member-close.svg'
 import memberKebabIcon from '../assets/member-kebab.svg'
@@ -157,7 +155,6 @@ export function MemberManagementModal({
                     )}
                   </S.Checkbox>
                   <S.MemberInfo>
-                    <S.Avatar src={profileImage} alt="" />
                     <S.TextGroup>
                       <S.Name>{member.name}</S.Name>
                       <S.ClassInfo>{member.classInfo}</S.ClassInfo>
