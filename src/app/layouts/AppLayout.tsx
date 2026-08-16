@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
 import { getUnreadNotificationCount } from '@/entities/notification'
+import { formatProfileClassInfo, getMyProfile } from '@/entities/profile'
 import { SIDEBAR_MENU } from '@/shared/constants/sidebar'
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
@@ -11,6 +12,12 @@ import type { SidebarItemId } from '@/shared/constants/sidebar'
 
 const UNREAD_NOTIFICATION_COUNT_STORAGE_KEY = 'switch:unread-notification-count'
 const UNREAD_NOTIFICATION_POLLING_INTERVAL = 15_000
+
+interface SidebarProfile {
+  classInfo: string
+  imageUrl?: string
+  name: string
+}
 
 function getStoredUnreadNotificationCount(): number {
   if (typeof window === 'undefined') {
@@ -42,12 +49,14 @@ export function AppLayout() {
   const [notificationCount, setNotificationCount] = useState(
     getStoredUnreadNotificationCount,
   )
+  const [sidebarProfile, setSidebarProfile] = useState<SidebarProfile | null>(
+    null,
+  )
   const shouldShowSidebar =
     !location.pathname.startsWith('/my/edit') &&
     !location.pathname.startsWith('/my/withdraw-complete') &&
     location.pathname !== '/typing/daily' &&
     !location.pathname.startsWith('/typing/code/')
-    !location.pathname.startsWith('/my/withdraw-complete')
 
   const activeSidebarItemId = useMemo(() => {
     return (
@@ -74,6 +83,38 @@ export function AppLayout() {
     setNotificationCount(normalizedCount)
     saveUnreadNotificationCount(normalizedCount)
   }, [])
+
+  useEffect(() => {
+    let isCancelled = false
+
+    const synchronizeProfile = async () => {
+      try {
+        const profile = await getMyProfile()
+        const nextProfile: SidebarProfile = {
+          classInfo: formatProfileClassInfo(profile),
+          name: profile.userName,
+        }
+
+        if (profile.profileImageUrl) {
+          nextProfile.imageUrl = profile.profileImageUrl
+        }
+
+        if (!isCancelled) {
+          setSidebarProfile(nextProfile)
+        }
+      } catch {
+        if (!isCancelled) {
+          setSidebarProfile(null)
+        }
+      }
+    }
+
+    void synchronizeProfile()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [location.pathname])
 
   useEffect(() => {
     let isCancelled = false
@@ -121,6 +162,7 @@ export function AppLayout() {
             <Sidebar
               activeItemId={activeSidebarItemId}
               notificationCount={notificationCount}
+              profile={sidebarProfile}
               onItemSelect={handleSidebarItemSelect}
             />
           </SidebarContainer>
