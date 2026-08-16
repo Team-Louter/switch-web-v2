@@ -2,14 +2,17 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import {
-  getMentoringMembers,
-  getMentorings,
-  getMessages,
-  getQuestions,
+  getAdminMentorDetail,
+  getAdminMentoringOverview,
+  getAdminMentors,
+  getAdminQuestionDetail,
+  type AdminMentoringMentorResponse,
+  type AdminMentoringOverviewResponse,
+  type AdminMentoringQuestion,
+  type AdminMentoringState,
   type MentoringMessageResponse,
   type MentoringQuestionResponse,
   type MentoringQuestionStatus,
-  type MentoringResponse,
 } from './mentoringApi'
 import type {
   ChatMessageSummary,
@@ -33,6 +36,38 @@ const questionStatusMap = {
   ACTIVE: '진행',
   DONE: '완료',
 } satisfies Record<MentoringQuestionStatus, QuestionStatus>
+const mentorStatusMap = {
+  ACTIVE: '원활',
+  DELAYED: '답변 지연',
+  INACTIVE: '비활성',
+} satisfies Record<AdminMentoringState, MentorStatus>
+const adminMentorStateMap = {
+  원활: 'ACTIVE',
+  '답변 지연': 'DELAYED',
+  비활성: 'INACTIVE',
+} satisfies Record<MentorStatus, AdminMentoringState>
+const adminQuestionStatusMap = {
+  대기: 'PAUSED',
+  진행: 'ACTIVE',
+  완료: 'DONE',
+} satisfies Record<QuestionStatus, MentoringQuestionStatus>
+const majorLabelMap = {
+  BACKEND: '백엔드',
+  FRONTEND: '프론트엔드',
+  DESIGN: '디자인',
+  IOS: 'iOS',
+  ANDROID: '안드로이드',
+  SECURITY: '보안',
+  GAME: '게임',
+  AI: 'AI',
+  EMBEDDED: '임베디드',
+}
+const initialOverview: AdminMentoringOverviewResponse = {
+  attentionMentors: 0,
+  completedQuestions: 0,
+  progressQuestions: 0,
+  waitingQuestions: 0,
+}
 
 const getQuestionCountText = (count: number) => `${count}건`
 
@@ -100,77 +135,67 @@ const formatRecentActivity = (dateText?: string) => {
   return `${elapsedDay}일 전`
 }
 
-const getMentorStatus = (
-  pendingQuestionCount: number,
-  recentActivityOrder: number,
-): MentorStatus => {
-  if (!recentActivityOrder) {
-    return '비활성'
-  }
+const getMentorRoleText = (majors: AdminMentoringMentorResponse['majors']) =>
+  majors.map((major) => majorLabelMap[major]).join(' · ') || '멘토'
 
-  const inactiveDay = Math.floor((Date.now() - recentActivityOrder) / 86_400_000)
+const mapAdminMentor = (
+  mentor: AdminMentoringMentorResponse,
+): MentorSummary => ({
+  id: mentor.mentorId,
+  mentoringId: mentor.mentorId,
+  name: mentor.mentorName,
+  pendingQuestions: getQuestionCountText(mentor.waitingAnswers),
+  profileImageUrl: mentor.profileImageUrl,
+  recentActivity: formatRecentActivity(mentor.recentActivity),
+  recentActivityOrder: getDateOrder(mentor.recentActivity),
+  role: getMentorRoleText(mentor.majors),
+  status: mentorStatusMap[mentor.state],
+  totalQuestions: getQuestionCountText(mentor.allQuestions),
+})
 
-  if (inactiveDay >= 7) {
-    return '비활성'
-  }
+const mapAdminQuestion = (
+  question: AdminMentoringQuestion,
+  mentoringId: number,
+  content = '',
+): QuestionSummary => ({
+  id: question.questionId,
+  mentoringId,
+  userId: question.writerId,
+  title: question.title,
+  content,
+  mentee: question.writerName || `멘티 ${question.writerId}`,
+  profileImageUrl: question.writerProfileImageUrl,
+  createdAtOrder: getDateOrder(question.createdAt),
+  createdAt: formatDate(question.createdAt),
+  lastRepliedAt: formatDate(question.lastAnsweredAt),
+  status: questionStatusMap[question.status],
+})
 
-  return pendingQuestionCount > 0 ? '답변 지연' : '원활'
-}
-
-const getLatestMessageDate = (
-  messages: MentoringMessageResponse[],
-  questionId: number,
-) =>
-  messages
-    .filter((message) => message.questionId === questionId)
-    .sort((a, b) => getDateOrder(b.createdAt) - getDateOrder(a.createdAt))[0]
-    ?.createdAt
-
-const mapQuestion = (
+const mapDetailQuestion = (
   question: MentoringQuestionResponse,
-  messages: MentoringMessageResponse[],
 ): QuestionSummary => ({
   id: question.questionId,
   mentoringId: question.mentoringId,
   userId: question.userId,
   title: question.title,
   content: question.content,
-  mentee: `멘티 ${question.userId}`,
+  mentee: question.userName || `멘티 ${question.userId}`,
+  profileImageUrl: question.profileImageUrl,
   createdAtOrder: getDateOrder(question.createdAt),
   createdAt: formatDate(question.createdAt),
-  lastRepliedAt: formatDate(getLatestMessageDate(messages, question.questionId)),
+  lastRepliedAt: '-',
   status: questionStatusMap[question.status],
 })
 
-const createFallbackMentor = (
-  mentoring: MentoringResponse,
-  questions: QuestionSummary[],
-): MentorSummary => {
-  const mentoringQuestions = questions.filter(
-    (question) => question.mentoringId === mentoring.mentoringId,
-  )
-  const pendingQuestionCount = mentoringQuestions.filter(
-    (question) => question.status === '대기',
-  ).length
-  const recentActivityOrder = Math.max(
-    getDateOrder(mentoring.createdAt),
-    ...mentoringQuestions.map((question) => question.createdAtOrder),
-  )
-
-  return {
-    id: mentoring.mentoringId,
-    mentoringId: mentoring.mentoringId,
-    name: mentoring.mentoringName,
-    role: '멘토링',
-    recentActivityOrder,
-    totalQuestions: getQuestionCountText(mentoringQuestions.length),
-    pendingQuestions: getQuestionCountText(pendingQuestionCount),
-    recentActivity: formatRecentActivity(
-      recentActivityOrder ? new Date(recentActivityOrder).toISOString() : undefined,
-    ),
-    status: getMentorStatus(pendingQuestionCount, recentActivityOrder),
-  }
-}
+const mapMessage = (message: MentoringMessageResponse): ChatMessageSummary => ({
+  id: message.messageId,
+  questionId: message.questionId,
+  userId: message.userId,
+  authorName: message.userName,
+  content: message.content,
+  createdAt: formatDateTime(message.createdAt),
+  profileImageUrl: message.profileImageUrl,
+})
 
 // 멘토링 관리 화면의 서버 데이터와 파생 UI 상태를 관리한다.
 // 1) 멘토링/질문/메시지 목록을 불러온다
@@ -192,6 +217,8 @@ export function useMentoringPage() {
   const [questionSearchKeyword, setQuestionSearchKeyword] = useState('')
   const [mentorSortOrder, setMentorSortOrder] = useState<SortOrder>('latest')
   const [questionSortOrder, setQuestionSortOrder] = useState<SortOrder>('latest')
+  const [overview, setOverview] =
+    useState<AdminMentoringOverviewResponse>(initialOverview)
   const [mentors, setMentors] = useState<MentorSummary[]>([])
   const [questions, setQuestions] = useState<QuestionSummary[]>([])
   const [messages, setMessages] = useState<ChatMessageSummary[]>([])
@@ -214,51 +241,25 @@ export function useMentoringPage() {
       setErrorMessage('')
 
       try {
-        const [mentoringResponses, questionResponses, messageResponses] =
-          await Promise.all([getMentorings(), getQuestions(), getMessages()])
-
-        if (ignore) {
-          return
-        }
-
-        const nextQuestions = questionResponses.map((question) =>
-          mapQuestion(question, messageResponses),
-        )
-        const nextMentors = await Promise.all(
-          mentoringResponses.map(async (mentoring) => {
-            const mentor = createFallbackMentor(mentoring, nextQuestions)
-
-            try {
-              const mentorMembers = await getMentoringMembers(
-                mentoring.mentoringId,
-                'MENTOR',
-              )
-
-              return {
-                ...mentor,
-                role: `${mentorMembers.length}명 멘토`,
-              }
-            } catch {
-              return mentor
-            }
+        const mentorName = mentorSearchKeyword.trim() || undefined
+        const state =
+          selectedMentorFilter === '전체'
+            ? undefined
+            : adminMentorStateMap[selectedMentorFilter]
+        const [overviewResponse, mentorResponses] = await Promise.all([
+          getAdminMentoringOverview(),
+          getAdminMentors({
+            mentorName,
+            state,
           }),
-        )
+        ])
 
         if (ignore) {
           return
         }
 
-        setMentors(nextMentors)
-        setQuestions(nextQuestions)
-        setMessages(
-          messageResponses.map((message) => ({
-            id: message.messageId,
-            questionId: message.questionId,
-            userId: message.userId,
-            content: message.content,
-            createdAt: formatDateTime(message.createdAt),
-          })),
-        )
+        setOverview(overviewResponse)
+        setMentors(mentorResponses.map(mapAdminMentor))
       } catch (error) {
         if (ignore) {
           return
@@ -281,7 +282,130 @@ export function useMentoringPage() {
     return () => {
       ignore = true
     }
-  }, [])
+  }, [mentorSearchKeyword, selectedMentorFilter])
+
+  useEffect(() => {
+    if (viewMode !== 'mentor-detail' || selectedMentoringId === null) {
+      return
+    }
+
+    let ignore = false
+
+    const loadMentorDetail = async () => {
+      setIsLoading(true)
+      setErrorMessage('')
+
+      try {
+        const questionTitle = questionSearchKeyword.trim() || undefined
+        const status =
+          selectedQuestionFilter === '전체'
+            ? undefined
+            : adminQuestionStatusMap[selectedQuestionFilter]
+        const mentorDetail = await getAdminMentorDetail(selectedMentoringId, {
+          questionTitle,
+          status,
+        })
+
+        if (ignore) {
+          return
+        }
+
+        const nextMentor = mapAdminMentor(mentorDetail)
+        const nextQuestions = mentorDetail.questions.map((question) =>
+          mapAdminQuestion(question, mentorDetail.mentorId),
+        )
+
+        setMentors((currentMentors) => {
+          const hasMentor = currentMentors.some(
+            (mentor) => mentor.id === nextMentor.id,
+          )
+
+          if (!hasMentor) {
+            return [...currentMentors, nextMentor]
+          }
+
+          return currentMentors.map((mentor) =>
+            mentor.id === nextMentor.id ? nextMentor : mentor,
+          )
+        })
+        setQuestions(nextQuestions)
+        setMessages([])
+        setSelectedQuestionId((currentQuestionId) =>
+          nextQuestions.some((question) => question.id === currentQuestionId)
+            ? currentQuestionId
+            : null,
+        )
+      } catch (error) {
+        if (ignore) {
+          return
+        }
+
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : '멘토 상세 데이터를 불러오지 못했어요',
+        )
+      } finally {
+        if (!ignore) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    void loadMentorDetail()
+
+    return () => {
+      ignore = true
+    }
+  }, [questionSearchKeyword, selectedMentoringId, selectedQuestionFilter, viewMode])
+
+  useEffect(() => {
+    if (selectedQuestionId === null) {
+      return
+    }
+
+    let ignore = false
+
+    const loadQuestionDetail = async () => {
+      try {
+        const questionDetail = await getAdminQuestionDetail(selectedQuestionId)
+
+        if (ignore) {
+          return
+        }
+
+        const nextQuestion = mapDetailQuestion(questionDetail.question)
+
+        setQuestions((currentQuestions) =>
+          currentQuestions.map((question) =>
+            question.id === nextQuestion.id
+              ? {
+                  ...question,
+                  content: nextQuestion.content,
+                  mentee: nextQuestion.mentee,
+                  profileImageUrl: nextQuestion.profileImageUrl,
+                }
+              : question,
+          ),
+        )
+        setMessages(questionDetail.messages.map(mapMessage))
+      } catch (error) {
+        if (!ignore) {
+          setErrorMessage(
+            error instanceof Error
+              ? error.message
+              : '질문 상세 데이터를 불러오지 못했어요',
+          )
+        }
+      }
+    }
+
+    void loadQuestionDetail()
+
+    return () => {
+      ignore = true
+    }
+  }, [selectedQuestionId])
 
   const clearCloseChatPanelTimer = () => {
     if (!closeChatPanelTimeoutRef.current) {
@@ -292,18 +416,10 @@ export function useMentoringPage() {
     closeChatPanelTimeoutRef.current = null
   }
 
-  const completedQuestionCount = questions.filter(
-    (question) => question.status === '완료',
-  ).length
-  const pendingQuestionCount = questions.filter(
-    (question) => question.status === '대기',
-  ).length
-  const inProgressQuestionCount = questions.filter(
-    (question) => question.status === '진행',
-  ).length
-  const attentionNeededMentorCount = mentors.filter(
-    (mentor) => mentor.status !== '원활',
-  ).length
+  const completedQuestionCount = overview.completedQuestions
+  const pendingQuestionCount = overview.waitingQuestions
+  const inProgressQuestionCount = overview.progressQuestions
+  const attentionNeededMentorCount = overview.attentionMentors
   const mentorKeyword = mentorSearchKeyword.trim().toLowerCase()
   const questionKeyword = questionSearchKeyword.trim().toLowerCase()
 
@@ -379,6 +495,7 @@ export function useMentoringPage() {
     setViewMode('mentor-detail')
     setSelectedMentoringId(mentor.mentoringId)
     setSelectedQuestionId(null)
+    setMessages([])
   }
 
   const handleBack = () => {
@@ -386,6 +503,7 @@ export function useMentoringPage() {
     setIsChatPanelClosing(false)
     setViewMode('dashboard')
     setSelectedQuestionId(null)
+    setMessages([])
   }
 
   const handleDashboardBack = () => {
@@ -408,6 +526,7 @@ export function useMentoringPage() {
     closeChatPanelTimeoutRef.current = setTimeout(() => {
       setSelectedQuestionId(null)
       setIsChatPanelClosing(false)
+      setMessages([])
       closeChatPanelTimeoutRef.current = null
     }, CHAT_PANEL_ANIMATION_MS)
   }

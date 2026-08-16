@@ -93,7 +93,7 @@ export function QuestionList<TFilter extends string>({
           <QuestionTitle>{question.title}</QuestionTitle>
           <QuestionAuthor>
             <MentorProfile $size="xs">
-              <img src={profileImage} alt="" />
+              <img src={question.profileImageUrl || profileImage} alt="" />
             </MentorProfile>
             {question.mentee}
           </QuestionAuthor>

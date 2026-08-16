@@ -312,11 +312,11 @@ type DetailSummaryProps = {
 
 function DetailSummary({ mentor }: DetailSummaryProps) {
   return (
-    <DetailHeader>
-      <MentorCell>
-        <MentorProfile $size="lg">
-          <img src={profileImage} alt="" />
-        </MentorProfile>
+      <DetailHeader>
+        <MentorCell>
+          <MentorProfile $size="lg">
+            <img src={mentor?.profileImageUrl || profileImage} alt="" />
+          </MentorProfile>
         <MentorInfo>
           <MentorName>{mentor?.name ?? '-'}</MentorName>
           <MentorMeta>{mentor?.role ?? '-'}</MentorMeta>
@@ -354,7 +354,7 @@ function QuestionMessage({ question }: QuestionMessageProps) {
   return (
     <MessageGroup>
       <MentorProfile $size="sm">
-        <img src={profileImage} alt="" />
+        <img src={question.profileImageUrl || profileImage} alt="" />
       </MentorProfile>
       <MessageStack>
         <MessageAuthor>{question.mentee}</MessageAuthor>
@@ -377,11 +377,13 @@ function ChatMessage({ message, question }: ChatMessageProps) {
     <MessageGroup $align={isMenteeMessage ? undefined : 'right'}>
       {isMenteeMessage && (
         <MentorProfile $size="sm">
-          <img src={profileImage} alt="" />
+          <img src={message.profileImageUrl || question.profileImageUrl || profileImage} alt="" />
         </MentorProfile>
       )}
       <MessageStack>
-        {isMenteeMessage && <MessageAuthor>{question.mentee}</MessageAuthor>}
+        {isMenteeMessage && (
+          <MessageAuthor>{message.authorName || question.mentee}</MessageAuthor>
+        )}
         <MessageBubble $fromMentee={isMenteeMessage}>{message.content}</MessageBubble>
         <ChatMeta $align={isMenteeMessage ? undefined : 'right'}>
           {message.createdAt}

@@ -7,6 +7,7 @@ export type MentorSummary = {
   mentoringId: number
   name: string
   role: string
+  profileImageUrl?: string
   recentActivityOrder: number
   totalQuestions: string
   pendingQuestions: string
@@ -21,6 +22,7 @@ export type QuestionSummary = {
   title: string
   content: string
   mentee: string
+  profileImageUrl?: string
   createdAtOrder: number
   createdAt: string
   lastRepliedAt: string
@@ -31,6 +33,8 @@ export type ChatMessageSummary = {
   id: number
   questionId: number
   userId: number
+  authorName?: string
+  profileImageUrl?: string
   content: string
   createdAt: string
 }

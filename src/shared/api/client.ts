@@ -4,7 +4,7 @@ type ApiRequestOptions = Omit<RequestInit, 'body'> & {
 }
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
-const protectedPathPrefixes = ['/me', '/mentoring']
+const protectedPathPrefixes = ['/admin', '/me', '/mentoring']
 
 const createRequestUrl = (
   path: string,

@@ -28,7 +28,7 @@ export function MentorStatsRow({ mentor, onClick, active = false }: MentorStatsR
     >
       <MentorCell>
         <MentorProfile>
-          <img src={profileImage} alt="" />
+          <img src={mentor.profileImageUrl || profileImage} alt="" />
         </MentorProfile>
         <MentorInfo>
           <MentorName>{mentor.name}</MentorName>
