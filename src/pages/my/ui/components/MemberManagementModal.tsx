@@ -1,12 +1,20 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
+
+import {
+  changeAdminMemberRole,
+  getAdminMemberEmail,
+  getAdminMembers,
+  quitAdminMembers,
+} from '@/entities/member'
 
 import memberCheckboxIcon from '../assets/member-checkbox.svg'
 import memberCloseIcon from '../assets/member-close.svg'
 import memberKebabIcon from '../assets/member-kebab.svg'
 import memberSearchIcon from '../assets/member-search.svg'
 import {
-  managedMemberList,
+  formatManagedMember,
   memberActionCompleteText,
+  memberActionRoleMap,
   memberRoleLabel,
 } from '../../model/memberManagementModel'
 import { MemberConfirmModal } from './MemberConfirmModal'
@@ -32,27 +40,15 @@ export function MemberManagementModal({
   onClose,
   onComplete,
 }: MemberManagementModalProps) {
-  const [members, setMembers] = useState(managedMemberList)
-  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([])
-  const [openedMenuMemberId, setOpenedMenuMemberId] = useState<string | null>(
+  const [members, setMembers] = useState<ManagedMember[]>([])
+  const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([])
+  const [openedMenuMemberId, setOpenedMenuMemberId] = useState<number | null>(
     null,
   )
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [keyword, setKeyword] = useState('')
-
-  const filteredMembers = useMemo(() => {
-    const normalizedKeyword = keyword.trim()
-
-    if (!normalizedKeyword) {
-      return members
-    }
-
-    return members.filter((member) =>
-      [member.name, member.classInfo, member.email].some((value) =>
-        value.includes(normalizedKeyword),
-      ),
-    )
-  }, [keyword, members])
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -66,7 +62,39 @@ export function MemberManagementModal({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
-  const handleToggleMember = (memberId: string) => {
+  useEffect(() => {
+    let shouldIgnore = false
+    const timerId = window.setTimeout(async () => {
+      try {
+        setIsLoading(true)
+        const response = await getAdminMembers({
+          keyword: keyword.trim() || undefined,
+        })
+
+        if (shouldIgnore) {
+          return
+        }
+
+        setMembers(response.map(formatManagedMember))
+        setErrorMessage('')
+      } catch {
+        if (!shouldIgnore) {
+          setErrorMessage('멤버 목록을 불러오지 못했어요')
+        }
+      } finally {
+        if (!shouldIgnore) {
+          setIsLoading(false)
+        }
+      }
+    }, 250)
+
+    return () => {
+      shouldIgnore = true
+      window.clearTimeout(timerId)
+    }
+  }, [keyword])
+
+  const handleToggleMember = (memberId: number) => {
     setSelectedMemberIds((prevSelectedMemberIds) =>
       prevSelectedMemberIds.includes(memberId)
         ? prevSelectedMemberIds.filter((selectedId) => selectedId !== memberId)
@@ -77,8 +105,14 @@ export function MemberManagementModal({
   const handleCopyEmail = async (member: ManagedMember) => {
     setOpenedMenuMemberId(null)
 
-    await navigator.clipboard?.writeText(member.email)
-    onComplete(`${member.name}의 이메일을 복사했습니다`)
+    try {
+      const email = await getAdminMemberEmail(member.id)
+
+      await navigator.clipboard?.writeText(email)
+      onComplete(`${member.name}의 이메일을 복사했습니다`)
+    } catch {
+      window.alert('이메일을 복사하지 못했어요')
+    }
   }
 
   const handleOpenConfirm = (
@@ -89,35 +123,44 @@ export function MemberManagementModal({
     setPendingAction({ member, action })
   }
 
-  const handleConfirmAction = () => {
+  const handleConfirmAction = async () => {
     if (!pendingAction) {
       return
     }
 
     const { member, action } = pendingAction
 
-    if (action === 'remove') {
-      setMembers((prevMembers) =>
-        prevMembers.filter((prevMember) => prevMember.id !== member.id),
-      )
-      setSelectedMemberIds((prevSelectedMemberIds) =>
-        prevSelectedMemberIds.filter((selectedId) => selectedId !== member.id),
-      )
-    } else {
-      setMembers((prevMembers) =>
-        prevMembers.map((prevMember) =>
-          prevMember.id === member.id
-            ? {
-                ...prevMember,
-                role: action,
-              }
-            : prevMember,
-        ),
-      )
-    }
+    try {
+      if (action === 'remove') {
+        await quitAdminMembers({
+          userIds: [member.id],
+        })
+        setMembers((prevMembers) =>
+          prevMembers.filter((prevMember) => prevMember.id !== member.id),
+        )
+        setSelectedMemberIds((prevSelectedMemberIds) =>
+          prevSelectedMemberIds.filter((selectedId) => selectedId !== member.id),
+        )
+      } else {
+        const updatedMember = await changeAdminMemberRole({
+          role: memberActionRoleMap[action],
+          userId: member.id,
+        })
 
-    setPendingAction(null)
-    onComplete(`${member.name}을 ${memberActionCompleteText[action]}`)
+        setMembers((prevMembers) =>
+          prevMembers.map((prevMember) =>
+            prevMember.id === member.id
+              ? formatManagedMember(updatedMember)
+              : prevMember,
+          ),
+        )
+      }
+
+      setPendingAction(null)
+      onComplete(`${member.name}을 ${memberActionCompleteText[action]}`)
+    } catch {
+      window.alert('멤버 정보를 변경하지 못했어요')
+    }
   }
 
   return (
@@ -137,8 +180,12 @@ export function MemberManagementModal({
         </S.SearchBar>
 
         <S.List>
-          {filteredMembers.length > 0 ? (
-            filteredMembers.map((member) => {
+          {isLoading ? (
+            <S.Empty>불러오는 중이에요</S.Empty>
+          ) : errorMessage ? (
+            <S.Empty>{errorMessage}</S.Empty>
+          ) : members.length > 0 ? (
+            members.map((member) => {
               const isSelected = selectedMemberIds.includes(member.id)
               const isMenuOpen = openedMenuMemberId === member.id
 
