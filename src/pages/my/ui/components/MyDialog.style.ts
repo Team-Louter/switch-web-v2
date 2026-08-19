@@ -10,7 +10,7 @@ export const Overlay = styled.div`
   background: rgb(14 13 12 / 70%);
 `
 
-export const Card = styled.div<{ $size: 'sm' | 'lg' }>`
+export const Card = styled.div<{ $size: 'sm' | 'lg' | 'hug' }>`
   ${token.flexColumn}
   align-items: flex-start;
   box-sizing: border-box;
@@ -24,6 +24,13 @@ export const Card = styled.div<{ $size: 'sm' | 'lg' }>`
       ? css`
           width: 400px;
         `
+      : $size === 'hug'
+        ? css`
+            width: fit-content;
+            max-width: calc(100vw - 40px);
+            height: 300px;
+            justify-content: space-between;
+          `
       : css`
           width: 700px;
           height: 300px;
