@@ -49,6 +49,7 @@ export function MyPage() {
   } = useMyPage()
 
   const hasPosts = posts.length > 0
+  const canManageMembers = profile.role === 'LEADER'
   const canResendWithdrawalCode =
     withdrawStep === 'verify' && withdrawResendRemainingSeconds === 0
 
@@ -164,13 +165,15 @@ export function MyPage() {
             </S.ProfileTextGroup>
 
             <S.ProfileActions>
-              <S.ActionButton
-                type="button"
-                $variant="secondary"
-                onClick={() => setIsMemberManagementOpen(true)}
-              >
-                멤버 관리
-              </S.ActionButton>
+              {canManageMembers && (
+                <S.ActionButton
+                  type="button"
+                  $variant="secondary"
+                  onClick={() => setIsMemberManagementOpen(true)}
+                >
+                  멤버 관리
+                </S.ActionButton>
+              )}
               <S.ActionButton type="button">프로필 꾸미기</S.ActionButton>
               <S.ActionButton
                 type="button"

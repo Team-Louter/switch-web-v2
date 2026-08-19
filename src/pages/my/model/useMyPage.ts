@@ -111,6 +111,7 @@ const formatProfile = (profile: ProfileResponse): MyProfile => {
     classInfo: formatProfileClassInfo(profile),
     majors: formatMajorText(profile.majors),
     email: profile.userEmail,
+    role: profile.role,
   }
 
   if (profile.profileImageUrl) {

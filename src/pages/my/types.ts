@@ -1,3 +1,5 @@
+import type { ProfileRole } from '@/entities/profile'
+
 export type { ProfileMajor } from '@/entities/profile'
 
 export type MyActivityTabId = 'posts' | 'comments' | 'likes'
@@ -7,6 +9,7 @@ export type MyProfile = {
   classInfo: string
   majors: string
   email: string
+  role?: ProfileRole
   imageUrl?: string
 }
 
