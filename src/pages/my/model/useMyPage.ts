@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { formatProfileClassInfo } from '@/entities/profile'
 
@@ -50,7 +50,7 @@ const initialActivityTabs: MyActivityTab[] = [
 
 const initialStats: MyStat[] = [
   { id: 'point', label: '포인트', value: '-' },
-  { id: 'badge', label: '뱃지', value: '-' },
+  { id: 'badge', label: '뱃지', value: '0' },
   { id: 'view', label: '총 조회수', value: '-' },
 ]
 
@@ -58,6 +58,12 @@ const initialPostsByTab: Record<MyActivityTabId, MyPost[]> = {
   posts: [],
   comments: [],
   likes: [],
+}
+
+const initialLoadedTabs: Record<MyActivityTabId, boolean> = {
+  posts: false,
+  comments: false,
+  likes: false,
 }
 
 const getStringValue = (
@@ -139,6 +145,26 @@ const formatPost = (
 const formatOptionalStatValue = (value?: number) =>
   typeof value === 'number' ? value.toLocaleString() : '-'
 
+const formatActivityPosts = (
+  tabId: MyActivityTabId,
+  response: { content?: MyPostResponse[] },
+) =>
+  getPageItems(response).map((post, index) =>
+    formatPost(post, index, tabId === 'comments'),
+  )
+
+const getActivityTabPosts = (tabId: MyActivityTabId) => {
+  if (tabId === 'comments') {
+    return getMyComments()
+  }
+
+  if (tabId === 'likes') {
+    return getMyLikedPosts()
+  }
+
+  return getMyPosts()
+}
+
 // 마이 페이지의 프로필과 활동 데이터를 서버 응답 기준으로 구성한다.
 export function useMyPage() {
   const [activeTabId, setActiveTabId] = useState<MyActivityTabId>('posts')
@@ -148,8 +174,32 @@ export function useMyPage() {
     useState<MyActivityTab[]>(initialActivityTabs)
   const [postsByTab, setPostsByTab] =
     useState<Record<MyActivityTabId, MyPost[]>>(initialPostsByTab)
+  const [loadedTabs, setLoadedTabs] =
+    useState<Record<MyActivityTabId, boolean>>(initialLoadedTabs)
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+
+  const loadActivityTab = useCallback(async (tabId: MyActivityTabId) => {
+    setIsLoading(true)
+
+    try {
+      const response = await getActivityTabPosts(tabId)
+
+      setPostsByTab((currentPostsByTab) => ({
+        ...currentPostsByTab,
+        [tabId]: formatActivityPosts(tabId, response),
+      }))
+      setLoadedTabs((currentLoadedTabs) => ({
+        ...currentLoadedTabs,
+        [tabId]: true,
+      }))
+      setErrorMessage('')
+    } catch {
+      setErrorMessage('마이 페이지 정보를 불러오지 못했어요')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     let shouldIgnore = false
@@ -160,15 +210,11 @@ export function useMyPage() {
         const [
           profileResponse,
           postsResponse,
-          commentsResponse,
-          likedPostsResponse,
           point,
           receivedLikeCount,
         ] = await Promise.all([
           getMyProfile(),
           getMyPosts(),
-          getMyComments(),
-          getMyLikedPosts(),
           getMyPoint(),
           getMyReceivedLikeCount(),
         ])
@@ -197,7 +243,7 @@ export function useMyPage() {
             id: 'badge',
             label: '뱃지',
             value: formatOptionalStatValue(
-              getNumberValue(profileResponse, ['badgeCount']),
+              getNumberValue(profileResponse, ['badgeCount']) ?? 0,
             ),
           },
           {
@@ -209,15 +255,12 @@ export function useMyPage() {
           },
         ])
         setPostsByTab({
-          posts: getPageItems(postsResponse).map((post, index) =>
-            formatPost(post, index),
-          ),
-          comments: getPageItems(commentsResponse).map((post, index) =>
-            formatPost(post, index, true),
-          ),
-          likes: getPageItems(likedPostsResponse).map((post, index) =>
-            formatPost(post, index),
-          ),
+          ...initialPostsByTab,
+          posts: formatActivityPosts('posts', postsResponse),
+        })
+        setLoadedTabs({
+          ...initialLoadedTabs,
+          posts: true,
         })
         setErrorMessage('')
 
@@ -254,6 +297,14 @@ export function useMyPage() {
       shouldIgnore = true
     }
   }, [])
+
+  useEffect(() => {
+    if (isLoading || loadedTabs[activeTabId]) {
+      return
+    }
+
+    void loadActivityTab(activeTabId)
+  }, [activeTabId, isLoading, loadedTabs, loadActivityTab])
 
   const emptyMessage = useMemo(() => {
     if (isLoading) {
