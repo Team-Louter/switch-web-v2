@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { uploadFile } from '@/shared/api'
 import { Button } from '@/shared/ui'
 
 import { getMyProfile, updateMyProfile } from '../api'
@@ -9,6 +10,7 @@ import {
   isValidStudentId,
   profileMajorOptions,
 } from '../model/profileEditModel'
+import { createProfileImageFile } from '../model/profileImageUploadModel'
 import {
   ProfileCropModal,
   ProfileFormField,
@@ -16,6 +18,7 @@ import {
 } from './components'
 import { ProfileInputIcon } from './icons/ProfileInputIcon'
 import * as S from './ProfileEditPage.style'
+import type { ChangeEvent } from 'react'
 import type { ProfileCropState } from '../model/useProfileCropModal'
 import type { ProfileMajor } from '../types'
 
@@ -27,21 +30,30 @@ const defaultProfileCropState: ProfileCropState = {
   zoomValue: 0,
 }
 
+const isLocalProfileImageUrl = (url: string) => url.startsWith('data:')
+
+const isManagedProfileImageUrl = (url: string) =>
+  Boolean(url) && !isLocalProfileImageUrl(url)
+
 export function ProfileEditPage() {
   const navigate = useNavigate()
+  const profileImageInputRef = useRef<HTMLInputElement>(null)
   const [selectedMajorIds, setSelectedMajorIds] = useState<ProfileMajor[]>([])
   const [userName, setUserName] = useState('')
   const [studentId, setStudentId] = useState('')
   const [email, setEmail] = useState('')
   const [githubId, setGithubId] = useState('')
   const [linkedinId, setLinkedinId] = useState('')
+  const [serverProfileImageUrl, setServerProfileImageUrl] = useState('')
   const [profileImageUrl, setProfileImageUrl] = useState('')
   const [profileImageSrc, setProfileImageSrc] = useState('')
+  const [pendingProfileImageSrc, setPendingProfileImageSrc] = useState('')
   const [profileCropState, setProfileCropState] = useState(
     defaultProfileCropState,
   )
   const [isMajorOpen, setIsMajorOpen] = useState(false)
   const [isCropModalOpen, setIsCropModalOpen] = useState(false)
+  const [isUploadingProfileImage, setIsUploadingProfileImage] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
@@ -64,6 +76,7 @@ export function ProfileEditPage() {
         setEmail(profile.userEmail)
         setGithubId(profile.githubUrl ?? '')
         setLinkedinId(profile.linkedinUrl ?? '')
+        setServerProfileImageUrl(profile.profileImageUrl ?? '')
         setProfileImageUrl(profile.profileImageUrl ?? '')
         setProfileImageSrc(profile.profileImageUrl ?? '')
         setSelectedMajorIds(profile.majors ?? [])
@@ -93,18 +106,47 @@ export function ProfileEditPage() {
     setStudentId(value.replace(/\D/g, '').slice(0, 4))
   }
 
-  const handleOpenCropModal = () => {
-    if (!profileImageSrc) {
-      window.alert('수정할 프로필 이미지가 없어요')
+  const handleOpenProfileImageFileDialog = () => {
+    profileImageInputRef.current?.click()
+  }
+
+  const handleProfileImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+
+    if (!file) {
       return
     }
 
-    setIsCropModalOpen(true)
+    if (!file.type.startsWith('image/')) {
+      window.alert('이미지 파일만 업로드할 수 있어요')
+      event.target.value = ''
+      return
+    }
+
+    const reader = new FileReader()
+
+    reader.onload = () => {
+      if (typeof reader.result !== 'string') {
+        return
+      }
+
+      setPendingProfileImageSrc(reader.result)
+      setProfileCropState(defaultProfileCropState)
+      setIsCropModalOpen(true)
+      event.target.value = ''
+    }
+
+    reader.readAsDataURL(file)
   }
 
   const handleSaveProfile = async () => {
     const nextUserName = userName.trim()
     const nextStudentId = Number(studentId)
+    const nextProfileImageUrl = isManagedProfileImageUrl(profileImageUrl)
+      ? profileImageUrl
+      : isManagedProfileImageUrl(serverProfileImageUrl)
+        ? serverProfileImageUrl
+        : undefined
 
     if (!nextUserName) {
       window.alert('성명을 입력해 주세요')
@@ -116,13 +158,26 @@ export function ProfileEditPage() {
       return
     }
 
+    if (isUploadingProfileImage) {
+      window.alert('이미지 업로드가 끝난 뒤 저장해 주세요')
+      return
+    }
+
+    if (
+      isLocalProfileImageUrl(profileImageSrc) &&
+      !isManagedProfileImageUrl(profileImageUrl)
+    ) {
+      window.alert('이미지 변경은 아직 저장할 수 없어요')
+      return
+    }
+
     try {
       setIsSaving(true)
       await updateMyProfile({
         githubId,
         linkedinId,
         majors: selectedMajorIds,
-        profileImageUrl,
+        profileImageUrl: nextProfileImageUrl,
         studentId: nextStudentId,
         userName: nextUserName,
       })
@@ -134,6 +189,31 @@ export function ProfileEditPage() {
     }
   }
 
+  const handleCompleteProfileImageCrop = async (
+    croppedImageSrc: string,
+    nextCropState: ProfileCropState,
+  ) => {
+    setProfileImageSrc(croppedImageSrc)
+    setPendingProfileImageSrc('')
+    setProfileCropState(nextCropState)
+    setIsCropModalOpen(false)
+    setIsUploadingProfileImage(true)
+
+    try {
+      const profileImageFile = await createProfileImageFile(croppedImageSrc)
+      const uploadedFile = await uploadFile(profileImageFile)
+
+      setProfileImageUrl(uploadedFile.url)
+      setProfileImageSrc(uploadedFile.url)
+    } catch {
+      setProfileImageUrl(serverProfileImageUrl)
+      setProfileImageSrc(serverProfileImageUrl)
+      window.alert('이미지를 업로드하지 못했어요')
+    } finally {
+      setIsUploadingProfileImage(false)
+    }
+  }
+
   return (
     <S.Page>
       <S.Content>
@@ -142,14 +222,25 @@ export function ProfileEditPage() {
             {profileImageSrc && <S.ProfileImage src={profileImageSrc} alt="" />}
           </S.ProfileImageWrap>
           <S.ImageActions>
-            <S.LineButton type="button" onClick={handleOpenCropModal}>
+            <S.LineButton
+              type="button"
+              onClick={handleOpenProfileImageFileDialog}
+            >
               이미지 업로드
             </S.LineButton>
+            <S.HiddenFileInput
+              ref={profileImageInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleProfileImageChange}
+            />
             <S.DangerLineButton
               type="button"
               onClick={() => {
-                setProfileImageUrl('')
-                setProfileImageSrc('')
+                setProfileImageUrl(serverProfileImageUrl)
+                setProfileImageSrc(serverProfileImageUrl)
+                setPendingProfileImageSrc('')
+                setProfileCropState(defaultProfileCropState)
               }}
             >
               이미지 삭제
@@ -213,22 +304,29 @@ export function ProfileEditPage() {
         </S.FormRows>
 
         <S.SaveButtonWrap>
-          <Button size="lg" disabled={isSaving} onClick={handleSaveProfile}>
-            {isSaving ? '저장 중' : '저장'}
+          <Button
+            size="lg"
+            disabled={isSaving || isUploadingProfileImage}
+            onClick={handleSaveProfile}
+          >
+            {isUploadingProfileImage
+              ? '이미지 업로드 중'
+              : isSaving
+                ? '저장 중'
+                : '저장'}
           </Button>
         </S.SaveButtonWrap>
       </S.Content>
 
-      {isCropModalOpen && (
+      {isCropModalOpen && pendingProfileImageSrc && (
         <ProfileCropModal
-          imageSrc={profileImageSrc}
+          imageSrc={pendingProfileImageSrc}
           initialState={profileCropState}
-          onCancel={() => setIsCropModalOpen(false)}
-          onComplete={(croppedImageSrc, nextCropState) => {
-            setProfileImageSrc(croppedImageSrc)
-            setProfileCropState(nextCropState)
+          onCancel={() => {
+            setPendingProfileImageSrc('')
             setIsCropModalOpen(false)
           }}
+          onComplete={handleCompleteProfileImageCrop}
         />
       )}
     </S.Page>
