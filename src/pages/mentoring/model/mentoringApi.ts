@@ -3,17 +3,6 @@ import { apiRequest } from '@/shared/api'
 export type MentoringQuestionStatus = 'PAUSED' | 'ACTIVE' | 'DONE'
 export type MentoringMemberRole = 'LEADER' | 'MENTOR' | 'MENTEE' | 'STUDENT'
 export type MentoringFileTargetType = 'QUESTION' | 'MESSAGE'
-export type AdminMentoringState = 'ACTIVE' | 'DELAYED' | 'INACTIVE'
-export type AdminMentoringMajor =
-  | 'BACKEND'
-  | 'FRONTEND'
-  | 'DESIGN'
-  | 'IOS'
-  | 'ANDROID'
-  | 'SECURITY'
-  | 'GAME'
-  | 'AI'
-  | 'EMBEDDED'
 
 export type MentoringRequest = {
   mentoringName: string
@@ -94,79 +83,6 @@ export type UpdateMessageRequest = {
   content: string
   files?: MentoringFileRequest[]
 }
-
-export type AdminMentoringOverviewResponse = {
-  attentionMentors: number
-  waitingQuestions: number
-  progressQuestions: number
-  completedQuestions: number
-}
-
-export type AdminMentoringQuestion = {
-  questionId: number
-  title: string
-  writerId: number
-  writerName: string
-  writerProfileImageUrl?: string
-  createdAt: string
-  lastAnsweredAt?: string
-  status: MentoringQuestionStatus
-}
-
-export type AdminMentoringMentorResponse = {
-  mentorId: number
-  mentorName: string
-  profileImageUrl?: string
-  majors: AdminMentoringMajor[]
-  allQuestions: number
-  waitingAnswers: number
-  recentActivity?: string
-  state: AdminMentoringState
-}
-
-export type AdminMentoringMentorDetailResponse =
-  AdminMentoringMentorResponse & {
-    questions: AdminMentoringQuestion[]
-  }
-
-export type AdminMentoringQuestionDetailResponse = {
-  question: MentoringQuestionResponse
-  messages: MentoringMessageResponse[]
-}
-
-export type AdminMentorQuery = {
-  mentorName?: string
-  state?: AdminMentoringState
-}
-
-export type AdminMentorDetailQuery = {
-  questionTitle?: string
-  status?: MentoringQuestionStatus
-}
-
-export const getAdminMentoringOverview = () =>
-  apiRequest<AdminMentoringOverviewResponse>('/admin/mentoring/overview')
-
-export const getAdminMentors = (query?: AdminMentorQuery) =>
-  apiRequest<AdminMentoringMentorResponse[]>('/admin/mentoring/mentors', {
-    query,
-  })
-
-export const getAdminMentorDetail = (
-  mentorId: number,
-  query?: AdminMentorDetailQuery,
-) =>
-  apiRequest<AdminMentoringMentorDetailResponse>(
-    `/admin/mentoring/mentors/${mentorId}`,
-    {
-      query,
-    },
-  )
-
-export const getAdminQuestionDetail = (questionId: number) =>
-  apiRequest<AdminMentoringQuestionDetailResponse>(
-    `/admin/mentoring/questions/${questionId}`,
-  )
 
 export const getMentorings = () =>
   apiRequest<MentoringResponse[]>('/mentoring')

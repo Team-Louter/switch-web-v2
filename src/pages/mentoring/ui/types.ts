@@ -4,7 +4,7 @@ export type QuestionStatus = '대기' | '진행' | '완료'
 
 export type MentorSummary = {
   id: number
-  mentoringId: number
+  mentorId: number
   name: string
   role: string
   profileImageUrl?: string
@@ -17,7 +17,7 @@ export type MentorSummary = {
 
 export type QuestionSummary = {
   id: number
-  mentoringId: number
+  mentorId: number
   userId: number
   title: string
   content: string

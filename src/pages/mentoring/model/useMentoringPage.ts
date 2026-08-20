@@ -6,13 +6,17 @@ import {
   getAdminMentoringOverview,
   getAdminMentors,
   getAdminQuestionDetail,
-  type AdminMentoringMentorResponse,
-  type AdminMentoringOverviewResponse,
-  type AdminMentoringQuestion,
-  type AdminMentoringState,
-  type MentoringMessageResponse,
-  type MentoringQuestionResponse,
-  type MentoringQuestionStatus,
+} from './adminMentoringApi'
+import type {
+  AdminMentoringMentorsResponse,
+  AdminMentoringOverviewResponse,
+  AdminMentoringQuestion,
+  AdminMentoringState,
+} from './adminMentoringApi'
+import type {
+  MentoringMessageResponse,
+  MentoringQuestionResponse,
+  MentoringQuestionStatus,
 } from './mentoringApi'
 import type {
   ChatMessageSummary,
@@ -135,14 +139,14 @@ const formatRecentActivity = (dateText?: string) => {
   return `${elapsedDay}일 전`
 }
 
-const getMentorRoleText = (majors: AdminMentoringMentorResponse['majors']) =>
+const getMentorRoleText = (majors: AdminMentoringMentorsResponse['majors']) =>
   majors.map((major) => majorLabelMap[major]).join(' · ') || '멘토'
 
 const mapAdminMentor = (
-  mentor: AdminMentoringMentorResponse,
+  mentor: AdminMentoringMentorsResponse,
 ): MentorSummary => ({
   id: mentor.mentorId,
-  mentoringId: mentor.mentorId,
+  mentorId: mentor.mentorId,
   name: mentor.mentorName,
   pendingQuestions: getQuestionCountText(mentor.waitingAnswers),
   profileImageUrl: mentor.profileImageUrl,
@@ -155,11 +159,11 @@ const mapAdminMentor = (
 
 const mapAdminQuestion = (
   question: AdminMentoringQuestion,
-  mentoringId: number,
+  mentorId: number,
   content = '',
 ): QuestionSummary => ({
   id: question.questionId,
-  mentoringId,
+  mentorId,
   userId: question.writerId,
   title: question.title,
   content,
@@ -173,9 +177,10 @@ const mapAdminQuestion = (
 
 const mapDetailQuestion = (
   question: MentoringQuestionResponse,
+  mentorId: number,
 ): QuestionSummary => ({
   id: question.questionId,
-  mentoringId: question.mentoringId,
+  mentorId,
   userId: question.userId,
   title: question.title,
   content: question.content,
@@ -207,7 +212,7 @@ export function useMentoringPage() {
     null,
   )
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard')
-  const [selectedMentoringId, setSelectedMentoringId] = useState<number | null>(null)
+  const [selectedMentorId, setSelectedMentorId] = useState<number | null>(null)
   const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null)
   const [isChatPanelClosing, setIsChatPanelClosing] = useState(false)
   const [selectedMentorFilter, setSelectedMentorFilter] = useState<MentorFilter>('전체')
@@ -285,7 +290,7 @@ export function useMentoringPage() {
   }, [mentorSearchKeyword, selectedMentorFilter])
 
   useEffect(() => {
-    if (viewMode !== 'mentor-detail' || selectedMentoringId === null) {
+    if (viewMode !== 'mentor-detail' || selectedMentorId === null) {
       return
     }
 
@@ -301,7 +306,7 @@ export function useMentoringPage() {
           selectedQuestionFilter === '전체'
             ? undefined
             : adminQuestionStatusMap[selectedQuestionFilter]
-        const mentorDetail = await getAdminMentorDetail(selectedMentoringId, {
+        const mentorDetail = await getAdminMentorDetail(selectedMentorId, {
           questionTitle,
           status,
         })
@@ -357,7 +362,7 @@ export function useMentoringPage() {
     return () => {
       ignore = true
     }
-  }, [questionSearchKeyword, selectedMentoringId, selectedQuestionFilter, viewMode])
+  }, [questionSearchKeyword, selectedMentorId, selectedQuestionFilter, viewMode])
 
   useEffect(() => {
     if (selectedQuestionId === null) {
@@ -374,7 +379,10 @@ export function useMentoringPage() {
           return
         }
 
-        const nextQuestion = mapDetailQuestion(questionDetail.question)
+        const nextQuestion = mapDetailQuestion(
+          questionDetail.question,
+          selectedMentorId ?? 0,
+        )
 
         setQuestions((currentQuestions) =>
           currentQuestions.map((question) =>
@@ -405,7 +413,7 @@ export function useMentoringPage() {
     return () => {
       ignore = true
     }
-  }, [selectedQuestionId])
+  }, [selectedMentorId, selectedQuestionId])
 
   const clearCloseChatPanelTimer = () => {
     if (!closeChatPanelTimeoutRef.current) {
@@ -447,11 +455,11 @@ export function useMentoringPage() {
     )
 
   const selectedMentor =
-    mentors.find((mentor) => mentor.mentoringId === selectedMentoringId) ??
+    mentors.find((mentor) => mentor.mentorId === selectedMentorId) ??
     filteredMentors[0] ??
     mentors[0]
   const visibleQuestions = selectedMentor
-    ? questions.filter((question) => question.mentoringId === selectedMentor.mentoringId)
+    ? questions.filter((question) => question.mentorId === selectedMentor.mentorId)
     : questions
   const filteredQuestions = visibleQuestions
     .filter((question) => {
@@ -493,7 +501,7 @@ export function useMentoringPage() {
     clearCloseChatPanelTimer()
     setIsChatPanelClosing(false)
     setViewMode('mentor-detail')
-    setSelectedMentoringId(mentor.mentoringId)
+    setSelectedMentorId(mentor.mentorId)
     setSelectedQuestionId(null)
     setMessages([])
   }
@@ -502,6 +510,7 @@ export function useMentoringPage() {
     clearCloseChatPanelTimer()
     setIsChatPanelClosing(false)
     setViewMode('dashboard')
+    setSelectedMentorId(null)
     setSelectedQuestionId(null)
     setMessages([])
   }
