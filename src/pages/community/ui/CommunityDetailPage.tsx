@@ -57,6 +57,9 @@ export function CommunityDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const [isCommentsLoading, setIsCommentsLoading] = useState(true)
+  const [commentLoadError, setCommentLoadError] = useState<string | null>(null)
+  const [commentReloadKey, setCommentReloadKey] = useState(0)
   const [commentContent, setCommentContent] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false)
@@ -80,6 +83,10 @@ export function CommunityDetailPage() {
 
   const handleRetry = () => {
     setReloadKey((currentKey) => currentKey + 1)
+  }
+
+  const handleCommentsRetry = () => {
+    setCommentReloadKey((currentKey) => currentKey + 1)
   }
 
   const handleProfileImageError = (
@@ -182,25 +189,10 @@ export function CommunityDetailPage() {
       setLoadError(null)
 
       try {
-        const [postResponse, rootComments] = await Promise.all([
-          getPost(postId),
-          getComments(postId),
-        ])
-        const replies = await Promise.all(
-          rootComments.map((comment) =>
-            comment.replyCount > 0
-              ? getCommentReplies(postId, comment.commentId)
-              : Promise.resolve([]),
-          ),
-        )
-        const allComments = rootComments.flatMap((comment, index) => [
-          comment,
-          ...replies[index],
-        ])
+        const postResponse = await getPost(postId)
 
         if (!isCancelled) {
           setPost(postResponse)
-          setComments(allComments)
         }
       } catch {
         if (!isCancelled) {
@@ -221,6 +213,57 @@ export function CommunityDetailPage() {
       isCancelled = true
     }
   }, [postId, reloadKey])
+
+  useEffect(() => {
+    let isCancelled = false
+
+    async function loadComments() {
+      if (!Number.isSafeInteger(postId) || postId <= 0) {
+        setComments([])
+        setCommentLoadError(null)
+        setIsCommentsLoading(false)
+        return
+      }
+
+      setIsCommentsLoading(true)
+      setCommentLoadError(null)
+      setComments([])
+
+      try {
+        const rootComments = await getComments(postId)
+        const replies = await Promise.all(
+          rootComments.map((comment) =>
+            comment.replyCount > 0
+              ? getCommentReplies(postId, comment.commentId)
+              : Promise.resolve([]),
+          ),
+        )
+        const allComments = rootComments.flatMap((comment, index) => [
+          comment,
+          ...replies[index],
+        ])
+
+        if (!isCancelled) {
+          setComments(allComments)
+        }
+      } catch {
+        if (!isCancelled) {
+          setComments([])
+          setCommentLoadError('댓글을 불러오지 못했습니다.')
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsCommentsLoading(false)
+        }
+      }
+    }
+
+    void loadComments()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [postId, reloadKey, commentReloadKey])
 
   return (
     <S.Page>
@@ -415,7 +458,24 @@ export function CommunityDetailPage() {
               </S.CommentComposer>
 
               <S.CommentList aria-label="댓글 목록">
-                {comments.length === 0 && (
+                {isCommentsLoading && (
+                  <S.CommentStatus role="status">
+                    댓글을 불러오는 중입니다.
+                  </S.CommentStatus>
+                )}
+                {!isCommentsLoading && commentLoadError && (
+                  <S.CommentStatus role="alert">
+                    {commentLoadError}
+                    <Button
+                      size="sm"
+                      variant="neutral"
+                      onClick={handleCommentsRetry}
+                    >
+                      다시 시도
+                    </Button>
+                  </S.CommentStatus>
+                )}
+                {!isCommentsLoading && !commentLoadError && comments.length === 0 && (
                   <S.CommentStatus>첫 댓글을 남겨보세요.</S.CommentStatus>
                 )}
                 {comments.map((comment) => (
