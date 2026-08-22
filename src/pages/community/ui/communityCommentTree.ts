@@ -20,6 +20,10 @@ export type CommunityCommentDeleteHandler = (
   commentId: number,
 ) => Promise<string | null>
 
+export type CommunityReplyLoadHandler = (
+  parentCommentId: number,
+) => Promise<string | null>
+
 export function buildCommentTree(
   comments: CommentResponse[],
 ): CommentTreeNode[] {
@@ -81,9 +85,63 @@ export function appendReplyComment(
   ]
 }
 
+export function appendCommentReplies(
+  comments: CommentResponse[],
+  parentCommentId: number,
+  replies: CommentResponse[],
+): CommentResponse[] {
+  const parentIndex = comments.findIndex(
+    (comment) => comment.commentId === parentCommentId,
+  )
+
+  if (parentIndex === -1) {
+    return comments
+  }
+
+  const existingCommentIds = new Set(
+    comments.map((comment) => comment.commentId),
+  )
+  const newReplies = replies.filter(
+    (reply) => !existingCommentIds.has(reply.commentId),
+  )
+
+  if (newReplies.length === 0) {
+    return comments
+  }
+
+  const parentComment = comments[parentIndex]
+  let insertIndex = parentIndex + 1
+
+  while (
+    insertIndex < comments.length &&
+    comments[insertIndex].depth > parentComment.depth
+  ) {
+    insertIndex += 1
+  }
+
+  const repliesWithDepth = newReplies.map((reply) => ({
+    ...reply,
+    depth: parentComment.depth + 1,
+  }))
+
+  return [
+    ...comments.slice(0, insertIndex),
+    ...repliesWithDepth,
+    ...comments.slice(insertIndex),
+  ]
+}
+
 export function getDescendantCommentCount(node: CommentTreeNode): number {
-  return node.children.reduce(
-    (count, child) => count + 1 + getDescendantCommentCount(child),
+  const unloadedReplyCount = Math.max(
+    node.comment.replyCount - node.children.length,
     0,
+  )
+
+  return (
+    unloadedReplyCount +
+    node.children.reduce(
+      (count, child) => count + 1 + getDescendantCommentCount(child),
+      0,
+    )
   )
 }
