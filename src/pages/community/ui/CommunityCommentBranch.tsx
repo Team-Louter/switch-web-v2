@@ -15,7 +15,6 @@ import { ConfirmModal } from '@/shared/ui'
 
 import kebabIcon from '../assets/svg/kebab.svg'
 import {
-  getDescendantCommentCount,
   type CommentTreeNode,
   type CommunityCommentDeleteHandler,
   type CommunityCommentUpdateHandler,
@@ -82,6 +81,9 @@ export function CommunityCommentBranch({
   const [replySubmitError, setReplySubmitError] = useState<string | null>(null)
   const [isRepliesLoading, setIsRepliesLoading] = useState(false)
   const [replyLoadError, setReplyLoadError] = useState<string | null>(null)
+  const [hasReplyLoadAttempted, setHasReplyLoadAttempted] = useState(
+    node.children.length > 0,
+  )
   const [isCommentMenuOpen, setIsCommentMenuOpen] = useState(false)
   const [isCommentEditing, setIsCommentEditing] = useState(false)
   const [editedCommentContent, setEditedCommentContent] = useState('')
@@ -94,21 +96,18 @@ export function CommunityCommentBranch({
   const commentMenuRef = useRef<HTMLDivElement>(null)
 
   const loadedReplyCount = node.children.length
-  const hasReplies = loadedReplyCount > 0 || comment.replyCount > 0
+  const hasReplies = loadedReplyCount > 0
   const canManageComment = currentMemberId === comment.userId
-  const descendantCommentCount = getDescendantCommentCount(node)
-  const hasUnloadedReplies = loadedReplyCount < comment.replyCount
-  const hasDeferredReplyLoad = comment.depth >= 2 && hasUnloadedReplies
   const requiresInitialReplyLoad =
-    hasDeferredReplyLoad && loadedReplyCount === 0
+    !hasReplyLoadAttempted && loadedReplyCount === 0
   const shouldShowReplies =
-    !requiresInitialReplyLoad && (isExpandedByAncestor || isRepliesOpen)
+    hasReplies && (isExpandedByAncestor || isRepliesOpen)
   const visibleReplies = node.children.slice(0, visibleReplyCount)
   const hasHiddenReplies = node.children.length > visibleReplies.length
   const hasCollapseControl = !isExpandedByAncestor
   const repliesToggleLabel = isRepliesOpen
     ? '답글 숨기기'
-    : `답글 ${descendantCommentCount}개`
+    : '답글 보기'
   const repliesLoadLabel = replyLoadError
     ? '답글 다시 불러오기'
     : '답글 더보기'
@@ -147,6 +146,7 @@ export function CommunityCommentBranch({
       setIsRepliesOpen(true)
       setVisibleReplyCount(node.children.length + 1)
       setReplyLoadError(null)
+      setHasReplyLoadAttempted(true)
       handleReplyComposerCancel()
     }
 
@@ -164,6 +164,10 @@ export function CommunityCommentBranch({
     const loadError = await onRepliesLoad(comment.commentId)
 
     setReplyLoadError(loadError)
+    if (!loadError) {
+      setHasReplyLoadAttempted(true)
+      setIsRepliesOpen(true)
+    }
     setIsRepliesLoading(false)
   }
 
@@ -453,7 +457,6 @@ export function CommunityCommentBranch({
               {visibleReplies.map((child, index) => {
                 const hasFollowingItem =
                   index < visibleReplies.length - 1 ||
-                  hasDeferredReplyLoad ||
                   hasHiddenReplies ||
                   hasCollapseControl
 
@@ -473,21 +476,6 @@ export function CommunityCommentBranch({
                   />
                 )
               })}
-              {hasDeferredReplyLoad &&
-                (isRepliesLoading ? (
-                  <ReplyLoadingSkeleton isWithinReplies />
-                ) : (
-                  <S.RepliesToggleRow $isWithinReplies>
-                    <S.RepliesToggle
-                      type="button"
-                      aria-label={repliesLoadLabel}
-                      onClick={() => void handleRepliesLoad()}
-                    >
-                      {repliesLoadLabel}
-                      <S.RepliesCaret $isOpen={false} aria-hidden="true" />
-                    </S.RepliesToggle>
-                  </S.RepliesToggleRow>
-                ))}
               {hasHiddenReplies && (
                 <S.RepliesToggleRow $isWithinReplies>
                   <S.RepliesToggle
