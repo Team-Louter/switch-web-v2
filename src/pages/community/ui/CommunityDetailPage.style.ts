@@ -507,7 +507,7 @@ export const BodyText = styled.div`
   }
 
   a {
-    color: ${token.colors.primary.primary70};
+    color: rgb(255, 187, 0);
     text-decoration: underline;
     text-underline-offset: 3px;
   }
