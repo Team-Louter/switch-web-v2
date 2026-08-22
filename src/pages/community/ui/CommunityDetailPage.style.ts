@@ -7,10 +7,6 @@ interface SkeletonBlockProps {
   $width?: string
 }
 
-interface PinPostButtonProps {
-  $pinned: boolean
-}
-
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
@@ -233,31 +229,78 @@ export const PostDate = styled.time`
   white-space: nowrap;
 `
 
-export const PinPostButton = styled.button<PinPostButtonProps>`
+export const PostMenu = styled.div`
+  position: relative;
+  flex: 0 0 auto;
+`
+
+export const PostMenuButton = styled.button`
   ${token.flexCenter}
   box-sizing: border-box;
-  min-width: 82px;
+  width: 34px;
   height: 34px;
-  padding: 0 12px;
-  border: 1px solid
-    ${({ $pinned }) =>
-      $pinned ? token.colors.primary.primary50 : token.colors.gray.gray30};
+  padding: 0;
+  border: 0;
   border-radius: ${token.shapes.small};
-  color: ${({ $pinned }) =>
-    $pinned ? token.colors.primary.primary90 : token.colors.gray.gray70};
-  background: ${({ $pinned }) =>
-    $pinned ? token.colors.primary.primary10 : token.colors.white};
-  ${token.typography('body', 'sm', 'bold')}
+  background: transparent;
   cursor: pointer;
 
   &:hover:not(:disabled) {
-    border-color: ${token.colors.primary.primary50};
-    background: ${token.colors.primary.primary0};
+    background: ${token.colors.gray.gray0};
   }
 
   &:focus-visible {
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
+`
+
+export const PostMenuIcon = styled.img`
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  transform: rotate(90deg);
+`
+
+export const PostMenuPanel = styled.div`
+  ${token.flexColumn}
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 6px);
+  right: 0;
+  box-sizing: border-box;
+  min-width: 160px;
+  padding: 8px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.large};
+  background: ${token.colors.white};
+  box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
+`
+
+export const PostMenuItem = styled.button`
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: ${token.shapes.small};
+  color: ${token.colors.gray.gray100};
+  background: transparent;
+  ${token.typography('body', 'md', 'semibold')}
+  text-align: left;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: ${token.colors.gray.gray0};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: -2px;
   }
 
   &:disabled {
