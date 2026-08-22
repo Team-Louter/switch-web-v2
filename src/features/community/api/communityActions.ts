@@ -30,7 +30,7 @@ export async function uploadCommunityImage(
     '/files/upload',
     formData,
     {
-      params: { prefix: 'community' },
+      params: { prefix: 'posts' },
     },
   )
 
