@@ -1,10 +1,12 @@
 import { apiClient } from '@/shared/api'
 
 import type {
+  CommentReplyCountResponse,
   CommentResponse,
   GetPostsParams,
   PostPageResponse,
   PostResponse,
+  PostStatsResponse,
 } from '../model/types'
 
 const DEFAULT_POST_PAGE_SIZE = 16
@@ -51,6 +53,27 @@ export async function getCommentReplies(
 ): Promise<CommentResponse[]> {
   const response = await apiClient.get<CommentResponse[]>(
     `/posts/${postId}/comments/${commentId}/replies`,
+  )
+
+  return response.data
+}
+
+export async function getCommentTotalReplyCount(
+  postId: number,
+  commentId: number,
+): Promise<CommentReplyCountResponse> {
+  const response = await apiClient.get<CommentReplyCountResponse>(
+    `/posts/${postId}/comments/${commentId}/total-reply-count`,
+  )
+
+  return response.data
+}
+
+export async function getPostStats(
+  postId: number,
+): Promise<PostStatsResponse> {
+  const response = await apiClient.get<PostStatsResponse>(
+    `/posts/${postId}/stats`,
   )
 
   return response.data
