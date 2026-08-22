@@ -50,3 +50,16 @@ export function resolveCommunityAssetUrl(
     return undefined
   }
 }
+
+export function getCommunityFileDownloadUrl(
+  fileKey: string | undefined,
+): string | undefined {
+  const trimmedFileKey = fileKey?.trim()
+  const baseUrl = import.meta.env.VITE_BASE_URL?.replace(/\/$/, '')
+
+  if (!trimmedFileKey || !baseUrl) {
+    return undefined
+  }
+
+  return `${baseUrl}/files/download/${trimmedFileKey}`
+}
