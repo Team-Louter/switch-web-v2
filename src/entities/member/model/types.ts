@@ -3,6 +3,7 @@ export type MemberRole = 'LEADER' | 'MENTOR' | 'MENTEE' | 'STUDENT'
 export interface CurrentMember {
   userId: number
   role: MemberRole
+  profileImageUrl?: string
 }
 
 export interface Member {
