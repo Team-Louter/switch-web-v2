@@ -304,7 +304,9 @@ export function CommunityCommentBranch({
               </S.CommentEditForm>
             ) : (
               <>
-                <S.CommentText>{comment.content}</S.CommentText>
+                <S.CommentText $isDeleted={comment.deleted}>
+                  {comment.content}
+                </S.CommentText>
                 <S.ReplyActionButton
                   type="button"
                   aria-expanded={isReplyComposerOpen}
