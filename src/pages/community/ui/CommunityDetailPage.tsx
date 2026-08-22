@@ -13,7 +13,6 @@ import remarkGfm from 'remark-gfm'
 
 import {
   formatCommunityDate,
-  getCommunityFileDownloadUrl,
   getCommentReplies,
   getComments,
   getPost,
@@ -36,11 +35,9 @@ import { parseBlockNotePostContent } from '@/shared/lib/blockNotePostContent'
 import { renderCustomUnderlineMarkdown } from '@/shared/lib/markdown'
 import { Button } from '@/shared/ui'
 
-import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg'
 import backChevronIcon from '../assets/svg/back-chevron.svg'
 import heartColoredIcon from '../assets/svg/heart-colored.svg'
 import kebabIcon from '../assets/svg/kebab.svg'
-import paperclipIcon from '../assets/svg/paperclip.svg'
 import sendIcon from '../assets/svg/send.svg'
 import { CommunityPostBlockContent } from './CommunityPostBlockContent'
 import * as S from './CommunityDetailPage.style'
@@ -75,8 +72,6 @@ export function CommunityDetailPage() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [pinActionError, setPinActionError] = useState<string | null>(null)
 
-  const attachmentFiles =
-    post?.files?.filter((file) => !file.fileType.startsWith('image/')) ?? []
   const serializedPostContent = post?.postContent
   const postBlocks = useMemo(
     () =>
@@ -199,14 +194,6 @@ export function CommunityDetailPage() {
     if (event.key === 'Enter') {
       event.preventDefault()
       void handleCommentSubmit()
-    }
-  }
-
-  const handleAttachmentOpen = (fileKey: string) => {
-    const attachmentUrl = getCommunityFileDownloadUrl(fileKey)
-
-    if (attachmentUrl) {
-      window.open(attachmentUrl, '_blank', 'noopener,noreferrer')
     }
   }
 
@@ -477,27 +464,6 @@ export function CommunityDetailPage() {
                   </S.Stat>
                 </S.StatGroup>
 
-                {attachmentFiles.length > 0 && (
-                  <S.AttachmentList aria-label="첨부 파일">
-                    {attachmentFiles.map((file) => (
-                      <S.AttachmentButton
-                        key={file.fileId}
-                        type="button"
-                        aria-label={`${file.fileName} 첨부 파일 열기`}
-                        onClick={() => handleAttachmentOpen(file.fileUrl)}
-                      >
-                        <S.AttachmentLabel>
-                          <S.AttachmentIcon src={paperclipIcon} alt="" />
-                          첨부 파일 “{file.fileName}”
-                        </S.AttachmentLabel>
-                        <S.AttachmentChevron
-                          src={attachmentChevronIcon}
-                          alt=""
-                        />
-                      </S.AttachmentButton>
-                    ))}
-                  </S.AttachmentList>
-                )}
               </S.EngagementRow>
               <S.Divider />
             </S.Engagement>
