@@ -35,10 +35,6 @@ interface RepliesToggleRowProps {
   $isWithinReplies?: boolean
 }
 
-interface CommentChildrenProps {
-  $hasCollapseControl: boolean
-}
-
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
@@ -986,7 +982,7 @@ export const RepliesToggleRow = styled.div<RepliesToggleRowProps>`
   }
 `
 
-export const CommentChildren = styled.div<CommentChildrenProps>`
+export const CommentChildren = styled.div`
   ${token.flexColumn}
   box-sizing: border-box;
   gap: 12px;
