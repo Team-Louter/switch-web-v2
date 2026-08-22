@@ -93,6 +93,12 @@ function CommunityCommentBranch({
   onProfileImageError,
 }: CommunityCommentBranchProps) {
   const { comment } = node
+  const [isRepliesOpen, setIsRepliesOpen] = useState(false)
+
+  const hasReplies = node.children.length > 0
+  const repliesToggleLabel = isRepliesOpen
+    ? '답글 숨기기'
+    : `답글 ${node.children.length}개`
 
   return (
     <S.CommentTreeNode>
@@ -126,16 +132,30 @@ function CommunityCommentBranch({
           </S.CommentContent>
         </S.CommentItem>
       </S.CommentRow>
-      {node.children.length > 0 && (
-        <S.CommentChildren>
-          {node.children.map((child) => (
-            <CommunityCommentBranch
-              key={child.comment.commentId}
-              node={child}
-              onProfileImageError={onProfileImageError}
-            />
-          ))}
-        </S.CommentChildren>
+      {hasReplies && (
+        <>
+          {isRepliesOpen && (
+            <S.CommentChildren>
+              {node.children.map((child) => (
+                <CommunityCommentBranch
+                  key={child.comment.commentId}
+                  node={child}
+                  onProfileImageError={onProfileImageError}
+                />
+              ))}
+            </S.CommentChildren>
+          )}
+          <S.RepliesToggleRow>
+            <S.RepliesToggle
+              type="button"
+              aria-expanded={isRepliesOpen}
+              onClick={() => setIsRepliesOpen((isOpen) => !isOpen)}
+            >
+              {repliesToggleLabel}
+              <S.RepliesCaret $isOpen={isRepliesOpen} aria-hidden="true" />
+            </S.RepliesToggle>
+          </S.RepliesToggleRow>
+        </>
       )}
     </S.CommentTreeNode>
   )
