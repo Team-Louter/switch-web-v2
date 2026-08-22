@@ -355,7 +355,13 @@ export function CommunityWritePage() {
           'after',
         )
 
-        currentBlock = fileBlock
+        const insertedFileBlock = fileBlock
+          ? editor.getBlock(fileBlock.id)
+          : undefined
+
+        if (insertedFileBlock) {
+          currentBlock = insertedFileBlock
+        }
       } catch {
         // 파일 업로드 실패 메시지는 uploadPostFile에서 표시합니다.
       }
