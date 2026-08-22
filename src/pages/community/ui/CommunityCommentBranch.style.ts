@@ -1,4 +1,4 @@
-import styled, { css } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
@@ -27,8 +27,38 @@ interface RepliesToggleRowProps {
   $isWithinReplies?: boolean
 }
 
+interface ReplyLoadSkeletonLineProps {
+  $width: string
+}
+
 const checkboxCheckmark =
   'url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Cpath d=%22m3.25 8.25 2.75 2.75 6.75-6.75%22 fill=%22none%22 stroke=%22white%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222.25%22/%3E%3C/svg%3E")'
+
+const replyLoadShimmer = keyframes`
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+`
+
+const replyLoadSkeletonSurface = css`
+  border-radius: ${token.shapes.small};
+  background: linear-gradient(
+    90deg,
+    ${token.colors.gray.gray0} 25%,
+    ${token.colors.gray.gray10} 50%,
+    ${token.colors.gray.gray0} 75%
+  );
+  background-size: 200% 100%;
+  animation: ${replyLoadShimmer} 1.4s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
 
 export const CommentTreeNode = styled.div<CommentTreeNodeProps>`
   ${token.flexColumn}
@@ -134,6 +164,58 @@ export const RepliesCaret = styled.span<RepliesCaretProps>`
   }
 `
 
+export const ReplyLoadSkeleton = styled.div<RepliesToggleRowProps>`
+  position: relative;
+  align-self: stretch;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 12px;
+  box-sizing: border-box;
+  width: min(360px, calc(100% - 20px));
+  min-height: 64px;
+  margin-left: ${({ $isWithinReplies }) =>
+    $isWithinReplies ? '-28px' : '20px'};
+  padding: 16px 0 16px 28px;
+
+  &::before {
+    display: ${({ $hasConnector = true }) =>
+      $hasConnector ? 'block' : 'none'};
+    position: absolute;
+    top: -12px;
+    left: 12px;
+    box-sizing: border-box;
+    width: 16px;
+    height: 44px;
+    border-bottom: 1px solid ${token.colors.gray.gray10};
+    border-left: 1px solid ${token.colors.gray.gray10};
+    border-bottom-left-radius: 18px;
+    pointer-events: none;
+    content: '';
+  }
+`
+
+export const ReplyLoadSkeletonAvatar = styled.span`
+  ${replyLoadSkeletonSurface}
+  width: 32px;
+  height: 32px;
+  border-radius: ${token.shapes.circle};
+`
+
+export const ReplyLoadSkeletonContent = styled.div`
+  ${token.flexColumn}
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+`
+
+export const ReplyLoadSkeletonLine = styled.span<ReplyLoadSkeletonLineProps>`
+  ${replyLoadSkeletonSurface}
+  display: block;
+  width: ${({ $width }) => $width};
+  max-width: 100%;
+  height: 12px;
+`
+
 export const CommentRow = styled.article<CommentRowProps>`
   ${token.flexLeft}
   position: relative;
@@ -156,6 +238,7 @@ export const CommentRow = styled.article<CommentRowProps>`
   }
 
   &:has(+ ${CommentChildren})::before,
+  &:has(+ ${ReplyLoadSkeleton})::before,
   &:has(+ ${RepliesToggleRow})::before {
     display: block;
   }
