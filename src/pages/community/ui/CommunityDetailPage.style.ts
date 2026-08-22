@@ -907,6 +907,34 @@ export const CommentList = styled.div`
   overflow: visible;
 `
 
+export const CommentSkeletonList = styled.div`
+  ${token.flexColumn}
+  gap: 12px;
+  width: 100%;
+`
+
+export const CommentSkeletonItem = styled.div`
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+  padding: 16px;
+  border-radius: ${token.shapes.medium};
+  background: ${token.colors.white};
+`
+
+export const CommentSkeletonContent = styled.div`
+  ${token.flexColumn}
+  gap: 10px;
+  min-width: 0;
+`
+
+export const CommentSkeletonMeta = styled.div`
+  ${token.flexLeft}
+  gap: 8px;
+  width: 100%;
+`
+
 export const CommentStatus = styled.p`
   margin: 12px 4px;
   color: ${token.colors.gray.gray50};
