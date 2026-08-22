@@ -14,6 +14,7 @@ import remarkGfm from 'remark-gfm'
 
 import {
   formatCommunityDate,
+  getCommunityFileDownloadUrl,
   getCommentReplies,
   getComments,
   getPost,
@@ -36,9 +37,11 @@ import { parseBlockNotePostContent } from '@/shared/lib/blockNotePostContent'
 import { renderCustomUnderlineMarkdown } from '@/shared/lib/markdown'
 import { Button } from '@/shared/ui'
 
+import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg'
 import backChevronIcon from '../assets/svg/back-chevron.svg'
 import heartColoredIcon from '../assets/svg/heart-colored.svg'
 import kebabIcon from '../assets/svg/kebab.svg'
+import paperclipIcon from '../assets/svg/paperclip.svg'
 import sendIcon from '../assets/svg/send.svg'
 import { CommunityPostBlockContent } from './CommunityPostBlockContent'
 import * as S from './CommunityDetailPage.style'
@@ -71,10 +74,14 @@ export function CommunityDetailPage() {
   const [canManagePostPin, setCanManagePostPin] = useState(false)
   const [isPinMutating, setIsPinMutating] = useState(false)
   const [isPostMenuOpen, setIsPostMenuOpen] = useState(false)
+  const [isAttachmentListOpen, setIsAttachmentListOpen] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const [pinActionError, setPinActionError] = useState<string | null>(null)
   const postMenuRef = useRef<HTMLDivElement>(null)
 
+  const attachmentFiles =
+    post?.files?.filter((file) => !file.fileType.startsWith('image/')) ?? []
+  const firstAttachment = attachmentFiles[0]
   const serializedPostContent = post?.postContent
   const postBlocks = useMemo(
     () =>
@@ -205,6 +212,14 @@ export function CommunityDetailPage() {
     if (event.key === 'Escape') {
       setIsPostMenuOpen(false)
       event.currentTarget.querySelector<HTMLButtonElement>('button')?.focus()
+    }
+  }
+
+  const handleAttachmentOpen = (fileKeyOrUrl: string) => {
+    const attachmentUrl = getCommunityFileDownloadUrl(fileKeyOrUrl)
+
+    if (attachmentUrl) {
+      window.open(attachmentUrl, '_blank', 'noopener,noreferrer')
     }
   }
 
@@ -513,7 +528,57 @@ export function CommunityDetailPage() {
                     <S.StatIcon src={eyeIcon} alt="조회" />
                     {post.viewers}
                   </S.Stat>
-                </S.StatGroup>
+                  </S.StatGroup>
+
+                {firstAttachment && (
+                  <S.AttachmentArea>
+                    <S.AttachmentToggle
+                      type="button"
+                      aria-controls={`post-${post.postId}-attachments`}
+                      aria-expanded={isAttachmentListOpen}
+                      onClick={() =>
+                        setIsAttachmentListOpen((isOpen) => !isOpen)
+                      }
+                    >
+                      <S.AttachmentLabel>
+                        <S.AttachmentIcon src={paperclipIcon} alt="" />
+                        첨부 파일 “{firstAttachment.fileName}”
+                        {attachmentFiles.length > 1 &&
+                          ` 외 ${attachmentFiles.length - 1}개`}
+                      </S.AttachmentLabel>
+                      <S.AttachmentDivider aria-hidden="true" />
+                      <S.AttachmentChevron
+                        $isOpen={isAttachmentListOpen}
+                        src={attachmentChevronIcon}
+                        alt=""
+                      />
+                    </S.AttachmentToggle>
+                    <S.AttachmentPanel
+                      id={`post-${post.postId}-attachments`}
+                      $isOpen={isAttachmentListOpen}
+                      aria-hidden={!isAttachmentListOpen}
+                    >
+                      <S.AttachmentFileList>
+                        {attachmentFiles.map((file) => (
+                          <S.AttachmentFileButton
+                            key={file.fileId}
+                            type="button"
+                            tabIndex={isAttachmentListOpen ? 0 : -1}
+                            onClick={() => handleAttachmentOpen(file.fileUrl)}
+                          >
+                            <S.AttachmentFileIcon
+                              src={paperclipIcon}
+                              alt=""
+                            />
+                            <S.AttachmentFileName>
+                              {file.fileName}
+                            </S.AttachmentFileName>
+                          </S.AttachmentFileButton>
+                        ))}
+                      </S.AttachmentFileList>
+                    </S.AttachmentPanel>
+                  </S.AttachmentArea>
+                )}
 
               </S.EngagementRow>
               <S.Divider />
