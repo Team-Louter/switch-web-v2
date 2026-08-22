@@ -51,27 +51,89 @@ export function resolveCommunityAssetUrl(
   }
 }
 
-export function getCommunityFileDownloadUrl(
+function decodeFilePath(filePath: string): string {
+  try {
+    return decodeURIComponent(filePath)
+  } catch {
+    return filePath
+  }
+}
+
+function getFileKeyFromDownloadPath(filePath: string): string | undefined {
+  const normalizedFilePath = decodeFilePath(filePath)
+  const downloadPathPrefix = '/files/download/'
+
+  if (!normalizedFilePath.startsWith(downloadPathPrefix)) {
+    return undefined
+  }
+
+  return normalizedFilePath.slice(downloadPathPrefix.length) || undefined
+}
+
+function getFileKeyFromPresignedUrl(fileUrl: URL): string | undefined {
+  const isPresignedUrl = [
+    'X-Amz-Algorithm',
+    'X-Amz-Credential',
+    'X-Amz-Signature',
+  ].some((parameter) => fileUrl.searchParams.has(parameter))
+
+  if (!isPresignedUrl) {
+    return undefined
+  }
+
+  const normalizedPathname = decodeFilePath(fileUrl.pathname)
+  const postsPathIndex = normalizedPathname.indexOf('/posts/')
+
+  if (postsPathIndex < 0) {
+    return undefined
+  }
+
+  return normalizedPathname.slice(postsPathIndex + 1) || undefined
+}
+
+export function getCommunityFileKey(
   fileKeyOrUrl: string | undefined,
 ): string | undefined {
   const trimmedFileKeyOrUrl = fileKeyOrUrl?.trim()
-  const baseUrl = import.meta.env.VITE_BASE_URL?.replace(/\/$/, '')
 
   if (!trimmedFileKeyOrUrl) {
     return undefined
   }
 
-  if (/^https?:\/\//i.test(trimmedFileKeyOrUrl)) {
+  if (!/^https?:\/\//i.test(trimmedFileKeyOrUrl)) {
+    return getFileKeyFromDownloadPath(trimmedFileKeyOrUrl) ?? trimmedFileKeyOrUrl
+  }
+
+  try {
+    const fileUrl = new URL(trimmedFileKeyOrUrl)
+
+    return (
+      getFileKeyFromDownloadPath(fileUrl.pathname) ??
+      getFileKeyFromPresignedUrl(fileUrl) ??
+      trimmedFileKeyOrUrl
+    )
+  } catch {
     return trimmedFileKeyOrUrl
+  }
+}
+
+export function getCommunityFileDownloadUrl(
+  fileKeyOrUrl: string | undefined,
+): string | undefined {
+  const fileKey = getCommunityFileKey(fileKeyOrUrl)
+  const baseUrl = import.meta.env.VITE_BASE_URL?.replace(/\/$/, '')
+
+  if (!fileKey) {
+    return undefined
+  }
+
+  if (/^https?:\/\//i.test(fileKey)) {
+    return fileKey
   }
 
   if (!baseUrl) {
     return undefined
   }
 
-  if (trimmedFileKeyOrUrl.startsWith('/files/download/')) {
-    return `${baseUrl}${trimmedFileKeyOrUrl}`
-  }
-
-  return `${baseUrl}/files/download/${trimmedFileKeyOrUrl}`
+  return `${baseUrl}/files/download/${fileKey}`
 }
