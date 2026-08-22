@@ -1073,7 +1073,7 @@ export const CommentItem = styled.div`
   max-width: none;
   min-width: 0;
   padding: 16px;
-  border: 1px solid ${token.colors.gray.gray10};
+  border: 0;
   border-radius: ${token.shapes.medium};
   background: ${token.colors.white};
 `
