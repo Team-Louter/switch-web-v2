@@ -52,14 +52,26 @@ export function resolveCommunityAssetUrl(
 }
 
 export function getCommunityFileDownloadUrl(
-  fileKey: string | undefined,
+  fileKeyOrUrl: string | undefined,
 ): string | undefined {
-  const trimmedFileKey = fileKey?.trim()
+  const trimmedFileKeyOrUrl = fileKeyOrUrl?.trim()
   const baseUrl = import.meta.env.VITE_BASE_URL?.replace(/\/$/, '')
 
-  if (!trimmedFileKey || !baseUrl) {
+  if (!trimmedFileKeyOrUrl) {
     return undefined
   }
 
-  return `${baseUrl}/files/download/${trimmedFileKey}`
+  if (/^https?:\/\//i.test(trimmedFileKeyOrUrl)) {
+    return trimmedFileKeyOrUrl
+  }
+
+  if (!baseUrl) {
+    return undefined
+  }
+
+  if (trimmedFileKeyOrUrl.startsWith('/files/download/')) {
+    return `${baseUrl}${trimmedFileKeyOrUrl}`
+  }
+
+  return `${baseUrl}/files/download/${trimmedFileKeyOrUrl}`
 }
