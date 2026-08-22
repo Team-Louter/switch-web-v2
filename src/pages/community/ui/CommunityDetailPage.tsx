@@ -17,9 +17,11 @@ import {
   formatCommunityDate,
   getCommunityFileDownloadUrl,
   getCommentReplies,
+  getCommentTotalReplyCount,
   getComments,
   getPost,
   getPostCategoryLabel,
+  getPostStats,
   resolveCommunityAssetUrl,
   type CommentResponse,
   type PostResponse,
@@ -73,6 +75,24 @@ const markdownSanitizeSchema = {
 }
 
 const COMMENT_SKELETON_ITEMS = [0, 1, 2]
+
+async function withTotalReplyCount(
+  postId: number,
+  comment: CommentResponse,
+): Promise<CommentResponse> {
+  try {
+    const { count } = await getCommentTotalReplyCount(postId, comment.commentId)
+
+    return {
+      ...comment,
+      replyCount: Number.isSafeInteger(count)
+        ? Math.max(0, count)
+        : comment.replyCount,
+    }
+  } catch {
+    return comment
+  }
+}
 
 export function CommunityDetailPage() {
   const navigate = useNavigate()
@@ -297,7 +317,10 @@ export function CommunityDetailPage() {
         comment: CommentResponse,
         depth: number,
       ): Promise<CommentResponse[]> {
-        const currentComment = { ...comment, depth }
+        const currentComment = await withTotalReplyCount(replyPostId, {
+          ...comment,
+          depth,
+        })
 
         if (depth >= maxReplyDepth) {
           return [currentComment]
@@ -581,7 +604,7 @@ export function CommunityDetailPage() {
       const refreshVersion = postStatsRefreshVersionRef.current
 
       try {
-        const refreshedPost = await getPost(postId)
+        const refreshedStats = await getPostStats(postId)
 
         if (
           isCancelled ||
@@ -595,8 +618,8 @@ export function CommunityDetailPage() {
           currentPost
             ? {
                 ...currentPost,
-                likeCount: refreshedPost.likeCount,
-                viewers: refreshedPost.viewers,
+                likeCount: refreshedStats.likeCount,
+                viewers: refreshedStats.viewers,
               }
             : currentPost,
         )
@@ -633,10 +656,16 @@ export function CommunityDetailPage() {
 
       try {
         const rootComments = await getComments(postId)
+        const commentsWithReplyCounts = await Promise.all(
+          rootComments.map((comment) => withTotalReplyCount(postId, comment)),
+        )
 
         if (!isCancelled) {
           setComments(
-            rootComments.map((comment) => ({ ...comment, depth: 0 })),
+            commentsWithReplyCounts.map((comment) => ({
+              ...comment,
+              depth: 0,
+            })),
           )
         }
       } catch {
