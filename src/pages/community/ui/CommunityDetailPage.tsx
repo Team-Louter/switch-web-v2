@@ -63,9 +63,17 @@ interface CommentTreeNode {
   children: CommentTreeNode[]
 }
 
+type ReplySubmitHandler = (
+  parentCommentId: number,
+  content: string,
+  isAnonymous: boolean,
+) => Promise<string | null>
+
 interface CommunityCommentBranchProps {
   node: CommentTreeNode
   onProfileImageError: (event: SyntheticEvent<HTMLImageElement>) => void
+  onReplySubmit: ReplySubmitHandler
+  replyAuthorProfileImageUrl?: string
   isExpandedByAncestor?: boolean
   hasNextSibling?: boolean
 }
@@ -102,11 +110,18 @@ function getDescendantCommentCount(node: CommentTreeNode): number {
 function CommunityCommentBranch({
   node,
   onProfileImageError,
+  onReplySubmit,
+  replyAuthorProfileImageUrl,
   isExpandedByAncestor = false,
   hasNextSibling = false,
 }: CommunityCommentBranchProps) {
   const { comment } = node
   const [isRepliesOpen, setIsRepliesOpen] = useState(false)
+  const [isReplyComposerOpen, setIsReplyComposerOpen] = useState(false)
+  const [replyContent, setReplyContent] = useState('')
+  const [isReplyAnonymous, setIsReplyAnonymous] = useState(false)
+  const [isReplySubmitting, setIsReplySubmitting] = useState(false)
+  const [replySubmitError, setReplySubmitError] = useState<string | null>(null)
   const [visibleReplyCount, setVisibleReplyCount] = useState(
     VISIBLE_REPLY_COUNT,
   )
@@ -120,6 +135,50 @@ function CommunityCommentBranch({
   const repliesToggleLabel = isRepliesOpen
     ? '답글 숨기기'
     : `답글 ${descendantCommentCount}개`
+
+  const handleReplyComposerOpen = () => {
+    setIsReplyComposerOpen(true)
+    setReplySubmitError(null)
+  }
+
+  const handleReplyComposerCancel = () => {
+    setIsReplyComposerOpen(false)
+    setReplyContent('')
+    setIsReplyAnonymous(false)
+    setReplySubmitError(null)
+  }
+
+  const handleReplyFormSubmit = async () => {
+    const trimmedContent = replyContent.trim()
+
+    if (!trimmedContent || isReplySubmitting) {
+      return
+    }
+
+    setIsReplySubmitting(true)
+    setReplySubmitError(null)
+
+    const submitError = await onReplySubmit(
+      comment.commentId,
+      trimmedContent,
+      isReplyAnonymous,
+    )
+
+    if (submitError) {
+      setReplySubmitError(submitError)
+    } else {
+      handleReplyComposerCancel()
+    }
+
+    setIsReplySubmitting(false)
+  }
+
+  const handleReplyKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      void handleReplyFormSubmit()
+    }
+  }
 
   return (
     <S.CommentTreeNode $hasNextSibling={hasNextSibling}>
@@ -150,6 +209,72 @@ function CommunityCommentBranch({
               </S.CommentMenuButton>
             </S.CommentHeader>
             <S.CommentText>{comment.content}</S.CommentText>
+            <S.ReplyActionButton
+              type="button"
+              aria-expanded={isReplyComposerOpen}
+              onClick={handleReplyComposerOpen}
+            >
+              답글 작성
+            </S.ReplyActionButton>
+            {isReplyComposerOpen && (
+              <S.ReplyComposer>
+                <S.ReplyComposerAvatar
+                  src={replyAuthorProfileImageUrl ?? fallbackProfileImage}
+                  alt=""
+                  onError={onProfileImageError}
+                />
+                <S.ReplyComposerBody>
+                  <S.ReplyComposerInput
+                    type="text"
+                    aria-label={`${comment.userName} 댓글에 답글 작성`}
+                    placeholder="답글을 남겨보세요"
+                    value={replyContent}
+                    disabled={isReplySubmitting}
+                    onChange={(event) => {
+                      setReplyContent(event.target.value)
+                      setReplySubmitError(null)
+                    }}
+                    onKeyDown={handleReplyKeyDown}
+                  />
+                  <S.ReplyComposerFooter>
+                    <S.ReplyComposerTools>
+                      <S.ReplyAnonymousLabel>
+                        <S.AnonymousCheckbox
+                          type="checkbox"
+                          checked={isReplyAnonymous}
+                          disabled={isReplySubmitting}
+                          onChange={(event) =>
+                            setIsReplyAnonymous(event.target.checked)
+                          }
+                        />
+                        익명
+                      </S.ReplyAnonymousLabel>
+                    </S.ReplyComposerTools>
+                    <S.ReplyComposerActions>
+                      <S.ReplyCancelButton
+                        type="button"
+                        disabled={isReplySubmitting}
+                        onClick={handleReplyComposerCancel}
+                      >
+                        취소
+                      </S.ReplyCancelButton>
+                      <S.ReplySubmitButton
+                        type="button"
+                        disabled={!replyContent.trim() || isReplySubmitting}
+                        onClick={() => void handleReplyFormSubmit()}
+                      >
+                        답글
+                      </S.ReplySubmitButton>
+                    </S.ReplyComposerActions>
+                  </S.ReplyComposerFooter>
+                  {replySubmitError && (
+                    <S.ActionError role="alert">
+                      {replySubmitError}
+                    </S.ActionError>
+                  )}
+                </S.ReplyComposerBody>
+              </S.ReplyComposer>
+            )}
           </S.CommentContent>
         </S.CommentItem>
       </S.CommentRow>
@@ -167,6 +292,8 @@ function CommunityCommentBranch({
                     key={child.comment.commentId}
                     node={child}
                     onProfileImageError={onProfileImageError}
+                    onReplySubmit={onReplySubmit}
+                    replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
                     isExpandedByAncestor={shouldShowReplies}
                     hasNextSibling={hasFollowingItem}
                   />
@@ -239,6 +366,8 @@ export function CommunityDetailPage() {
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false)
   const [isHeartMutating, setIsHeartMutating] = useState(false)
   const [currentMemberId, setCurrentMemberId] = useState<number | null>(null)
+  const [currentMemberProfileImageUrl, setCurrentMemberProfileImageUrl] =
+    useState<string | undefined>(undefined)
   const [canManagePostPin, setCanManagePostPin] = useState(false)
   const [isPinMutating, setIsPinMutating] = useState(false)
   const [isPostDeleting, setIsPostDeleting] = useState(false)
@@ -251,6 +380,9 @@ export function CommunityDetailPage() {
   const canManagePost = currentMemberId === post?.userId
   const canOpenPostMenu = canManagePostPin || canManagePost
   const isPostActionMutating = isPinMutating || isPostDeleting
+  const replyAuthorProfileImageUrl = resolveCommunityAssetUrl(
+    currentMemberProfileImageUrl,
+  )
   const attachmentFiles =
     post?.files?.filter((file) => !file.fileType.startsWith('image/')) ?? []
   const firstAttachment = attachmentFiles[0]
@@ -374,6 +506,36 @@ export function CommunityDetailPage() {
     }
   }
 
+  const handleReplySubmit: ReplySubmitHandler = async (
+    parentCommentId,
+    content,
+    replyIsAnonymous,
+  ) => {
+    const trimmedContent = content.trim()
+
+    if (!post || !trimmedContent) {
+      return '답글 내용을 입력해주세요.'
+    }
+
+    try {
+      await createComment(post.postId, {
+        content: trimmedContent,
+        isAnonymous: replyIsAnonymous,
+        parentId: parentCommentId,
+      })
+      setPost((currentPost) =>
+        currentPost
+          ? { ...currentPost, commentCount: currentPost.commentCount + 1 }
+          : currentPost,
+      )
+      setCommentReloadKey((currentKey) => currentKey + 1)
+
+      return null
+    } catch {
+      return '답글을 등록하지 못했습니다.'
+    }
+  }
+
   const handleCommentKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       event.preventDefault()
@@ -443,11 +605,13 @@ export function CommunityDetailPage() {
 
         if (!isCancelled) {
           setCurrentMemberId(currentMember.userId)
+          setCurrentMemberProfileImageUrl(currentMember.profileImageUrl)
           setCanManagePostPin(canManagePin)
         }
       } catch {
         if (!isCancelled) {
           setCurrentMemberId(null)
+          setCurrentMemberProfileImageUrl(undefined)
           setCanManagePostPin(false)
         }
       }
@@ -917,6 +1081,8 @@ export function CommunityDetailPage() {
                     key={node.comment.commentId}
                     node={node}
                     onProfileImageError={handleProfileImageError}
+                    onReplySubmit={handleReplySubmit}
+                    replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
                   />
                 ))}
               </S.CommentList>
