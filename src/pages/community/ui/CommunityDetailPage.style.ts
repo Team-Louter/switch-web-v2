@@ -27,6 +27,14 @@ interface RepliesCaretProps {
   $isOpen: boolean
 }
 
+interface RepliesToggleRowProps {
+  $isWithinReplies?: boolean
+}
+
+interface CommentChildrenProps {
+  $hasCollapseControl: boolean
+}
+
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
@@ -936,11 +944,12 @@ export const CommentTreeNode = styled.div`
   width: 100%;
 `
 
-export const RepliesToggleRow = styled.div`
+export const RepliesToggleRow = styled.div<RepliesToggleRowProps>`
   position: relative;
   align-self: flex-start;
   box-sizing: border-box;
-  margin-left: 20px;
+  margin-left: ${({ $isWithinReplies }) =>
+    $isWithinReplies ? '-28px' : '20px'};
   padding-left: 28px;
 
   &::before {
@@ -958,7 +967,7 @@ export const RepliesToggleRow = styled.div`
   }
 `
 
-export const CommentChildren = styled.div`
+export const CommentChildren = styled.div<CommentChildrenProps>`
   ${token.flexColumn}
   position: relative;
   box-sizing: border-box;
@@ -970,7 +979,8 @@ export const CommentChildren = styled.div`
   &::before {
     position: absolute;
     top: -12px;
-    bottom: 18px;
+    bottom: ${({ $hasCollapseControl }) =>
+      $hasCollapseControl ? '24px' : '18px'};
     left: 12px;
     width: 1px;
     border-radius: ${token.shapes.circle};
