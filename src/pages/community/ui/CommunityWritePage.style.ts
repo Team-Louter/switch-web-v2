@@ -204,8 +204,14 @@ export const Editor = styled.section`
     display: none;
   }
 
+  .community-file-input {
+    display: none;
+  }
+
   .community-block-editor {
     flex: 1 1 0;
+    min-width: 0;
+    max-width: 100%;
     min-height: 0;
   }
 
@@ -238,6 +244,21 @@ export const Editor = styled.section`
 
   .community-block-editor .bn-block-content {
     min-height: 30px;
+  }
+
+  .community-block-editor [data-file-block] .bn-file-block-content-wrapper,
+  .community-block-editor [data-file-block] .bn-visual-media-wrapper {
+    box-sizing: border-box;
+    max-width: 100% !important;
+  }
+
+  .community-block-editor [data-file-block] .bn-visual-media {
+    display: block;
+    width: auto !important;
+    max-width: 100% !important;
+    max-height: 520px;
+    height: auto !important;
+    object-fit: contain;
   }
 
   .community-block-editor .bn-block-content[data-content-type='heading'] {
@@ -427,6 +448,78 @@ export const EditorDivider = styled.hr`
   background: ${token.colors.gray.gray10};
 `
 
+export const AttachmentSection = styled.section`
+  ${token.flexColumn}
+  flex: 0 0 auto;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 12px 0 54px;
+  box-sizing: border-box;
+
+  @container community-write (max-width: 560px) {
+    padding-inline: 12px;
+  }
+`
+
+export const AttachmentHeading = styled.h2`
+  margin: 0;
+  color: ${token.colors.gray.gray70};
+  ${token.typography('body', 'sm', 'bold')}
+  line-height: 1.4;
+`
+
+export const AttachmentList = styled.ul`
+  ${token.flexColumn}
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+`
+
+export const AttachmentItem = styled.li`
+  ${token.flexLeft}
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: ${token.shapes.small};
+  background: ${token.colors.white};
+`
+
+export const AttachmentFileName = styled.span`
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: ${token.colors.gray.gray80};
+  ${token.typography('body', 'sm', 'medium')}
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`
+
+export const AttachmentRemoveButton = styled.button`
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  color: ${token.colors.gray.gray60};
+  background: transparent;
+  ${token.typography('body', 'sm', 'medium')}
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: ${token.colors.danger.danger20};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+`
+
 export const SubmitError = styled.p`
   position: fixed;
   z-index: 20;
@@ -449,7 +542,7 @@ export const SubmitError = styled.p`
   }
 `
 
-export const ImageUploadStatus = styled.p`
+export const FileUploadStatus = styled.p`
   position: fixed;
   z-index: 20;
   right: 32px;
