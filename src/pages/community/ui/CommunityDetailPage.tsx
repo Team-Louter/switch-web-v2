@@ -70,7 +70,6 @@ const markdownSanitizeSchema = {
 }
 
 const COMMENT_SKELETON_ITEMS = [0, 1, 2]
-const PRELOADED_REPLY_DEPTH = 2
 
 export function CommunityDetailPage() {
   const navigate = useNavigate()
@@ -516,42 +515,11 @@ export function CommunityDetailPage() {
 
       try {
         const rootComments = await getComments(postId)
-        const loadedCommentIds = new Set<number>()
-
-        async function loadCommentBranch(
-          comment: CommentResponse,
-          depth: number,
-        ): Promise<CommentResponse[]> {
-          if (loadedCommentIds.has(comment.commentId)) {
-            return []
-          }
-
-          loadedCommentIds.add(comment.commentId)
-
-          const currentComment = { ...comment, depth }
-
-          if (
-            comment.replyCount === 0 ||
-            depth >= PRELOADED_REPLY_DEPTH
-          ) {
-            return [currentComment]
-          }
-
-          const replies = await getCommentReplies(postId, comment.commentId)
-          const replyBranches = await Promise.all(
-            replies.map((reply) => loadCommentBranch(reply, depth + 1)),
-          )
-
-          return [currentComment, ...replyBranches.flat()]
-        }
-
-        const commentBranches = await Promise.all(
-          rootComments.map((comment) => loadCommentBranch(comment, 0)),
-        )
-        const allComments = commentBranches.flat()
 
         if (!isCancelled) {
-          setComments(allComments)
+          setComments(
+            rootComments.map((comment) => ({ ...comment, depth: 0 })),
+          )
         }
       } catch {
         if (!isCancelled) {
