@@ -1,6 +1,7 @@
 export type MemberRole = 'LEADER' | 'MENTOR' | 'MENTEE' | 'STUDENT'
 
 export interface CurrentMember {
+  userId: number
   role: MemberRole
 }
 
