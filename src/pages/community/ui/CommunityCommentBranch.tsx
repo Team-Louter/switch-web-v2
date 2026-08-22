@@ -19,6 +19,7 @@ import {
   type CommentTreeNode,
   type CommunityCommentDeleteHandler,
   type CommunityCommentUpdateHandler,
+  type CommunityReplyLoadHandler,
   type CommunityReplySubmitHandler,
 } from './communityCommentTree'
 import * as S from './CommunityCommentBranch.style'
@@ -29,6 +30,7 @@ interface CommunityCommentBranchProps {
   node: CommentTreeNode
   onProfileImageError: (event: SyntheticEvent<HTMLImageElement>) => void
   onReplySubmit: CommunityReplySubmitHandler
+  onRepliesLoad: CommunityReplyLoadHandler
   onCommentUpdate: CommunityCommentUpdateHandler
   onCommentDelete: CommunityCommentDeleteHandler
   currentMemberId: number | null
@@ -41,6 +43,7 @@ export function CommunityCommentBranch({
   node,
   onProfileImageError,
   onReplySubmit,
+  onRepliesLoad,
   onCommentUpdate,
   onCommentDelete,
   currentMemberId,
@@ -55,6 +58,8 @@ export function CommunityCommentBranch({
   const [isReplyAnonymous, setIsReplyAnonymous] = useState(false)
   const [isReplySubmitting, setIsReplySubmitting] = useState(false)
   const [replySubmitError, setReplySubmitError] = useState<string | null>(null)
+  const [isRepliesLoading, setIsRepliesLoading] = useState(false)
+  const [replyLoadError, setReplyLoadError] = useState<string | null>(null)
   const [isCommentMenuOpen, setIsCommentMenuOpen] = useState(false)
   const [isCommentEditing, setIsCommentEditing] = useState(false)
   const [editedCommentContent, setEditedCommentContent] = useState('')
@@ -66,16 +71,27 @@ export function CommunityCommentBranch({
   )
   const commentMenuRef = useRef<HTMLDivElement>(null)
 
-  const hasReplies = node.children.length > 0
+  const loadedReplyCount = node.children.length
+  const hasReplies = loadedReplyCount > 0 || comment.replyCount > 0
   const canManageComment = currentMemberId === comment.userId
   const descendantCommentCount = getDescendantCommentCount(node)
-  const shouldShowReplies = isExpandedByAncestor || isRepliesOpen
+  const hasUnloadedReplies = loadedReplyCount < comment.replyCount
+  const hasDeferredReplyLoad = comment.depth >= 2 && hasUnloadedReplies
+  const requiresInitialReplyLoad =
+    hasDeferredReplyLoad && loadedReplyCount === 0
+  const shouldShowReplies =
+    !requiresInitialReplyLoad && (isExpandedByAncestor || isRepliesOpen)
   const visibleReplies = node.children.slice(0, visibleReplyCount)
   const hasHiddenReplies = node.children.length > visibleReplies.length
   const hasCollapseControl = !isExpandedByAncestor
   const repliesToggleLabel = isRepliesOpen
     ? '답글 숨기기'
     : `답글 ${descendantCommentCount}개`
+  const repliesLoadLabel = isRepliesLoading
+    ? '답글 불러오는 중'
+    : replyLoadError
+      ? '답글 다시 불러오기'
+      : '답글 더보기'
 
   const handleReplyComposerOpen = () => {
     setIsReplyComposerOpen(true)
@@ -110,10 +126,25 @@ export function CommunityCommentBranch({
     } else {
       setIsRepliesOpen(true)
       setVisibleReplyCount(node.children.length + 1)
+      setReplyLoadError(null)
       handleReplyComposerCancel()
     }
 
     setIsReplySubmitting(false)
+  }
+
+  const handleRepliesLoad = async () => {
+    if (isRepliesLoading) {
+      return
+    }
+
+    setIsRepliesLoading(true)
+    setReplyLoadError(null)
+
+    const loadError = await onRepliesLoad(comment.commentId)
+
+    setReplyLoadError(loadError)
+    setIsRepliesLoading(false)
   }
 
   const handleReplyKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -380,6 +411,20 @@ export function CommunityCommentBranch({
           </S.CommentContent>
         </S.CommentItem>
       </S.CommentRow>
+      {requiresInitialReplyLoad && (
+        <S.RepliesToggleRow>
+          <S.RepliesToggle
+            type="button"
+            aria-label={repliesLoadLabel}
+            aria-busy={isRepliesLoading}
+            disabled={isRepliesLoading}
+            onClick={() => void handleRepliesLoad()}
+          >
+            {repliesLoadLabel}
+            <S.RepliesCaret $isOpen={false} aria-hidden="true" />
+          </S.RepliesToggle>
+        </S.RepliesToggleRow>
+      )}
       {hasReplies && (
         <>
           {shouldShowReplies && (
@@ -387,6 +432,7 @@ export function CommunityCommentBranch({
               {visibleReplies.map((child, index) => {
                 const hasFollowingItem =
                   index < visibleReplies.length - 1 ||
+                  hasDeferredReplyLoad ||
                   hasHiddenReplies ||
                   hasCollapseControl
 
@@ -405,6 +451,20 @@ export function CommunityCommentBranch({
                   />
                 )
               })}
+              {hasDeferredReplyLoad && (
+                <S.RepliesToggleRow $isWithinReplies>
+                  <S.RepliesToggle
+                    type="button"
+                    aria-label={repliesLoadLabel}
+                    aria-busy={isRepliesLoading}
+                    disabled={isRepliesLoading}
+                    onClick={() => void handleRepliesLoad()}
+                  >
+                    {repliesLoadLabel}
+                    <S.RepliesCaret $isOpen={false} aria-hidden="true" />
+                  </S.RepliesToggle>
+                </S.RepliesToggleRow>
+              )}
               {hasHiddenReplies && (
                 <S.RepliesToggleRow $isWithinReplies>
                   <S.RepliesToggle
@@ -434,7 +494,7 @@ export function CommunityCommentBranch({
               )}
             </S.CommentChildren>
           )}
-          {hasCollapseControl && !isRepliesOpen && (
+          {hasCollapseControl && !isRepliesOpen && !requiresInitialReplyLoad && (
             <S.RepliesToggleRow>
               <S.RepliesToggle
                 type="button"
