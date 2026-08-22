@@ -17,6 +17,7 @@ import {
   type ChangeEvent,
   type DragEvent as ReactDragEvent,
   type FormEvent,
+  type MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
   useRef,
@@ -498,6 +499,44 @@ export function CommunityWritePage() {
     })
   }
 
+  const handleEditorContentAreaClick = (
+    event: ReactMouseEvent<HTMLDivElement>,
+  ) => {
+    if (
+      isEditorDisabled ||
+      !(event.target instanceof Element) ||
+      event.target.closest('.bn-block-outer')
+    ) {
+      return
+    }
+
+    const lastBlock = editor.document.at(-1)
+
+    if (!lastBlock) {
+      editor.focus()
+      return
+    }
+
+    if (
+      lastBlock.type === 'paragraph' &&
+      Array.isArray(lastBlock.content) &&
+      lastBlock.content.length === 0
+    ) {
+      editor.setTextCursorPosition(lastBlock, 'end')
+      return
+    }
+
+    const [emptyBlock] = editor.insertBlocks(
+      [{ type: 'paragraph' }],
+      lastBlock,
+      'after',
+    )
+
+    if (emptyBlock) {
+      editor.setTextCursorPosition(emptyBlock, 'start')
+    }
+  }
+
   const handleEditorDragLeave = (event: ReactDragEvent<HTMLElement>) => {
     if (
       event.relatedTarget instanceof Node &&
@@ -731,7 +770,10 @@ export function CommunityWritePage() {
             disabled={isEditorDisabled}
             onChange={handleFileSelection}
           />
-          <div className="community-block-editor">
+          <div
+            className="community-block-editor"
+            onClick={handleEditorContentAreaClick}
+          >
             <BlockNoteView
               editor={editor}
               editable={!isEditorDisabled}
