@@ -598,6 +598,7 @@ export function CommunityDetailPage() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [postActionError, setPostActionError] = useState<string | null>(null)
   const postMenuRef = useRef<HTMLDivElement>(null)
+  const attachmentListRef = useRef<HTMLDivElement>(null)
 
   const canManagePost = currentMemberId === post?.userId
   const canOpenPostMenu = canManagePostPin || canManagePost
@@ -913,6 +914,27 @@ export function CommunityDetailPage() {
   }, [isPostMenuOpen])
 
   useEffect(() => {
+    if (!isAttachmentListOpen) {
+      return
+    }
+
+    function handleOutsidePointerDown(event: PointerEvent) {
+      if (
+        event.target instanceof Node &&
+        !attachmentListRef.current?.contains(event.target)
+      ) {
+        setIsAttachmentListOpen(false)
+      }
+    }
+
+    document.addEventListener('pointerdown', handleOutsidePointerDown)
+
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsidePointerDown)
+    }
+  }, [isAttachmentListOpen])
+
+  useEffect(() => {
     let isCancelled = false
 
     async function loadPost() {
@@ -1219,7 +1241,7 @@ export function CommunityDetailPage() {
                   </S.StatGroup>
 
                 {firstAttachment && (
-                  <S.AttachmentArea>
+                  <S.AttachmentArea ref={attachmentListRef}>
                     <S.AttachmentToggle
                       type="button"
                       aria-controls={`post-${post.postId}-attachments`}
