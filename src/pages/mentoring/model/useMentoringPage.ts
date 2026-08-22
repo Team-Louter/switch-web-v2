@@ -6,6 +6,7 @@ import {
   getAdminMentoringOverview,
   getAdminMentors,
   getAdminQuestionDetail,
+  getCurrentUserProfile,
 } from './adminMentoringApi'
 import type {
   AdminMentoringMentorsResponse,
@@ -227,6 +228,7 @@ export function useMentoringPage() {
   const [mentors, setMentors] = useState<MentorSummary[]>([])
   const [questions, setQuestions] = useState<QuestionSummary[]>([])
   const [messages, setMessages] = useState<ChatMessageSummary[]>([])
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -235,6 +237,30 @@ export function useMentoringPage() {
       if (closeChatPanelTimeoutRef.current) {
         clearTimeout(closeChatPanelTimeoutRef.current)
       }
+    }
+  }, [])
+
+  useEffect(() => {
+    let ignore = false
+
+    const loadCurrentUser = async () => {
+      try {
+        const profile = await getCurrentUserProfile()
+
+        if (!ignore) {
+          setCurrentUserId(profile.userId)
+        }
+      } catch {
+        if (!ignore) {
+          setCurrentUserId(null)
+        }
+      }
+    }
+
+    void loadCurrentUser()
+
+    return () => {
+      ignore = true
     }
   }, [])
 
@@ -543,6 +569,7 @@ export function useMentoringPage() {
   return {
     attentionNeededMentorCount,
     completedQuestionCount,
+    currentUserId,
     errorMessage,
     filteredMentors,
     filteredQuestions,

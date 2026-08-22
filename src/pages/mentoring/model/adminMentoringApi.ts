@@ -67,6 +67,13 @@ export type AdminMentorDetailQuery = {
   status?: MentoringQuestionStatus
 }
 
+export type CurrentUserProfileResponse = {
+  userId: number
+}
+
+export const getCurrentUserProfile = () =>
+  apiRequest<CurrentUserProfileResponse>('/me')
+
 export const getAdminMentoringOverview = () =>
   apiRequest<AdminMentoringOverviewResponse>('/admin/mentoring/overview')
 

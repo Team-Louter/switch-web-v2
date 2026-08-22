@@ -552,8 +552,9 @@ export const MessageGroup = styled.div<{ $align?: 'right' }>`
   gap: 6px;
 `
 
-export const MessageStack = styled.div`
+export const MessageStack = styled.div<{ $align?: 'right' }>`
   ${token.flexColumnStart}
+  align-items: ${({ $align }) => ($align === 'right' ? 'flex-end' : 'flex-start')};
   gap: 8px;
   max-width: 78%;
   padding: 8px 0;
@@ -577,6 +578,7 @@ export const MessageBubble = styled.p<{ $fromMentee?: boolean }>`
   color: ${token.colors.gray.gray100};
   line-height: 1.2;
   word-break: keep-all;
+  overflow-wrap: anywhere;
   ${token.typography('body', 'md', 'medium')}
 `
 

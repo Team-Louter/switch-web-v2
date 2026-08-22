@@ -58,6 +58,7 @@ export function MentoringPage() {
   const {
     attentionNeededMentorCount,
     completedQuestionCount,
+    currentUserId,
     errorMessage,
     filteredMentors,
     filteredQuestions,
@@ -194,13 +195,17 @@ export function MentoringPage() {
           <ChatTimestamp>{selectedQuestion.createdAt}</ChatTimestamp>
           <ChatCard>
             <ChatLog>
-              <QuestionMessage question={selectedQuestion} />
+              <QuestionMessage
+                currentUserId={currentUserId}
+                question={selectedQuestion}
+              />
               {selectedMessages.length === 0 ? (
                 <StatusMessage>아직 답변 메시지가 없어요</StatusMessage>
               ) : (
                 selectedMessages.map((message) => (
                   <ChatMessage
                     key={message.id}
+                    currentUserId={currentUserId}
                     message={message}
                     question={selectedQuestion}
                   />
@@ -347,45 +352,54 @@ function DetailSummary({ mentor }: DetailSummaryProps) {
 }
 
 type QuestionMessageProps = {
+  currentUserId: number | null
   question: QuestionSummary
 }
 
-function QuestionMessage({ question }: QuestionMessageProps) {
+function QuestionMessage({ currentUserId, question }: QuestionMessageProps) {
+  const isOwnMessage = currentUserId !== null && question.userId === currentUserId
+
   return (
-    <MessageGroup>
-      <MentorProfile $size="sm">
-        <img src={question.profileImageUrl || profileImage} alt="" />
-      </MentorProfile>
-      <MessageStack>
-        <MessageAuthor>{question.mentee}</MessageAuthor>
+    <MessageGroup $align={isOwnMessage ? 'right' : undefined}>
+      {!isOwnMessage && (
+        <MentorProfile $size="sm">
+          <img src={question.profileImageUrl || profileImage} alt="" />
+        </MentorProfile>
+      )}
+      <MessageStack $align={isOwnMessage ? 'right' : undefined}>
+        {!isOwnMessage && <MessageAuthor>{question.mentee}</MessageAuthor>}
         <MessageBubble $fromMentee>{question.content}</MessageBubble>
-        <ChatMeta>{question.createdAt}</ChatMeta>
+        <ChatMeta $align={isOwnMessage ? 'right' : undefined}>
+          {question.createdAt}
+        </ChatMeta>
       </MessageStack>
     </MessageGroup>
   )
 }
 
 type ChatMessageProps = {
+  currentUserId: number | null
   message: ChatMessageSummary
   question: QuestionSummary
 }
 
-function ChatMessage({ message, question }: ChatMessageProps) {
-  const isMenteeMessage = message.userId === question.userId
+function ChatMessage({ currentUserId, message, question }: ChatMessageProps) {
+  const isOwnMessage = currentUserId !== null && message.userId === currentUserId
+  const isQuestionAuthorMessage = message.userId === question.userId
 
   return (
-    <MessageGroup $align={isMenteeMessage ? undefined : 'right'}>
-      {isMenteeMessage && (
+    <MessageGroup $align={isOwnMessage ? 'right' : undefined}>
+      {!isOwnMessage && (
         <MentorProfile $size="sm">
           <img src={message.profileImageUrl || question.profileImageUrl || profileImage} alt="" />
         </MentorProfile>
       )}
-      <MessageStack>
-        {isMenteeMessage && (
+      <MessageStack $align={isOwnMessage ? 'right' : undefined}>
+        {!isOwnMessage && (
           <MessageAuthor>{message.authorName || question.mentee}</MessageAuthor>
         )}
-        <MessageBubble $fromMentee={isMenteeMessage}>{message.content}</MessageBubble>
-        <ChatMeta $align={isMenteeMessage ? undefined : 'right'}>
+        <MessageBubble $fromMentee={isQuestionAuthorMessage}>{message.content}</MessageBubble>
+        <ChatMeta $align={isOwnMessage ? 'right' : undefined}>
           {message.createdAt}
         </ChatMeta>
       </MessageStack>
