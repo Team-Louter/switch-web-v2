@@ -19,8 +19,8 @@ interface PostMenuItemProps {
   $danger?: boolean
 }
 
-interface ReplyGuideProps {
-  $depth: number
+interface CommentRowProps {
+  $isReply: boolean
 }
 
 export const Page = styled.section`
@@ -926,24 +926,46 @@ export const ActionError = styled.p`
   line-height: 1.4;
 `
 
-export const CommentRow = styled.article`
+export const CommentTreeNode = styled.div`
+  ${token.flexColumn}
+  gap: 12px;
+  width: 100%;
+`
+
+export const CommentRow = styled.article<CommentRowProps>`
   ${token.flexLeft}
+  position: relative;
   align-items: stretch;
   gap: 12px;
   width: 100%;
   min-height: 0;
-`
-
-export const ReplyGuide = styled.span<ReplyGuideProps>`
-  position: relative;
-  align-self: stretch;
-  flex: 0 0 ${({ $depth }) => `${Math.min($depth, 5) * 28}px`};
 
   &::after {
+    display: ${({ $isReply }) => ($isReply ? 'block' : 'none')};
     position: absolute;
-    top: 12px;
-    bottom: 12px;
-    left: ${({ $depth }) => `${Math.min($depth, 5) * 28 - 16}px`};
+    top: 30px;
+    left: -12px;
+    width: 12px;
+    height: 2px;
+    background: ${token.colors.gray.gray10};
+    content: '';
+  }
+`
+
+export const CommentChildren = styled.div`
+  ${token.flexColumn}
+  position: relative;
+  box-sizing: border-box;
+  gap: 12px;
+  width: calc(100% - 32px);
+  margin-left: 32px;
+  padding-left: 24px;
+
+  &::before {
+    position: absolute;
+    top: -18px;
+    bottom: 18px;
+    left: 12px;
     width: 2px;
     border-radius: ${token.shapes.circle};
     background: ${token.colors.gray.gray10};
