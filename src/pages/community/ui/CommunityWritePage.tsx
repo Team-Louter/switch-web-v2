@@ -504,6 +504,7 @@ export function CommunityWritePage() {
   ) => {
     if (
       isEditorDisabled ||
+      isUploadingFile ||
       !(event.target instanceof Element) ||
       event.target.closest('.bn-block-outer')
     ) {
@@ -782,6 +783,12 @@ export function CommunityWritePage() {
             >
               <SideMenuController sideMenu={CommunityBlockSideMenu} />
             </BlockNoteView>
+            {isUploadingFile && (
+              <S.FileUploadSkeleton
+                role="status"
+                aria-label="파일을 업로드하는 중입니다."
+              />
+            )}
           </div>
         </S.Editor>
         {isUploadingFile && (
