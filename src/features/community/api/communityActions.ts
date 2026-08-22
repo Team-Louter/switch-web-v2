@@ -1,7 +1,11 @@
 import type { CommentResponse, PostResponse } from '@/entities/community'
 import { apiClient } from '@/shared/api'
 
-import type { CreateCommentRequest, CreatePostRequest } from '../model/types'
+import type {
+  CreateCommentRequest,
+  CreatePostRequest,
+  UpdateCommentRequest,
+} from '../model/types'
 
 interface FileUploadResponse {
   url: string
@@ -73,4 +77,24 @@ export async function createComment(
   )
 
   return response.data
+}
+
+export async function updateComment(
+  postId: number,
+  commentId: number,
+  request: UpdateCommentRequest,
+): Promise<CommentResponse> {
+  const response = await apiClient.put<CommentResponse>(
+    `/posts/${postId}/comments/${commentId}`,
+    request,
+  )
+
+  return response.data
+}
+
+export async function deleteComment(
+  postId: number,
+  commentId: number,
+): Promise<void> {
+  await apiClient.delete(`/posts/${postId}/comments/${commentId}`)
 }
