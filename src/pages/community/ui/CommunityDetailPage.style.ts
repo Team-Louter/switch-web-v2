@@ -1053,11 +1053,13 @@ export const CommentRow = styled.article<CommentRowProps>`
     display: ${({ $isReply }) => ($isReply ? 'block' : 'none')};
     position: absolute;
     z-index: 1;
-    top: 30px;
+    top: 0;
     left: -16px;
     width: 16px;
-    height: 1px;
-    background: ${token.colors.gray.gray10};
+    height: 32px;
+    border-bottom: 1px solid ${token.colors.gray.gray10};
+    border-left: 1px solid ${token.colors.gray.gray10};
+    border-bottom-left-radius: 18px;
     pointer-events: none;
     content: '';
   }
