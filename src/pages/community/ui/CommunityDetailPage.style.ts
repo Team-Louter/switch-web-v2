@@ -557,59 +557,6 @@ export const StatIcon = styled.img`
   object-fit: scale-down;
 `
 
-export const AttachmentList = styled.div`
-  ${token.flexRow}
-  flex: 1 1 0;
-  flex-wrap: wrap;
-  gap: 8px;
-  min-width: 0;
-`
-
-export const AttachmentButton = styled.button`
-  ${token.flexLeft}
-  min-width: 0;
-  gap: 12px;
-  box-sizing: border-box;
-  max-width: 100%;
-  height: 36px;
-  padding: 8px 12px;
-  overflow: hidden;
-  border: 0;
-  border-radius: ${token.shapes.small};
-  color: #404040;
-  background: #f5f5f5;
-  cursor: pointer;
-`
-
-export const AttachmentLabel = styled.span`
-  ${token.flexLeft}
-  gap: 4px;
-  min-width: 0;
-  overflow: hidden;
-  ${token.typography('body', 'md', 'medium')}
-  line-height: 1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`
-
-export const AttachmentIcon = styled.img`
-  width: 20px;
-  height: 20px;
-`
-
-export const AttachmentDivider = styled.span`
-  width: 1px;
-  height: 22px;
-  background: ${token.colors.gray.gray20};
-`
-
-export const AttachmentChevron = styled.img`
-  width: 20px;
-  height: 12px;
-  object-fit: contain;
-  transform: rotate(180deg);
-`
-
 export const Comments = styled.section`
   ${token.flexColumn}
   gap: 20px;
