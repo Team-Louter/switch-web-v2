@@ -3,7 +3,7 @@ export {
   createPost,
   setPostPinned,
   togglePostHeart,
-  uploadCommunityImage,
+  uploadCommunityFile,
 } from './api/communityActions'
 export type {
   CreateCommentRequest,
