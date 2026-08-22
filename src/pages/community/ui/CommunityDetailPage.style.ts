@@ -32,6 +32,7 @@ interface RepliesCaretProps {
 }
 
 interface RepliesToggleRowProps {
+  $hasConnector?: boolean
   $isWithinReplies?: boolean
 }
 
@@ -968,6 +969,8 @@ export const RepliesToggleRow = styled.div<RepliesToggleRowProps>`
   padding-left: 28px;
 
   &::before {
+    display: ${({ $hasConnector = true }) =>
+      $hasConnector ? 'block' : 'none'};
     position: absolute;
     top: -12px;
     left: 12px;
