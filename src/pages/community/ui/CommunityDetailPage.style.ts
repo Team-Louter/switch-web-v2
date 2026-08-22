@@ -19,6 +19,10 @@ interface PostMenuItemProps {
   $danger?: boolean
 }
 
+interface CommentMenuItemProps {
+  $danger?: boolean
+}
+
 interface CommentRowProps {
   $isReply: boolean
 }
@@ -1149,32 +1153,97 @@ export const CommentDate = styled.time`
   white-space: nowrap;
 `
 
+export const CommentMenu = styled.div`
+  position: relative;
+  flex: 0 0 auto;
+`
+
 export const CommentMenuButton = styled.button`
   ${token.flexCenter}
-  flex: 0 0 24.01px;
-  width: 24.01px;
-  height: 24.01px;
+  box-sizing: border-box;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: 0;
-  border-radius: ${token.shapes.xsmall};
+  border-radius: ${token.shapes.small};
   background: transparent;
   cursor: pointer;
+  transition: background-color 160ms ease;
 
-  &:hover {
-    background: ${token.colors.gray.gray10};
+  &:hover:not(:disabled) {
+    background: ${token.colors.gray.gray0};
   }
 
   &:focus-visible {
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: 2px;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 `
 
 export const CommentMenuIcon = styled.img`
-  width: 24.01px;
-  height: 24.01px;
+  width: 20px;
+  height: 20px;
   object-fit: contain;
   transform: rotate(90deg);
+`
+
+export const CommentMenuPanel = styled.div`
+  ${token.flexColumn}
+  position: absolute;
+  z-index: 4;
+  top: calc(100% + 6px);
+  right: 0;
+  box-sizing: border-box;
+  min-width: 120px;
+  padding: 8px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.large};
+  background: ${token.colors.white};
+  box-shadow: 0 6px 18px rgb(0 0 0 / 8%);
+`
+
+export const CommentMenuItem = styled.button<CommentMenuItemProps>`
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: ${token.shapes.small};
+  color: ${token.colors.gray.gray100};
+  background: transparent;
+  ${token.typography('body', 'sm', 'semibold')}
+  text-align: left;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: ${token.colors.gray.gray0};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: -2px;
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
+
+  ${({ $danger }) =>
+    $danger &&
+    css`
+      color: ${token.colors.danger.danger20};
+    `}
+`
+
+export const CommentMenuDivider = styled.span`
+  width: 100%;
+  height: 1px;
+  margin: 4px 0;
+  background: ${token.colors.gray.gray10};
 `
 
 export const CommentText = styled.p`
@@ -1183,6 +1252,71 @@ export const CommentText = styled.p`
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1.5;
   overflow-wrap: anywhere;
+`
+
+export const CommentEditForm = styled.div`
+  ${token.flexColumn}
+  gap: 8px;
+  width: 100%;
+`
+
+export const CommentEditInput = styled.input`
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid ${token.colors.gray.gray20};
+  border-radius: ${token.shapes.small};
+  outline: 0;
+  color: ${token.colors.gray.gray100};
+  background: ${token.colors.white};
+  ${token.typography('body', 'md', 'medium')}
+  line-height: 1.5;
+
+  &:focus {
+    border-color: ${token.colors.primary.primary50};
+  }
+`
+
+export const CommentEditActions = styled.div`
+  ${token.flexLeft}
+  align-self: flex-end;
+  gap: 8px;
+`
+
+export const CommentEditButton = styled.button`
+  min-width: 56px;
+  height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: ${token.shapes.small};
+  color: ${token.colors.gray.gray100};
+  background: ${token.colors.gray.gray0};
+  ${token.typography('body', 'sm', 'semibold')}
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: ${token.colors.gray.gray10};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
+`
+
+export const CommentEditSaveButton = styled(CommentEditButton)`
+  color: ${token.colors.gray.gray100};
+  background: ${token.colors.primary.primary50};
+
+  &:hover:not(:disabled) {
+    background: ${token.colors.primary.primary40};
+  }
 `
 
 export const ReplyActionButton = styled.button`
