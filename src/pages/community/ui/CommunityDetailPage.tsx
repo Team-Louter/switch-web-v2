@@ -64,6 +64,7 @@ interface CommentTreeNode {
 interface CommunityCommentBranchProps {
   node: CommentTreeNode
   onProfileImageError: (event: SyntheticEvent<HTMLImageElement>) => void
+  isExpandedByAncestor?: boolean
 }
 
 function buildCommentTree(comments: CommentResponse[]): CommentTreeNode[] {
@@ -88,17 +89,27 @@ function buildCommentTree(comments: CommentResponse[]): CommentTreeNode[] {
   return roots
 }
 
+function getDescendantCommentCount(node: CommentTreeNode): number {
+  return node.children.reduce(
+    (count, child) => count + 1 + getDescendantCommentCount(child),
+    0,
+  )
+}
+
 function CommunityCommentBranch({
   node,
   onProfileImageError,
+  isExpandedByAncestor = false,
 }: CommunityCommentBranchProps) {
   const { comment } = node
   const [isRepliesOpen, setIsRepliesOpen] = useState(false)
 
   const hasReplies = node.children.length > 0
+  const descendantCommentCount = getDescendantCommentCount(node)
+  const shouldShowReplies = isExpandedByAncestor || isRepliesOpen
   const repliesToggleLabel = isRepliesOpen
     ? '답글 숨기기'
-    : `답글 ${node.children.length}개`
+    : `답글 ${descendantCommentCount}개`
 
   return (
     <S.CommentTreeNode>
@@ -134,27 +145,33 @@ function CommunityCommentBranch({
       </S.CommentRow>
       {hasReplies && (
         <>
-          {isRepliesOpen && (
+          {shouldShowReplies && (
             <S.CommentChildren>
               {node.children.map((child) => (
                 <CommunityCommentBranch
                   key={child.comment.commentId}
                   node={child}
                   onProfileImageError={onProfileImageError}
+                  isExpandedByAncestor={shouldShowReplies}
                 />
               ))}
             </S.CommentChildren>
           )}
-          <S.RepliesToggleRow>
-            <S.RepliesToggle
-              type="button"
-              aria-expanded={isRepliesOpen}
-              onClick={() => setIsRepliesOpen((isOpen) => !isOpen)}
-            >
-              {repliesToggleLabel}
-              <S.RepliesCaret $isOpen={isRepliesOpen} aria-hidden="true" />
-            </S.RepliesToggle>
-          </S.RepliesToggleRow>
+          {!isExpandedByAncestor && (
+            <S.RepliesToggleRow>
+              <S.RepliesToggle
+                type="button"
+                aria-expanded={isRepliesOpen}
+                onClick={() => setIsRepliesOpen((isOpen) => !isOpen)}
+              >
+                {repliesToggleLabel}
+                <S.RepliesCaret
+                  $isOpen={isRepliesOpen}
+                  aria-hidden="true"
+                />
+              </S.RepliesToggle>
+            </S.RepliesToggleRow>
+          )}
         </>
       )}
     </S.CommentTreeNode>
