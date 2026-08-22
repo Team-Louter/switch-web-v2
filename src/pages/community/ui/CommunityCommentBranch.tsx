@@ -100,10 +100,12 @@ export function CommunityCommentBranch({
   const commentMenuRef = useRef<HTMLDivElement>(null)
 
   const loadedReplyCount = node.children.length
-  const hasReplies = loadedReplyCount > 0
+  const totalReplyCount = Math.max(0, comment.replyCount)
+  const hasReplies = totalReplyCount > 0 || loadedReplyCount > 0
   const canManageComment = currentMemberId === comment.userId
   const isReplyLoadKnown = loadedReplyCommentIds.has(comment.commentId)
   const requiresInitialReplyLoad =
+    hasReplies &&
     !hasReplyLoadAttempted &&
     !isReplyLoadKnown &&
     loadedReplyCount === 0
@@ -114,12 +116,12 @@ export function CommunityCommentBranch({
   const hasCollapseControl = !isExpandedByAncestor
   const repliesToggleLabel = isRepliesOpen
     ? '답글 숨기기'
-    : '답글 보기'
+    : `답글 ${totalReplyCount}개`
   const repliesLoadLabel = replyLoadError
     ? '답글 다시 불러오기'
     : comment.depth >= REPLY_LOAD_DEPTH_INTERVAL
       ? '답글 더보기'
-      : '답글 보기'
+      : `답글 ${totalReplyCount}개`
 
   const handleReplyComposerOpen = () => {
     setIsReplyComposerOpen(true)
