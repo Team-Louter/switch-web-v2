@@ -1,7 +1,6 @@
 import '@blocknote/core/fonts/inter.css'
 import '@blocknote/mantine/style.css'
 
-import type { Block } from '@blocknote/core'
 import {
   type ComputeDropPositionContext,
   SideMenuExtension,
@@ -26,12 +25,12 @@ import {
 import { useNavigate } from 'react-router-dom'
 
 import {
+  getCommunityFileDownloadUrl,
   POST_CATEGORY_OPTIONS,
   type PostCategory,
 } from '@/entities/community'
 import {
   createPost,
-  type PostFileRequest,
   uploadCommunityImage,
 } from '@/features/community'
 import { serializeBlockNotePostContent } from '@/shared/lib/blockNotePostContent'
@@ -54,8 +53,12 @@ import unorderedListIcon from '../assets/svg/editor-unordered-list.svg'
 
 import * as S from './CommunityWritePage.style'
 
-interface UploadedImage extends PostFileRequest {
+interface UploadedImage {
   id: string
+  fileKey: string
+  fileName: string
+  fileType: string
+  fileSize: number
 }
 
 interface BlockDropIndicatorPosition {
@@ -112,20 +115,6 @@ const EDITOR_TOOLS: EditorTool[] = [
   { action: 'image', label: '이미지', icon: imageIcon },
 ]
 
-function getEmbeddedImageUrls(blocks: readonly Block[]): Set<string> {
-  const urls = new Set<string>()
-
-  blocks.forEach((block) => {
-    if ('url' in block.props && typeof block.props.url === 'string') {
-      urls.add(block.props.url)
-    }
-
-    getEmbeddedImageUrls(block.children).forEach((url) => urls.add(url))
-  })
-
-  return urls
-}
-
 function hasPostContent(content: string): boolean {
   const textContent = content
     .replaceAll(/<[^>]*>/g, '')
@@ -181,20 +170,26 @@ export function CommunityWritePage() {
 
     try {
       const uploadedFile = await uploadCommunityImage(file)
+      const fileKey = uploadedFile.key.trim()
+      const fileUrl = getCommunityFileDownloadUrl(fileKey)
       const imageName = uploadedFile.fileName || file.name
+
+      if (!fileUrl) {
+        throw new Error('파일 다운로드 URL을 생성하지 못했습니다.')
+      }
 
       setUploadedImages((images) => [
         ...images,
         {
-          id: uploadedFile.key || `${file.name}-${Date.now()}`,
-          fileUrl: uploadedFile.url,
+          id: fileKey,
+          fileKey,
           fileName: imageName,
           fileType: uploadedFile.fileType || file.type,
           fileSize: uploadedFile.fileSize || file.size,
         },
       ])
 
-      return { url: uploadedFile.url, name: imageName }
+      return { url: fileUrl, name: imageName }
     } catch (error) {
       setImageUploadError(
         '이미지를 업로드하지 못했습니다. 잠시 후 다시 시도해주세요.',
@@ -221,18 +216,6 @@ export function CommunityWritePage() {
 
   const handleBackToList = () => {
     navigate('/community')
-  }
-
-  const handleEditorChange = () => {
-    const embeddedImageUrls = getEmbeddedImageUrls(editor.document)
-
-    setUploadedImages((images) => {
-      const remainingImages = images.filter((image) =>
-        embeddedImageUrls.has(image.fileUrl),
-      )
-
-      return remainingImages.length === images.length ? images : remainingImages
-    })
   }
 
   const handleEditorToolClick = (action: EditorAction) => {
@@ -359,8 +342,8 @@ export function CommunityWritePage() {
         isAnonymous,
         category,
         files: uploadedImages.map(
-          ({ fileUrl, fileName, fileType, fileSize }) => ({
-            fileUrl,
+          ({ fileKey, fileName, fileType, fileSize }) => ({
+            fileUrl: fileKey,
             fileName,
             fileType,
             fileSize,
@@ -581,7 +564,6 @@ export function CommunityWritePage() {
               editable={!isSubmitting}
               sideMenu={false}
               portalElements={{ default: null }}
-              onChange={handleEditorChange}
             >
               <SideMenuController sideMenu={CommunityBlockSideMenu} />
             </BlockNoteView>
