@@ -160,8 +160,7 @@ function CommunityCommentBranch({
               {visibleReplies.map((child, index) => {
                 const hasFollowingItem =
                   index < visibleReplies.length - 1 ||
-                  hasHiddenReplies ||
-                  hasCollapseControl
+                  hasHiddenReplies
 
                 return (
                   <CommunityCommentBranch
@@ -186,7 +185,7 @@ function CommunityCommentBranch({
                 </S.RepliesToggleRow>
               )}
               {hasCollapseControl && (
-                <S.RepliesToggleRow $isWithinReplies>
+                <S.RepliesToggleRow $hasConnector={false} $isWithinReplies>
                   <S.RepliesToggle
                     type="button"
                     aria-expanded={isRepliesOpen}
