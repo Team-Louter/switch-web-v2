@@ -613,9 +613,17 @@ export function CommunityDetailPage() {
                     >
                       <S.AttachmentLabel>
                         <S.AttachmentIcon src={paperclipIcon} alt="" />
-                        첨부 파일 “{firstAttachment.fileName}”
-                        {attachmentFiles.length > 1 &&
-                          ` 외 ${attachmentFiles.length - 1}개`}
+                        <S.AttachmentText>첨부 파일 “</S.AttachmentText>
+                        <S.AttachmentSummaryFileName
+                          title={firstAttachment.fileName}
+                        >
+                          {firstAttachment.fileName}
+                        </S.AttachmentSummaryFileName>
+                        <S.AttachmentText>
+                          ”
+                          {attachmentFiles.length > 1 &&
+                            ` 외 ${attachmentFiles.length - 1}개`}
+                        </S.AttachmentText>
                       </S.AttachmentLabel>
                       <S.AttachmentDivider aria-hidden="true" />
                       <S.AttachmentChevron
