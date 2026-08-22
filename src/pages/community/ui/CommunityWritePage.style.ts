@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
@@ -446,6 +446,69 @@ export const EditorDivider = styled.hr`
   margin: 4px 0 -4px;
   border: 0;
   background: ${token.colors.gray.gray10};
+`
+
+const uploadSkeletonShimmer = keyframes`
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+`
+
+export const FileUploadSkeleton = styled.div`
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  box-sizing: border-box;
+  width: calc(100% - 66px);
+  min-height: 76px;
+  margin: 12px 12px 12px 54px;
+  padding: 12px;
+  overflow: hidden;
+  border-radius: ${token.shapes.small};
+  background: ${token.colors.white};
+  pointer-events: none;
+
+  &::before,
+  &::after {
+    display: block;
+    border-radius: ${token.shapes.xsmall};
+    background: linear-gradient(
+      90deg,
+      ${token.colors.gray.gray0} 25%,
+      ${token.colors.gray.gray10} 50%,
+      ${token.colors.gray.gray0} 75%
+    );
+    background-size: 200% 100%;
+    animation: ${uploadSkeletonShimmer} 1.4s ease-in-out infinite;
+    content: '';
+  }
+
+  &::before {
+    width: 42px;
+    height: 42px;
+  }
+
+  &::after {
+    width: 72%;
+    height: 18px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::before,
+    &::after {
+      animation: none;
+    }
+  }
+
+  @container community-write (max-width: 560px) {
+    width: calc(100% - 66px);
+    margin-left: 54px;
+  }
 `
 
 export const SubmitError = styled.p`
