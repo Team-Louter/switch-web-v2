@@ -31,7 +31,7 @@ import {
 } from '@/entities/community'
 import {
   createPost,
-  uploadCommunityImage,
+  uploadCommunityFile,
 } from '@/features/community'
 import { serializeBlockNotePostContent } from '@/shared/lib/blockNotePostContent'
 import { Button } from '@/shared/ui'
@@ -46,6 +46,7 @@ import imageIcon from '../assets/svg/editor-image.svg'
 import italicIcon from '../assets/svg/editor-italic.svg'
 import linkIcon from '../assets/svg/editor-link.svg'
 import orderedListIcon from '../assets/svg/editor-ordered-list.svg'
+import paperclipIcon from '../assets/svg/paperclip.svg'
 import quoteIcon from '../assets/svg/editor-quote.svg'
 import strikeIcon from '../assets/svg/editor-strike.svg'
 import underlineIcon from '../assets/svg/editor-underline.svg'
@@ -53,12 +54,13 @@ import unorderedListIcon from '../assets/svg/editor-unordered-list.svg'
 
 import * as S from './CommunityWritePage.style'
 
-interface UploadedImage {
+interface UploadedFile {
   id: string
   fileKey: string
   fileName: string
   fileType: string
   fileSize: number
+  isEmbedded: boolean
 }
 
 interface BlockDropIndicatorPosition {
@@ -80,6 +82,7 @@ type EditorAction =
   | 'quote'
   | 'link'
   | 'image'
+  | 'file'
 
 interface EditorTool {
   action: EditorAction
@@ -113,6 +116,7 @@ const EDITOR_TOOLS: EditorTool[] = [
   { action: 'quote', label: '인용문', icon: quoteIcon },
   { action: 'link', label: '링크', icon: linkIcon },
   { action: 'image', label: '이미지', icon: imageIcon },
+  { action: 'file', label: '파일 첨부', icon: paperclipIcon },
 ]
 
 function hasPostContent(content: string): boolean {
@@ -144,61 +148,65 @@ function CommunityBlockSideMenu(props: SideMenuProps) {
 export function CommunityWritePage() {
   const navigate = useNavigate()
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const editorAreaRef = useRef<HTMLElement>(null)
   const [category, setCategory] = useState<PostCategory | ''>('')
   const [title, setTitle] = useState('')
-  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [isAnonymous, setIsAnonymous] = useState(false)
-  const [pendingImageUploadCount, setPendingImageUploadCount] = useState(0)
-  const [imageUploadError, setImageUploadError] = useState<string | null>(null)
+  const [pendingFileUploadCount, setPendingFileUploadCount] = useState(0)
+  const [fileUploadError, setFileUploadError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [blockDropIndicator, setBlockDropIndicator] =
     useState<BlockDropIndicatorPosition | null>(null)
-  const isUploadingImage = pendingImageUploadCount > 0
+  const attachmentFiles = uploadedFiles.filter((file) => !file.isEmbedded)
+  const isUploadingFile = pendingFileUploadCount > 0
 
-  const handleImageUpload = useCallback(async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      const message = '이미지 파일만 업로드할 수 있어요.'
+  const uploadPostFile = useCallback(
+    async (file: File, isEmbedded: boolean) => {
+      setPendingFileUploadCount((count) => count + 1)
+      setFileUploadError(null)
 
-      setImageUploadError(message)
-      throw new Error(message)
-    }
+      try {
+        const uploadedFile = await uploadCommunityFile(file)
+        const fileKey = uploadedFile.key.trim()
+        const fileUrl = getCommunityFileDownloadUrl(fileKey)
+        const fileName = uploadedFile.fileName || file.name
 
-    setPendingImageUploadCount((count) => count + 1)
-    setImageUploadError(null)
+        if (!fileUrl) {
+          throw new Error('파일 다운로드 URL을 생성하지 못했습니다.')
+        }
 
-    try {
-      const uploadedFile = await uploadCommunityImage(file)
-      const fileKey = uploadedFile.key.trim()
-      const fileUrl = getCommunityFileDownloadUrl(fileKey)
-      const imageName = uploadedFile.fileName || file.name
+        setUploadedFiles((files) => [
+          ...files,
+          {
+            id: fileKey,
+            fileKey,
+            fileName,
+            fileType: uploadedFile.fileType || file.type,
+            fileSize: uploadedFile.fileSize || file.size,
+            isEmbedded,
+          },
+        ])
 
-      if (!fileUrl) {
-        throw new Error('파일 다운로드 URL을 생성하지 못했습니다.')
+        return { url: fileUrl, name: fileName }
+      } catch (error) {
+        setFileUploadError(
+          '파일을 업로드하지 못했습니다. 잠시 후 다시 시도해주세요.',
+        )
+        throw error
+      } finally {
+        setPendingFileUploadCount((count) => count - 1)
       }
+    },
+    [],
+  )
 
-      setUploadedImages((images) => [
-        ...images,
-        {
-          id: fileKey,
-          fileKey,
-          fileName: imageName,
-          fileType: uploadedFile.fileType || file.type,
-          fileSize: uploadedFile.fileSize || file.size,
-        },
-      ])
-
-      return { url: fileUrl, name: imageName }
-    } catch (error) {
-      setImageUploadError(
-        '이미지를 업로드하지 못했습니다. 잠시 후 다시 시도해주세요.',
-      )
-      throw error
-    } finally {
-      setPendingImageUploadCount((count) => count - 1)
-    }
-  }, [])
+  const handleEditorFileUpload = useCallback(
+    (file: File) => uploadPostFile(file, true),
+    [uploadPostFile],
+  )
 
   const editor = useCreateBlockNote(
     {
@@ -209,9 +217,9 @@ export function CommunityWritePage() {
       dropCursor: {
         hooks: { computeDropPosition: getCommunityDropCursorPosition },
       },
-      uploadFile: handleImageUpload,
+      uploadFile: handleEditorFileUpload,
     },
-    [handleImageUpload],
+    [handleEditorFileUpload],
   )
 
   const handleBackToList = () => {
@@ -221,6 +229,11 @@ export function CommunityWritePage() {
   const handleEditorToolClick = (action: EditorAction) => {
     if (action === 'image') {
       imageInputRef.current?.click()
+      return
+    }
+
+    if (action === 'file') {
+      fileInputRef.current?.click()
       return
     }
 
@@ -293,7 +306,7 @@ export function CommunityWritePage() {
     }
 
     try {
-      const uploadedImage = await handleImageUpload(file)
+      const uploadedImage = await handleEditorFileUpload(file)
       const currentBlock = editor.getTextCursorPosition().block
       const [imageBlock] = editor.insertBlocks(
         [
@@ -315,11 +328,39 @@ export function CommunityWritePage() {
     }
   }
 
+  const handleFileSelection = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = Array.from(event.target.files ?? [])
+
+    event.target.value = ''
+
+    if (files.length === 0) {
+      return
+    }
+
+    const uploadResults = await Promise.allSettled(
+      files.map((file) => uploadPostFile(file, false)),
+    )
+
+    if (uploadResults.some((result) => result.status === 'rejected')) {
+      setFileUploadError(
+        '일부 파일을 업로드하지 못했습니다. 다시 시도해주세요.',
+      )
+    }
+  }
+
+  const handleAttachmentRemove = (fileKey: string) => {
+    setUploadedFiles((files) =>
+      files.filter((file) => file.fileKey !== fileKey),
+    )
+  }
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    if (isUploadingImage) {
-      setSubmitError('이미지 업로드가 완료될 때까지 기다려주세요.')
+    if (isUploadingFile) {
+      setSubmitError('파일 업로드가 완료될 때까지 기다려주세요.')
       return
     }
 
@@ -341,7 +382,7 @@ export function CommunityWritePage() {
         content: postContent,
         isAnonymous,
         category,
-        files: uploadedImages.map(
+        files: uploadedFiles.map(
           ({ fileKey, fileName, fileType, fileSize }) => ({
             fileUrl: fileKey,
             fileName,
@@ -463,7 +504,7 @@ export function CommunityWritePage() {
               <Button
                 size="md"
                 type="submit"
-                disabled={isSubmitting || isUploadingImage}
+                disabled={isSubmitting || isUploadingFile}
               >
                 {isSubmitting ? '게시 중' : '게시하기'}
               </Button>
@@ -528,7 +569,7 @@ export function CommunityWritePage() {
                   type="button"
                   aria-label={tool.label}
                   title={tool.label}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isUploadingFile}
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => handleEditorToolClick(tool.action)}
                 >
@@ -558,6 +599,15 @@ export function CommunityWritePage() {
             aria-hidden="true"
             onChange={handleImageSelection}
           />
+          <input
+            ref={fileInputRef}
+            className="community-file-input"
+            type="file"
+            multiple
+            tabIndex={-1}
+            aria-hidden="true"
+            onChange={handleFileSelection}
+          />
           <div className="community-block-editor">
             <BlockNoteView
               editor={editor}
@@ -568,14 +618,36 @@ export function CommunityWritePage() {
               <SideMenuController sideMenu={CommunityBlockSideMenu} />
             </BlockNoteView>
           </div>
+          {attachmentFiles.length > 0 && (
+            <S.AttachmentSection aria-label="첨부 파일">
+              <S.AttachmentHeading>첨부 파일</S.AttachmentHeading>
+              <S.AttachmentList>
+                {attachmentFiles.map((file) => (
+                  <S.AttachmentItem key={file.id}>
+                    <S.AttachmentFileName title={file.fileName}>
+                      {file.fileName}
+                    </S.AttachmentFileName>
+                    <S.AttachmentRemoveButton
+                      type="button"
+                      aria-label={`${file.fileName} 첨부 취소`}
+                      disabled={isSubmitting}
+                      onClick={() => handleAttachmentRemove(file.fileKey)}
+                    >
+                      제거
+                    </S.AttachmentRemoveButton>
+                  </S.AttachmentItem>
+                ))}
+              </S.AttachmentList>
+            </S.AttachmentSection>
+          )}
         </S.Editor>
-        {isUploadingImage && (
-          <S.ImageUploadStatus role="status">
-            이미지를 업로드하고 있어요.
-          </S.ImageUploadStatus>
+        {isUploadingFile && (
+          <S.FileUploadStatus role="status">
+            파일을 업로드하고 있어요.
+          </S.FileUploadStatus>
         )}
-        {imageUploadError && (
-          <S.SubmitError role="alert">{imageUploadError}</S.SubmitError>
+        {fileUploadError && (
+          <S.SubmitError role="alert">{fileUploadError}</S.SubmitError>
         )}
         {submitError && (
           <S.SubmitError role="alert">{submitError}</S.SubmitError>
