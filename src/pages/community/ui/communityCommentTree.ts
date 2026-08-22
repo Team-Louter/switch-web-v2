@@ -64,8 +64,24 @@ export function appendReplyComment(
   }
 
   const parentComment = comments[parentIndex]
+  const ancestorCommentIds = new Set<number>()
+  let ancestorDepth = parentComment.depth
+
+  for (
+    let commentIndex = parentIndex;
+    commentIndex >= 0 && ancestorDepth >= 0;
+    commentIndex -= 1
+  ) {
+    const candidateComment = comments[commentIndex]
+
+    if (candidateComment.depth === ancestorDepth) {
+      ancestorCommentIds.add(candidateComment.commentId)
+      ancestorDepth -= 1
+    }
+  }
+
   const commentsWithReplyCount = comments.map((comment) =>
-    comment.commentId === parentCommentId
+    ancestorCommentIds.has(comment.commentId)
       ? { ...comment, replyCount: comment.replyCount + 1 }
       : comment,
   )
