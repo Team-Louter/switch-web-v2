@@ -7,6 +7,14 @@ interface SkeletonBlockProps {
   $width?: string
 }
 
+interface AttachmentChevronProps {
+  $isOpen: boolean
+}
+
+interface AttachmentPanelProps {
+  $isOpen: boolean
+}
+
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
@@ -559,6 +567,7 @@ export const Engagement = styled.section`
 
 export const EngagementRow = styled.div`
   ${token.flexLeft}
+  align-items: flex-start;
   flex-wrap: wrap;
   gap: 16px;
   min-height: 36px;
@@ -604,6 +613,142 @@ export const StatIcon = styled.img`
   width: 20px;
   height: 20px;
   object-fit: scale-down;
+`
+
+export const AttachmentArea = styled.div`
+  ${token.flexColumn}
+  flex: 1 1 280px;
+  gap: 0;
+  min-width: 0;
+  max-width: 100%;
+`
+
+export const AttachmentToggle = styled.button`
+  ${token.flexLeft}
+  box-sizing: border-box;
+  width: 100%;
+  height: 36px;
+  min-width: 0;
+  gap: 12px;
+  padding: 8px 12px;
+  overflow: hidden;
+  border: 0;
+  border-radius: ${token.shapes.small};
+  color: #404040;
+  background: #f5f5f5;
+  cursor: pointer;
+
+  &:hover {
+    background: ${token.colors.gray.gray10};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
+`
+
+export const AttachmentLabel = styled.span`
+  ${token.flexLeft}
+  flex: 1 1 0;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+  ${token.typography('body', 'md', 'medium')}
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`
+
+export const AttachmentIcon = styled.img`
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+`
+
+export const AttachmentDivider = styled.span`
+  flex: 0 0 1px;
+  width: 1px;
+  height: 22px;
+  background: ${token.colors.gray.gray20};
+`
+
+export const AttachmentChevron = styled.img<AttachmentChevronProps>`
+  flex: 0 0 20px;
+  width: 20px;
+  height: 12px;
+  object-fit: contain;
+  transform: ${({ $isOpen }) =>
+    $isOpen ? 'rotate(0deg)' : 'rotate(180deg)'};
+  transition: transform 200ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+`
+
+export const AttachmentPanel = styled.div<AttachmentPanelProps>`
+  box-sizing: border-box;
+  width: 100%;
+  max-height: ${({ $isOpen }) => ($isOpen ? '360px' : '0')};
+  margin-top: ${({ $isOpen }) => ($isOpen ? '10px' : '0')};
+  overflow-y: auto;
+  pointer-events: ${({ $isOpen }) => ($isOpen ? 'auto' : 'none')};
+  opacity: ${({ $isOpen }) => ($isOpen ? 1 : 0)};
+  transform: ${({ $isOpen }) =>
+    $isOpen ? 'translateY(0)' : 'translateY(-8px)'};
+  transition:
+    max-height 260ms ease,
+    margin-top 260ms ease,
+    opacity 180ms ease,
+    transform 260ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+`
+
+export const AttachmentFileList = styled.div`
+  ${token.flexColumn}
+  gap: 6px;
+`
+
+export const AttachmentFileButton = styled.button`
+  ${token.flexLeft}
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 42px;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.small};
+  color: ${token.colors.gray.gray80};
+  background: ${token.colors.white};
+  ${token.typography('body', 'sm', 'medium')}
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: ${token.colors.gray.gray0};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
+`
+
+export const AttachmentFileIcon = styled.img`
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+`
+
+export const AttachmentFileName = styled.span`
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `
 
 export const Comments = styled.section`
