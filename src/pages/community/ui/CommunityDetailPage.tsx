@@ -66,6 +66,7 @@ const markdownSanitizeSchema = {
   },
 }
 
+const COMMENT_SKELETON_ITEMS = [0, 1, 2]
 
 export function CommunityDetailPage() {
   const navigate = useNavigate()
@@ -844,9 +845,24 @@ export function CommunityDetailPage() {
 
               <S.CommentList aria-label="댓글 목록">
                 {isCommentsLoading && (
-                  <S.CommentStatus role="status">
-                    댓글을 불러오는 중입니다.
-                  </S.CommentStatus>
+                  <S.CommentSkeletonList
+                    role="status"
+                    aria-label="댓글을 불러오는 중입니다."
+                  >
+                    {COMMENT_SKELETON_ITEMS.map((item) => (
+                      <S.CommentSkeletonItem key={item} aria-hidden="true">
+                        <S.SkeletonBlock $width="32px" $height={32} />
+                        <S.CommentSkeletonContent>
+                          <S.CommentSkeletonMeta>
+                            <S.SkeletonBlock $width="112px" $height={16} />
+                            <S.SkeletonBlock $width="84px" $height={14} />
+                          </S.CommentSkeletonMeta>
+                          <S.SkeletonBlock $width="68%" $height={18} />
+                          <S.SkeletonBlock $width="44%" $height={18} />
+                        </S.CommentSkeletonContent>
+                      </S.CommentSkeletonItem>
+                    ))}
+                  </S.CommentSkeletonList>
                 )}
                 {!isCommentsLoading && commentLoadError && (
                   <S.CommentStatus role="alert">
