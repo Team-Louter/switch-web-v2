@@ -26,6 +26,10 @@ import * as S from './CommunityCommentBranch.style'
 
 const VISIBLE_REPLY_COUNT = 3
 
+interface ReplyLoadingSkeletonProps {
+  isWithinReplies?: boolean
+}
+
 interface CommunityCommentBranchProps {
   node: CommentTreeNode
   onProfileImageError: (event: SyntheticEvent<HTMLImageElement>) => void
@@ -37,6 +41,24 @@ interface CommunityCommentBranchProps {
   replyAuthorProfileImageUrl?: string
   isExpandedByAncestor?: boolean
   hasNextSibling?: boolean
+}
+
+function ReplyLoadingSkeleton({
+  isWithinReplies = false,
+}: ReplyLoadingSkeletonProps) {
+  return (
+    <S.ReplyLoadSkeleton
+      $isWithinReplies={isWithinReplies}
+      role="status"
+      aria-label="답글을 불러오는 중입니다."
+    >
+      <S.ReplyLoadSkeletonAvatar aria-hidden="true" />
+      <S.ReplyLoadSkeletonContent aria-hidden="true">
+        <S.ReplyLoadSkeletonLine $width="42%" />
+        <S.ReplyLoadSkeletonLine $width="76%" />
+      </S.ReplyLoadSkeletonContent>
+    </S.ReplyLoadSkeleton>
+  )
 }
 
 export function CommunityCommentBranch({
@@ -87,11 +109,9 @@ export function CommunityCommentBranch({
   const repliesToggleLabel = isRepliesOpen
     ? '답글 숨기기'
     : `답글 ${descendantCommentCount}개`
-  const repliesLoadLabel = isRepliesLoading
-    ? '답글 불러오는 중'
-    : replyLoadError
-      ? '답글 다시 불러오기'
-      : '답글 더보기'
+  const repliesLoadLabel = replyLoadError
+    ? '답글 다시 불러오기'
+    : '답글 더보기'
 
   const handleReplyComposerOpen = () => {
     setIsReplyComposerOpen(true)
@@ -411,20 +431,21 @@ export function CommunityCommentBranch({
           </S.CommentContent>
         </S.CommentItem>
       </S.CommentRow>
-      {requiresInitialReplyLoad && (
-        <S.RepliesToggleRow>
-          <S.RepliesToggle
-            type="button"
-            aria-label={repliesLoadLabel}
-            aria-busy={isRepliesLoading}
-            disabled={isRepliesLoading}
-            onClick={() => void handleRepliesLoad()}
-          >
-            {repliesLoadLabel}
-            <S.RepliesCaret $isOpen={false} aria-hidden="true" />
-          </S.RepliesToggle>
-        </S.RepliesToggleRow>
-      )}
+      {requiresInitialReplyLoad &&
+        (isRepliesLoading ? (
+          <ReplyLoadingSkeleton />
+        ) : (
+          <S.RepliesToggleRow>
+            <S.RepliesToggle
+              type="button"
+              aria-label={repliesLoadLabel}
+              onClick={() => void handleRepliesLoad()}
+            >
+              {repliesLoadLabel}
+              <S.RepliesCaret $isOpen={false} aria-hidden="true" />
+            </S.RepliesToggle>
+          </S.RepliesToggleRow>
+        ))}
       {hasReplies && (
         <>
           {shouldShowReplies && (
@@ -452,20 +473,21 @@ export function CommunityCommentBranch({
                   />
                 )
               })}
-              {hasDeferredReplyLoad && (
-                <S.RepliesToggleRow $isWithinReplies>
-                  <S.RepliesToggle
-                    type="button"
-                    aria-label={repliesLoadLabel}
-                    aria-busy={isRepliesLoading}
-                    disabled={isRepliesLoading}
-                    onClick={() => void handleRepliesLoad()}
-                  >
-                    {repliesLoadLabel}
-                    <S.RepliesCaret $isOpen={false} aria-hidden="true" />
-                  </S.RepliesToggle>
-                </S.RepliesToggleRow>
-              )}
+              {hasDeferredReplyLoad &&
+                (isRepliesLoading ? (
+                  <ReplyLoadingSkeleton isWithinReplies />
+                ) : (
+                  <S.RepliesToggleRow $isWithinReplies>
+                    <S.RepliesToggle
+                      type="button"
+                      aria-label={repliesLoadLabel}
+                      onClick={() => void handleRepliesLoad()}
+                    >
+                      {repliesLoadLabel}
+                      <S.RepliesCaret $isOpen={false} aria-hidden="true" />
+                    </S.RepliesToggle>
+                  </S.RepliesToggleRow>
+                ))}
               {hasHiddenReplies && (
                 <S.RepliesToggleRow $isWithinReplies>
                   <S.RepliesToggle
