@@ -41,6 +41,15 @@ export async function togglePostHeart(postId: number): Promise<void> {
   await apiClient.post(`/posts/${postId}/heart`)
 }
 
+export async function setPostPinned(
+  postId: number,
+  pinned: boolean,
+): Promise<void> {
+  await apiClient.put<void>(`/posts/${postId}/pin`, null, {
+    params: { pinned },
+  })
+}
+
 export async function createComment(
   postId: number,
   request: CreateCommentRequest,
