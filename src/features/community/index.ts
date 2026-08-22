@@ -1,6 +1,7 @@
 export {
   createComment,
   createPost,
+  setPostPinned,
   togglePostHeart,
   uploadCommunityImage,
 } from './api/communityActions'
