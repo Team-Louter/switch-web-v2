@@ -22,18 +22,24 @@ import {
   useRef,
   useState,
 } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import {
   getCommunityFileDownloadUrl,
+  getPost,
   POST_CATEGORY_OPTIONS,
   type PostCategory,
+  type PostTag,
 } from '@/entities/community'
 import {
   createPost,
+  updatePost,
   uploadCommunityFile,
 } from '@/features/community'
-import { serializeBlockNotePostContent } from '@/shared/lib/blockNotePostContent'
+import {
+  parseBlockNotePostContent,
+  serializeBlockNotePostContent,
+} from '@/shared/lib/blockNotePostContent'
 import { Button } from '@/shared/ui'
 
 import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg'
@@ -146,10 +152,16 @@ function CommunityBlockSideMenu(props: SideMenuProps) {
 
 export function CommunityWritePage() {
   const navigate = useNavigate()
+  const { postId: postIdParam } = useParams()
+  const isEditRoute = postIdParam !== undefined
+  const editingPostId = Number(postIdParam)
+  const isEditing =
+    isEditRoute && Number.isSafeInteger(editingPostId) && editingPostId > 0
   const imageInputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const editorAreaRef = useRef<HTMLElement>(null)
   const [category, setCategory] = useState<PostCategory | ''>('')
+  const [tag, setTag] = useState<PostTag | undefined>(undefined)
   const [title, setTitle] = useState('')
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [isAnonymous, setIsAnonymous] = useState(false)
@@ -157,9 +169,13 @@ export function CommunityWritePage() {
   const [fileUploadError, setFileUploadError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [isPostLoading, setIsPostLoading] = useState(isEditRoute)
+  const [postLoadError, setPostLoadError] = useState<string | null>(null)
   const [blockDropIndicator, setBlockDropIndicator] =
     useState<BlockDropIndicatorPosition | null>(null)
   const isUploadingFile = pendingFileUploadCount > 0
+  const isEditorDisabled =
+    isSubmitting || isPostLoading || Boolean(postLoadError)
 
   const uploadPostFile = useCallback(
     async (file: File) => {
@@ -220,7 +236,7 @@ export function CommunityWritePage() {
   )
 
   const handleBackToList = () => {
-    navigate('/community')
+    navigate(isEditing ? `/community/${editingPostId}` : '/community')
   }
 
   const handleEditorToolClick = (action: EditorAction) => {
@@ -373,6 +389,15 @@ export function CommunityWritePage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
+    if (isEditRoute && !isEditing) {
+      setSubmitError('올바르지 않은 게시글 주소입니다.')
+      return
+    }
+
+    if (isPostLoading || postLoadError) {
+      return
+    }
+
     if (isUploadingFile) {
       setSubmitError('파일 업로드가 완료될 때까지 기다려주세요.')
       return
@@ -391,11 +416,12 @@ export function CommunityWritePage() {
     setSubmitError(null)
 
     try {
-      const post = await createPost({
+      const postRequest = {
         title: title.trim(),
         content: postContent,
         isAnonymous,
         category,
+        tag,
         files: uploadedFiles.map(
           ({ fileKey, fileName, fileType, fileSize }) => ({
             fileUrl: fileKey,
@@ -404,11 +430,18 @@ export function CommunityWritePage() {
             fileSize,
           }),
         ),
-      })
+      }
+      const post = isEditing
+        ? await updatePost(editingPostId, postRequest)
+        : await createPost(postRequest)
 
       navigate(`/community/${post.postId}`, { replace: true })
     } catch {
-      setSubmitError('게시글을 등록하지 못했습니다. 잠시 후 다시 시도해주세요.')
+      setSubmitError(
+        isEditing
+          ? '게시글을 수정하지 못했습니다. 잠시 후 다시 시도해주세요.'
+          : '게시글을 등록하지 못했습니다. 잠시 후 다시 시도해주세요.',
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -477,6 +510,70 @@ export function CommunityWritePage() {
   }
 
   useEffect(() => {
+    if (!isEditRoute) {
+      return
+    }
+
+    if (!isEditing) {
+      setPostLoadError('올바르지 않은 게시글 주소입니다.')
+      setIsPostLoading(false)
+      return
+    }
+
+    let isCancelled = false
+
+    async function loadPostForEdit() {
+      setIsPostLoading(true)
+      setPostLoadError(null)
+
+      try {
+        const post = await getPost(editingPostId)
+        const postBlocks = parseBlockNotePostContent(post.postContent)
+        const contentBlocks =
+          postBlocks ?? editor.tryParseHTMLToBlocks(post.postContent)
+
+        if (isCancelled) {
+          return
+        }
+
+        setCategory(post.category)
+        setTag(post.tag)
+        setTitle(post.postTitle)
+        setIsAnonymous(post.isAnonymous)
+        setUploadedFiles(
+          post.files?.map((file) => ({
+            id: String(file.fileId),
+            fileKey: file.fileUrl,
+            fileName: file.fileName,
+            fileType: file.fileType,
+            fileSize: file.fileSize,
+          })) ?? [],
+        )
+
+        if (contentBlocks.length > 0) {
+          editor.replaceBlocks(editor.document, contentBlocks)
+        }
+      } catch {
+        if (!isCancelled) {
+          setPostLoadError(
+            '게시글을 불러오지 못했습니다. 목록으로 돌아가 다시 시도해주세요.',
+          )
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsPostLoading(false)
+        }
+      }
+    }
+
+    void loadPostForEdit()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [editor, editingPostId, isEditing, isEditRoute])
+
+  useEffect(() => {
     const handleDocumentMouseMove = (event: MouseEvent) => {
       const editorBounds = editorAreaRef.current?.getBoundingClientRect()
 
@@ -514,13 +611,21 @@ export function CommunityWritePage() {
 
           <S.WriteForm id="community-write-form" onSubmit={handleSubmit}>
             <S.TitleRow>
-              <S.Heading>게시글 작성</S.Heading>
+              <S.Heading>{isEditRoute ? '게시글 수정' : '게시글 작성'}</S.Heading>
               <Button
                 size="md"
                 type="submit"
-                disabled={isSubmitting || isUploadingFile}
+                disabled={isEditorDisabled || isUploadingFile}
               >
-                {isSubmitting ? '게시 중' : '게시하기'}
+                {isPostLoading
+                  ? '불러오는 중'
+                  : isSubmitting
+                    ? isEditing
+                      ? '저장 중'
+                      : '게시 중'
+                    : isEditing
+                      ? '저장하기'
+                      : '게시하기'}
               </Button>
             </S.TitleRow>
 
@@ -530,7 +635,7 @@ export function CommunityWritePage() {
                   value={category}
                   aria-label="카테고리"
                   required
-                  disabled={isSubmitting}
+                  disabled={isEditorDisabled}
                   onChange={(event) =>
                     setCategory(event.target.value as PostCategory | '')
                   }
@@ -553,7 +658,7 @@ export function CommunityWritePage() {
                 placeholder="제목을 입력해주세요"
                 value={title}
                 required
-                disabled={isSubmitting}
+                disabled={isEditorDisabled}
                 onChange={(event) => setTitle(event.target.value)}
               />
             </S.Fields>
@@ -583,7 +688,7 @@ export function CommunityWritePage() {
                   type="button"
                   aria-label={tool.label}
                   title={tool.label}
-                  disabled={isSubmitting || isUploadingFile}
+                  disabled={isEditorDisabled || isUploadingFile}
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => handleEditorToolClick(tool.action)}
                 >
@@ -597,7 +702,7 @@ export function CommunityWritePage() {
                 type="checkbox"
                 role="switch"
                 checked={isAnonymous}
-                disabled={isSubmitting}
+                disabled={isEditorDisabled}
                 onChange={(event) => setIsAnonymous(event.target.checked)}
               />
             </S.AnonymousLabel>
@@ -611,6 +716,7 @@ export function CommunityWritePage() {
             accept="image/*"
             tabIndex={-1}
             aria-hidden="true"
+            disabled={isEditorDisabled}
             onChange={handleImageSelection}
           />
           <input
@@ -620,12 +726,13 @@ export function CommunityWritePage() {
             multiple
             tabIndex={-1}
             aria-hidden="true"
+            disabled={isEditorDisabled}
             onChange={handleFileSelection}
           />
           <div className="community-block-editor">
             <BlockNoteView
               editor={editor}
-              editable={!isSubmitting}
+              editable={!isEditorDisabled}
               sideMenu={false}
               portalElements={{ default: null }}
             >
@@ -643,6 +750,9 @@ export function CommunityWritePage() {
         )}
         {submitError && (
           <S.SubmitError role="alert">{submitError}</S.SubmitError>
+        )}
+        {postLoadError && (
+          <S.SubmitError role="alert">{postLoadError}</S.SubmitError>
         )}
       </S.Content>
     </S.Page>
