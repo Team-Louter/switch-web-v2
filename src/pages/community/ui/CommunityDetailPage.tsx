@@ -56,6 +56,91 @@ const markdownSanitizeSchema = {
   },
 }
 
+interface CommentTreeNode {
+  comment: CommentResponse
+  children: CommentTreeNode[]
+}
+
+interface CommunityCommentBranchProps {
+  node: CommentTreeNode
+  onProfileImageError: (event: SyntheticEvent<HTMLImageElement>) => void
+}
+
+function buildCommentTree(comments: CommentResponse[]): CommentTreeNode[] {
+  const roots: CommentTreeNode[] = []
+  const ancestors: CommentTreeNode[] = []
+
+  for (const comment of comments) {
+    const node: CommentTreeNode = { comment, children: [] }
+    const parent =
+      comment.depth > 0 ? ancestors[comment.depth - 1] : undefined
+
+    if (parent) {
+      parent.children.push(node)
+    } else {
+      roots.push(node)
+    }
+
+    ancestors[comment.depth] = node
+    ancestors.length = comment.depth + 1
+  }
+
+  return roots
+}
+
+function CommunityCommentBranch({
+  node,
+  onProfileImageError,
+}: CommunityCommentBranchProps) {
+  const { comment } = node
+
+  return (
+    <S.CommentTreeNode>
+      <S.CommentRow $isReply={comment.depth > 0}>
+        <S.CommentItem>
+          <S.CommentAuthorImage
+            src={
+              resolveCommunityAssetUrl(comment.userProfileImageUrl) ??
+              fallbackProfileImage
+            }
+            alt={`${comment.userName} 프로필`}
+            onError={onProfileImageError}
+          />
+          <S.CommentContent>
+            <S.CommentHeader>
+              <S.CommentMeta>
+                <S.CommentAuthor>{comment.userName}</S.CommentAuthor>
+                <S.MetaDot aria-hidden="true" />
+                <S.CommentDate dateTime={comment.createdAt}>
+                  {formatCommunityDate(comment.createdAt)}
+                </S.CommentDate>
+              </S.CommentMeta>
+              <S.CommentMenuButton
+                type="button"
+                aria-label={`${comment.userName} 댓글 메뉴`}
+              >
+                <S.CommentMenuIcon src={kebabIcon} alt="" />
+              </S.CommentMenuButton>
+            </S.CommentHeader>
+            <S.CommentText>{comment.content}</S.CommentText>
+          </S.CommentContent>
+        </S.CommentItem>
+      </S.CommentRow>
+      {node.children.length > 0 && (
+        <S.CommentChildren>
+          {node.children.map((child) => (
+            <CommunityCommentBranch
+              key={child.comment.commentId}
+              node={child}
+              onProfileImageError={onProfileImageError}
+            />
+          ))}
+        </S.CommentChildren>
+      )}
+    </S.CommentTreeNode>
+  )
+}
+
 export function CommunityDetailPage() {
   const navigate = useNavigate()
   const { postId: postIdParam } = useParams()
@@ -96,6 +181,7 @@ export function CommunityDetailPage() {
         : null,
     [serializedPostContent],
   )
+  const commentTree = useMemo(() => buildCommentTree(comments), [comments])
 
   const handleBackToList = () => {
     navigate('/community')
@@ -745,44 +831,12 @@ export function CommunityDetailPage() {
                 {!isCommentsLoading && !commentLoadError && comments.length === 0 && (
                   <S.CommentStatus>첫 댓글을 남겨보세요.</S.CommentStatus>
                 )}
-                {comments.map((comment) => (
-                  <S.CommentRow key={comment.commentId}>
-                    {comment.depth > 0 && (
-                      <S.ReplyGuide
-                        $depth={comment.depth}
-                        aria-hidden="true"
-                      />
-                    )}
-                    <S.CommentItem>
-                      <S.CommentAuthorImage
-                        src={
-                          resolveCommunityAssetUrl(
-                            comment.userProfileImageUrl,
-                          ) ?? fallbackProfileImage
-                        }
-                        alt={`${comment.userName} 프로필`}
-                        onError={handleProfileImageError}
-                      />
-                      <S.CommentContent>
-                        <S.CommentHeader>
-                          <S.CommentMeta>
-                            <S.CommentAuthor>{comment.userName}</S.CommentAuthor>
-                            <S.MetaDot aria-hidden="true" />
-                            <S.CommentDate dateTime={comment.createdAt}>
-                              {formatCommunityDate(comment.createdAt)}
-                            </S.CommentDate>
-                          </S.CommentMeta>
-                          <S.CommentMenuButton
-                            type="button"
-                            aria-label={`${comment.userName} 댓글 메뉴`}
-                          >
-                            <S.CommentMenuIcon src={kebabIcon} alt="" />
-                          </S.CommentMenuButton>
-                        </S.CommentHeader>
-                        <S.CommentText>{comment.content}</S.CommentText>
-                      </S.CommentContent>
-                    </S.CommentItem>
-                  </S.CommentRow>
+                {commentTree.map((node) => (
+                  <CommunityCommentBranch
+                    key={node.comment.commentId}
+                    node={node}
+                    onProfileImageError={handleProfileImageError}
+                  />
                 ))}
               </S.CommentList>
             </S.Comments>
