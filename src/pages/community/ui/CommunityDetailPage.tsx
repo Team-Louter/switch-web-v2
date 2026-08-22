@@ -56,6 +56,8 @@ const markdownSanitizeSchema = {
   },
 }
 
+const VISIBLE_REPLY_COUNT = 3
+
 interface CommentTreeNode {
   comment: CommentResponse
   children: CommentTreeNode[]
@@ -103,10 +105,15 @@ function CommunityCommentBranch({
 }: CommunityCommentBranchProps) {
   const { comment } = node
   const [isRepliesOpen, setIsRepliesOpen] = useState(false)
+  const [visibleReplyCount, setVisibleReplyCount] = useState(
+    VISIBLE_REPLY_COUNT,
+  )
 
   const hasReplies = node.children.length > 0
   const descendantCommentCount = getDescendantCommentCount(node)
   const shouldShowReplies = isExpandedByAncestor || isRepliesOpen
+  const visibleReplies = node.children.slice(0, visibleReplyCount)
+  const hasHiddenReplies = node.children.length > visibleReplies.length
   const repliesToggleLabel = isRepliesOpen
     ? '답글 숨기기'
     : `답글 ${descendantCommentCount}개`
@@ -147,7 +154,7 @@ function CommunityCommentBranch({
         <>
           {shouldShowReplies && (
             <S.CommentChildren>
-              {node.children.map((child) => (
+              {visibleReplies.map((child) => (
                 <CommunityCommentBranch
                   key={child.comment.commentId}
                   node={child}
@@ -155,6 +162,16 @@ function CommunityCommentBranch({
                   isExpandedByAncestor={shouldShowReplies}
                 />
               ))}
+              {hasHiddenReplies && (
+                <S.RepliesToggle
+                  type="button"
+                  aria-label="남은 답글 더보기"
+                  onClick={() => setVisibleReplyCount(node.children.length)}
+                >
+                  답글 더보기
+                  <S.RepliesCaret $isOpen={false} aria-hidden="true" />
+                </S.RepliesToggle>
+              )}
             </S.CommentChildren>
           )}
           {!isExpandedByAncestor && (
