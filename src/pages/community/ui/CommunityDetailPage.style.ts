@@ -38,6 +38,26 @@ const communityDetailEnter = keyframes`
   }
 `
 
+const rollingNumberIncrease = keyframes`
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(var(--rolling-number-offset));
+  }
+`
+
+const rollingNumberDecrease = keyframes`
+  from {
+    transform: translateY(var(--rolling-number-offset));
+  }
+
+  to {
+    transform: translateY(0);
+  }
+`
+
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
@@ -682,6 +702,50 @@ export const HeartButton = styled.button`
     cursor: wait;
     opacity: 0.6;
   }
+`
+
+export const RollingNumber = styled.span`
+  display: inline-flex;
+  height: 1em;
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+`
+
+export const RollingNumberCharacter = styled.span<{
+  $isAnimated: boolean
+}>`
+  display: inline-block;
+  height: 1em;
+  min-width: ${({ $isAnimated }) => ($isAnimated ? '0.58em' : 'auto')};
+  overflow: hidden;
+  vertical-align: top;
+`
+
+export const RollingNumberTrack = styled.span<{
+  $animationDelayMs: number
+  $direction: 'increase' | 'decrease'
+  $stepCount: number
+}>`
+  display: block;
+  --rolling-number-offset: ${({ $stepCount }) =>
+    `${-(($stepCount - 1))}em`};
+  animation: ${({ $direction }) =>
+      $direction === 'increase'
+        ? rollingNumberIncrease
+        : rollingNumberDecrease}
+    850ms cubic-bezier(0.22, 1, 0.36, 1) ${({ $animationDelayMs }) =>
+      $animationDelayMs}ms both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
+export const RollingNumberValue = styled.span`
+  display: block;
+  height: 1em;
+  line-height: 1;
 `
 
 export const StatIcon = styled.img`
