@@ -63,7 +63,8 @@ export function AppLayout() {
       SIDEBAR_MENU.find((item) =>
         item.path === '/'
           ? location.pathname === '/'
-          : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`),
+          : location.pathname === item.path ||
+            location.pathname.startsWith(`${item.path}/`),
       )?.id ?? 'home'
     )
   }, [location.pathname])
