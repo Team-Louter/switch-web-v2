@@ -44,6 +44,30 @@ const replyLoadShimmer = keyframes`
   }
 `
 
+const replyComposerAvatarEnter = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.78) rotate(-5deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+`
+
+const anonymousReplyComposerAvatarEnter = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.78) rotate(5deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+`
+
 const replyLoadSkeletonSurface = css`
   border-radius: ${token.shapes.small};
   background: linear-gradient(
@@ -531,11 +555,22 @@ export const ReplyComposer = styled.div`
   margin-top: 4px;
 `
 
-export const ReplyComposerAvatar = styled.img`
+export const ReplyComposerAvatar = styled.img<{
+  $isAnonymous: boolean
+}>`
   width: 32px;
   height: 32px;
   border-radius: ${token.shapes.circle};
   object-fit: cover;
+  animation: ${({ $isAnonymous }) =>
+      $isAnonymous
+        ? anonymousReplyComposerAvatarEnter
+        : replyComposerAvatarEnter}
+    180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 export const ReplyComposerBody = styled.div`
