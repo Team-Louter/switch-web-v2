@@ -67,6 +67,7 @@ interface CommunityCommentBranchProps {
   node: CommentTreeNode
   onProfileImageError: (event: SyntheticEvent<HTMLImageElement>) => void
   isExpandedByAncestor?: boolean
+  hasNextSibling?: boolean
 }
 
 function buildCommentTree(comments: CommentResponse[]): CommentTreeNode[] {
@@ -102,6 +103,7 @@ function CommunityCommentBranch({
   node,
   onProfileImageError,
   isExpandedByAncestor = false,
+  hasNextSibling = false,
 }: CommunityCommentBranchProps) {
   const { comment } = node
   const [isRepliesOpen, setIsRepliesOpen] = useState(false)
@@ -114,12 +116,13 @@ function CommunityCommentBranch({
   const shouldShowReplies = isExpandedByAncestor || isRepliesOpen
   const visibleReplies = node.children.slice(0, visibleReplyCount)
   const hasHiddenReplies = node.children.length > visibleReplies.length
+  const hasCollapseControl = !isExpandedByAncestor
   const repliesToggleLabel = isRepliesOpen
     ? '답글 숨기기'
     : `답글 ${descendantCommentCount}개`
 
   return (
-    <S.CommentTreeNode>
+    <S.CommentTreeNode $hasNextSibling={hasNextSibling}>
       <S.CommentRow $isReply={comment.depth > 0}>
         <S.CommentItem>
           <S.CommentAuthorImage
@@ -153,26 +156,36 @@ function CommunityCommentBranch({
       {hasReplies && (
         <>
           {shouldShowReplies && (
-            <S.CommentChildren $hasCollapseControl={!isExpandedByAncestor}>
-              {visibleReplies.map((child) => (
-                <CommunityCommentBranch
-                  key={child.comment.commentId}
-                  node={child}
-                  onProfileImageError={onProfileImageError}
-                  isExpandedByAncestor={shouldShowReplies}
-                />
-              ))}
+            <S.CommentChildren>
+              {visibleReplies.map((child, index) => {
+                const hasFollowingItem =
+                  index < visibleReplies.length - 1 ||
+                  hasHiddenReplies ||
+                  hasCollapseControl
+
+                return (
+                  <CommunityCommentBranch
+                    key={child.comment.commentId}
+                    node={child}
+                    onProfileImageError={onProfileImageError}
+                    isExpandedByAncestor={shouldShowReplies}
+                    hasNextSibling={hasFollowingItem}
+                  />
+                )
+              })}
               {hasHiddenReplies && (
-                <S.RepliesToggle
-                  type="button"
-                  aria-label="남은 답글 더보기"
-                  onClick={() => setVisibleReplyCount(node.children.length)}
-                >
-                  답글 더보기
-                  <S.RepliesCaret $isOpen={false} aria-hidden="true" />
-                </S.RepliesToggle>
+                <S.RepliesToggleRow $isWithinReplies>
+                  <S.RepliesToggle
+                    type="button"
+                    aria-label="남은 답글 더보기"
+                    onClick={() => setVisibleReplyCount(node.children.length)}
+                  >
+                    답글 더보기
+                    <S.RepliesCaret $isOpen={false} aria-hidden="true" />
+                  </S.RepliesToggle>
+                </S.RepliesToggleRow>
               )}
-              {!isExpandedByAncestor && (
+              {hasCollapseControl && (
                 <S.RepliesToggleRow $isWithinReplies>
                   <S.RepliesToggle
                     type="button"
@@ -189,7 +202,7 @@ function CommunityCommentBranch({
               )}
             </S.CommentChildren>
           )}
-          {!isExpandedByAncestor && !isRepliesOpen && (
+          {hasCollapseControl && !isRepliesOpen && (
             <S.RepliesToggleRow>
               <S.RepliesToggle
                 type="button"
