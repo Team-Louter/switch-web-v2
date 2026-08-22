@@ -634,16 +634,20 @@ export const StatIcon = styled.img`
 
 export const AttachmentArea = styled.div`
   ${token.flexColumn}
-  flex: 1 1 280px;
+  position: relative;
+  z-index: 1;
+  flex: 0 1 auto;
+  width: fit-content;
   gap: 0;
   min-width: 0;
-  max-width: 100%;
+  max-width: min(440px, calc(100vw - 48px));
 `
 
 export const AttachmentToggle = styled.button`
   ${token.flexLeft}
   box-sizing: border-box;
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
   height: 36px;
   min-width: 0;
   gap: 12px;
@@ -667,13 +671,12 @@ export const AttachmentToggle = styled.button`
 
 export const AttachmentLabel = styled.span`
   ${token.flexLeft}
-  flex: 1 1 0;
+  flex: 0 1 auto;
   gap: 4px;
   min-width: 0;
   overflow: hidden;
   ${token.typography('body', 'md', 'medium')}
   line-height: 1;
-  text-overflow: ellipsis;
   white-space: nowrap;
 `
 
@@ -681,6 +684,18 @@ export const AttachmentIcon = styled.img`
   flex: 0 0 20px;
   width: 20px;
   height: 20px;
+`
+
+export const AttachmentText = styled.span`
+  flex: 0 0 auto;
+`
+
+export const AttachmentSummaryFileName = styled.span`
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `
 
 export const AttachmentDivider = styled.span`
@@ -705,20 +720,35 @@ export const AttachmentChevron = styled.img<AttachmentChevronProps>`
 `
 
 export const AttachmentPanel = styled.div<AttachmentPanelProps>`
+  position: absolute;
+  z-index: 3;
+  top: calc(100% + 10px);
+  left: 0;
   box-sizing: border-box;
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
+  max-width: min(440px, calc(100vw - 48px));
   max-height: ${({ $isOpen }) => ($isOpen ? '360px' : '0')};
-  margin-top: ${({ $isOpen }) => ($isOpen ? '10px' : '0')};
   overflow-y: auto;
+  padding: ${({ $isOpen }) => ($isOpen ? '8px' : '0 8px')};
+  border: 1px solid
+    ${({ $isOpen }) =>
+      $isOpen ? token.colors.gray.gray10 : 'transparent'};
+  border-radius: ${token.shapes.small};
+  background: ${token.colors.white};
+  box-shadow: ${({ $isOpen }) =>
+    $isOpen ? '0 6px 18px rgb(0 0 0 / 6%)' : 'none'};
   pointer-events: ${({ $isOpen }) => ($isOpen ? 'auto' : 'none')};
+  visibility: ${({ $isOpen }) => ($isOpen ? 'visible' : 'hidden')};
   opacity: ${({ $isOpen }) => ($isOpen ? 1 : 0)};
   transform: ${({ $isOpen }) =>
     $isOpen ? 'translateY(0)' : 'translateY(-8px)'};
   transition:
     max-height 260ms ease,
-    margin-top 260ms ease,
+    padding 260ms ease,
     opacity 180ms ease,
-    transform 260ms ease;
+    transform 260ms ease,
+    visibility 0s ${({ $isOpen }) => ($isOpen ? '0s' : '260ms')};
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
@@ -762,6 +792,7 @@ export const AttachmentFileIcon = styled.img`
 `
 
 export const AttachmentFileName = styled.span`
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
