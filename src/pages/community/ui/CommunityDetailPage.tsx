@@ -26,9 +26,11 @@ import {
 import { getCurrentMember } from '@/entities/member'
 import {
   createComment,
+  deleteComment,
   deletePost,
   setPostPinned,
   togglePostHeart,
+  updateComment,
 } from '@/features/community'
 import commentIcon from '@/shared/assets/my/comment-icon.svg'
 import eyeIcon from '@/shared/assets/my/eye-icon.svg'
@@ -69,10 +71,20 @@ type ReplySubmitHandler = (
   isAnonymous: boolean,
 ) => Promise<string | null>
 
+type CommentUpdateHandler = (
+  commentId: number,
+  content: string,
+) => Promise<string | null>
+
+type CommentDeleteHandler = (commentId: number) => Promise<string | null>
+
 interface CommunityCommentBranchProps {
   node: CommentTreeNode
   onProfileImageError: (event: SyntheticEvent<HTMLImageElement>) => void
   onReplySubmit: ReplySubmitHandler
+  onCommentUpdate: CommentUpdateHandler
+  onCommentDelete: CommentDeleteHandler
+  currentMemberId: number | null
   replyAuthorProfileImageUrl?: string
   isExpandedByAncestor?: boolean
   hasNextSibling?: boolean
@@ -111,6 +123,9 @@ function CommunityCommentBranch({
   node,
   onProfileImageError,
   onReplySubmit,
+  onCommentUpdate,
+  onCommentDelete,
+  currentMemberId,
   replyAuthorProfileImageUrl,
   isExpandedByAncestor = false,
   hasNextSibling = false,
@@ -122,11 +137,20 @@ function CommunityCommentBranch({
   const [isReplyAnonymous, setIsReplyAnonymous] = useState(false)
   const [isReplySubmitting, setIsReplySubmitting] = useState(false)
   const [replySubmitError, setReplySubmitError] = useState<string | null>(null)
+  const [isCommentMenuOpen, setIsCommentMenuOpen] = useState(false)
+  const [isCommentEditing, setIsCommentEditing] = useState(false)
+  const [editedCommentContent, setEditedCommentContent] = useState('')
+  const [isCommentMutating, setIsCommentMutating] = useState(false)
+  const [commentActionError, setCommentActionError] = useState<string | null>(
+    null,
+  )
   const [visibleReplyCount, setVisibleReplyCount] = useState(
     VISIBLE_REPLY_COUNT,
   )
+  const commentMenuRef = useRef<HTMLDivElement>(null)
 
   const hasReplies = node.children.length > 0
+  const canManageComment = currentMemberId === comment.userId
   const descendantCommentCount = getDescendantCommentCount(node)
   const shouldShowReplies = isExpandedByAncestor || isRepliesOpen
   const visibleReplies = node.children.slice(0, visibleReplyCount)
@@ -180,6 +204,106 @@ function CommunityCommentBranch({
     }
   }
 
+  const handleCommentEditStart = () => {
+    setEditedCommentContent(comment.content)
+    setCommentActionError(null)
+    setIsCommentEditing(true)
+    setIsCommentMenuOpen(false)
+  }
+
+  const handleCommentEditCancel = () => {
+    setEditedCommentContent('')
+    setCommentActionError(null)
+    setIsCommentEditing(false)
+  }
+
+  const handleCommentEditSubmit = async () => {
+    const trimmedContent = editedCommentContent.trim()
+
+    if (!trimmedContent || isCommentMutating) {
+      return
+    }
+
+    setIsCommentMutating(true)
+    setCommentActionError(null)
+
+    const actionError = await onCommentUpdate(comment.commentId, trimmedContent)
+
+    if (actionError) {
+      setCommentActionError(actionError)
+    } else {
+      setIsCommentEditing(false)
+      setEditedCommentContent('')
+    }
+
+    setIsCommentMutating(false)
+  }
+
+  const handleCommentEditKeyDown = (
+    event: KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      void handleCommentEditSubmit()
+    }
+  }
+
+  const handleCommentDelete = async () => {
+    if (isCommentMutating) {
+      return
+    }
+
+    const shouldDelete = window.confirm(
+      '댓글을 삭제할까요? 삭제한 댓글은 복구할 수 없습니다.',
+    )
+
+    if (!shouldDelete) {
+      return
+    }
+
+    setIsCommentMutating(true)
+    setIsCommentMenuOpen(false)
+    setCommentActionError(null)
+
+    const actionError = await onCommentDelete(comment.commentId)
+
+    if (actionError) {
+      setCommentActionError(actionError)
+    }
+
+    setIsCommentMutating(false)
+  }
+
+  const handleCommentMenuKeyDown = (
+    event: KeyboardEvent<HTMLDivElement>,
+  ) => {
+    if (event.key === 'Escape') {
+      setIsCommentMenuOpen(false)
+      event.currentTarget.querySelector<HTMLButtonElement>('button')?.focus()
+    }
+  }
+
+  useEffect(() => {
+    if (!isCommentMenuOpen) {
+      return
+    }
+
+    function handleOutsidePointerDown(event: PointerEvent) {
+      if (
+        event.target instanceof Node &&
+        !commentMenuRef.current?.contains(event.target)
+      ) {
+        setIsCommentMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('pointerdown', handleOutsidePointerDown)
+
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsidePointerDown)
+    }
+  }, [isCommentMenuOpen])
+
   return (
     <S.CommentTreeNode $hasNextSibling={hasNextSibling}>
       <S.CommentRow $isReply={comment.depth > 0}>
@@ -201,79 +325,151 @@ function CommunityCommentBranch({
                   {formatCommunityDate(comment.createdAt)}
                 </S.CommentDate>
               </S.CommentMeta>
-              <S.CommentMenuButton
-                type="button"
-                aria-label={`${comment.userName} 댓글 메뉴`}
-              >
-                <S.CommentMenuIcon src={kebabIcon} alt="" />
-              </S.CommentMenuButton>
-            </S.CommentHeader>
-            <S.CommentText>{comment.content}</S.CommentText>
-            <S.ReplyActionButton
-              type="button"
-              aria-expanded={isReplyComposerOpen}
-              onClick={handleReplyComposerOpen}
-            >
-              답글 작성
-            </S.ReplyActionButton>
-            {isReplyComposerOpen && (
-              <S.ReplyComposer>
-                <S.ReplyComposerAvatar
-                  src={replyAuthorProfileImageUrl ?? fallbackProfileImage}
-                  alt=""
-                  onError={onProfileImageError}
-                />
-                <S.ReplyComposerBody>
-                  <S.ReplyComposerInput
-                    type="text"
-                    aria-label={`${comment.userName} 댓글에 답글 작성`}
-                    placeholder="답글을 남겨보세요"
-                    value={replyContent}
-                    disabled={isReplySubmitting}
-                    onChange={(event) => {
-                      setReplyContent(event.target.value)
-                      setReplySubmitError(null)
-                    }}
-                    onKeyDown={handleReplyKeyDown}
-                  />
-                  <S.ReplyComposerFooter>
-                    <S.ReplyComposerTools>
-                      <S.ReplyAnonymousLabel>
-                        <S.AnonymousCheckbox
-                          type="checkbox"
-                          checked={isReplyAnonymous}
-                          disabled={isReplySubmitting}
-                          onChange={(event) =>
-                            setIsReplyAnonymous(event.target.checked)
-                          }
-                        />
-                        익명
-                      </S.ReplyAnonymousLabel>
-                    </S.ReplyComposerTools>
-                    <S.ReplyComposerActions>
-                      <S.ReplyCancelButton
+              {canManageComment && (
+                <S.CommentMenu
+                  ref={commentMenuRef}
+                  onKeyDown={handleCommentMenuKeyDown}
+                >
+                  <S.CommentMenuButton
+                    type="button"
+                    aria-label="댓글 관리 메뉴"
+                    aria-expanded={isCommentMenuOpen}
+                    aria-haspopup="menu"
+                    disabled={isCommentMutating}
+                    onClick={() => setIsCommentMenuOpen((isOpen) => !isOpen)}
+                  >
+                    <S.CommentMenuIcon src={kebabIcon} alt="" />
+                  </S.CommentMenuButton>
+                  {isCommentMenuOpen && (
+                    <S.CommentMenuPanel role="menu" aria-label="댓글 관리">
+                      <S.CommentMenuItem
                         type="button"
-                        disabled={isReplySubmitting}
-                        onClick={handleReplyComposerCancel}
+                        role="menuitem"
+                        disabled={isCommentMutating}
+                        onClick={handleCommentEditStart}
                       >
-                        취소
-                      </S.ReplyCancelButton>
-                      <S.ReplySubmitButton
+                        수정하기
+                      </S.CommentMenuItem>
+                      <S.CommentMenuDivider aria-hidden="true" />
+                      <S.CommentMenuItem
                         type="button"
-                        disabled={!replyContent.trim() || isReplySubmitting}
-                        onClick={() => void handleReplyFormSubmit()}
+                        role="menuitem"
+                        $danger
+                        disabled={isCommentMutating}
+                        onClick={() => void handleCommentDelete()}
                       >
-                        답글
-                      </S.ReplySubmitButton>
-                    </S.ReplyComposerActions>
-                  </S.ReplyComposerFooter>
-                  {replySubmitError && (
-                    <S.ActionError role="alert">
-                      {replySubmitError}
-                    </S.ActionError>
+                        {isCommentMutating ? '삭제 중' : '삭제하기'}
+                      </S.CommentMenuItem>
+                    </S.CommentMenuPanel>
                   )}
-                </S.ReplyComposerBody>
-              </S.ReplyComposer>
+                </S.CommentMenu>
+              )}
+            </S.CommentHeader>
+            {isCommentEditing ? (
+              <S.CommentEditForm>
+                <S.CommentEditInput
+                  type="text"
+                  aria-label="댓글 수정"
+                  value={editedCommentContent}
+                  disabled={isCommentMutating}
+                  onChange={(event) => {
+                    setEditedCommentContent(event.target.value)
+                    setCommentActionError(null)
+                  }}
+                  onKeyDown={handleCommentEditKeyDown}
+                />
+                <S.CommentEditActions>
+                  <S.CommentEditButton
+                    type="button"
+                    disabled={isCommentMutating}
+                    onClick={handleCommentEditCancel}
+                  >
+                    취소
+                  </S.CommentEditButton>
+                  <S.CommentEditSaveButton
+                    type="button"
+                    disabled={!editedCommentContent.trim() || isCommentMutating}
+                    onClick={() => void handleCommentEditSubmit()}
+                  >
+                    저장
+                  </S.CommentEditSaveButton>
+                </S.CommentEditActions>
+              </S.CommentEditForm>
+            ) : (
+              <>
+                <S.CommentText>{comment.content}</S.CommentText>
+                <S.ReplyActionButton
+                  type="button"
+                  aria-expanded={isReplyComposerOpen}
+                  onClick={handleReplyComposerOpen}
+                >
+                  답글 작성
+                </S.ReplyActionButton>
+                {isReplyComposerOpen && (
+                  <S.ReplyComposer>
+                    <S.ReplyComposerAvatar
+                      src={replyAuthorProfileImageUrl ?? fallbackProfileImage}
+                      alt=""
+                      onError={onProfileImageError}
+                    />
+                    <S.ReplyComposerBody>
+                      <S.ReplyComposerInput
+                        type="text"
+                        aria-label={`${comment.userName} 댓글에 답글 작성`}
+                        placeholder="답글을 남겨보세요"
+                        value={replyContent}
+                        disabled={isReplySubmitting}
+                        onChange={(event) => {
+                          setReplyContent(event.target.value)
+                          setReplySubmitError(null)
+                        }}
+                        onKeyDown={handleReplyKeyDown}
+                      />
+                      <S.ReplyComposerFooter>
+                        <S.ReplyComposerTools>
+                          <S.ReplyAnonymousLabel>
+                            <S.AnonymousCheckbox
+                              type="checkbox"
+                              checked={isReplyAnonymous}
+                              disabled={isReplySubmitting}
+                              onChange={(event) =>
+                                setIsReplyAnonymous(event.target.checked)
+                              }
+                            />
+                            익명
+                          </S.ReplyAnonymousLabel>
+                        </S.ReplyComposerTools>
+                        <S.ReplyComposerActions>
+                          <S.ReplyCancelButton
+                            type="button"
+                            disabled={isReplySubmitting}
+                            onClick={handleReplyComposerCancel}
+                          >
+                            취소
+                          </S.ReplyCancelButton>
+                          <S.ReplySubmitButton
+                            type="button"
+                            disabled={
+                              !replyContent.trim() || isReplySubmitting
+                            }
+                            onClick={() => void handleReplyFormSubmit()}
+                          >
+                            답글
+                          </S.ReplySubmitButton>
+                        </S.ReplyComposerActions>
+                      </S.ReplyComposerFooter>
+                      {replySubmitError && (
+                        <S.ActionError role="alert">
+                          {replySubmitError}
+                        </S.ActionError>
+                      )}
+                    </S.ReplyComposerBody>
+                  </S.ReplyComposer>
+                )}
+              </>
+            )}
+            {commentActionError && (
+              <S.ActionError role="alert">{commentActionError}</S.ActionError>
             )}
           </S.CommentContent>
         </S.CommentItem>
@@ -293,6 +489,9 @@ function CommunityCommentBranch({
                     node={child}
                     onProfileImageError={onProfileImageError}
                     onReplySubmit={onReplySubmit}
+                    onCommentUpdate={onCommentUpdate}
+                    onCommentDelete={onCommentDelete}
+                    currentMemberId={currentMemberId}
                     replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
                     isExpandedByAncestor={shouldShowReplies}
                     hasNextSibling={hasFollowingItem}
@@ -533,6 +732,49 @@ export function CommunityDetailPage() {
       return null
     } catch {
       return '답글을 등록하지 못했습니다.'
+    }
+  }
+
+  const handleCommentUpdate: CommentUpdateHandler = async (
+    commentId,
+    content,
+  ) => {
+    if (!post) {
+      return '댓글을 수정하지 못했습니다.'
+    }
+
+    try {
+      const updatedComment = await updateComment(post.postId, commentId, {
+        content,
+      })
+
+      setComments((currentComments) =>
+        currentComments.map((currentComment) =>
+          currentComment.commentId === commentId
+            ? { ...currentComment, ...updatedComment }
+            : currentComment,
+        ),
+      )
+
+      return null
+    } catch {
+      return '댓글을 수정하지 못했습니다. 잠시 후 다시 시도해주세요.'
+    }
+  }
+
+  const handleCommentDelete: CommentDeleteHandler = async (commentId) => {
+    if (!post) {
+      return '댓글을 삭제하지 못했습니다.'
+    }
+
+    try {
+      await deleteComment(post.postId, commentId)
+      setCommentReloadKey((currentKey) => currentKey + 1)
+      setReloadKey((currentKey) => currentKey + 1)
+
+      return null
+    } catch {
+      return '댓글을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.'
     }
   }
 
@@ -1082,6 +1324,9 @@ export function CommunityDetailPage() {
                     node={node}
                     onProfileImageError={handleProfileImageError}
                     onReplySubmit={handleReplySubmit}
+                    onCommentUpdate={handleCommentUpdate}
+                    onCommentDelete={handleCommentDelete}
+                    currentMemberId={currentMemberId}
                     replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
                   />
                 ))}
