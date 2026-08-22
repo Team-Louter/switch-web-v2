@@ -348,6 +348,12 @@ export const BodyText = styled.div`
   }
 
   .community-post-blocks
+    [data-content-type='file']
+    .bn-file-name-with-icon {
+    cursor: pointer;
+  }
+
+  .community-post-blocks
     .bn-block-outer:not([data-prev-type])
     > .bn-block
     > .bn-block-content[data-content-type='heading'] {
