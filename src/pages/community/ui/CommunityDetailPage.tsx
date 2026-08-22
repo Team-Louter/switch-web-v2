@@ -26,6 +26,7 @@ import {
 import { getCurrentMember } from '@/entities/member'
 import {
   createComment,
+  deletePost,
   setPostPinned,
   togglePostHeart,
 } from '@/features/community'
@@ -71,14 +72,19 @@ export function CommunityDetailPage() {
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false)
   const [isHeartMutating, setIsHeartMutating] = useState(false)
+  const [currentMemberId, setCurrentMemberId] = useState<number | null>(null)
   const [canManagePostPin, setCanManagePostPin] = useState(false)
   const [isPinMutating, setIsPinMutating] = useState(false)
+  const [isPostDeleting, setIsPostDeleting] = useState(false)
   const [isPostMenuOpen, setIsPostMenuOpen] = useState(false)
   const [isAttachmentListOpen, setIsAttachmentListOpen] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
-  const [pinActionError, setPinActionError] = useState<string | null>(null)
+  const [postActionError, setPostActionError] = useState<string | null>(null)
   const postMenuRef = useRef<HTMLDivElement>(null)
 
+  const canManagePost = currentMemberId === post?.userId
+  const canOpenPostMenu = canManagePostPin || canManagePost
+  const isPostActionMutating = isPinMutating || isPostDeleting
   const attachmentFiles =
     post?.files?.filter((file) => !file.fileType.startsWith('image/')) ?? []
   const firstAttachment = attachmentFiles[0]
@@ -152,7 +158,7 @@ export function CommunityDetailPage() {
 
     setIsPinMutating(true)
     setIsPostMenuOpen(false)
-    setPinActionError(null)
+    setPostActionError(null)
 
     try {
       await setPostPinned(post.postId, nextPinned)
@@ -160,7 +166,7 @@ export function CommunityDetailPage() {
         currentPost ? { ...currentPost, pinned: nextPinned } : currentPost,
       )
     } catch {
-      setPinActionError(
+      setPostActionError(
         nextPinned
           ? '게시글을 고정하지 못했습니다. 잠시 후 다시 시도해주세요.'
           : '게시글 고정을 해제하지 못했습니다. 잠시 후 다시 시도해주세요.',
@@ -215,6 +221,42 @@ export function CommunityDetailPage() {
     }
   }
 
+  const handlePostEdit = () => {
+    if (!post || !canManagePost) {
+      return
+    }
+
+    setIsPostMenuOpen(false)
+    navigate(`/community/${post.postId}/edit`)
+  }
+
+  const handlePostDelete = async () => {
+    if (!post || !canManagePost || isPostDeleting) {
+      return
+    }
+
+    const shouldDelete = window.confirm(
+      '게시글을 삭제할까요? 삭제한 게시글은 복구할 수 없습니다.',
+    )
+
+    if (!shouldDelete) {
+      return
+    }
+
+    setIsPostDeleting(true)
+    setIsPostMenuOpen(false)
+    setPostActionError(null)
+
+    try {
+      await deletePost(post.postId)
+      navigate('/community', { replace: true })
+    } catch {
+      setPostActionError('게시글을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.')
+    } finally {
+      setIsPostDeleting(false)
+    }
+  }
+
   const handleAttachmentOpen = (fileKeyOrUrl: string) => {
     const attachmentUrl = getCommunityFileDownloadUrl(fileKeyOrUrl)
 
@@ -233,10 +275,12 @@ export function CommunityDetailPage() {
           currentMember.role === 'LEADER' || currentMember.role === 'MENTOR'
 
         if (!isCancelled) {
+          setCurrentMemberId(currentMember.userId)
           setCanManagePostPin(canManagePin)
         }
       } catch {
         if (!isCancelled) {
+          setCurrentMemberId(null)
           setCanManagePostPin(false)
         }
       }
@@ -439,7 +483,7 @@ export function CommunityDetailPage() {
                         <S.PostDate dateTime={post.createdAt}>
                           {formatCommunityDate(post.createdAt)}
                         </S.PostDate>
-                        {canManagePostPin && (
+                        {canOpenPostMenu && (
                           <S.PostMenu
                             ref={postMenuRef}
                             onKeyDown={handlePostMenuKeyDown}
@@ -449,7 +493,7 @@ export function CommunityDetailPage() {
                               aria-label="게시글 관리 메뉴"
                               aria-expanded={isPostMenuOpen}
                               aria-haspopup="menu"
-                              disabled={isPinMutating}
+                              disabled={isPostActionMutating}
                               onClick={() =>
                                 setIsPostMenuOpen((isOpen) => !isOpen)
                               }
@@ -461,22 +505,49 @@ export function CommunityDetailPage() {
                                 role="menu"
                                 aria-label="게시글 관리"
                               >
-                                <S.PostMenuItem
-                                  type="button"
-                                  role="menuitem"
-                                  disabled={isPinMutating}
-                                  onClick={handlePinToggle}
-                                >
-                                  {post.pinned ? '고정 해제' : '고정하기'}
-                                </S.PostMenuItem>
+                                {canManagePostPin && (
+                                  <S.PostMenuItem
+                                    type="button"
+                                    role="menuitem"
+                                    disabled={isPostActionMutating}
+                                    onClick={handlePinToggle}
+                                  >
+                                    {post.pinned ? '고정 해제' : '고정하기'}
+                                  </S.PostMenuItem>
+                                )}
+                                {canManagePostPin && canManagePost && (
+                                  <S.PostMenuDivider aria-hidden="true" />
+                                )}
+                                {canManagePost && (
+                                  <>
+                                    <S.PostMenuItem
+                                      type="button"
+                                      role="menuitem"
+                                      disabled={isPostActionMutating}
+                                      onClick={handlePostEdit}
+                                    >
+                                      수정하기
+                                    </S.PostMenuItem>
+                                    <S.PostMenuDivider aria-hidden="true" />
+                                    <S.PostMenuItem
+                                      type="button"
+                                      role="menuitem"
+                                      $danger
+                                      disabled={isPostActionMutating}
+                                      onClick={handlePostDelete}
+                                    >
+                                      {isPostDeleting ? '삭제 중' : '삭제하기'}
+                                    </S.PostMenuItem>
+                                  </>
+                                )}
                               </S.PostMenuPanel>
                             )}
                           </S.PostMenu>
                         )}
                       </S.PostMeta>
-                      {pinActionError && (
+                      {postActionError && (
                         <S.PinActionError role="alert">
-                          {pinActionError}
+                          {postActionError}
                         </S.PinActionError>
                       )}
                     </S.PostActions>
