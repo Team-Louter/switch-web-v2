@@ -520,7 +520,8 @@ function CommunityCommentBranch({
               {visibleReplies.map((child, index) => {
                 const hasFollowingItem =
                   index < visibleReplies.length - 1 ||
-                  hasHiddenReplies
+                  hasHiddenReplies ||
+                  hasCollapseControl
 
                 return (
                   <CommunityCommentBranch
