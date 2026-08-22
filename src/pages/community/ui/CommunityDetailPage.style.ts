@@ -332,6 +332,21 @@ export const BodyText = styled.div`
     line-height: 1.25;
   }
 
+  .community-post-blocks [data-file-block] .bn-file-block-content-wrapper,
+  .community-post-blocks [data-file-block] .bn-visual-media-wrapper {
+    box-sizing: border-box;
+    max-width: 100% !important;
+  }
+
+  .community-post-blocks [data-file-block] .bn-visual-media {
+    display: block;
+    width: auto !important;
+    max-width: 100% !important;
+    max-height: 640px;
+    height: auto !important;
+    object-fit: contain;
+  }
+
   .community-post-blocks
     .bn-block-outer:not([data-prev-type])
     > .bn-block
@@ -454,8 +469,10 @@ export const BodyText = styled.div`
 
   img {
     max-width: 100%;
+    max-height: 640px;
     height: auto;
     border-radius: ${token.shapes.small};
+    object-fit: contain;
   }
 
   table {
@@ -540,8 +557,17 @@ export const StatIcon = styled.img`
   object-fit: scale-down;
 `
 
+export const AttachmentList = styled.div`
+  ${token.flexRow}
+  flex: 1 1 0;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+`
+
 export const AttachmentButton = styled.button`
   ${token.flexLeft}
+  min-width: 0;
   gap: 12px;
   box-sizing: border-box;
   max-width: 100%;
