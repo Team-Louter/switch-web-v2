@@ -2,9 +2,10 @@ import styled, { keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
-type Status = '원활' | '답변 지연' | '비활성' | '대기' | '진행' | '완료'
+type Status = '-' | '원활' | '답변 지연' | '비활성' | '대기' | '진행' | '완료'
 
 const statusColor: Record<Status, string> = {
+  '-': token.colors.gray.gray50,
   원활: token.colors.info.info20,
   '답변 지연': token.colors.warning.warning20,
   비활성: token.colors.danger.danger20,

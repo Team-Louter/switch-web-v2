@@ -246,7 +246,7 @@ type MentorTableProps = {
   onMentorSelect: (mentor: MentorSummary) => void
 }
 
-type MentorTableFilter = '전체' | MentorSummary['status']
+type MentorTableFilter = '전체' | Exclude<MentorSummary['status'], '-'>
 
 function MentorTable({
   mentors,

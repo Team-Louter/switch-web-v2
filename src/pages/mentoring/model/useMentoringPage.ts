@@ -28,7 +28,7 @@ import type {
 } from '../ui/types'
 
 type ViewMode = 'dashboard' | 'mentor-detail'
-type MentorFilter = '전체' | MentorStatus
+type MentorFilter = '전체' | Exclude<MentorStatus, '-'>
 type QuestionFilter = '전체' | QuestionStatus
 type SortOrder = 'latest' | 'oldest'
 
@@ -50,7 +50,7 @@ const adminMentorStateMap = {
   원활: 'ACTIVE',
   '답변 지연': 'DELAYED',
   비활성: 'INACTIVE',
-} satisfies Record<MentorStatus, AdminMentoringState>
+} satisfies Record<Exclude<MentorStatus, '-'>, AdminMentoringState>
 const adminQuestionStatusMap = {
   대기: 'PAUSED',
   진행: 'ACTIVE',
@@ -145,18 +145,22 @@ const getMentorRoleText = (majors: AdminMentoringMentorsResponse['majors']) =>
 
 const mapAdminMentor = (
   mentor: AdminMentoringMentorsResponse,
-): MentorSummary => ({
-  id: mentor.mentorId,
-  mentorId: mentor.mentorId,
-  name: mentor.mentorName,
-  pendingQuestions: getQuestionCountText(mentor.waitingAnswers),
-  profileImageUrl: mentor.profileImageUrl,
-  recentActivity: formatRecentActivity(mentor.recentActivity),
-  recentActivityOrder: getDateOrder(mentor.recentActivity),
-  role: getMentorRoleText(mentor.majors),
-  status: mentorStatusMap[mentor.state],
-  totalQuestions: getQuestionCountText(mentor.allQuestions),
-})
+): MentorSummary => {
+  const recentActivityOrder = getDateOrder(mentor.recentActivity)
+
+  return {
+    id: mentor.mentorId,
+    mentorId: mentor.mentorId,
+    name: mentor.mentorName,
+    pendingQuestions: getQuestionCountText(mentor.waitingAnswers),
+    profileImageUrl: mentor.profileImageUrl,
+    recentActivity: formatRecentActivity(mentor.recentActivity),
+    recentActivityOrder,
+    role: getMentorRoleText(mentor.majors),
+    status: recentActivityOrder ? mentorStatusMap[mentor.state] : '-',
+    totalQuestions: getQuestionCountText(mentor.allQuestions),
+  }
+}
 
 const mapAdminQuestion = (
   question: AdminMentoringQuestion,

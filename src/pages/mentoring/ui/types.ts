@@ -1,4 +1,4 @@
-export type MentorStatus = '원활' | '답변 지연' | '비활성'
+export type MentorStatus = '-' | '원활' | '답변 지연' | '비활성'
 
 export type QuestionStatus = '대기' | '진행' | '완료'
 
