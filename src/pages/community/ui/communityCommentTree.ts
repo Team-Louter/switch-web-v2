@@ -130,18 +130,3 @@ export function appendCommentReplies(
     ...comments.slice(insertIndex),
   ]
 }
-
-export function getDescendantCommentCount(node: CommentTreeNode): number {
-  const unloadedReplyCount = Math.max(
-    node.comment.replyCount - node.children.length,
-    0,
-  )
-
-  return (
-    unloadedReplyCount +
-    node.children.reduce(
-      (count, child) => count + 1 + getDescendantCommentCount(child),
-      0,
-    )
-  )
-}
