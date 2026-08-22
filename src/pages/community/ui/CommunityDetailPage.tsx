@@ -45,6 +45,7 @@ import backChevronIcon from '../assets/svg/back-chevron.svg'
 import heartColoredIcon from '../assets/svg/heart-colored.svg'
 import kebabIcon from '../assets/svg/kebab.svg'
 import paperclipIcon from '../assets/svg/paperclip.svg'
+import pinIcon from '../assets/svg/pin-solid.svg'
 import sendIcon from '../assets/svg/send.svg'
 import { CommunityCommentBranch } from './CommunityCommentBranch'
 import { CommunityPostBlockContent } from './CommunityPostBlockContent'
@@ -605,7 +606,15 @@ export function CommunityDetailPage() {
                     {getPostCategoryLabel(post.category)}
                   </S.CategoryBadge>
                   <S.TitleRow>
-                    <S.Title>{post.postTitle}</S.Title>
+                    <S.Title>
+                      {post.pinned && (
+                        <S.PinnedTitleIcon
+                          src={pinIcon}
+                          alt="고정된 게시글"
+                        />
+                      )}
+                      {post.postTitle}
+                    </S.Title>
                     <S.PostActions>
                       <S.PostMeta>
                         <S.PostAuthor>
