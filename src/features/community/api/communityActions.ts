@@ -19,7 +19,7 @@ export async function createPost(
   return response.data
 }
 
-export async function uploadCommunityImage(
+export async function uploadCommunityFile(
   file: File,
 ): Promise<FileUploadResponse> {
   const formData = new FormData()
