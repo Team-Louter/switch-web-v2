@@ -13,8 +13,10 @@ import {
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
 import { ConfirmModal } from '@/shared/ui'
 
+import anonymousProfileImage from '../assets/images/anonymousProfile.png'
 import kebabIcon from '../assets/svg/kebab.svg'
 import {
+  REPLY_LOAD_DEPTH_INTERVAL,
   type CommentTreeNode,
   type CommunityCommentDeleteHandler,
   type CommunityCommentUpdateHandler,
@@ -37,6 +39,7 @@ interface CommunityCommentBranchProps {
   onCommentUpdate: CommunityCommentUpdateHandler
   onCommentDelete: CommunityCommentDeleteHandler
   currentMemberId: number | null
+  loadedReplyCommentIds: ReadonlySet<number>
   replyAuthorProfileImageUrl?: string
   isExpandedByAncestor?: boolean
   hasNextSibling?: boolean
@@ -68,6 +71,7 @@ export function CommunityCommentBranch({
   onCommentUpdate,
   onCommentDelete,
   currentMemberId,
+  loadedReplyCommentIds,
   replyAuthorProfileImageUrl,
   isExpandedByAncestor = false,
   hasNextSibling = false,
@@ -82,7 +86,7 @@ export function CommunityCommentBranch({
   const [isRepliesLoading, setIsRepliesLoading] = useState(false)
   const [replyLoadError, setReplyLoadError] = useState<string | null>(null)
   const [hasReplyLoadAttempted, setHasReplyLoadAttempted] = useState(
-    node.children.length > 0,
+    loadedReplyCommentIds.has(comment.commentId) || node.children.length > 0,
   )
   const [isCommentMenuOpen, setIsCommentMenuOpen] = useState(false)
   const [isCommentEditing, setIsCommentEditing] = useState(false)
@@ -98,8 +102,11 @@ export function CommunityCommentBranch({
   const loadedReplyCount = node.children.length
   const hasReplies = loadedReplyCount > 0
   const canManageComment = currentMemberId === comment.userId
+  const isReplyLoadKnown = loadedReplyCommentIds.has(comment.commentId)
   const requiresInitialReplyLoad =
-    !hasReplyLoadAttempted && loadedReplyCount === 0
+    !hasReplyLoadAttempted &&
+    !isReplyLoadKnown &&
+    loadedReplyCount === 0
   const shouldShowReplies =
     hasReplies && (isExpandedByAncestor || isRepliesOpen)
   const visibleReplies = node.children.slice(0, visibleReplyCount)
@@ -110,7 +117,9 @@ export function CommunityCommentBranch({
     : '답글 보기'
   const repliesLoadLabel = replyLoadError
     ? '답글 다시 불러오기'
-    : '답글 더보기'
+    : comment.depth >= REPLY_LOAD_DEPTH_INTERVAL
+      ? '답글 더보기'
+      : '답글 보기'
 
   const handleReplyComposerOpen = () => {
     setIsReplyComposerOpen(true)
@@ -372,7 +381,12 @@ export function CommunityCommentBranch({
                 {isReplyComposerOpen && (
                   <S.ReplyComposer>
                     <S.ReplyComposerAvatar
-                      src={replyAuthorProfileImageUrl ?? fallbackProfileImage}
+                      $isAnonymous={isReplyAnonymous}
+                      src={
+                        isReplyAnonymous
+                          ? anonymousProfileImage
+                          : replyAuthorProfileImageUrl ?? fallbackProfileImage
+                      }
                       alt=""
                       onError={onProfileImageError}
                     />
@@ -470,6 +484,7 @@ export function CommunityCommentBranch({
                     onCommentUpdate={onCommentUpdate}
                     onCommentDelete={onCommentDelete}
                     currentMemberId={currentMemberId}
+                    loadedReplyCommentIds={loadedReplyCommentIds}
                     replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
                     isExpandedByAncestor={shouldShowReplies}
                     hasNextSibling={hasFollowingItem}
