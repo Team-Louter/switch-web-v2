@@ -60,7 +60,6 @@ interface UploadedFile {
   fileName: string
   fileType: string
   fileSize: number
-  isEmbedded: boolean
 }
 
 interface BlockDropIndicatorPosition {
@@ -160,11 +159,10 @@ export function CommunityWritePage() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [blockDropIndicator, setBlockDropIndicator] =
     useState<BlockDropIndicatorPosition | null>(null)
-  const attachmentFiles = uploadedFiles.filter((file) => !file.isEmbedded)
   const isUploadingFile = pendingFileUploadCount > 0
 
   const uploadPostFile = useCallback(
-    async (file: File, isEmbedded: boolean) => {
+    async (file: File) => {
       setPendingFileUploadCount((count) => count + 1)
       setFileUploadError(null)
 
@@ -186,7 +184,6 @@ export function CommunityWritePage() {
             fileName,
             fileType: uploadedFile.fileType || file.type,
             fileSize: uploadedFile.fileSize || file.size,
-            isEmbedded,
           },
         ])
 
@@ -204,7 +201,7 @@ export function CommunityWritePage() {
   )
 
   const handleEditorFileUpload = useCallback(
-    (file: File) => uploadPostFile(file, true),
+    (file: File) => uploadPostFile(file),
     [uploadPostFile],
   )
 
@@ -339,21 +336,32 @@ export function CommunityWritePage() {
       return
     }
 
-    const uploadResults = await Promise.allSettled(
-      files.map((file) => uploadPostFile(file, false)),
-    )
+    let currentBlock = editor.getTextCursorPosition().block
 
-    if (uploadResults.some((result) => result.status === 'rejected')) {
-      setFileUploadError(
-        '일부 파일을 업로드하지 못했습니다. 다시 시도해주세요.',
-      )
+    for (const file of files) {
+      try {
+        const uploadedFile = await handleEditorFileUpload(file)
+        const [fileBlock] = editor.insertBlocks(
+          [
+            {
+              type: 'file',
+              props: {
+                url: uploadedFile.url,
+                name: uploadedFile.name,
+              },
+            },
+          ],
+          currentBlock,
+          'after',
+        )
+
+        currentBlock = fileBlock
+      } catch {
+        // 파일 업로드 실패 메시지는 uploadPostFile에서 표시합니다.
+      }
     }
-  }
 
-  const handleAttachmentRemove = (fileKey: string) => {
-    setUploadedFiles((files) =>
-      files.filter((file) => file.fileKey !== fileKey),
-    )
+    editor.setTextCursorPosition(currentBlock, 'end')
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -618,28 +626,6 @@ export function CommunityWritePage() {
               <SideMenuController sideMenu={CommunityBlockSideMenu} />
             </BlockNoteView>
           </div>
-          {attachmentFiles.length > 0 && (
-            <S.AttachmentSection aria-label="첨부 파일">
-              <S.AttachmentHeading>첨부 파일</S.AttachmentHeading>
-              <S.AttachmentList>
-                {attachmentFiles.map((file) => (
-                  <S.AttachmentItem key={file.id}>
-                    <S.AttachmentFileName title={file.fileName}>
-                      {file.fileName}
-                    </S.AttachmentFileName>
-                    <S.AttachmentRemoveButton
-                      type="button"
-                      aria-label={`${file.fileName} 첨부 취소`}
-                      disabled={isSubmitting}
-                      onClick={() => handleAttachmentRemove(file.fileKey)}
-                    >
-                      제거
-                    </S.AttachmentRemoveButton>
-                  </S.AttachmentItem>
-                ))}
-              </S.AttachmentList>
-            </S.AttachmentSection>
-          )}
         </S.Editor>
         {isUploadingFile && (
           <S.FileUploadStatus role="status">
