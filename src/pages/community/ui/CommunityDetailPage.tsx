@@ -632,13 +632,13 @@ export function CommunityDetailPage() {
                     {getPostCategoryLabel(post.category)}
                   </S.CategoryBadge>
                   <S.TitleRow>
-                    <S.Title>
-                      {post.pinned && (
-                        <S.PinnedTitleIcon
-                          src={pinIcon}
-                          alt="고정된 게시글"
-                        />
-                      )}
+                    <S.Title $isPinned={post.pinned}>
+                      <S.PinnedTitleIcon
+                        $isPinned={post.pinned}
+                        src={pinIcon}
+                        alt={post.pinned ? '고정된 게시글' : ''}
+                        aria-hidden={!post.pinned}
+                      />
                       {post.postTitle}
                     </S.Title>
                     <S.PostActions>
