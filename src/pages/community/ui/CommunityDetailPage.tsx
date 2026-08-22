@@ -50,10 +50,12 @@ import sendIcon from '../assets/svg/send.svg'
 import { CommunityCommentBranch } from './CommunityCommentBranch'
 import { CommunityPostBlockContent } from './CommunityPostBlockContent'
 import {
+  appendCommentReplies,
   appendReplyComment,
   buildCommentTree,
   type CommunityCommentDeleteHandler,
   type CommunityCommentUpdateHandler,
+  type CommunityReplyLoadHandler,
   type CommunityReplySubmitHandler,
 } from './communityCommentTree'
 import * as S from './CommunityDetailPage.style'
@@ -68,6 +70,7 @@ const markdownSanitizeSchema = {
 }
 
 const COMMENT_SKELETON_ITEMS = [0, 1, 2]
+const PRELOADED_REPLY_DEPTH = 2
 
 export function CommunityDetailPage() {
   const navigate = useNavigate()
@@ -258,6 +261,26 @@ export function CommunityDetailPage() {
       return null
     } catch {
       return '답글을 등록하지 못했습니다.'
+    }
+  }
+
+  const handleRepliesLoad: CommunityReplyLoadHandler = async (
+    parentCommentId,
+  ) => {
+    if (!post) {
+      return '답글을 불러오지 못했습니다.'
+    }
+
+    try {
+      const replies = await getCommentReplies(post.postId, parentCommentId)
+
+      setComments((currentComments) =>
+        appendCommentReplies(currentComments, parentCommentId, replies),
+      )
+
+      return null
+    } catch {
+      return '답글을 불러오지 못했습니다.'
     }
   }
 
@@ -507,7 +530,10 @@ export function CommunityDetailPage() {
 
           const currentComment = { ...comment, depth }
 
-          if (comment.replyCount === 0) {
+          if (
+            comment.replyCount === 0 ||
+            depth >= PRELOADED_REPLY_DEPTH
+          ) {
             return [currentComment]
           }
 
@@ -897,6 +923,7 @@ export function CommunityDetailPage() {
                     node={node}
                     onProfileImageError={handleProfileImageError}
                     onReplySubmit={handleReplySubmit}
+                    onRepliesLoad={handleRepliesLoad}
                     onCommentUpdate={handleCommentUpdate}
                     onCommentDelete={handleCommentDelete}
                     currentMemberId={currentMemberId}
