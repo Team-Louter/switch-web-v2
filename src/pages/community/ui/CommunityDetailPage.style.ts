@@ -23,6 +23,10 @@ interface CommentRowProps {
   $isReply: boolean
 }
 
+interface RepliesCaretProps {
+  $isOpen: boolean
+}
+
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
@@ -932,22 +936,24 @@ export const CommentTreeNode = styled.div`
   width: 100%;
 `
 
-export const CommentRow = styled.article<CommentRowProps>`
-  ${token.flexLeft}
+export const RepliesToggleRow = styled.div`
   position: relative;
-  align-items: stretch;
-  gap: 12px;
-  width: 100%;
-  min-height: 0;
+  align-self: flex-start;
+  box-sizing: border-box;
+  margin-left: 20px;
+  padding-left: 28px;
 
-  &::after {
-    display: ${({ $isReply }) => ($isReply ? 'block' : 'none')};
+  &::before {
     position: absolute;
-    top: 30px;
-    left: -12px;
-    width: 12px;
-    height: 2px;
-    background: ${token.colors.gray.gray10};
+    top: -12px;
+    left: 12px;
+    box-sizing: border-box;
+    width: 16px;
+    height: 32px;
+    border-bottom: 1px solid ${token.colors.gray.gray10};
+    border-left: 1px solid ${token.colors.gray.gray10};
+    border-bottom-left-radius: 18px;
+    pointer-events: none;
     content: '';
   }
 `
@@ -957,18 +963,102 @@ export const CommentChildren = styled.div`
   position: relative;
   box-sizing: border-box;
   gap: 12px;
-  width: calc(100% - 32px);
-  margin-left: 32px;
-  padding-left: 24px;
+  width: calc(100% - 20px);
+  margin-left: 20px;
+  padding-left: 28px;
 
   &::before {
     position: absolute;
-    top: -18px;
+    top: -12px;
     bottom: 18px;
     left: 12px;
-    width: 2px;
+    width: 1px;
     border-radius: ${token.shapes.circle};
     background: ${token.colors.gray.gray10};
+    content: '';
+  }
+`
+
+export const RepliesToggle = styled.button`
+  ${token.flexLeft}
+  gap: 14px;
+  min-height: 48px;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 999px;
+  color: ${token.colors.gray.gray80};
+  background: transparent;
+  ${token.typography('body', 'md', 'semibold')}
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 160ms ease;
+
+  &:hover {
+    background: ${token.colors.gray.gray20};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+`
+
+export const RepliesCaret = styled.span<RepliesCaretProps>`
+  box-sizing: border-box;
+  width: 10px;
+  height: 10px;
+  margin-top: ${({ $isOpen }) => ($isOpen ? '4px' : '-3px')};
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: ${({ $isOpen }) =>
+    $isOpen ? 'rotate(225deg)' : 'rotate(45deg)'};
+  transition: transform 160ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+`
+
+export const CommentRow = styled.article<CommentRowProps>`
+  ${token.flexLeft}
+  position: relative;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  min-height: 0;
+
+  &::before {
+    display: none;
+    position: absolute;
+    z-index: 1;
+    top: 48px;
+    bottom: -12px;
+    left: 32px;
+    width: 1px;
+    background: ${token.colors.gray.gray10};
+    pointer-events: none;
+    content: '';
+  }
+
+  &:has(+ ${CommentChildren})::before,
+  &:has(+ ${RepliesToggleRow})::before {
+    display: block;
+  }
+
+  &::after {
+    display: ${({ $isReply }) => ($isReply ? 'block' : 'none')};
+    position: absolute;
+    z-index: 1;
+    top: 30px;
+    left: -16px;
+    width: 16px;
+    height: 1px;
+    background: ${token.colors.gray.gray10};
+    pointer-events: none;
     content: '';
   }
 `
