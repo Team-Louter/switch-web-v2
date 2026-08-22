@@ -49,6 +49,7 @@ import pinIcon from '../assets/svg/pin-solid.svg'
 import sendIcon from '../assets/svg/send.svg'
 import { CommunityCommentBranch } from './CommunityCommentBranch'
 import { CommunityPostBlockContent } from './CommunityPostBlockContent'
+import { CommunityRollingNumber } from './CommunityRollingNumber'
 import {
   appendCommentReplies,
   appendReplyComment,
@@ -57,6 +58,7 @@ import {
   type CommunityCommentUpdateHandler,
   type CommunityReplyLoadHandler,
   type CommunityReplySubmitHandler,
+  REPLY_LOAD_DEPTH_INTERVAL,
 } from './communityCommentTree'
 import * as S from './CommunityDetailPage.style'
 
@@ -77,6 +79,9 @@ export function CommunityDetailPage() {
   const postId = Number(postIdParam)
   const [post, setPost] = useState<PostResponse | null>(null)
   const [comments, setComments] = useState<CommentResponse[]>([])
+  const [loadedReplyCommentIds, setLoadedReplyCommentIds] = useState<
+    ReadonlySet<number>
+  >(() => new Set())
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
@@ -101,10 +106,13 @@ export function CommunityDetailPage() {
   const [postActionError, setPostActionError] = useState<string | null>(null)
   const postMenuRef = useRef<HTMLDivElement>(null)
   const attachmentListRef = useRef<HTMLDivElement>(null)
+  const isHeartMutatingRef = useRef(false)
+  const postStatsRefreshVersionRef = useRef(0)
 
   const canManagePost = currentMemberId === post?.userId
   const canOpenPostMenu = canManagePostPin || canManagePost
   const isPostActionMutating = isPinMutating || isPostDeleting
+  const isPostStatsPollingReady = post?.postId === postId
   const replyAuthorProfileImageUrl = resolveCommunityAssetUrl(
     currentMemberProfileImageUrl,
   )
@@ -145,6 +153,8 @@ export function CommunityDetailPage() {
       return
     }
 
+    postStatsRefreshVersionRef.current += 1
+    isHeartMutatingRef.current = true
     setIsHeartMutating(true)
     setActionError(null)
 
@@ -169,6 +179,7 @@ export function CommunityDetailPage() {
     } catch {
       setActionError('좋아요 상태를 변경하지 못했습니다.')
     } finally {
+      isHeartMutatingRef.current = false
       setIsHeartMutating(false)
     }
   }
@@ -266,16 +277,65 @@ export function CommunityDetailPage() {
   const handleRepliesLoad: CommunityReplyLoadHandler = async (
     parentCommentId,
   ) => {
-    if (!post) {
+    const parentComment = comments.find(
+      (comment) => comment.commentId === parentCommentId,
+    )
+
+    if (!post || !parentComment) {
       return '답글을 불러오지 못했습니다.'
     }
 
     try {
-      const replies = await getCommentReplies(post.postId, parentCommentId)
+      const replyPostId = post.postId
+      const maxReplyDepth =
+        parentComment.depth + REPLY_LOAD_DEPTH_INTERVAL
+      const requestedCommentIds = new Set<number>([parentCommentId])
+
+      async function loadReplyBranch(
+        comment: CommentResponse,
+        depth: number,
+      ): Promise<CommentResponse[]> {
+        const currentComment = { ...comment, depth }
+
+        if (depth >= maxReplyDepth) {
+          return [currentComment]
+        }
+
+        requestedCommentIds.add(comment.commentId)
+        const replies = await getCommentReplies(
+          replyPostId,
+          comment.commentId,
+        )
+        const replyBranches = await Promise.all(
+          replies.map((reply) => loadReplyBranch(reply, depth + 1)),
+        )
+
+        return [currentComment, ...replyBranches.flat()]
+      }
+
+      const replies = await getCommentReplies(replyPostId, parentCommentId)
+      const replyBranches = await Promise.all(
+        replies.map((reply) =>
+          loadReplyBranch(reply, parentComment.depth + 1),
+        ),
+      )
 
       setComments((currentComments) =>
-        appendCommentReplies(currentComments, parentCommentId, replies),
+        appendCommentReplies(
+          currentComments,
+          parentCommentId,
+          replyBranches.flat(),
+        ),
       )
+      setLoadedReplyCommentIds((currentIds) => {
+        const nextIds = new Set(currentIds)
+
+        for (const commentId of requestedCommentIds) {
+          nextIds.add(commentId)
+        }
+
+        return nextIds
+      })
 
       return null
     } catch {
@@ -499,6 +559,51 @@ export function CommunityDetailPage() {
   }, [postId, reloadKey])
 
   useEffect(() => {
+    if (!isPostStatsPollingReady) {
+      return
+    }
+
+    let isCancelled = false
+
+    async function refreshPostStats() {
+      const refreshVersion = postStatsRefreshVersionRef.current
+
+      try {
+        const refreshedPost = await getPost(postId)
+
+        if (
+          isCancelled ||
+          isHeartMutatingRef.current ||
+          refreshVersion !== postStatsRefreshVersionRef.current
+        ) {
+          return
+        }
+
+        setPost((currentPost) =>
+          currentPost
+            ? {
+                ...currentPost,
+                likeCount: refreshedPost.likeCount,
+                viewers: refreshedPost.viewers,
+              }
+            : currentPost,
+        )
+      } catch {
+        // 반응 수 갱신 실패는 게시글 조회 화면을 방해하지 않는다.
+      }
+    }
+
+    const refreshIntervalId = window.setInterval(() => {
+      void refreshPostStats()
+    }, 5_000)
+
+    return () => {
+      isCancelled = true
+      window.clearInterval(refreshIntervalId)
+    }
+  }, [isPostStatsPollingReady, postId])
+
+  useEffect(() => {
     let isCancelled = false
 
     async function loadComments() {
@@ -512,6 +617,7 @@ export function CommunityDetailPage() {
       setIsCommentsLoading(true)
       setCommentLoadError(null)
       setComments([])
+      setLoadedReplyCommentIds(new Set())
 
       try {
         const rootComments = await getComments(postId)
@@ -733,7 +839,7 @@ export function CommunityDetailPage() {
                       src={post.isHearted ? heartColoredIcon : heartIcon}
                       alt="좋아요"
                     />
-                    {post.likeCount}
+                    <CommunityRollingNumber value={post.likeCount} />
                   </S.HeartButton>
                   <S.Stat>
                     <S.StatIcon src={commentIcon} alt="댓글" />
@@ -741,7 +847,7 @@ export function CommunityDetailPage() {
                   </S.Stat>
                   <S.Stat>
                     <S.StatIcon src={eyeIcon} alt="조회" />
-                    {post.viewers}
+                    <CommunityRollingNumber value={post.viewers} />
                   </S.Stat>
                   </S.StatGroup>
 
@@ -892,6 +998,7 @@ export function CommunityDetailPage() {
                     onProfileImageError={handleProfileImageError}
                     onReplySubmit={handleReplySubmit}
                     onRepliesLoad={handleRepliesLoad}
+                    loadedReplyCommentIds={loadedReplyCommentIds}
                     onCommentUpdate={handleCommentUpdate}
                     onCommentDelete={handleCommentDelete}
                     currentMemberId={currentMemberId}
