@@ -157,6 +157,7 @@ export function CommunityWritePage() {
   const editingPostId = Number(postIdParam)
   const isEditing =
     isEditRoute && Number.isSafeInteger(editingPostId) && editingPostId > 0
+  const invalidEditRoute = isEditRoute && !isEditing
   const imageInputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const editorAreaRef = useRef<HTMLElement>(null)
@@ -169,13 +170,16 @@ export function CommunityWritePage() {
   const [fileUploadError, setFileUploadError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const [isPostLoading, setIsPostLoading] = useState(isEditRoute)
+  const [isPostLoading, setIsPostLoading] = useState(isEditing)
   const [postLoadError, setPostLoadError] = useState<string | null>(null)
   const [blockDropIndicator, setBlockDropIndicator] =
     useState<BlockDropIndicatorPosition | null>(null)
   const isUploadingFile = pendingFileUploadCount > 0
+  const visiblePostLoadError = invalidEditRoute
+    ? '올바르지 않은 게시글 주소입니다.'
+    : postLoadError
   const isEditorDisabled =
-    isSubmitting || isPostLoading || Boolean(postLoadError)
+    isSubmitting || isPostLoading || Boolean(visiblePostLoadError)
 
   const uploadPostFile = useCallback(
     async (file: File) => {
@@ -515,8 +519,6 @@ export function CommunityWritePage() {
     }
 
     if (!isEditing) {
-      setPostLoadError('올바르지 않은 게시글 주소입니다.')
-      setIsPostLoading(false)
       return
     }
 
@@ -751,8 +753,10 @@ export function CommunityWritePage() {
         {submitError && (
           <S.SubmitError role="alert">{submitError}</S.SubmitError>
         )}
-        {postLoadError && (
-          <S.SubmitError role="alert">{postLoadError}</S.SubmitError>
+        {visiblePostLoadError && (
+          <S.SubmitError role="alert">
+            {visiblePostLoadError}
+          </S.SubmitError>
         )}
       </S.Content>
     </S.Page>
