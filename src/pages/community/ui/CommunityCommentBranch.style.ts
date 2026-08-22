@@ -6,6 +6,10 @@ interface CommentMenuItemProps {
   $danger?: boolean
 }
 
+interface CommentTextProps {
+  $isDeleted: boolean
+}
+
 interface CommentRowProps {
   $isReply: boolean
 }
@@ -333,9 +337,10 @@ export const CommentMenuDivider = styled.span`
   background: ${token.colors.gray.gray10};
 `
 
-export const CommentText = styled.p`
+export const CommentText = styled.p<CommentTextProps>`
   margin: 0;
-  color: #404040;
+  color: ${({ $isDeleted }) =>
+    $isDeleted ? token.colors.gray.gray40 : '#404040'};
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1.5;
   overflow-wrap: anywhere;
