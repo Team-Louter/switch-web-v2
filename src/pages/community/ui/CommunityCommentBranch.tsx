@@ -11,6 +11,7 @@ import {
   resolveCommunityAssetUrl,
 } from '@/entities/community'
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
+import { ConfirmModal } from '@/shared/ui'
 
 import kebabIcon from '../assets/svg/kebab.svg'
 import {
@@ -58,6 +59,8 @@ export function CommunityCommentBranch({
   const [isCommentEditing, setIsCommentEditing] = useState(false)
   const [editedCommentContent, setEditedCommentContent] = useState('')
   const [isCommentMutating, setIsCommentMutating] = useState(false)
+  const [isCommentDeleteConfirmOpen, setIsCommentDeleteConfirmOpen] =
+    useState(false)
   const [visibleReplyCount, setVisibleReplyCount] = useState(
     VISIBLE_REPLY_COUNT,
   )
@@ -159,25 +162,24 @@ export function CommunityCommentBranch({
     }
   }
 
+  const handleCommentDeleteRequest = () => {
+    if (isCommentMutating) {
+      return
+    }
+
+    setIsCommentMenuOpen(false)
+    setIsCommentDeleteConfirmOpen(true)
+  }
+
   const handleCommentDelete = async () => {
     if (isCommentMutating) {
       return
     }
 
-    const shouldDelete = window.confirm(
-      '댓글을 삭제할까요? 삭제한 댓글은 복구할 수 없습니다.',
-    )
-
-    if (!shouldDelete) {
-      return
-    }
-
     setIsCommentMutating(true)
-    setIsCommentMenuOpen(false)
-
     await onCommentDelete(comment.commentId)
-
     setIsCommentMutating(false)
+    setIsCommentDeleteConfirmOpen(false)
   }
 
   const handleCommentMenuKeyDown = (
@@ -262,7 +264,7 @@ export function CommunityCommentBranch({
                         role="menuitem"
                         $danger
                         disabled={isCommentMutating}
-                        onClick={() => void handleCommentDelete()}
+                        onClick={handleCommentDeleteRequest}
                       >
                         {isCommentMutating ? '삭제 중' : '삭제하기'}
                       </S.CommentMenuItem>
@@ -443,6 +445,16 @@ export function CommunityCommentBranch({
             </S.RepliesToggleRow>
           )}
         </>
+      )}
+      {isCommentDeleteConfirmOpen && (
+        <ConfirmModal
+          title="댓글을 삭제할까요?"
+          description="삭제한 댓글은 복구할 수 없습니다."
+          confirmLabel="삭제"
+          isConfirming={isCommentMutating}
+          onCancel={() => setIsCommentDeleteConfirmOpen(false)}
+          onConfirm={() => void handleCommentDelete()}
+        />
       )}
     </S.CommentTreeNode>
   )
