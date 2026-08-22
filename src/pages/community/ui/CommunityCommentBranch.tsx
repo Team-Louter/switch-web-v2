@@ -442,6 +442,7 @@ export function CommunityCommentBranch({
                     node={child}
                     onProfileImageError={onProfileImageError}
                     onReplySubmit={onReplySubmit}
+                    onRepliesLoad={onRepliesLoad}
                     onCommentUpdate={onCommentUpdate}
                     onCommentDelete={onCommentDelete}
                     currentMemberId={currentMemberId}
