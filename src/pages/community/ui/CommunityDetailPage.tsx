@@ -13,6 +13,7 @@ import remarkGfm from 'remark-gfm'
 
 import {
   formatCommunityDate,
+  getCommunityFileDownloadUrl,
   getCommentReplies,
   getComments,
   getPost,
@@ -168,7 +169,9 @@ export function CommunityDetailPage() {
   }
 
   const handleAttachmentOpen = () => {
-    const attachmentUrl = resolveCommunityAssetUrl(firstAttachment?.fileUrl)
+    const attachmentUrl = getCommunityFileDownloadUrl(
+      firstAttachment?.fileUrl,
+    )
 
     if (attachmentUrl) {
       window.open(attachmentUrl, '_blank', 'noopener,noreferrer')
