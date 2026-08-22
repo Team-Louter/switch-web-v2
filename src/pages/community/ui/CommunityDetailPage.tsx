@@ -550,7 +550,7 @@ function CommunityCommentBranch({
                 </S.RepliesToggleRow>
               )}
               {hasCollapseControl && (
-                <S.RepliesToggleRow $hasConnector={false} $isWithinReplies>
+                <S.RepliesToggleRow $isWithinReplies>
                   <S.RepliesToggle
                     type="button"
                     aria-expanded={isRepliesOpen}
