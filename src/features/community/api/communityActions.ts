@@ -19,6 +19,19 @@ export async function createPost(
   return response.data
 }
 
+export async function updatePost(
+  postId: number,
+  request: CreatePostRequest,
+): Promise<PostResponse> {
+  const response = await apiClient.put<PostResponse>(`/posts/${postId}`, request)
+
+  return response.data
+}
+
+export async function deletePost(postId: number): Promise<void> {
+  await apiClient.delete(`/posts/${postId}`)
+}
+
 export async function uploadCommunityFile(
   file: File,
 ): Promise<FileUploadResponse> {
