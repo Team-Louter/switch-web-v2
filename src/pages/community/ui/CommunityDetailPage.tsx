@@ -178,9 +178,6 @@ function CommunityCommentBranch({
   const [isCommentEditing, setIsCommentEditing] = useState(false)
   const [editedCommentContent, setEditedCommentContent] = useState('')
   const [isCommentMutating, setIsCommentMutating] = useState(false)
-  const [commentActionError, setCommentActionError] = useState<string | null>(
-    null,
-  )
   const [visibleReplyCount, setVisibleReplyCount] = useState(
     VISIBLE_REPLY_COUNT,
   )
@@ -245,14 +242,12 @@ function CommunityCommentBranch({
 
   const handleCommentEditStart = () => {
     setEditedCommentContent(comment.content)
-    setCommentActionError(null)
     setIsCommentEditing(true)
     setIsCommentMenuOpen(false)
   }
 
   const handleCommentEditCancel = () => {
     setEditedCommentContent('')
-    setCommentActionError(null)
     setIsCommentEditing(false)
   }
 
@@ -264,13 +259,10 @@ function CommunityCommentBranch({
     }
 
     setIsCommentMutating(true)
-    setCommentActionError(null)
 
     const actionError = await onCommentUpdate(comment.commentId, trimmedContent)
 
-    if (actionError) {
-      setCommentActionError(actionError)
-    } else {
+    if (!actionError) {
       setIsCommentEditing(false)
       setEditedCommentContent('')
     }
@@ -302,13 +294,8 @@ function CommunityCommentBranch({
 
     setIsCommentMutating(true)
     setIsCommentMenuOpen(false)
-    setCommentActionError(null)
 
-    const actionError = await onCommentDelete(comment.commentId)
-
-    if (actionError) {
-      setCommentActionError(actionError)
-    }
+    await onCommentDelete(comment.commentId)
 
     setIsCommentMutating(false)
   }
@@ -413,7 +400,6 @@ function CommunityCommentBranch({
                   disabled={isCommentMutating}
                   onChange={(event) => {
                     setEditedCommentContent(event.target.value)
-                    setCommentActionError(null)
                   }}
                   onKeyDown={handleCommentEditKeyDown}
                 />
@@ -506,9 +492,6 @@ function CommunityCommentBranch({
                   </S.ReplyComposer>
                 )}
               </>
-            )}
-            {commentActionError && (
-              <S.ActionError role="alert">{commentActionError}</S.ActionError>
             )}
           </S.CommentContent>
         </S.CommentItem>
