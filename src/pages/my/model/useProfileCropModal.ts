@@ -3,6 +3,7 @@ import type { ChangeEvent, PointerEvent } from 'react'
 
 const CROP_AREA_SIZE = 640
 const OUTPUT_IMAGE_SIZE = 338
+const PROFILE_IMAGE_MIME_TYPE = 'image/jpeg'
 
 type UseProfileCropModalParams = {
   initialState: ProfileCropState
@@ -283,7 +284,7 @@ export function useProfileCropModal({
       OUTPUT_IMAGE_SIZE,
       OUTPUT_IMAGE_SIZE,
     )
-    onComplete(canvas.toDataURL('image/png'), {
+    onComplete(canvas.toDataURL(PROFILE_IMAGE_MIME_TYPE), {
       position: boundedImagePosition,
       zoomValue,
     })

@@ -31,6 +31,10 @@ export function App() {
         <Route path="/extra-signup" element={<GoogleExtraSignupPage />} />
         <Route path="/oauth/callback" element={<GoogleOAuthCallbackPage />} />
         <Route path="/main" element={<GoogleOAuthCallbackPage />} />
+        <Route
+          path="/my/withdraw-complete"
+          element={<WithdrawCompletePage />}
+        />
         <Route element={<GuestOnlyRoute />}>
           <Route path="/login" element={<AuthPage />} />
           <Route
@@ -52,10 +56,6 @@ export function App() {
             <Route path="/store" element={<StorePage />} />
             <Route path="/my" element={<MyPage />} />
             <Route path="/my/edit" element={<ProfileEditPage />} />
-            <Route
-              path="/my/withdraw-complete"
-              element={<WithdrawCompletePage />}
-            />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
