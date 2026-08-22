@@ -38,7 +38,7 @@ import heartIcon from '@/shared/assets/my/heart-icon.svg'
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
 import { parseBlockNotePostContent } from '@/shared/lib/blockNotePostContent'
 import { renderCustomUnderlineMarkdown } from '@/shared/lib/markdown'
-import { Button } from '@/shared/ui'
+import { Button, ConfirmModal } from '@/shared/ui'
 
 import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg'
 import backChevronIcon from '../assets/svg/back-chevron.svg'
@@ -90,6 +90,8 @@ export function CommunityDetailPage() {
   const [canManagePostPin, setCanManagePostPin] = useState(false)
   const [isPinMutating, setIsPinMutating] = useState(false)
   const [isPostDeleting, setIsPostDeleting] = useState(false)
+  const [isPostDeleteConfirmOpen, setIsPostDeleteConfirmOpen] =
+    useState(false)
   const [isPostMenuOpen, setIsPostMenuOpen] = useState(false)
   const [isAttachmentListOpen, setIsAttachmentListOpen] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -326,25 +328,26 @@ export function CommunityDetailPage() {
     navigate(`/community/${post.postId}/edit`)
   }
 
+  const handlePostDeleteRequest = () => {
+    if (!post || !canManagePost || isPostDeleting) {
+      return
+    }
+
+    setIsPostMenuOpen(false)
+    setIsPostDeleteConfirmOpen(true)
+  }
+
   const handlePostDelete = async () => {
     if (!post || !canManagePost || isPostDeleting) {
       return
     }
 
-    const shouldDelete = window.confirm(
-      '게시글을 삭제할까요? 삭제한 게시글은 복구할 수 없습니다.',
-    )
-
-    if (!shouldDelete) {
-      return
-    }
-
     setIsPostDeleting(true)
-    setIsPostMenuOpen(false)
     setPostActionError(null)
 
     try {
       await deletePost(post.postId)
+      setIsPostDeleteConfirmOpen(false)
       navigate('/community', { replace: true })
     } catch {
       setPostActionError('게시글을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.')
@@ -672,7 +675,7 @@ export function CommunityDetailPage() {
                                       role="menuitem"
                                       $danger
                                       disabled={isPostActionMutating}
-                                      onClick={handlePostDelete}
+                                      onClick={handlePostDeleteRequest}
                                     >
                                       {isPostDeleting ? '삭제 중' : '삭제하기'}
                                     </S.PostMenuItem>
@@ -894,6 +897,16 @@ export function CommunityDetailPage() {
               </S.CommentList>
             </S.Comments>
           </>
+        )}
+        {isPostDeleteConfirmOpen && post && (
+          <ConfirmModal
+            title="게시글을 삭제할까요?"
+            description="삭제한 게시글은 복구할 수 없습니다."
+            confirmLabel="삭제"
+            isConfirming={isPostDeleting}
+            onCancel={() => setIsPostDeleteConfirmOpen(false)}
+            onConfirm={() => void handlePostDelete()}
+          />
         )}
       </S.Content>
     </S.Page>
