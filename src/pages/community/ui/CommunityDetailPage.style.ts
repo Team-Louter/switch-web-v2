@@ -1184,3 +1184,142 @@ export const CommentText = styled.p`
   line-height: 1.5;
   overflow-wrap: anywhere;
 `
+
+export const ReplyActionButton = styled.button`
+  align-self: flex-start;
+  padding: 4px 0;
+  border: 0;
+  color: ${token.colors.gray.gray70};
+  background: transparent;
+  ${token.typography('body', 'sm', 'semibold')}
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    color: ${token.colors.gray.gray100};
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
+`
+
+export const ReplyComposer = styled.div`
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+  margin-top: 4px;
+`
+
+export const ReplyComposerAvatar = styled.img`
+  width: 32px;
+  height: 32px;
+  border-radius: ${token.shapes.circle};
+  object-fit: cover;
+`
+
+export const ReplyComposerBody = styled.div`
+  ${token.flexColumn}
+  gap: 8px;
+  min-width: 0;
+`
+
+export const ReplyComposerInput = styled.input`
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  border-bottom: 2px solid ${token.colors.gray.gray80};
+  outline: 0;
+  color: ${token.colors.gray.gray100};
+  background: transparent;
+  ${token.typography('body', 'lg', 'medium')}
+  line-height: 1.5;
+
+  &::placeholder {
+    color: ${token.colors.gray.gray40};
+  }
+`
+
+export const ReplyComposerFooter = styled.div`
+  ${token.flexBetween}
+  gap: 16px;
+  min-height: 44px;
+`
+
+export const ReplyComposerTools = styled.div`
+  ${token.flexLeft}
+  gap: 14px;
+  min-width: 0;
+`
+
+export const ReplyAnonymousLabel = styled.label`
+  ${token.flexLeft}
+  gap: 6px;
+  color: ${token.colors.gray.gray60};
+  ${token.typography('body', 'sm', 'medium')}
+  line-height: 1;
+  cursor: pointer;
+`
+
+export const ReplyComposerActions = styled.div`
+  ${token.flexLeft}
+  flex: 0 0 auto;
+  gap: 12px;
+`
+
+export const ReplyCancelButton = styled.button`
+  height: 44px;
+  padding: 0 12px;
+  border: 0;
+  color: ${token.colors.gray.gray100};
+  background: transparent;
+  ${token.typography('body', 'md', 'semibold')}
+  line-height: 1;
+  cursor: pointer;
+
+  &:disabled {
+    color: ${token.colors.gray.gray40};
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
+`
+
+export const ReplySubmitButton = styled.button`
+  min-width: 76px;
+  height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  color: ${token.colors.gray.gray100};
+  background: ${token.colors.primary.primary50};
+  ${token.typography('body', 'md', 'semibold')}
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+
+  &:disabled {
+    color: ${token.colors.gray.gray40};
+    background: ${token.colors.gray.gray10};
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+`
