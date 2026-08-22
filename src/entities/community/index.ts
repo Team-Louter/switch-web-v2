@@ -6,6 +6,7 @@ export {
 } from './api/getCommunity'
 export {
   formatCommunityDate,
+  getCommunityFileKey,
   getCommunityFileDownloadUrl,
   getPostCategoryLabel,
   POST_CATEGORY_OPTIONS,
