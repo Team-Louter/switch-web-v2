@@ -1,5 +1,7 @@
 import type { CommentResponse } from '@/entities/community'
 
+export const REPLY_LOAD_DEPTH_INTERVAL = 2
+
 export interface CommentTreeNode {
   comment: CommentResponse
   children: CommentTreeNode[]
@@ -119,14 +121,9 @@ export function appendCommentReplies(
     insertIndex += 1
   }
 
-  const repliesWithDepth = newReplies.map((reply) => ({
-    ...reply,
-    depth: parentComment.depth + 1,
-  }))
-
   return [
     ...comments.slice(0, insertIndex),
-    ...repliesWithDepth,
+    ...newReplies,
     ...comments.slice(insertIndex),
   ]
 }
