@@ -22,7 +22,12 @@ import {
   type CommentResponse,
   type PostResponse,
 } from '@/entities/community'
-import { createComment, togglePostHeart } from '@/features/community'
+import { getCurrentMember } from '@/entities/member'
+import {
+  createComment,
+  setPostPinned,
+  togglePostHeart,
+} from '@/features/community'
 import commentIcon from '@/shared/assets/my/comment-icon.svg'
 import eyeIcon from '@/shared/assets/my/eye-icon.svg'
 import heartIcon from '@/shared/assets/my/heart-icon.svg'
@@ -65,7 +70,10 @@ export function CommunityDetailPage() {
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false)
   const [isHeartMutating, setIsHeartMutating] = useState(false)
+  const [canManagePostPin, setCanManagePostPin] = useState(false)
+  const [isPinMutating, setIsPinMutating] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [pinActionError, setPinActionError] = useState<string | null>(null)
 
   const firstAttachment = post?.files?.[0]
   const attachmentCount = post?.files?.length ?? 0
@@ -130,6 +138,32 @@ export function CommunityDetailPage() {
     }
   }
 
+  const handlePinToggle = async () => {
+    if (!post || !canManagePostPin || isPinMutating) {
+      return
+    }
+
+    const nextPinned = !post.pinned
+
+    setIsPinMutating(true)
+    setPinActionError(null)
+
+    try {
+      await setPostPinned(post.postId, nextPinned)
+      setPost((currentPost) =>
+        currentPost ? { ...currentPost, pinned: nextPinned } : currentPost,
+      )
+    } catch {
+      setPinActionError(
+        nextPinned
+          ? '게시글을 고정하지 못했습니다. 잠시 후 다시 시도해주세요.'
+          : '게시글 고정을 해제하지 못했습니다. 잠시 후 다시 시도해주세요.',
+      )
+    } finally {
+      setIsPinMutating(false)
+    }
+  }
+
   const handleCommentSubmit = async () => {
     const trimmedContent = commentContent.trim()
 
@@ -177,6 +211,32 @@ export function CommunityDetailPage() {
       window.open(attachmentUrl, '_blank', 'noopener,noreferrer')
     }
   }
+
+  useEffect(() => {
+    let isCancelled = false
+
+    async function loadCurrentMember() {
+      try {
+        const currentMember = await getCurrentMember()
+        const canManagePin =
+          currentMember.role === 'LEADER' || currentMember.role === 'MENTOR'
+
+        if (!isCancelled) {
+          setCanManagePostPin(canManagePin)
+        }
+      } catch {
+        if (!isCancelled) {
+          setCanManagePostPin(false)
+        }
+      }
+    }
+
+    void loadCurrentMember()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     let isCancelled = false
@@ -329,24 +389,46 @@ export function CommunityDetailPage() {
                   </S.CategoryBadge>
                   <S.TitleRow>
                     <S.Title>{post.postTitle}</S.Title>
-                    <S.PostMeta>
-                      <S.PostAuthor>
-                        <S.PostAuthorImage
-                          src={
-                            resolveCommunityAssetUrl(
-                              post.userProfileImageUrl,
-                            ) ?? fallbackProfileImage
-                          }
-                          alt={`${post.userName} 프로필`}
-                          onError={handleProfileImageError}
-                        />
-                        <S.PostAuthorName>{post.userName}</S.PostAuthorName>
-                      </S.PostAuthor>
-                      <S.MetaDot aria-hidden="true" />
-                      <S.PostDate dateTime={post.createdAt}>
-                        {formatCommunityDate(post.createdAt)}
-                      </S.PostDate>
-                    </S.PostMeta>
+                    <S.PostActions>
+                      <S.PostMeta>
+                        <S.PostAuthor>
+                          <S.PostAuthorImage
+                            src={
+                              resolveCommunityAssetUrl(
+                                post.userProfileImageUrl,
+                              ) ?? fallbackProfileImage
+                            }
+                            alt={`${post.userName} 프로필`}
+                            onError={handleProfileImageError}
+                          />
+                          <S.PostAuthorName>{post.userName}</S.PostAuthorName>
+                        </S.PostAuthor>
+                        <S.MetaDot aria-hidden="true" />
+                        <S.PostDate dateTime={post.createdAt}>
+                          {formatCommunityDate(post.createdAt)}
+                        </S.PostDate>
+                        {canManagePostPin && (
+                          <S.PinPostButton
+                            type="button"
+                            $pinned={post.pinned}
+                            aria-pressed={post.pinned}
+                            disabled={isPinMutating}
+                            onClick={handlePinToggle}
+                          >
+                            {isPinMutating
+                              ? '처리 중'
+                              : post.pinned
+                                ? '고정 해제'
+                                : '게시글 고정'}
+                          </S.PinPostButton>
+                        )}
+                      </S.PostMeta>
+                      {pinActionError && (
+                        <S.PinActionError role="alert">
+                          {pinActionError}
+                        </S.PinActionError>
+                      )}
+                    </S.PostActions>
                   </S.TitleRow>
                 </S.TitleBlock>
                 <S.Divider />
