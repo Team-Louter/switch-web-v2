@@ -119,6 +119,43 @@ function getDescendantCommentCount(node: CommentTreeNode): number {
   )
 }
 
+function appendReplyComment(
+  comments: CommentResponse[],
+  parentCommentId: number,
+  reply: CommentResponse,
+): CommentResponse[] {
+  const parentIndex = comments.findIndex(
+    (comment) => comment.commentId === parentCommentId,
+  )
+
+  if (parentIndex === -1) {
+    return comments
+  }
+
+  const parentComment = comments[parentIndex]
+  const commentsWithReplyCount = comments.map((comment) =>
+    comment.commentId === parentCommentId
+      ? { ...comment, replyCount: comment.replyCount + 1 }
+      : comment,
+  )
+  let insertIndex = parentIndex + 1
+
+  while (
+    insertIndex < commentsWithReplyCount.length &&
+    commentsWithReplyCount[insertIndex].depth > parentComment.depth
+  ) {
+    insertIndex += 1
+  }
+
+  const replyWithDepth = { ...reply, depth: parentComment.depth + 1 }
+
+  return [
+    ...commentsWithReplyCount.slice(0, insertIndex),
+    replyWithDepth,
+    ...commentsWithReplyCount.slice(insertIndex),
+  ]
+}
+
 function CommunityCommentBranch({
   node,
   onProfileImageError,
@@ -191,6 +228,8 @@ function CommunityCommentBranch({
     if (submitError) {
       setReplySubmitError(submitError)
     } else {
+      setIsRepliesOpen(true)
+      setVisibleReplyCount(node.children.length + 1)
       handleReplyComposerCancel()
     }
 
@@ -717,17 +756,19 @@ export function CommunityDetailPage() {
     }
 
     try {
-      await createComment(post.postId, {
+      const replyComment = await createComment(post.postId, {
         content: trimmedContent,
         isAnonymous: replyIsAnonymous,
         parentId: parentCommentId,
       })
+      setComments((currentComments) =>
+        appendReplyComment(currentComments, parentCommentId, replyComment),
+      )
       setPost((currentPost) =>
         currentPost
           ? { ...currentPost, commentCount: currentPost.commentCount + 1 }
           : currentPost,
       )
-      setCommentReloadKey((currentKey) => currentKey + 1)
 
       return null
     } catch {
