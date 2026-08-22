@@ -75,8 +75,8 @@ export function CommunityDetailPage() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [pinActionError, setPinActionError] = useState<string | null>(null)
 
-  const firstAttachment = post?.files?.[0]
-  const attachmentCount = post?.files?.length ?? 0
+  const attachmentFiles =
+    post?.files?.filter((file) => !file.fileType.startsWith('image/')) ?? []
   const serializedPostContent = post?.postContent
   const postBlocks = useMemo(
     () =>
@@ -202,10 +202,8 @@ export function CommunityDetailPage() {
     }
   }
 
-  const handleAttachmentOpen = () => {
-    const attachmentUrl = getCommunityFileDownloadUrl(
-      firstAttachment?.fileUrl,
-    )
+  const handleAttachmentOpen = (fileKey: string) => {
+    const attachmentUrl = getCommunityFileDownloadUrl(fileKey)
 
     if (attachmentUrl) {
       window.open(attachmentUrl, '_blank', 'noopener,noreferrer')
@@ -479,22 +477,26 @@ export function CommunityDetailPage() {
                   </S.Stat>
                 </S.StatGroup>
 
-                {firstAttachment && (
-                  <S.AttachmentButton
-                    type="button"
-                    onClick={handleAttachmentOpen}
-                  >
-                    <S.AttachmentLabel>
-                      <S.AttachmentIcon src={paperclipIcon} alt="" />
-                      첨부 파일 “{firstAttachment.fileName}”
-                      {attachmentCount > 1 && `외 ${attachmentCount - 1}개`}
-                    </S.AttachmentLabel>
-                    <S.AttachmentDivider aria-hidden="true" />
-                    <S.AttachmentChevron
-                      src={attachmentChevronIcon}
-                      alt=""
-                    />
-                  </S.AttachmentButton>
+                {attachmentFiles.length > 0 && (
+                  <S.AttachmentList aria-label="첨부 파일">
+                    {attachmentFiles.map((file) => (
+                      <S.AttachmentButton
+                        key={file.fileId}
+                        type="button"
+                        aria-label={`${file.fileName} 첨부 파일 열기`}
+                        onClick={() => handleAttachmentOpen(file.fileUrl)}
+                      >
+                        <S.AttachmentLabel>
+                          <S.AttachmentIcon src={paperclipIcon} alt="" />
+                          첨부 파일 “{file.fileName}”
+                        </S.AttachmentLabel>
+                        <S.AttachmentChevron
+                          src={attachmentChevronIcon}
+                          alt=""
+                        />
+                      </S.AttachmentButton>
+                    ))}
+                  </S.AttachmentList>
                 )}
               </S.EngagementRow>
               <S.Divider />
