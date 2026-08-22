@@ -15,6 +15,10 @@ interface AttachmentPanelProps {
   $isOpen: boolean
 }
 
+interface PostMenuItemProps {
+  $danger?: boolean
+}
+
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
@@ -290,7 +294,7 @@ export const PostMenuPanel = styled.div`
   box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
 `
 
-export const PostMenuItem = styled.button`
+export const PostMenuItem = styled.button<PostMenuItemProps>`
   width: 100%;
   min-height: 44px;
   padding: 10px 14px;
@@ -315,6 +319,19 @@ export const PostMenuItem = styled.button`
     cursor: wait;
     opacity: 0.6;
   }
+
+  ${({ $danger }) =>
+    $danger &&
+    css`
+      color: ${token.colors.danger.danger20};
+    `}
+`
+
+export const PostMenuDivider = styled.span`
+  width: 100%;
+  height: 1px;
+  margin: 4px 0;
+  background: ${token.colors.gray.gray10};
 `
 
 export const PinActionError = styled.p`
