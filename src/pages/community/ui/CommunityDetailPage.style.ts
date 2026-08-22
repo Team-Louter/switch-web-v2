@@ -19,6 +19,10 @@ interface PostMenuItemProps {
   $danger?: boolean
 }
 
+interface PinnedTitleProps {
+  $isPinned: boolean
+}
+
 const checkboxCheckmark =
   'url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Cpath d=%22m3.25 8.25 2.75 2.75 6.75-6.75%22 fill=%22none%22 stroke=%22white%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222.25%22/%3E%3C/svg%3E")'
 
@@ -202,26 +206,44 @@ export const TitleRow = styled.div`
   }
 `
 
-export const Title = styled.h1`
+export const Title = styled.h1<PinnedTitleProps>`
   ${token.flexLeft}
-  gap: 8px;
+  gap: ${({ $isPinned }) => ($isPinned ? '8px' : '0')};
   margin: 0;
   min-width: 0;
   color: ${token.colors.gray.gray100};
   ${token.typography('heading', 'lg', 'semibold')}
   line-height: 1.18;
   overflow-wrap: anywhere;
+  transition: gap 220ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 `
 
-export const PinnedTitleIcon = styled.img`
-  flex: 0 0 28px;
-  width: 28px;
+export const PinnedTitleIcon = styled.img<PinnedTitleProps>`
+  flex: 0 0 ${({ $isPinned }) => ($isPinned ? '28px' : '0')};
+  width: ${({ $isPinned }) => ($isPinned ? '28px' : '0')};
   height: 28px;
+  opacity: ${({ $isPinned }) => ($isPinned ? 1 : 0)};
+  transform: ${({ $isPinned }) =>
+    $isPinned ? 'scale(1) rotate(0deg)' : 'scale(0.72) rotate(-12deg)'};
+  transform-origin: center;
+  transition:
+    flex-basis 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 140ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
 
   @container community-detail (max-width: 700px) {
-    flex-basis: 22px;
-    width: 22px;
+    flex-basis: ${({ $isPinned }) => ($isPinned ? '22px' : '0')};
+    width: ${({ $isPinned }) => ($isPinned ? '22px' : '0')};
     height: 22px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
   }
 `
 
