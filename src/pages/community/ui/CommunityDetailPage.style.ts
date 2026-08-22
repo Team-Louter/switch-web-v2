@@ -23,6 +23,10 @@ interface CommentRowProps {
   $isReply: boolean
 }
 
+interface CommentTreeNodeProps {
+  $hasNextSibling?: boolean
+}
+
 interface RepliesCaretProps {
   $isOpen: boolean
 }
@@ -938,10 +942,25 @@ export const ActionError = styled.p`
   line-height: 1.4;
 `
 
-export const CommentTreeNode = styled.div`
+export const CommentTreeNode = styled.div<CommentTreeNodeProps>`
   ${token.flexColumn}
+  position: relative;
   gap: 12px;
   width: 100%;
+
+  &::before {
+    display: ${({ $hasNextSibling }) =>
+      $hasNextSibling ? 'block' : 'none'};
+    position: absolute;
+    z-index: 1;
+    top: 32px;
+    bottom: -12px;
+    left: -16px;
+    width: 1px;
+    background: ${token.colors.gray.gray10};
+    pointer-events: none;
+    content: '';
+  }
 `
 
 export const RepliesToggleRow = styled.div<RepliesToggleRowProps>`
@@ -969,24 +988,11 @@ export const RepliesToggleRow = styled.div<RepliesToggleRowProps>`
 
 export const CommentChildren = styled.div<CommentChildrenProps>`
   ${token.flexColumn}
-  position: relative;
   box-sizing: border-box;
   gap: 12px;
   width: calc(100% - 20px);
   margin-left: 20px;
   padding-left: 28px;
-
-  &::before {
-    position: absolute;
-    top: -12px;
-    bottom: ${({ $hasCollapseControl }) =>
-      $hasCollapseControl ? '24px' : '18px'};
-    left: 12px;
-    width: 1px;
-    border-radius: ${token.shapes.circle};
-    background: ${token.colors.gray.gray10};
-    content: '';
-  }
 `
 
 export const RepliesToggle = styled.button`
