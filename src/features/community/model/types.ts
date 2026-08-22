@@ -21,3 +21,7 @@ export interface CreateCommentRequest {
   isAnonymous: boolean
   parentId?: number
 }
+
+export interface UpdateCommentRequest {
+  content: string
+}
