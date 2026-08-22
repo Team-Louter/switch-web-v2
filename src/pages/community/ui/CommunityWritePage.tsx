@@ -27,6 +27,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import {
   getCommunityFileDownloadUrl,
+  getCommunityFileKey,
   getPost,
   POST_CATEGORY_OPTIONS,
   type PostCategory,
@@ -585,7 +586,7 @@ export function CommunityWritePage() {
         setUploadedFiles(
           post.files?.map((file) => ({
             id: String(file.fileId),
-            fileKey: file.fileUrl,
+            fileKey: getCommunityFileKey(file.fileUrl) ?? file.fileUrl,
             fileName: file.fileName,
             fileType: file.fileType,
             fileSize: file.fileSize,
