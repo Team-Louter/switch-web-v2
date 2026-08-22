@@ -101,7 +101,7 @@ export function CommunityPage() {
   }
 
   const handlePostSelect = (postId: number) => {
-    navigate(`/community/${postId}`)
+    navigate(`/community/${postId}`, { viewTransition: true })
   }
 
   const handlePostKeyDown = (
