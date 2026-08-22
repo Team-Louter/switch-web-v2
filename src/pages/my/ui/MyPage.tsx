@@ -138,6 +138,12 @@ export function MyPage() {
     }
   }
 
+  const handleCompleteWithdrawal = () => {
+    clearAccessToken()
+    clearPendingAccessToken()
+    navigate('/my/withdraw-complete', { replace: true })
+  }
+
   const handleCloseWithdrawModal = () => {
     setWithdrawConfirmText('')
     resetWithdrawalVerificationState()
@@ -253,7 +259,7 @@ export function MyPage() {
               : handleVerifyWithdrawalCode
           }
           onResendCode={handleResendWithdrawalCode}
-          onWithdraw={() => navigate('/my/withdraw-complete')}
+          onWithdraw={handleCompleteWithdrawal}
         />
       )}
 
