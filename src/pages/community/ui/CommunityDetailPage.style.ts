@@ -19,6 +19,21 @@ interface PostMenuItemProps {
   $danger?: boolean
 }
 
+const checkboxCheckmark =
+  'url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Cpath d=%22m3.25 8.25 2.75 2.75 6.75-6.75%22 fill=%22none%22 stroke=%22white%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222.25%22/%3E%3C/svg%3E")'
+
+const communityDetailEnter = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`
+
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
@@ -26,10 +41,16 @@ export const Page = styled.section`
   container-name: community-detail;
   container-type: inline-size;
   background: ${token.colors.white};
+  animation: ${communityDetailEnter} 220ms cubic-bezier(0.22, 1, 0.36, 1)
+    both;
 
   @media (max-width: 760px) {
     padding-right: 18px;
     padding-left: 18px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
   }
 `
 
@@ -898,18 +919,34 @@ export const AnonymousLabel = styled.label`
 
 export const AnonymousCheckbox = styled.input`
   appearance: none;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   margin: 0;
-  border: 1.6px solid ${token.colors.gray.gray40};
-  border-radius: ${token.shapes.xsmall};
+  border: 1.5px solid ${token.colors.gray.gray40};
+  border-radius: 4px;
   background: ${token.colors.white};
   cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
 
   &:checked {
     border-color: ${token.colors.primary.primary50};
     background: ${token.colors.primary.primary50};
-    box-shadow: inset 0 0 0 4px ${token.colors.white};
+    background-image: ${checkboxCheckmark};
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 13px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary30};
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
   }
 `
 
