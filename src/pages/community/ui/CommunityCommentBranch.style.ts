@@ -108,6 +108,11 @@ export const RepliesToggle = styled.button`
     outline-offset: 2px;
   }
 
+  &:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
