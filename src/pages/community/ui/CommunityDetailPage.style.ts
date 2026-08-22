@@ -19,6 +19,10 @@ interface PostMenuItemProps {
   $danger?: boolean
 }
 
+interface ReplyGuideProps {
+  $depth: number
+}
+
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
@@ -901,9 +905,10 @@ export const AnonymousCheckbox = styled.input`
 export const CommentList = styled.div`
   ${token.flexColumn}
   box-sizing: border-box;
+  gap: 12px;
   width: 100%;
-  padding: 5px 4px;
-  overflow: hidden;
+  padding: 0;
+  overflow: visible;
 `
 
 export const CommentStatus = styled.p`
@@ -923,35 +928,42 @@ export const ActionError = styled.p`
 
 export const CommentRow = styled.article`
   ${token.flexLeft}
-  align-items: center;
-  gap: 10px;
+  align-items: stretch;
+  gap: 12px;
   width: 100%;
-  min-height: 80px;
+  min-height: 0;
 `
 
-export const ReplyGuide = styled.span`
+export const ReplyGuide = styled.span<ReplyGuideProps>`
   position: relative;
   align-self: stretch;
-  flex: 0 0 24px;
+  flex: 0 0 ${({ $depth }) => `${Math.min($depth, 5) * 28}px`};
 
   &::after {
     position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 10px;
-    width: 4px;
+    top: 12px;
+    bottom: 12px;
+    left: ${({ $depth }) => `${Math.min($depth, 5) * 28 - 16}px`};
+    width: 2px;
+    border-radius: ${token.shapes.circle};
     background: ${token.colors.gray.gray10};
     content: '';
   }
 `
 
 export const CommentItem = styled.div`
-  display: flex;
-  flex: 1 1 521px;
-  gap: 6px;
+  ${token.flexLeft}
+  flex: 1 1 0;
+  gap: 12px;
   align-items: flex-start;
-  max-width: 521px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
   min-width: 0;
+  padding: 16px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.medium};
+  background: ${token.colors.white};
 `
 
 export const CommentAuthorImage = styled.img`
@@ -971,8 +983,8 @@ export const CommentContent = styled.div`
 `
 
 export const CommentHeader = styled.div`
-  ${token.flexLeft}
-  gap: 28px;
+  ${token.flexBetween}
+  gap: 12px;
   width: 100%;
   min-height: 32px;
 
@@ -983,7 +995,7 @@ export const CommentHeader = styled.div`
 
 export const CommentMeta = styled.div`
   ${token.flexLeft}
-  flex: 0 0 auto;
+  flex: 1 1 0;
   gap: 8px;
   padding: 4px 0;
 
@@ -1015,20 +1027,31 @@ export const CommentMenuButton = styled.button`
   height: 24.01px;
   padding: 0;
   border: 0;
+  border-radius: ${token.shapes.xsmall};
   background: transparent;
   cursor: pointer;
+
+  &:hover {
+    background: ${token.colors.gray.gray10};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
 `
 
 export const CommentMenuIcon = styled.img`
   width: 24.01px;
   height: 24.01px;
   object-fit: contain;
+  transform: rotate(90deg);
 `
 
 export const CommentText = styled.p`
   margin: 0;
   color: #404040;
   ${token.typography('body', 'lg', 'medium')}
-  line-height: 1.17;
+  line-height: 1.5;
   overflow-wrap: anywhere;
 `
