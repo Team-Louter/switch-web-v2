@@ -1,7 +1,9 @@
 export {
+  getCommentTotalReplyCount,
   getCommentReplies,
   getComments,
   getPost,
+  getPostStats,
   getPosts,
 } from './api/getCommunity'
 export {
@@ -13,6 +15,7 @@ export {
   resolveCommunityAssetUrl,
 } from './lib/communityDisplay'
 export type {
+  CommentReplyCountResponse,
   CommentResponse,
   GetPostsParams,
   PageableResponse,
@@ -20,6 +23,7 @@ export type {
   PostFileResponse,
   PostPageResponse,
   PostResponse,
+  PostStatsResponse,
   PostTag,
   SortResponse,
 } from './model/types'
