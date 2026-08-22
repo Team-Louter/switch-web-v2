@@ -370,17 +370,36 @@ export function CommunityDetailPage() {
 
       try {
         const rootComments = await getComments(postId)
-        const replies = await Promise.all(
-          rootComments.map((comment) =>
-            comment.replyCount > 0
-              ? getCommentReplies(postId, comment.commentId)
-              : Promise.resolve([]),
-          ),
+        const loadedCommentIds = new Set<number>()
+
+        async function loadCommentBranch(
+          comment: CommentResponse,
+          depth: number,
+        ): Promise<CommentResponse[]> {
+          if (loadedCommentIds.has(comment.commentId)) {
+            return []
+          }
+
+          loadedCommentIds.add(comment.commentId)
+
+          const currentComment = { ...comment, depth }
+
+          if (comment.replyCount === 0) {
+            return [currentComment]
+          }
+
+          const replies = await getCommentReplies(postId, comment.commentId)
+          const replyBranches = await Promise.all(
+            replies.map((reply) => loadCommentBranch(reply, depth + 1)),
+          )
+
+          return [currentComment, ...replyBranches.flat()]
+        }
+
+        const commentBranches = await Promise.all(
+          rootComments.map((comment) => loadCommentBranch(comment, 0)),
         )
-        const allComments = rootComments.flatMap((comment, index) => [
-          comment,
-          ...replies[index],
-        ])
+        const allComments = commentBranches.flat()
 
         if (!isCancelled) {
           setComments(allComments)
@@ -728,7 +747,12 @@ export function CommunityDetailPage() {
                 )}
                 {comments.map((comment) => (
                   <S.CommentRow key={comment.commentId}>
-                    {comment.depth > 0 && <S.ReplyGuide aria-hidden="true" />}
+                    {comment.depth > 0 && (
+                      <S.ReplyGuide
+                        $depth={comment.depth}
+                        aria-hidden="true"
+                      />
+                    )}
                     <S.CommentItem>
                       <S.CommentAuthorImage
                         src={
