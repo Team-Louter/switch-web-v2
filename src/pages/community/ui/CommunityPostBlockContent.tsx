@@ -33,10 +33,14 @@ export function CommunityPostBlockContent({
     )
     const blockId = blockElement?.dataset.id
     const block = blockId ? editor.getBlock(blockId) : undefined
-    const fileUrl = typeof block?.props.url === 'string' ? block.props.url : undefined
-    const downloadUrl = getCommunityFileDownloadUrl(fileUrl)
 
-    if (block?.type !== 'file' || !downloadUrl) {
+    if (block?.type !== 'file') {
+      return
+    }
+
+    const downloadUrl = getCommunityFileDownloadUrl(block.props.url)
+
+    if (!downloadUrl) {
       return
     }
 
