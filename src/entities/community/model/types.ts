@@ -71,6 +71,16 @@ export interface CommentResponse {
   replyCount: number
 }
 
+export interface CommentReplyCountResponse {
+  commentId: number
+  count: number
+}
+
+export interface PostStatsResponse {
+  viewers: number
+  likeCount: number
+}
+
 export interface SortResponse {
   unsorted: boolean
   empty: boolean
