@@ -182,11 +182,26 @@ export const TitleRow = styled.div`
 `
 
 export const Title = styled.h1`
+  ${token.flexLeft}
+  gap: 8px;
   margin: 0;
+  min-width: 0;
   color: ${token.colors.gray.gray100};
   ${token.typography('heading', 'lg', 'semibold')}
   line-height: 1.18;
   overflow-wrap: anywhere;
+`
+
+export const PinnedTitleIcon = styled.img`
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+
+  @container community-detail (max-width: 700px) {
+    flex-basis: 22px;
+    width: 22px;
+    height: 22px;
+  }
 `
 
 export const PostActions = styled.div`
