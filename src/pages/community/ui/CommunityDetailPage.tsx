@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { isAxiosError } from 'axios'
 import ReactMarkdown from 'react-markdown'
 import { useNavigate, useParams } from 'react-router-dom'
 import rehypeRaw from 'rehype-raw'
@@ -84,6 +85,7 @@ export function CommunityDetailPage() {
   >(() => new Set())
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [isPostNotFound, setIsPostNotFound] = useState(false)
   const [reloadKey, setReloadKey] = useState(0)
   const [isCommentsLoading, setIsCommentsLoading] = useState(true)
   const [commentLoadError, setCommentLoadError] = useState<string | null>(null)
@@ -524,13 +526,15 @@ export function CommunityDetailPage() {
 
     async function loadPost() {
       if (!Number.isSafeInteger(postId) || postId <= 0) {
-        setLoadError('올바르지 않은 게시글 주소입니다.')
+        setLoadError('삭제되었거나 존재하지 않는 게시글입니다.')
+        setIsPostNotFound(true)
         setIsLoading(false)
         return
       }
 
       setIsLoading(true)
       setLoadError(null)
+      setIsPostNotFound(false)
 
       try {
         const postResponse = await getPost(postId)
@@ -538,9 +542,17 @@ export function CommunityDetailPage() {
         if (!isCancelled) {
           setPost(postResponse)
         }
-      } catch {
+      } catch (error) {
         if (!isCancelled) {
-          setLoadError('게시글을 불러오지 못했습니다.')
+          const isNotFound =
+            isAxiosError(error) && error.response?.status === 404
+
+          setIsPostNotFound(isNotFound)
+          setLoadError(
+            isNotFound
+              ? '삭제되었거나 존재하지 않는 게시글입니다.'
+              : '게시글을 불러오지 못했습니다.',
+          )
           setPost(null)
           setComments([])
         }
@@ -691,8 +703,12 @@ export function CommunityDetailPage() {
         {!isLoading && loadError && (
           <S.PageStatus role="alert">
             <S.StatusMessage>{loadError}</S.StatusMessage>
-            <Button size="sm" variant="neutral" onClick={handleRetry}>
-              다시 시도
+            <Button
+              size="sm"
+              variant="neutral"
+              onClick={isPostNotFound ? handleBackToList : handleRetry}
+            >
+              {isPostNotFound ? '목록으로 돌아가기' : '다시 시도'}
             </Button>
           </S.PageStatus>
         )}
