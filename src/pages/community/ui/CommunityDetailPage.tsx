@@ -153,7 +153,7 @@ function CommunityCommentBranch({
       {hasReplies && (
         <>
           {shouldShowReplies && (
-            <S.CommentChildren>
+            <S.CommentChildren $hasCollapseControl={!isExpandedByAncestor}>
               {visibleReplies.map((child) => (
                 <CommunityCommentBranch
                   key={child.comment.commentId}
@@ -172,9 +172,24 @@ function CommunityCommentBranch({
                   <S.RepliesCaret $isOpen={false} aria-hidden="true" />
                 </S.RepliesToggle>
               )}
+              {!isExpandedByAncestor && (
+                <S.RepliesToggleRow $isWithinReplies>
+                  <S.RepliesToggle
+                    type="button"
+                    aria-expanded={isRepliesOpen}
+                    onClick={() => setIsRepliesOpen((isOpen) => !isOpen)}
+                  >
+                    {repliesToggleLabel}
+                    <S.RepliesCaret
+                      $isOpen={isRepliesOpen}
+                      aria-hidden="true"
+                    />
+                  </S.RepliesToggle>
+                </S.RepliesToggleRow>
+              )}
             </S.CommentChildren>
           )}
-          {!isExpandedByAncestor && (
+          {!isExpandedByAncestor && !isRepliesOpen && (
             <S.RepliesToggleRow>
               <S.RepliesToggle
                 type="button"
