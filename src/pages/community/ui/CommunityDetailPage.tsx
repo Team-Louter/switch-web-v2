@@ -3,6 +3,7 @@ import {
   type SyntheticEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 import ReactMarkdown from 'react-markdown'
@@ -69,8 +70,10 @@ export function CommunityDetailPage() {
   const [isHeartMutating, setIsHeartMutating] = useState(false)
   const [canManagePostPin, setCanManagePostPin] = useState(false)
   const [isPinMutating, setIsPinMutating] = useState(false)
+  const [isPostMenuOpen, setIsPostMenuOpen] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const [pinActionError, setPinActionError] = useState<string | null>(null)
+  const postMenuRef = useRef<HTMLDivElement>(null)
 
   const serializedPostContent = post?.postContent
   const postBlocks = useMemo(
@@ -141,6 +144,7 @@ export function CommunityDetailPage() {
     const nextPinned = !post.pinned
 
     setIsPinMutating(true)
+    setIsPostMenuOpen(false)
     setPinActionError(null)
 
     try {
@@ -197,6 +201,13 @@ export function CommunityDetailPage() {
     }
   }
 
+  const handlePostMenuKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      setIsPostMenuOpen(false)
+      event.currentTarget.querySelector<HTMLButtonElement>('button')?.focus()
+    }
+  }
+
   useEffect(() => {
     let isCancelled = false
 
@@ -222,6 +233,27 @@ export function CommunityDetailPage() {
       isCancelled = true
     }
   }, [])
+
+  useEffect(() => {
+    if (!isPostMenuOpen) {
+      return
+    }
+
+    function handleOutsidePointerDown(event: PointerEvent) {
+      if (
+        event.target instanceof Node &&
+        !postMenuRef.current?.contains(event.target)
+      ) {
+        setIsPostMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('pointerdown', handleOutsidePointerDown)
+
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsidePointerDown)
+    }
+  }, [isPostMenuOpen])
 
   useEffect(() => {
     let isCancelled = false
@@ -393,19 +425,38 @@ export function CommunityDetailPage() {
                           {formatCommunityDate(post.createdAt)}
                         </S.PostDate>
                         {canManagePostPin && (
-                          <S.PinPostButton
-                            type="button"
-                            $pinned={post.pinned}
-                            aria-pressed={post.pinned}
-                            disabled={isPinMutating}
-                            onClick={handlePinToggle}
+                          <S.PostMenu
+                            ref={postMenuRef}
+                            onKeyDown={handlePostMenuKeyDown}
                           >
-                            {isPinMutating
-                              ? '처리 중'
-                              : post.pinned
-                                ? '고정 해제'
-                                : '게시글 고정'}
-                          </S.PinPostButton>
+                            <S.PostMenuButton
+                              type="button"
+                              aria-label="게시글 관리 메뉴"
+                              aria-expanded={isPostMenuOpen}
+                              aria-haspopup="menu"
+                              disabled={isPinMutating}
+                              onClick={() =>
+                                setIsPostMenuOpen((isOpen) => !isOpen)
+                              }
+                            >
+                              <S.PostMenuIcon src={kebabIcon} alt="" />
+                            </S.PostMenuButton>
+                            {isPostMenuOpen && (
+                              <S.PostMenuPanel
+                                role="menu"
+                                aria-label="게시글 관리"
+                              >
+                                <S.PostMenuItem
+                                  type="button"
+                                  role="menuitem"
+                                  disabled={isPinMutating}
+                                  onClick={handlePinToggle}
+                                >
+                                  {post.pinned ? '고정 해제' : '고정하기'}
+                                </S.PostMenuItem>
+                              </S.PostMenuPanel>
+                            )}
+                          </S.PostMenu>
                         )}
                       </S.PostMeta>
                       {pinActionError && (
