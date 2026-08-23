@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 
-import profileImage from '@/shared/assets/sidebar/profile.png'
 import switchLogo from '@/shared/assets/sidebar/switch-logo.svg'
 import {
   MY_SIDEBAR_ITEM,
@@ -33,12 +32,18 @@ interface SidebarProps {
   activeItemId?: SidebarItemId
   notificationCount?: number
   onItemSelect?: (itemId: SidebarItemId) => void
+  profile?: {
+    classInfo: string
+    imageUrl?: string
+    name: string
+  } | null
 }
 
 export function Sidebar({
   activeItemId = 'home',
   notificationCount = 0,
   onItemSelect,
+  profile,
 }: SidebarProps) {
   const previousNotificationCountRef = useRef(notificationCount)
   const [notificationCountDirection, setNotificationCountDirection] =
@@ -120,12 +125,12 @@ export function Sidebar({
         aria-current={activeItemId === MY_SIDEBAR_ITEM.id ? 'page' : undefined}
         onClick={() => onItemSelect?.(MY_SIDEBAR_ITEM.id)}
       >
-        <AvatarWrap>
-          <Avatar src={profileImage} alt="" />
+        <AvatarWrap aria-hidden={!profile?.imageUrl}>
+          {profile?.imageUrl && <Avatar src={profile.imageUrl} alt="" />}
         </AvatarWrap>
         <ProfileText>
-          <ProfileName>라우터</ProfileName>
-          <ProfileMeta>2학년 0반 0번</ProfileMeta>
+          <ProfileName>{profile?.name ?? ''}</ProfileName>
+          <ProfileMeta>{profile?.classInfo ?? ''}</ProfileMeta>
         </ProfileText>
       </ProfileButton>
     </Aside>

@@ -3,7 +3,9 @@ import styled, { css } from 'styled-components'
 import * as token from '@/shared/styles/values/token'
 
 export const Page = styled.section`
-  ${token.flexColumnCenter}
+  ${token.flexColumn}
+  align-items: center;
+  justify-content: flex-start;
   box-sizing: border-box;
   width: 100%;
   min-width: 1060px;
@@ -17,6 +19,7 @@ export const Content = styled.div`
   ${token.flexColumn}
   align-items: center;
   width: 1000px;
+  min-height: calc(100vh - 100px);
   gap: 40px;
 `
 
@@ -192,6 +195,7 @@ export const EmptyState = styled.div`
 export const FooterActions = styled.div`
   ${token.flexLeft}
   width: 100%;
+  margin-top: auto;
   gap: 20px;
 `
 

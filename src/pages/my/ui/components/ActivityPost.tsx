@@ -1,7 +1,6 @@
 import commentIcon from '@/shared/assets/my/comment-icon.svg'
 import eyeIcon from '@/shared/assets/my/eye-icon.svg'
 import heartIcon from '@/shared/assets/my/heart-icon.svg'
-import profileImage from '@/shared/assets/sidebar/profile.png'
 
 import type { MyPost } from '../../types'
 import * as S from './ActivityPost.style'
@@ -17,7 +16,6 @@ export function ActivityPost({ post }: ActivityPostProps) {
         <S.CategoryBadge>{post.category}</S.CategoryBadge>
         <S.Title>{post.title}</S.Title>
         <S.Author>
-          <S.AuthorAvatar src={profileImage} alt="" />
           <S.AuthorName>{post.author}</S.AuthorName>
         </S.Author>
         <S.DateText>{post.createdAt}</S.DateText>

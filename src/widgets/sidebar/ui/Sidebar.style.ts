@@ -183,7 +183,6 @@ export const AvatarWrap = styled.div`
   height: 43px;
   overflow: hidden;
   border-radius: ${token.shapes.circle};
-  background: ${token.colors.primary.primary10};
 `
 
 export const Avatar = styled.img`

@@ -31,3 +31,35 @@ export const DangerButton = styled(DialogButton)`
   color: ${token.colors.danger.danger20};
   background: ${token.colors.gray.gray10};
 `
+
+export const VerificationBody = styled.div`
+  ${token.flexColumn}
+  align-items: flex-start;
+  width: fit-content;
+  max-width: 100%;
+  gap: 5px;
+`
+
+export const VerificationMeta = styled.div`
+  ${token.flexBetween}
+  width: 100%;
+  ${token.typography('caption', 'lg', 'regular')}
+`
+
+export const ResendButton = styled.button`
+  padding: 0;
+  color: ${token.colors.gray.gray60};
+  background: transparent;
+  line-height: 1;
+  ${token.typography('caption', 'lg', 'regular')}
+
+  &:disabled {
+    color: ${token.colors.gray.gray30};
+    cursor: not-allowed;
+  }
+`
+
+export const TimerText = styled.span`
+  color: ${token.colors.danger.danger20};
+  line-height: 1;
+`

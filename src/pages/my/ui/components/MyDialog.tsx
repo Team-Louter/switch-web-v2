@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 import * as S from './MyDialog.style'
 
-type MyDialogSize = 'sm' | 'lg'
+type MyDialogSize = 'sm' | 'lg' | 'hug'
 
 type MyDialogProps = {
   title: string

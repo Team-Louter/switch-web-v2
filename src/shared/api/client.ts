@@ -4,7 +4,7 @@ type ApiRequestOptions = Omit<RequestInit, 'body'> & {
 }
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
-const protectedPathPrefixes = ['/me']
+const protectedPathPrefixes = ['/admin', '/me', '/mentoring']
 
 const createRequestUrl = (
   path: string,
@@ -16,9 +16,7 @@ const createRequestUrl = (
   return `${baseUrl}${requestPath}${createQueryString(query)}`
 }
 
-const createQueryString = (
-  query: ApiRequestOptions['query'],
-) => {
+const createQueryString = (query: ApiRequestOptions['query']) => {
   if (!query) {
     return ''
   }
@@ -87,7 +85,7 @@ export async function apiRequest<T>(
   const { body, headers, query, ...requestOptions } = options
   const token = getApiAccessToken()
 
-  if (isProtectedPath(path) && !hasApiAccessToken()) {
+  if (isProtectedApiEnabled() && isProtectedPath(path) && !getApiAccessToken()) {
     throw new ApiError(401, '로그인 기능이 연결된 뒤 사용할 수 있어요')
   }
 

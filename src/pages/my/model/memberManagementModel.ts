@@ -1,7 +1,12 @@
-export type ManagedMemberRole = 'leader' | 'mentor' | 'mentee'
+import type {
+  AdminMemberResponse,
+  AdminMemberRole,
+} from '@/entities/member'
+
+export type ManagedMemberRole = AdminMemberRole
 
 export type ManagedMember = {
-  id: string
+  id: number
   name: string
   classInfo: string
   role: ManagedMemberRole
@@ -11,9 +16,10 @@ export type ManagedMember = {
 export type MemberConfirmAction = 'mentor' | 'leader' | 'remove'
 
 export const memberRoleLabel: Record<ManagedMemberRole, string> = {
-  leader: '부장 (Leader)',
-  mentor: '멘토 (Mentor)',
-  mentee: '멘티 (Mentee)',
+  LEADER: '부장 (Leader)',
+  MENTOR: '멘토 (Mentor)',
+  MENTEE: '멘티 (Mentee)',
+  STUDENT: '학생 (Student)',
 }
 
 export const memberActionLabel: Record<MemberConfirmAction, string> = {
@@ -28,40 +34,20 @@ export const memberActionCompleteText: Record<MemberConfirmAction, string> = {
   remove: '동아리에서 퇴출했습니다',
 }
 
-export const managedMemberList: ManagedMember[] = [
-  {
-    id: 'member-1',
-    name: '이도연',
-    classInfo: '1학년 4반 2번',
-    role: 'leader',
-    email: 'doyeon@dgsw.hs.kr',
-  },
-  {
-    id: 'member-2',
-    name: '최현수',
-    classInfo: '1학년 3반 16번',
-    role: 'mentee',
-    email: 'hyunsu@dgsw.hs.kr',
-  },
-  {
-    id: 'member-3',
-    name: '이다연',
-    classInfo: '1학년 3반 16번',
-    role: 'mentee',
-    email: 'dayeon@dgsw.hs.kr',
-  },
-  {
-    id: 'member-4',
-    name: '전수안',
-    classInfo: '1학년 3반 16번',
-    role: 'mentee',
-    email: 'suan@dgsw.hs.kr',
-  },
-  {
-    id: 'member-5',
-    name: '김이박이름',
-    classInfo: '1학년 3반 16번',
-    role: 'mentee',
-    email: 'member@dgsw.hs.kr',
-  },
-]
+export const memberActionRoleMap: Record<
+  Exclude<MemberConfirmAction, 'remove'>,
+  AdminMemberRole
+> = {
+  mentor: 'MENTOR',
+  leader: 'LEADER',
+}
+
+export const formatManagedMember = (
+  member: AdminMemberResponse,
+): ManagedMember => ({
+  id: member.userId,
+  name: member.userName,
+  classInfo: `${member.grade}학년 ${member.classRoom}반 ${member.number}번`,
+  role: member.role,
+  email: member.userEmail,
+})

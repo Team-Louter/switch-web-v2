@@ -67,6 +67,10 @@ export const DangerLineButton = styled(BaseLineButton)`
   color: ${token.colors.danger.danger20};
 `
 
+export const HiddenFileInput = styled.input`
+  display: none;
+`
+
 export const FormRows = styled.div`
   ${token.flexColumn}
   width: 100%;
