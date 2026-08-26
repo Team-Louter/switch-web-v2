@@ -1,4 +1,4 @@
-const KOREA_TIME_ZONE = 'Asia/Seoul'
+export const KOREA_TIME_ZONE = 'Asia/Seoul'
 const SATURDAY = 6
 
 export interface CalendarDate {

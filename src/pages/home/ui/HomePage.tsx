@@ -17,7 +17,7 @@ import {
   UpcomingScheduleCard,
 } from '@/features/home'
 import { getShiftedMonth, toDateKey } from '@/shared/lib/calendar'
-import { getCurrentKoreaDate } from '@/shared/lib/studyWeek'
+import { useCurrentKoreaDate } from '@/shared/lib/useCurrentKoreaDate'
 
 import * as S from './HomePage.style'
 
@@ -27,7 +27,7 @@ const TYPING_RANKING_COUNT = 3
 
 export function HomePage() {
   const navigate = useNavigate()
-  const today = useMemo(() => getCurrentKoreaDate(), [])
+  const today = useCurrentKoreaDate()
   const todayDateKey = toDateKey(today.year, today.month, today.day)
   const [viewMonth, setViewMonth] = useState({
     year: today.year,
