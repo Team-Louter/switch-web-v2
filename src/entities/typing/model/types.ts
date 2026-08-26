@@ -1,3 +1,6 @@
+/** 서버가 제공하는 타자 문제 유형. */
+export type TypingProblemType = 'DAILY' | 'JAVA' | 'JAVASCRIPT'
+
 export interface TypingResult {
   resultId: number,
   accuracy: number,

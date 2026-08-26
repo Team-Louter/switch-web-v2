@@ -1,2 +1,2 @@
 export { getAllSchedules } from './api/getSchedule'
-export type { Schedule } from './model/types'
+export type { Schedule, ScheduleColor } from './model/types'
