@@ -14,6 +14,7 @@ import {
 import type { StudyRecord, StudyResponse, StudyStatus } from '@/entities/study'
 import { getMember } from '@/entities/member/api/getMember'
 import type { Member } from '@/entities/member/model/types'
+import { useUserStore } from '@/entities/profile'
 import { PercentBar } from '@/features/study'
 
 import decoImg2 from '../assets/spring.svg'
@@ -22,6 +23,7 @@ import * as S from './LearningPage.style'
 import { tokens } from '@/shared/styles'
 
 export function MentorLearningPage() {
+  const isLeader = useUserStore((state) => state.user?.role === 'LEADER')
   const weeks = useMemo(() => getWeeksForCurrentYear(), [])
   const currentMonth = weeks.find(({ state }) => state === 'current')?.month
   const [statusesByWeek, setStatusesByWeek] = useState<
@@ -176,18 +178,20 @@ export function MentorLearningPage() {
                   </S.Month>
                   {state === 'current' && <S.Now>Now</S.Now>}
                 </S.MonthHeading>
-                <S.TotalStudyButton
-                  $hasTotalStudy={totalStudy !== undefined}
-                  $isFuture={state === 'future'}
-                  type="button"
-                  onClick={() => {
-                    setSelectedTotalStudyWeek({ year, month, weekNumber })
-                    setIsTotalStudyModalOpen(true)
-                  }}
-                >
-                  <PiPencilSimpleLine aria-hidden="true" />
-                  종합학습일지 작성하기
-                </S.TotalStudyButton>
+                {isLeader && (
+                  <S.TotalStudyButton
+                    $hasTotalStudy={totalStudy !== undefined}
+                    $isFuture={state === 'future'}
+                    type="button"
+                    onClick={() => {
+                      setSelectedTotalStudyWeek({ year, month, weekNumber })
+                      setIsTotalStudyModalOpen(true)
+                    }}
+                  >
+                    <PiPencilSimpleLine aria-hidden="true" />
+                    종합학습일지 작성하기
+                  </S.TotalStudyButton>
+                )}
               </S.MonthRow>
               <S.Card $state={state}>
                 <S.ProgressContent>
