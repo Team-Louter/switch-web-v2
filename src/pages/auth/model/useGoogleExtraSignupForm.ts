@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
+import { useUserStore } from '@/entities/profile'
 import { signupGoogleExtra } from '@/features/auth'
 import {
   clearAccessToken,
@@ -94,12 +95,14 @@ export function useGoogleExtraSignupForm(): GoogleExtraSignupFormController {
         return
       }
 
+      await useUserStore.getState().fetchUser()
       navigate('/home', { replace: true })
     } catch {
       setTurnstileToken('')
       setTurnstileKey((currentKey) => currentKey + 1)
 
       if (!getPendingAccessToken()) {
+        clearAccessToken()
         navigate('/login', { replace: true })
       }
     } finally {

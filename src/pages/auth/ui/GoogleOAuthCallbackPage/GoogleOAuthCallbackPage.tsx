@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
+import { useUserStore } from '@/entities/profile'
 import { exchangeGoogleOAuthCode } from '@/features/auth'
 import {
   clearAccessToken,
@@ -24,10 +25,22 @@ export function GoogleOAuthCallbackPage() {
 
     hasHandledOAuthRef.current = true
 
-    if (legacyAccessToken) {
+    async function handleLegacyAccessToken() {
       clearPendingAccessToken()
       setAccessToken(legacyAccessToken)
-      navigate('/home', { replace: true })
+
+      try {
+        await useUserStore.getState().fetchUser()
+        navigate('/home', { replace: true })
+      } catch {
+        clearAccessToken()
+        useUserStore.getState().resetUser()
+        navigate('/login', { replace: true })
+      }
+    }
+
+    if (legacyAccessToken) {
+      void handleLegacyAccessToken()
       return
     }
 
@@ -54,10 +67,12 @@ export function GoogleOAuthCallbackPage() {
         }
 
         setAccessToken(response.token)
+        await useUserStore.getState().fetchUser()
         navigate('/home', { replace: true })
       } catch {
         clearAccessToken()
         clearPendingAccessToken()
+        useUserStore.getState().resetUser()
         navigate('/login', { replace: true })
       }
     }
