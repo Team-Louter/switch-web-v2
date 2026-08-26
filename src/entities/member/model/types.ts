@@ -1,11 +1,18 @@
-export type AdminMemberRole = 'LEADER' | 'MENTEE' | 'MENTOR' | 'STUDENT'
+export type MemberRole = 'LEADER' | 'MENTOR' | 'MENTEE' | 'STUDENT'
+export type AdminMemberRole = MemberRole
+
+export interface CurrentMember {
+  userId: number
+  role: MemberRole
+  profileImageUrl?: string
+}
 
 export interface Member {
   userId: number
   userName: string
   profileImageUrl: string
   majors: string[]
-  role: string
+  role: MemberRole
   generation: number
   githubUrl: string
   linkedinUrl: string

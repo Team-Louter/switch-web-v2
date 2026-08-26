@@ -3,7 +3,9 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import {
   AuthPage,
   CalendarPage,
+  CommunityDetailPage,
   CommunityPage,
+  CommunityWritePage,
   GoogleExtraSignupPage,
   GoogleOAuthCallbackPage,
   HomePage,
@@ -47,6 +49,15 @@ export function App() {
           <Route element={<AppLayout />}>
             <Route path="/home" element={<HomePage />} />
             <Route path="/community" element={<CommunityPage />} />
+            <Route path="/community/write" element={<CommunityWritePage />} />
+            <Route
+              path="/community/:postId/edit"
+              element={<CommunityWritePage />}
+            />
+            <Route
+              path="/community/:postId"
+              element={<CommunityDetailPage />}
+            />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/learning" element={<LearningPage />} />
             <Route path="/mentoring" element={<MentoringEntryPage />} />

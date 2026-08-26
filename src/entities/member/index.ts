@@ -4,12 +4,14 @@ export {
   getAdminMembers,
   quitAdminMembers,
 } from './api/adminMemberApi'
-export { getMember } from './api/getMember'
+export { getCurrentMember, getMember } from './api/getMember'
 export type {
   AdminMemberResponse,
   AdminMemberRole,
   ChangeRoleRequest,
+  CurrentMember,
   GetAdminMembersParams,
   Member,
+  MemberRole,
   QuitMemberRequest,
 } from './model/types'
