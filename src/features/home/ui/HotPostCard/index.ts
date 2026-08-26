@@ -1,0 +1,1 @@
+export { HotPostCard } from './HotPostCard'
