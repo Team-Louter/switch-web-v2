@@ -1,0 +1,1 @@
+export { SearchIconSvg } from './SearchIconSvg'

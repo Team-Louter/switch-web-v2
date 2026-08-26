@@ -3,11 +3,14 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import {
   AuthPage,
   CalendarPage,
+  CommunityDetailPage,
   CommunityPage,
+  CommunityWritePage,
   GoogleExtraSignupPage,
   GoogleOAuthCallbackPage,
   HomePage,
   LearningPage,
+  MentoringEntryPage,
   MentoringPage,
   MyPage,
   NotificationPage,
@@ -31,6 +34,10 @@ export function App() {
         <Route path="/extra-signup" element={<GoogleExtraSignupPage />} />
         <Route path="/oauth/callback" element={<GoogleOAuthCallbackPage />} />
         <Route path="/main" element={<GoogleOAuthCallbackPage />} />
+        <Route
+          path="/my/withdraw-complete"
+          element={<WithdrawCompletePage />}
+        />
         <Route element={<GuestOnlyRoute />}>
           <Route path="/login" element={<AuthPage />} />
           <Route
@@ -42,9 +49,19 @@ export function App() {
           <Route element={<AppLayout />}>
             <Route path="/home" element={<HomePage />} />
             <Route path="/community" element={<CommunityPage />} />
+            <Route path="/community/write" element={<CommunityWritePage />} />
+            <Route
+              path="/community/:postId/edit"
+              element={<CommunityWritePage />}
+            />
+            <Route
+              path="/community/:postId"
+              element={<CommunityDetailPage />}
+            />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/learning" element={<LearningPage />} />
-            <Route path="/mentoring" element={<MentoringPage />} />
+            <Route path="/mentoring" element={<MentoringEntryPage />} />
+            <Route path="/mentoring/dashboard" element={<MentoringPage />} />
             <Route path="/typing" element={<TypingPage />} />
             <Route path="/typing/daily" element={<DailyTypingPage />} />
             <Route path="/typing/code/:language" element={<CodeTypingPage />} />
@@ -52,10 +69,6 @@ export function App() {
             <Route path="/store" element={<StorePage />} />
             <Route path="/my" element={<MyPage />} />
             <Route path="/my/edit" element={<ProfileEditPage />} />
-            <Route
-              path="/my/withdraw-complete"
-              element={<WithdrawCompletePage />}
-            />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
