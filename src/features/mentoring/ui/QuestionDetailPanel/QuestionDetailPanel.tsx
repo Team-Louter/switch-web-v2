@@ -128,6 +128,8 @@ export function QuestionDetailPanel({
   }, [messages])
 
   const handleSend = async () => {
+    // 전송 중에는 버튼/엔터 어느 쪽으로도 중복 전송되지 않게 막는다.
+    if (isSending) return
     if (!content.trim() && files.length === 0) return
 
     try {
