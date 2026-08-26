@@ -4,6 +4,10 @@ import * as token from '@/shared/styles/values/token'
 
 import type { ButtonSize, ButtonVariant } from './types'
 
+// 색상 토큰에 대응 값이 없는 삭제 버튼 전용 색상입니다.
+const DANGER_BACKGROUND = '#FF2B00'
+const DANGER_HOVER_BACKGROUND = '#D92500'
+
 const sizeStyles = {
   sm: css`
     padding: 8px 16px;
@@ -30,19 +34,6 @@ const variantStyles = {
 
     &:disabled {
       background: ${token.colors.gray.gray10};
-    }
-  `,
-  neutral: css`
-    color: ${token.colors.gray.gray100};
-    background: ${token.colors.gray.gray10};
-
-    &:hover {
-      background: ${token.colors.gray.gray20};
-    }
-
-    &:disabled {
-      color: ${token.colors.gray.gray40};
-      background: ${token.colors.gray.gray0};
     }
   `,
   line: css`
@@ -72,14 +63,41 @@ const variantStyles = {
       color: ${token.colors.gray.gray10};
     }
   `,
+  neutral: css`
+    color: ${token.colors.gray.gray100};
+    background: ${token.colors.gray.gray10};
+
+    &:hover {
+      background: ${token.colors.gray.gray20};
+    }
+
+    &:disabled {
+      color: ${token.colors.gray.gray30};
+      background: ${token.colors.gray.gray10};
+    }
+  `,
+  danger: css`
+    color: ${token.colors.white};
+    background: ${DANGER_BACKGROUND};
+
+    &:hover {
+      background: ${DANGER_HOVER_BACKGROUND};
+    }
+
+    &:disabled {
+      background: ${token.colors.gray.gray10};
+    }
+  `,
 } satisfies Record<ButtonVariant, ReturnType<typeof css>>
 
 export const StyledButton = styled.button<{
   $size: ButtonSize
   $variant: ButtonVariant
+  $fullWidth: boolean
 }>`
   ${token.flexCenter}
-  flex: 0 0 auto;
+  flex: ${({ $fullWidth }) => ($fullWidth ? '1 1 0' : '0 0 auto')};
+  min-width: ${({ $fullWidth }) => ($fullWidth ? '0' : 'auto')};
   overflow: hidden;
   border-radius: ${token.shapes.small};
   line-height: 1;

@@ -6,7 +6,7 @@ import {
   PiMagnifyingGlass,
 } from 'react-icons/pi'
 
-import { getMember } from '@/entities/member/getMember'
+import { getMember } from '@/entities/member'
 import type { Member } from '@/entities/member/model/types'
 
 import { createMentoring, modifyMentoring } from '../../api/createMentoring'
