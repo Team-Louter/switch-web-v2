@@ -20,6 +20,10 @@ export function StoreEffectCard({
 }: StoreEffectCardProps) {
   const isRecommended = effect.status === 'recommended'
   const isEquipped = effect.status === 'equipped'
+  const defaultImageUrl = effect.thumbnailUrl ?? effect.imageUrl
+  const hoverImageUrl = effect.imageUrl ?? defaultImageUrl
+  const hasHoverImage =
+    Boolean(defaultImageUrl && hoverImageUrl) && defaultImageUrl !== hoverImageUrl
 
   const handleActionClick = () => {
     if (isRecommended) {
@@ -41,11 +45,28 @@ export function StoreEffectCard({
         $type={effect.type}
         aria-label={`${effect.title} 효과 미리보기`}
       >
-        {effect.type === 'nameColor' && (
+        {defaultImageUrl ? (
+          <>
+            <S.EffectImage
+              $hasHoverImage={hasHoverImage}
+              src={defaultImageUrl}
+              alt=""
+            />
+            {hasHoverImage && hoverImageUrl && (
+              <S.EffectImage
+                $hasHoverImage={hasHoverImage}
+                $isHoverImage
+                src={hoverImageUrl}
+                alt=""
+              />
+            )}
+          </>
+        ) : effect.type === 'nameColor' ? (
           <S.EffectPreviewText>이름 Name</S.EffectPreviewText>
-        )}
-        {effect.type === 'outline' && (
+        ) : effect.type === 'outline' ? (
           <S.EffectOutlinePreview>Louter</S.EffectOutlinePreview>
+        ) : (
+          <S.EffectPreviewPlaceholder>{effect.title}</S.EffectPreviewPlaceholder>
         )}
       </S.EffectPreview>
       <S.EffectTextGroup>

@@ -24,6 +24,15 @@ import type {
   StoreModalType,
 } from '../types'
 
+type StoreItemImageSource = {
+  imageUrl?: string
+  itemImageUrl?: string
+  originalImageUrl?: string
+  previewImageUrl?: string
+  thumbnailUrl?: string
+  valueImageUrl?: string
+}
+
 const STORE_CATEGORIES: StoreCategory[] = [
   '전체',
   '이름 색상',
@@ -57,12 +66,14 @@ const POINT_HISTORIES: PointHistory[] = [
 ]
 
 const STORE_ITEM_CATEGORY: Record<StoreItemType, StoreCategory> = {
+  BADGE: '뱃지',
   BORDER: '테두리',
   NAME_COLOR: '이름 색상',
   TITLE: '칭호',
 }
 
 const STORE_ITEM_EFFECT_TYPE: Record<StoreItemType, StoreEffectType> = {
+  BADGE: 'badge',
   BORDER: 'outline',
   NAME_COLOR: 'nameColor',
   TITLE: 'nickname',
@@ -74,6 +85,8 @@ const UNLOCK_CONDITION_LABEL: Record<UnlockCondition['unlockConditionType'], str
   POST_COUNT: '게시글 작성',
   RECEIVED_HEART: '받은 좋아요',
 }
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 
 const getStoreEffectStatus = (item: ShopItemResponse): StoreEffectStatus => {
   if (item.equipped) {
@@ -87,6 +100,36 @@ const getStoreEffectStatus = (item: ShopItemResponse): StoreEffectStatus => {
   return 'recommended'
 }
 
+const normalizeStoreImageUrl = (imageUrl?: string) => {
+  const trimmedUrl = imageUrl?.trim()
+
+  if (!trimmedUrl) {
+    return undefined
+  }
+
+  if (/^(blob:|data:|https?:\/\/)/.test(trimmedUrl)) {
+    return trimmedUrl
+  }
+
+  const baseUrl = API_BASE_URL.replace(/\/$/, '')
+  const pathname = trimmedUrl.startsWith('/') ? trimmedUrl : `/${trimmedUrl}`
+
+  return baseUrl ? `${baseUrl}${pathname}` : pathname
+}
+
+const getStoreEffectThumbnailUrl = (item: StoreItemImageSource) =>
+  normalizeStoreImageUrl(item.thumbnailUrl)
+
+const getStoreEffectPreviewImageUrl = (item: StoreItemImageSource) =>
+  normalizeStoreImageUrl(
+    item.valueImageUrl ??
+      item.imageUrl ??
+      item.itemImageUrl ??
+      item.originalImageUrl ??
+      item.previewImageUrl ??
+      item.thumbnailUrl,
+  )
+
 const mapShopItemToStoreEffect = (item: ShopItemResponse): StoreEffect => ({
   id: item.itemId,
   itemType: item.itemType,
@@ -95,7 +138,8 @@ const mapShopItemToStoreEffect = (item: ShopItemResponse): StoreEffect => ({
   type: STORE_ITEM_EFFECT_TYPE[item.itemType],
   status: getStoreEffectStatus(item),
   price: item.itemPrice,
-  thumbnailUrl: item.thumbnailUrl,
+  imageUrl: getStoreEffectPreviewImageUrl(item),
+  thumbnailUrl: getStoreEffectThumbnailUrl(item),
   canPurchase: item.purchasable,
 })
 
@@ -109,7 +153,8 @@ const mapProfileItemToOwnedEffect = (
   type: STORE_ITEM_EFFECT_TYPE[item.itemType],
   status: 'owned',
   price: item.itemPrice,
-  thumbnailUrl: item.thumbnailUrl,
+  imageUrl: getStoreEffectPreviewImageUrl(item),
+  thumbnailUrl: getStoreEffectThumbnailUrl(item),
   hasConditions: Boolean(item.unlockConditions?.length),
   canPurchase: true,
   conditionLabels: item.unlockConditions?.map(
@@ -123,6 +168,7 @@ const getEquippedItemId = (
   itemType: StoreItemType,
 ) => {
   const equippedItemByType: Record<StoreItemType, EquippedItemResponse | undefined> = {
+    BADGE: equippedItems.badge,
     BORDER: equippedItems.border,
     NAME_COLOR: equippedItems.nameColor,
     TITLE: equippedItems.title,

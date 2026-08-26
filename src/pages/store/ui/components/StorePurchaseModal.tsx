@@ -23,6 +23,7 @@ export function StorePurchaseModal({
   onPurchase,
 }: StorePurchaseModalProps) {
   const canPurchase = effect.canPurchase !== false
+  const previewImageUrl = effect.imageUrl ?? effect.thumbnailUrl
 
   return (
     <S.Overlay>
@@ -34,7 +35,11 @@ export function StorePurchaseModal({
           </S.CloseButton>
         </S.ModalHeader>
         <S.PreviewSection>
-          <S.ProfilePreview aria-label={`${effect.title} 효과 프로필 미리보기`} />
+          <S.ProfilePreview aria-label={`${effect.title} 효과 프로필 미리보기`}>
+            {previewImageUrl && (
+              <S.PreviewImage src={previewImageUrl} alt="" />
+            )}
+          </S.ProfilePreview>
           <S.PreviewName>이윤지</S.PreviewName>
         </S.PreviewSection>
         <S.PurchaseEffectTitle>{effect.title}</S.PurchaseEffectTitle>

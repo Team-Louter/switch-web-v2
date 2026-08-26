@@ -2,6 +2,8 @@ import styled, { css } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
+import { StoreItemImage } from './components/StoreItemImage'
+
 import type { StoreEffectStatus, StoreEffectType } from '../types'
 
 export const Page = styled.section`
@@ -210,6 +212,32 @@ export const EffectOutlinePreview = styled.div`
   }
 `
 
+export const EffectImage = styled(StoreItemImage)<{
+  $hasHoverImage?: boolean
+  $isHoverImage?: boolean
+}>`
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: ${({ $isHoverImage }) => ($isHoverImage ? 0 : 1)};
+  transition: opacity 120ms ease;
+
+  ${EffectCard}:hover & {
+    opacity: ${({ $hasHoverImage, $isHoverImage }) =>
+      $isHoverImage || !$hasHoverImage ? 1 : 0};
+  }
+`
+
+export const EffectPreviewPlaceholder = styled.p`
+  margin: 0;
+  color: ${token.colors.gray.gray50};
+  text-align: center;
+  word-break: keep-all;
+  ${token.typography('body', 'sm', 'medium')}
+`
+
 export const EffectTextGroup = styled.div`
   ${token.flexColumn}
   align-items: flex-start;
@@ -379,6 +407,12 @@ export const ProfilePreview = styled.div`
   overflow: hidden;
   border-radius: ${token.shapes.circle};
   background: ${token.colors.gray.gray0};
+`
+
+export const PreviewImage = styled(StoreItemImage)`
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 `
 
 export const PreviewName = styled.p`
