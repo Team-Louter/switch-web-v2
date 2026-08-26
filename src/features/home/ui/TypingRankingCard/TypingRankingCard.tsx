@@ -1,4 +1,4 @@
-import type { TypingProblemType, TypingRanking } from '@/entities/typing'
+import type { Ranking, TypingProblemType } from '@/entities/typing'
 
 import medal1stIcon from '../../assets/medal-1st.svg'
 import medal2ndIcon from '../../assets/medal-2nd.svg'
@@ -14,7 +14,7 @@ const MEDAL_ICONS: Record<number, string> = {
 }
 
 interface TypingRankingCardProps {
-  rankings: TypingRanking[]
+  rankings: Ranking[]
   selectedType: TypingProblemType
   onTypeChange: (problemType: TypingProblemType) => void
 }

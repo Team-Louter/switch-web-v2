@@ -5,8 +5,8 @@ import { getHotPosts } from '@/entities/post'
 import type { Post } from '@/entities/post'
 import { getAllSchedules } from '@/entities/schedule'
 import type { Schedule } from '@/entities/schedule'
-import { getTypingRanking } from '@/entities/typing'
-import type { TypingProblemType, TypingRanking } from '@/entities/typing'
+import { getRankingList } from '@/entities/typing'
+import type { Ranking, TypingProblemType } from '@/entities/typing'
 import {
   DEFAULT_TYPING_RANKING_TAB,
   getUpcomingSchedules,
@@ -35,7 +35,7 @@ export function HomePage() {
   })
   const [schedules, setSchedules] = useState<Schedule[]>([])
   const [hotPosts, setHotPosts] = useState<Post[]>([])
-  const [typingRankings, setTypingRankings] = useState<TypingRanking[]>([])
+  const [typingRankings, setTypingRankings] = useState<Ranking[]>([])
   const [problemType, setProblemType] = useState<TypingProblemType>(
     DEFAULT_TYPING_RANKING_TAB,
   )
@@ -67,7 +67,7 @@ export function HomePage() {
   useEffect(() => {
     let isCancelled = false
 
-    getTypingRanking(problemType)
+    getRankingList(problemType)
       .then((board) => {
         if (!isCancelled) {
           setTypingRankings(board.topRankings ?? [])

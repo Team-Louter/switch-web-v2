@@ -1,14 +1,36 @@
+/** 서버가 제공하는 타자 문제 유형. */
 export type TypingProblemType = 'DAILY' | 'JAVA' | 'JAVASCRIPT'
 
-export interface TypingRanking {
-  rank: number
-  userId: number
-  userName: string
-  averageSpeed: number // 평균 타수
+export interface TypingResult {
+  resultId: number,
+  accuracy: number,
+  elapsedTime: number,
+  averageSpeed: number
 }
 
-export interface TypingRankingBoard {
-  problemType: TypingProblemType
-  topRankings: TypingRanking[]
-  myRanking?: TypingRanking
+export interface TypingProblem {
+  problemId: number,
+  problemType: string,
+  content: string
+}
+
+export interface Round {
+  roundId: number,
+  userId: number,
+  problems: TypingProblem[],
+  resultId: number,
+  problemType: string
+}
+
+export interface Ranking {
+  rank: number,
+  userId: number,
+  userName: string,
+  averageSpeed: number
+}
+
+export interface RankingList {
+  problemType: string,
+  topRankings: Ranking[],
+  myRanking: Ranking | null
 }

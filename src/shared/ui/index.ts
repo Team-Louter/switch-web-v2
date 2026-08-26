@@ -4,3 +4,5 @@ export type {
   ButtonSize,
   ButtonVariant,
 } from './Button'
+export { Modal } from './Modal'
+export { ConfirmModal } from './ConfirmModal/ConfirmModal'
