@@ -3,7 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
 import { getUnreadNotificationCount } from '@/entities/notification'
-import { formatProfileClassInfo, getMyProfile } from '@/entities/profile'
+import { formatProfileClassInfo, useUserStore } from '@/entities/profile'
 import { SIDEBAR_MENU } from '@/shared/constants/sidebar'
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
@@ -46,6 +46,7 @@ function saveUnreadNotificationCount(count: number) {
 export function AppLayout() {
   const location = useLocation()
   const navigate = useNavigate()
+  const fetchUser = useUserStore((state) => state.fetchUser)
   const [notificationCount, setNotificationCount] = useState(
     getStoredUnreadNotificationCount,
   )
@@ -90,7 +91,7 @@ export function AppLayout() {
 
     const synchronizeProfile = async () => {
       try {
-        const profile = await getMyProfile()
+        const profile = await fetchUser()
         const nextProfile: SidebarProfile = {
           classInfo: formatProfileClassInfo(profile),
           name: profile.userName,
@@ -115,7 +116,7 @@ export function AppLayout() {
     return () => {
       isCancelled = true
     }
-  }, [location.pathname])
+  }, [fetchUser, location.pathname])
 
   useEffect(() => {
     let isCancelled = false

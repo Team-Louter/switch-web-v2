@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { formatProfileClassInfo } from '@/entities/profile'
+import { formatProfileClassInfo, useUserStore } from '@/entities/profile'
 
 import {
   getMyComments,
   getMyLikedPosts,
   getMyPoint,
   getMyPosts,
-  getMyProfile,
   getMyReceivedLikeCount,
 } from '../api'
 import type {
@@ -168,6 +167,7 @@ const getActivityTabPosts = (tabId: MyActivityTabId) => {
 
 // 마이 페이지의 프로필과 활동 데이터를 서버 응답 기준으로 구성한다.
 export function useMyPage() {
+  const fetchUser = useUserStore((state) => state.fetchUser)
   const [activeTabId, setActiveTabId] = useState<MyActivityTabId>('posts')
   const [profile, setProfile] = useState<MyProfile>(initialProfile)
   const [stats, setStats] = useState<MyStat[]>(initialStats)
@@ -214,7 +214,7 @@ export function useMyPage() {
           point,
           receivedLikeCount,
         ] = await Promise.all([
-          getMyProfile(),
+          fetchUser(),
           getMyPosts(),
           getMyPoint(),
           getMyReceivedLikeCount(),
@@ -297,7 +297,7 @@ export function useMyPage() {
     return () => {
       shouldIgnore = true
     }
-  }, [])
+  }, [fetchUser])
 
   useEffect(() => {
     if (isLoading || loadedTabs[activeTabId]) {

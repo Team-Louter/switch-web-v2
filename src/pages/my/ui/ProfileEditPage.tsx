@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { useUserStore } from '@/entities/profile'
 import { uploadFile } from '@/shared/api'
 import { Button } from '@/shared/ui'
 
-import { getMyProfile, updateMyProfile } from '../api'
+import { updateMyProfile } from '../api'
 import {
   createStudentId,
   isValidStudentId,
@@ -37,6 +38,9 @@ const isManagedProfileImageUrl = (url: string) =>
 
 export function ProfileEditPage() {
   const navigate = useNavigate()
+  const storedUser = useUserStore((state) => state.user)
+  const fetchUser = useUserStore((state) => state.fetchUser)
+  const setUser = useUserStore((state) => state.setUser)
   const profileImageInputRef = useRef<HTMLInputElement>(null)
   const [selectedMajorIds, setSelectedMajorIds] = useState<ProfileMajor[]>([])
   const [userName, setUserName] = useState('')
@@ -61,7 +65,7 @@ export function ProfileEditPage() {
 
     const fetchProfile = async () => {
       try {
-        const profile = await getMyProfile()
+        const profile = storedUser ?? await fetchUser()
 
         if (shouldIgnore) {
           return
@@ -90,7 +94,7 @@ export function ProfileEditPage() {
     return () => {
       shouldIgnore = true
     }
-  }, [])
+  }, [fetchUser, storedUser])
 
   const handleMajorToggle = (optionId: string) => {
     const nextOptionId = optionId as ProfileMajor
@@ -173,7 +177,7 @@ export function ProfileEditPage() {
 
     try {
       setIsSaving(true)
-      await updateMyProfile({
+      const updatedProfile = await updateMyProfile({
         githubId,
         linkedinId,
         majors: selectedMajorIds,
@@ -181,6 +185,7 @@ export function ProfileEditPage() {
         studentId: nextStudentId,
         userName: nextUserName,
       })
+      setUser(updatedProfile)
       navigate('/my')
     } catch {
       window.alert('프로필을 저장하지 못했어요')

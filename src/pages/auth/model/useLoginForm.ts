@@ -2,8 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { useUserStore } from '@/entities/profile'
 import { checkEmailExists, login } from '@/features/auth'
-import { setAccessToken } from '@/shared/lib/authToken'
+import { clearAccessToken, setAccessToken } from '@/shared/lib/authToken'
 
 import { TURNSTILE_SITE_KEY } from '../config/turnstile'
 
@@ -85,8 +86,10 @@ export function useLoginForm(
         })
 
         setAccessToken(token)
+        await useUserStore.getState().fetchUser()
         navigate(returnPath, { replace: true })
       } catch {
+        clearAccessToken()
         setLoginValidationMessage(LOGIN_FAILED_MESSAGE)
         setTurnstileToken('')
         setTurnstileKey((currentKey) => currentKey + 1)
