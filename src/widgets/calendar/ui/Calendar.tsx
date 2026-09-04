@@ -17,6 +17,7 @@ import { addDays, formatDateInput, parseDateInput } from '@/shared/utils/date';
 interface CalendarProps {
   readOnly?: boolean;
   initialDate?: Date | string;
+  initialScheduleId?: number | null;
   selectionMode?: 'default' | 'clubReport';
   selectedScheduleIds?: number[];
   showHeaderToolbar?: boolean;
@@ -48,6 +49,7 @@ function isMultiDayEvent(event: EventInput) {
 export function Calendar({
   readOnly = false,
   initialDate,
+  initialScheduleId = null,
   selectionMode = 'default',
   selectedScheduleIds = [],
   showHeaderToolbar = true,
@@ -64,9 +66,41 @@ export function Calendar({
   const calendarWrapperRef = useRef<HTMLDivElement>(null);
   const fullCalendarRef = useRef<FullCalendar>(null);
   const blockPopover = useRef(false);
+  const autoOpenedScheduleIdRef = useRef<number | null>(null);
   const isSelectionMode = selectionMode === 'clubReport';
 
   const { eventsInfo, isLoading, error } = useEvent();
+
+  useEffect(() => {
+    if (
+      isLoading ||
+      initialScheduleId === null ||
+      autoOpenedScheduleIdRef.current === initialScheduleId
+    ) {
+      return;
+    }
+
+    const targetEvent = eventsInfo.find((event) => {
+      const scheduleId = event.scheduleId ?? event.extendedProps?.scheduleId ?? event.id;
+      return Number(scheduleId) === initialScheduleId;
+    });
+
+    if (!targetEvent?.start) return;
+
+    const targetDate = asCalendarDate(targetEvent.start);
+    autoOpenedScheduleIdRef.current = initialScheduleId;
+    fullCalendarRef.current?.getApi().gotoDate(targetDate);
+    const openFrame = window.requestAnimationFrame(() => {
+      setMobileSelectedDate(targetDate);
+      setSelectedEvent(targetEvent);
+      setSelectedDate(null);
+      setSelectedEndDate(null);
+      setModalMode('편집');
+      setIsModalOpen(true);
+    });
+
+    return () => window.cancelAnimationFrame(openFrame);
+  }, [eventsInfo, initialScheduleId, isLoading]);
 
   const today = new Date();
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();

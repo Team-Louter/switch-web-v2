@@ -86,7 +86,10 @@ const INITIAL_NOTIFICATION_SETTINGS: NotificationSettings = {
   emailEnabled: true,
 }
 
-function getNotificationTargetPath(notification: Notification): string | null {
+function getNotificationTargetPath(
+  notification: Notification,
+  isMobileViewport = false,
+): string | null {
   const target = notification.target
 
   if (
@@ -113,7 +116,8 @@ function getNotificationTargetPath(notification: Notification): string | null {
     Number.isSafeInteger(target.id) &&
     target.id > 0
   ) {
-    return `/home?scheduleId=${target.id}`
+    const schedulePath = isMobileViewport ? '/calendar' : '/home'
+    return `${schedulePath}?scheduleId=${target.id}`
   }
 
   if (
@@ -166,7 +170,10 @@ export function NotificationPage() {
 
   const handleNotificationClick = useCallback(
     async (notification: Notification) => {
-      const targetPath = getNotificationTargetPath(notification)
+      const targetPath = getNotificationTargetPath(
+        notification,
+        window.matchMedia('(max-width: 768px)').matches,
+      )
 
       if (!targetPath) {
         return
