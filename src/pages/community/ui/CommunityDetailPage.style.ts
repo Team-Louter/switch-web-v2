@@ -417,6 +417,12 @@ export const PostMenuPanel = styled.div`
   border-radius: ${token.shapes.large};
   background: ${token.colors.white};
   box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
+
+  @container community-detail (max-width: 430px) {
+    right: auto;
+    left: 0;
+    max-width: calc(100vw - 32px);
+  }
 `;
 
 export const PostMenuItem = styled.button<PostMenuItemProps>`
