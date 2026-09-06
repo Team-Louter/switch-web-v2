@@ -644,6 +644,12 @@ export const SkeletonCircle = styled.span`
   );
   background-size: 200% 100%;
   animation: ${shimmer} 1.2s ease-in-out infinite;
+
+  @media (max-width: 600px) {
+    flex-basis: 88px;
+    width: 88px;
+    height: 88px;
+  }
 `
 
 export const SkeletonPostItem = styled.div`
