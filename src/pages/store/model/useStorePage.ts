@@ -55,6 +55,8 @@ const CUSTOMIZE_CATEGORIES: StoreCategory[] = [
   '칭호',
 ]
 
+const PROFILE_SYNC_EVENT_NAME = 'switch:profile-sync'
+
 const POINT_HISTORIES: PointHistory[] = [
   {
     id: 1,
@@ -445,6 +447,13 @@ export function useStorePage() {
     setActiveModal('purchase')
   }
 
+  const synchronizeEquippedItems = (equippedItems: EquippedItemsResponse) => {
+    setProfilePreview((currentProfile) =>
+      currentProfile ? { ...currentProfile, equippedItems } : currentProfile,
+    )
+    window.dispatchEvent(new Event(PROFILE_SYNC_EVENT_NAME))
+  }
+
   const handleCustomizeCategorySelect = (category: StoreCategory) => {
     if (category === '전체') {
       return
@@ -515,6 +524,7 @@ export function useStorePage() {
       setStoreEffects((currentEffects) =>
         applyEquippedItems(currentEffects, equippedItems, target.itemType),
       )
+      synchronizeEquippedItems(equippedItems)
       handleModalClose()
     } catch {
       setErrorMessage('효과를 장착하지 못했어요')
@@ -541,6 +551,7 @@ export function useStorePage() {
       setStoreEffects((currentEffects) =>
         applyEquippedItems(currentEffects, equippedItems, target.itemType),
       )
+      synchronizeEquippedItems(equippedItems)
     } catch {
       setErrorMessage('효과 장착을 해제하지 못했어요')
     } finally {
@@ -568,6 +579,7 @@ export function useStorePage() {
       setStoreEffects((currentEffects) =>
         applyEquippedItems(currentEffects, equippedItems, itemType),
       )
+      synchronizeEquippedItems(equippedItems)
       handleModalClose()
     } catch {
       setErrorMessage('효과 설정을 저장하지 못했어요')

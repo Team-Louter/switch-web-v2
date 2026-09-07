@@ -336,6 +336,9 @@ export const CardButton = styled.button<{ $isDanger?: boolean }>`
 
   &:disabled {
     cursor: not-allowed;
+  }
+
+  ${EffectCard}:hover &:disabled {
     opacity: 0.5;
   }
 `

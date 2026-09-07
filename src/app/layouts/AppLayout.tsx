@@ -13,6 +13,7 @@ import type { SidebarItemId } from '@/shared/constants/sidebar'
 
 const UNREAD_NOTIFICATION_COUNT_STORAGE_KEY = 'switch:unread-notification-count'
 const UNREAD_NOTIFICATION_POLLING_INTERVAL = 15_000
+const PROFILE_SYNC_EVENT_NAME = 'switch:profile-sync'
 
 interface SidebarProfile {
   classInfo: string
@@ -116,10 +117,16 @@ export function AppLayout() {
       }
     }
 
+    const handleProfileSync = () => {
+      void synchronizeProfile()
+    }
+
     void synchronizeProfile()
+    window.addEventListener(PROFILE_SYNC_EVENT_NAME, handleProfileSync)
 
     return () => {
       isCancelled = true
+      window.removeEventListener(PROFILE_SYNC_EVENT_NAME, handleProfileSync)
     }
   }, [location.pathname])
 
