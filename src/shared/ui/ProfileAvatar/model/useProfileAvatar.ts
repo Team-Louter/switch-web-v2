@@ -8,11 +8,15 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 /**
  * 아바타 장식 아이템 공통 디자인 규격
  *
- * - 아이템 PNG 전체 캔버스: 512 × 512
- * - 아이템 내부 프로필 기준 원: 중앙 400 × 400 (중심 256,256)
+ * - PNG 전체 캔버스: 512 × 512
+ * - 프로필 기준 원: 400 × 400
+ * - 기준 원 중심: (256, 256)
  *
- * 화면에서 실제 프로필 원이 profileSize일 때,
- * 아이템 PNG는 profileSize × (512 / 400) 크기로 렌더링한다.
+ * 따라서 실제 프로필 크기가 profileSize일 경우
+ *
+ * decorationSize = profileSize × (512 / 400)
+ *
+ * 모든 장식 아이템은 동일한 좌표계를 사용한다.
  */
 const DECORATION_CANVAS_SIZE = 512
 const PROFILE_REFERENCE_SIZE = 400
@@ -20,7 +24,9 @@ const PROFILE_REFERENCE_SIZE = 400
 const DECORATION_DISPLAY_RATIO =
   DECORATION_CANVAS_SIZE / PROFILE_REFERENCE_SIZE
 
-const getDecorationImageUrl = (item?: ProfileAvatarDecorationItem) =>
+const getDecorationImageUrl = (
+  item?: ProfileAvatarDecorationItem,
+) =>
   item?.valueImageUrl ??
   item?.imageUrl ??
   item?.itemImageUrl ??
@@ -40,9 +46,13 @@ const normalizeProfileAssetUrl = (assetUrl?: string) => {
   }
 
   const baseUrl = API_BASE_URL.replace(/\/$/, '')
-  const pathname = trimmedUrl.startsWith('/') ? trimmedUrl : `/${trimmedUrl}`
+  const pathname = trimmedUrl.startsWith('/')
+    ? trimmedUrl
+    : `/${trimmedUrl}`
 
-  return baseUrl ? `${baseUrl}${pathname}` : pathname
+  return baseUrl
+    ? `${baseUrl}${pathname}`
+    : pathname
 }
 
 export function useProfileAvatar(
@@ -51,17 +61,28 @@ export function useProfileAvatar(
   profileSize: number,
 ) {
   const borderItem = equippedItems?.border
-  const borderImageUrl = normalizeProfileAssetUrl(getDecorationImageUrl(borderItem))
+
+  const borderImageUrl = normalizeProfileAssetUrl(
+    getDecorationImageUrl(borderItem),
+  )
 
   /**
-   * profileSize = 200px 일 때
-   * displaySize = 200 × (512/400) = 256px
-   * → PNG 안의 중앙 400px 기준 원이 실제 200px 프로필 원과 정확히 겹침
+   * ex)
+   *
+   * profileSize = 200px
+   * displaySize = 200 × (512 / 400)
+   *             = 256px
    */
-  const displaySize = profileSize * DECORATION_DISPLAY_RATIO
+  const displaySize =
+    profileSize * DECORATION_DISPLAY_RATIO
 
   const decorations = borderImageUrl
-    ? [{ displaySize, src: borderImageUrl }]
+    ? [
+        {
+          displaySize,
+          src: borderImageUrl,
+        },
+      ]
     : []
 
   return {
