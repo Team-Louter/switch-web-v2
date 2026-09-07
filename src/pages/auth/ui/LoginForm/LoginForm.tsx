@@ -124,15 +124,17 @@ export function LoginForm({ controller }: LoginFormProps) {
                         : undefined
                     }
                   />
-                  <S.PasswordVisibilityButton
-                    type="button"
-                    aria-label={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 표시'}
-                    disabled={!isPasswordStep}
-                    tabIndex={isPasswordStep ? 0 : -1}
-                    onClick={() => setIsPasswordVisible((visible) => !visible)}
-                  >
-                    {isPasswordVisible ? <FiEyeOff aria-hidden="true" size={18} /> : <FiEye aria-hidden="true" size={18} />}
-                  </S.PasswordVisibilityButton>
+                  {password.length > 0 && (
+                    <S.PasswordVisibilityButton
+                      type="button"
+                      aria-label={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 표시'}
+                      disabled={!isPasswordStep}
+                      tabIndex={isPasswordStep ? 0 : -1}
+                      onClick={() => setIsPasswordVisible((visible) => !visible)}
+                    >
+                      {isPasswordVisible ? <FiEyeOff aria-hidden="true" size={18} /> : <FiEye aria-hidden="true" size={18} />}
+                    </S.PasswordVisibilityButton>
+                  )}
                 </S.PasswordField>
               </S.PasswordFieldMotion>
             </S.PasswordFieldSlot>

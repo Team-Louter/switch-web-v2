@@ -157,19 +157,21 @@ export function SignupPage({
                         placeholder="비밀번호"
                         autoComplete="new-password"
                       />
-                      <S.PasswordVisibilityButton
-                        type="button"
-                        aria-label={
-                          isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 표시'
-                        }
-                        onClick={() => setIsPasswordVisible((visible) => !visible)}
-                      >
-                        {isPasswordVisible ? (
-                          <FiEyeOff aria-hidden="true" size={18} />
-                        ) : (
-                          <FiEye aria-hidden="true" size={18} />
-                        )}
-                      </S.PasswordVisibilityButton>
+                      {values.password.length > 0 && (
+                        <S.PasswordVisibilityButton
+                          type="button"
+                          aria-label={
+                            isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 표시'
+                          }
+                          onClick={() => setIsPasswordVisible((visible) => !visible)}
+                        >
+                          {isPasswordVisible ? (
+                            <FiEyeOff aria-hidden="true" size={18} />
+                          ) : (
+                            <FiEye aria-hidden="true" size={18} />
+                          )}
+                        </S.PasswordVisibilityButton>
+                      )}
                     </S.PasswordField>
                     <S.PasswordField>
                       <S.PasswordInput
@@ -181,19 +183,21 @@ export function SignupPage({
                         placeholder="비밀번호 확인"
                         autoComplete="new-password"
                       />
-                      <S.PasswordVisibilityButton
-                        type="button"
-                        aria-label={
-                          isPasswordConfirmationVisible ? '비밀번호 확인 숨기기' : '비밀번호 확인 표시'
-                        }
-                        onClick={() => setIsPasswordConfirmationVisible((visible) => !visible)}
-                      >
-                        {isPasswordConfirmationVisible ? (
-                          <FiEyeOff aria-hidden="true" size={18} />
-                        ) : (
-                          <FiEye aria-hidden="true" size={18} />
-                        )}
-                      </S.PasswordVisibilityButton>
+                      {values.passwordConfirmation.length > 0 && (
+                        <S.PasswordVisibilityButton
+                          type="button"
+                          aria-label={
+                            isPasswordConfirmationVisible ? '비밀번호 확인 숨기기' : '비밀번호 확인 표시'
+                          }
+                          onClick={() => setIsPasswordConfirmationVisible((visible) => !visible)}
+                        >
+                          {isPasswordConfirmationVisible ? (
+                            <FiEyeOff aria-hidden="true" size={18} />
+                          ) : (
+                            <FiEye aria-hidden="true" size={18} />
+                          )}
+                        </S.PasswordVisibilityButton>
+                      )}
                     </S.PasswordField>
                     <S.ClubCodeField>
                       <S.Input
