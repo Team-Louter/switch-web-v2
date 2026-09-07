@@ -166,7 +166,7 @@ export const ProfileButton = styled.button`
   flex: 0 0 auto;
   width: 100%;
   gap: 10px;
-  overflow: hidden;
+  overflow: visible;
   padding: 13px 10px;
   border-radius: ${token.shapes.medium};
 
@@ -174,21 +174,6 @@ export const ProfileButton = styled.button`
     outline: 2px solid ${token.colors.primary.primary40};
     outline-offset: 2px;
   }
-`
-
-export const AvatarWrap = styled.div`
-  position: relative;
-  flex: 0 0 43px;
-  width: 43px;
-  height: 43px;
-  overflow: hidden;
-  border-radius: ${token.shapes.circle};
-`
-
-export const Avatar = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 `
 
 export const ProfileText = styled.div`

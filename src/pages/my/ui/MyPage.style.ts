@@ -30,22 +30,6 @@ export const ProfileSection = styled.section`
   gap: 40px;
 `
 
-export const ProfileImageWrap = styled.div`
-  flex: 0 0 200px;
-  width: 200px;
-  height: 200px;
-  overflow: hidden;
-  border-radius: ${token.shapes.circle};
-  background: ${token.colors.white};
-`
-
-export const ProfileImage = styled.img`
-  width: 212px;
-  height: 212px;
-  margin-left: -6px;
-  object-fit: cover;
-`
-
 export const ProfileInfo = styled.div`
   ${token.flexBetween}
   align-items: flex-start;

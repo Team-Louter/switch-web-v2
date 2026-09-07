@@ -7,6 +7,8 @@ export {
 export { formatProfileClassInfo } from './lib/formatProfileClassInfo'
 export type {
   ProfileMajor,
+  ProfileEquippedItem,
+  ProfileEquippedItems,
   ProfileResponse,
   ProfileRole,
   UpdateProfileRequest,

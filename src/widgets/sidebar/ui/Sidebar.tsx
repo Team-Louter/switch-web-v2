@@ -6,12 +6,13 @@ import {
   PRIMARY_SIDEBAR_MENU,
   UTILITY_SIDEBAR_MENU,
 } from '@/shared/constants/sidebar'
+import { ProfileAvatar } from '@/shared/ui'
+
+import type { ProfileAvatarEquippedItems } from '@/shared/ui'
 import type { SidebarItemId } from '@/shared/constants/sidebar'
 
 import {
   Aside,
-  Avatar,
-  AvatarWrap,
   Divider,
   Logo,
   LogoArea,
@@ -34,6 +35,7 @@ interface SidebarProps {
   onItemSelect?: (itemId: SidebarItemId) => void
   profile?: {
     classInfo: string
+    equippedItems?: ProfileAvatarEquippedItems
     imageUrl?: string
     name: string
   } | null
@@ -125,9 +127,11 @@ export function Sidebar({
         aria-current={activeItemId === MY_SIDEBAR_ITEM.id ? 'page' : undefined}
         onClick={() => onItemSelect?.(MY_SIDEBAR_ITEM.id)}
       >
-        <AvatarWrap aria-hidden={!profile?.imageUrl}>
-          {profile?.imageUrl && <Avatar src={profile.imageUrl} alt="" />}
-        </AvatarWrap>
+        <ProfileAvatar
+          imageUrl={profile?.imageUrl}
+          equippedItems={profile?.equippedItems}
+          size={43}
+        />
         <ProfileText>
           <ProfileName>{profile?.name ?? ''}</ProfileName>
           <ProfileMeta>{profile?.classInfo ?? ''}</ProfileMeta>

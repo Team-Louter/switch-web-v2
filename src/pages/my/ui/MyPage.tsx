@@ -5,6 +5,7 @@ import {
   clearAccessToken,
   clearPendingAccessToken,
 } from '@/shared/lib/authToken'
+import { ProfileAvatar } from '@/shared/ui'
 
 import {
   sendWithdrawalVerificationCode,
@@ -154,9 +155,11 @@ export function MyPage() {
     <S.Page>
       <S.Content>
         <S.ProfileSection>
-          <S.ProfileImageWrap>
-            {profile.imageUrl && <S.ProfileImage src={profile.imageUrl} alt="" />}
-          </S.ProfileImageWrap>
+          <ProfileAvatar
+            imageUrl={profile.imageUrl}
+            equippedItems={profile.equippedItems}
+            size={200}
+          />
 
           <S.ProfileInfo>
             <S.ProfileTextGroup>
@@ -180,7 +183,12 @@ export function MyPage() {
                   멤버 관리
                 </S.ActionButton>
               )}
-              <S.ActionButton type="button">프로필 꾸미기</S.ActionButton>
+              <S.ActionButton
+                type="button"
+                onClick={() => navigate('/store?customize=1')}
+              >
+                프로필 꾸미기
+              </S.ActionButton>
               <S.ActionButton
                 type="button"
                 $variant="outline"

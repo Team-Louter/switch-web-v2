@@ -114,6 +114,10 @@ const formatProfile = (profile: ProfileResponse): MyProfile => {
     role: profile.role,
   }
 
+  if (profile.equippedItems) {
+    nextProfile.equippedItems = profile.equippedItems
+  }
+
   if (profile.profileImageUrl) {
     nextProfile.imageUrl = profile.profileImageUrl
   }

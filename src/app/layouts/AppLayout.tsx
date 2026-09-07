@@ -8,6 +8,7 @@ import { SIDEBAR_MENU } from '@/shared/constants/sidebar'
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 
+import type { ProfileEquippedItems } from '@/entities/profile'
 import type { SidebarItemId } from '@/shared/constants/sidebar'
 
 const UNREAD_NOTIFICATION_COUNT_STORAGE_KEY = 'switch:unread-notification-count'
@@ -15,6 +16,7 @@ const UNREAD_NOTIFICATION_POLLING_INTERVAL = 15_000
 
 interface SidebarProfile {
   classInfo: string
+  equippedItems?: ProfileEquippedItems
   imageUrl?: string
   name: string
 }
@@ -98,6 +100,10 @@ export function AppLayout() {
 
         if (profile.profileImageUrl) {
           nextProfile.imageUrl = profile.profileImageUrl
+        }
+
+        if (profile.equippedItems) {
+          nextProfile.equippedItems = profile.equippedItems
         }
 
         if (!isCancelled) {

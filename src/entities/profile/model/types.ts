@@ -20,6 +20,24 @@ export type UpdateProfileRequest = {
   linkedinId?: string
 }
 
+export type ProfileEquippedItem = {
+  displayType?: 'COVER' | 'FRAME'
+  imageUrl?: string
+  itemImageUrl?: string
+  itemName?: string
+  originalImageUrl?: string
+  previewImageUrl?: string
+  thumbnailUrl?: string
+  valueImageUrl?: string
+}
+
+export type ProfileEquippedItems = {
+  badge?: ProfileEquippedItem
+  border?: ProfileEquippedItem
+  nameColor?: ProfileEquippedItem
+  title?: ProfileEquippedItem
+}
+
 export type ProfileResponse = {
   userId: number
   userName: string
@@ -40,6 +58,7 @@ export type ProfileResponse = {
   point?: number
   points?: number
   badgeCount?: number
+  equippedItems?: ProfileEquippedItems
   viewCount?: number
   totalViewCount?: number
 }
