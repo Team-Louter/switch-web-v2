@@ -207,8 +207,12 @@ export const PasswordVisibilityButton = styled.button`
   right: 4px;
   width: 38px;
   height: 38px;
-  color: ${token.colors.gray.gray50};
+  color: ${token.colors.gray.gray40};
   border-radius: ${token.shapes.xsmall};
+
+  &:hover {
+    color: ${token.colors.gray.gray70};
+  }
 
   &:focus-visible {
     outline: 2px solid ${token.colors.primary.primary50};
