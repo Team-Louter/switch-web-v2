@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 
+import { formatProfileClassInfo, getMyProfile } from '@/entities/profile'
 import {
   getShopItems,
   getUserPoint,
@@ -7,6 +9,7 @@ import {
   updateEquippedItem,
 } from '@/entities/store'
 
+import type { ProfileMajor, ProfileResponse } from '@/entities/profile'
 import type {
   EquippedItemResponse,
   EquippedItemsResponse,
@@ -22,19 +25,30 @@ import type {
   StoreEffectStatus,
   StoreEffectType,
   StoreModalType,
+  StoreProfilePreview,
 } from '../types'
 
 type StoreItemImageSource = {
+  displayType?: 'COVER' | 'FRAME'
   imageUrl?: string
   itemImageUrl?: string
   originalImageUrl?: string
   previewImageUrl?: string
   thumbnailUrl?: string
+  valueColor?: string
   valueImageUrl?: string
+  valueText?: string
 }
 
 const STORE_CATEGORIES: StoreCategory[] = [
   '전체',
+  '이름 색상',
+  '테두리',
+  '뱃지',
+  '칭호',
+]
+
+const CUSTOMIZE_CATEGORIES: StoreCategory[] = [
   '이름 색상',
   '테두리',
   '뱃지',
@@ -72,11 +86,30 @@ const STORE_ITEM_CATEGORY: Record<StoreItemType, StoreCategory> = {
   TITLE: '칭호',
 }
 
+const STORE_CATEGORY_ITEM_TYPE: Record<Exclude<StoreCategory, '전체'>, StoreItemType> = {
+  '뱃지': 'BADGE',
+  '이름 색상': 'NAME_COLOR',
+  '칭호': 'TITLE',
+  '테두리': 'BORDER',
+}
+
 const STORE_ITEM_EFFECT_TYPE: Record<StoreItemType, StoreEffectType> = {
   BADGE: 'badge',
   BORDER: 'outline',
   NAME_COLOR: 'nameColor',
   TITLE: 'nickname',
+}
+
+const MAJOR_LABEL: Record<ProfileMajor, string> = {
+  AI: 'AI',
+  ANDROID: '안드로이드',
+  BACKEND: '백엔드',
+  DESIGN: '디자인',
+  EMBEDDED: '임베디드',
+  FRONTEND: '프론트엔드',
+  GAME: '게임',
+  IOS: 'iOS',
+  SECURITY: '보안',
 }
 
 const UNLOCK_CONDITION_LABEL: Record<UnlockCondition['unlockConditionType'], string> = {
@@ -130,9 +163,21 @@ const getStoreEffectPreviewImageUrl = (item: StoreItemImageSource) =>
       item.thumbnailUrl,
   )
 
+const formatMajorText = (majors?: ProfileMajor[]) =>
+  majors?.map((major) => MAJOR_LABEL[major]).join(' · ') ?? ''
+
+const formatStoreProfile = (profile: ProfileResponse): StoreProfilePreview => ({
+  classInfo: formatProfileClassInfo(profile),
+  equippedItems: profile.equippedItems,
+  imageUrl: normalizeStoreImageUrl(profile.profileImageUrl),
+  majors: formatMajorText(profile.majors),
+  name: profile.userName,
+})
+
 const mapShopItemToStoreEffect = (item: ShopItemResponse): StoreEffect => ({
   id: item.itemId,
   itemType: item.itemType,
+  displayType: item.displayType,
   title: item.itemName,
   category: STORE_ITEM_CATEGORY[item.itemType],
   type: STORE_ITEM_EFFECT_TYPE[item.itemType],
@@ -140,6 +185,8 @@ const mapShopItemToStoreEffect = (item: ShopItemResponse): StoreEffect => ({
   price: item.itemPrice,
   imageUrl: getStoreEffectPreviewImageUrl(item),
   thumbnailUrl: getStoreEffectThumbnailUrl(item),
+  valueColor: item.valueColor,
+  valueText: item.valueText,
   canPurchase: item.purchasable,
 })
 
@@ -148,6 +195,7 @@ const mapProfileItemToOwnedEffect = (
 ): StoreEffect => ({
   id: item.itemId,
   itemType: item.itemType,
+  displayType: item.displayType,
   title: item.itemName,
   category: STORE_ITEM_CATEGORY[item.itemType],
   type: STORE_ITEM_EFFECT_TYPE[item.itemType],
@@ -155,6 +203,8 @@ const mapProfileItemToOwnedEffect = (
   price: item.itemPrice,
   imageUrl: getStoreEffectPreviewImageUrl(item),
   thumbnailUrl: getStoreEffectThumbnailUrl(item),
+  valueColor: item.valueColor,
+  valueText: item.valueText,
   hasConditions: Boolean(item.unlockConditions?.length),
   canPurchase: true,
   conditionLabels: item.unlockConditions?.map(
@@ -202,13 +252,20 @@ const applyEquippedItems = (
 }
 
 // 상점 페이지의 서버 데이터, 필터, 카드 액션, 모달 흐름을 관리한다.
-// 1) 상점 아이템 목록을 조회해 화면 카드 형태로 변환한다
-// 2) 선택된 카테고리로 목록을 나눈다
-// 3) 구매/장착/제거 API 성공 후 카드 상태를 갱신한다
+// 1) 상점 아이템과 내 프로필을 조회한다
+// 2) 페이지 필터/프로필 꾸미기 모달 필터를 각각 관리한다
+// 3) 구매/장착/초기화 API 성공 후 카드 상태를 갱신한다
 export function useStorePage() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [selectedCategory, setSelectedCategory] =
     useState<StoreCategory>('전체')
+  const [selectedCustomizeCategory, setSelectedCustomizeCategory] =
+    useState<Exclude<StoreCategory, '전체'>>('이름 색상')
+  const [selectedCustomizeEffectId, setSelectedCustomizeEffectId] =
+    useState<number | null | undefined>(undefined)
   const [storeEffects, setStoreEffects] = useState<StoreEffect[]>([])
+  const [profilePreview, setProfilePreview] =
+    useState<StoreProfilePreview | null>(null)
   const [activeModal, setActiveModal] = useState<StoreModalType | null>(null)
   const [selectedEffect, setSelectedEffect] = useState<StoreEffect | null>(null)
   const [point, setPoint] = useState(0)
@@ -220,20 +277,20 @@ export function useStorePage() {
     let shouldIgnore = false
 
     const loadStoreData = async () => {
-      const [itemsResult, pointResult] = await Promise.allSettled([
-        getShopItems(),
-        getUserPoint(),
-      ] as const)
+      const [itemsResult, pointResult, profileResult] =
+        await Promise.allSettled([
+          getShopItems(),
+          getUserPoint(),
+          getMyProfile(),
+        ] as const)
 
       if (itemsResult.status === 'fulfilled') {
         if (!shouldIgnore) {
           setStoreEffects(itemsResult.value.items.map(mapShopItemToStoreEffect))
         }
-      } else {
-        if (!shouldIgnore) {
-          setErrorMessage('상점 아이템을 불러오지 못했어요')
-          setStoreEffects([])
-        }
+      } else if (!shouldIgnore) {
+        setErrorMessage('상점 아이템을 불러오지 못했어요')
+        setStoreEffects([])
       }
 
       if (pointResult.status === 'fulfilled') {
@@ -242,6 +299,10 @@ export function useStorePage() {
         }
       } else if (!shouldIgnore && itemsResult.status === 'fulfilled') {
         setErrorMessage('포인트를 불러오지 못했어요')
+      }
+
+      if (profileResult.status === 'fulfilled' && !shouldIgnore) {
+        setProfilePreview(formatStoreProfile(profileResult.value))
       }
 
       if (!shouldIgnore) {
@@ -255,6 +316,16 @@ export function useStorePage() {
       shouldIgnore = true
     }
   }, [])
+
+  useEffect(() => {
+    const shouldOpenCustomizeModal =
+      searchParams.get('customize') === '1' ||
+      searchParams.get('customize') === 'true'
+
+    if (shouldOpenCustomizeModal) {
+      setActiveModal('customize')
+    }
+  }, [searchParams])
 
   useEffect(() => {
     if (activeModal !== 'purchaseComplete') {
@@ -290,18 +361,81 @@ export function useStorePage() {
     return storeEffects.filter((effect) => effect.category === selectedCategory)
   }, [selectedCategory, storeEffects])
 
+  const customizeCategoryEffects = useMemo(
+    () =>
+      storeEffects.filter(
+        (effect) => effect.category === selectedCustomizeCategory,
+      ),
+    [selectedCustomizeCategory, storeEffects],
+  )
+
   const ownedEffects = filteredEffects.filter(
     (effect) => effect.status !== 'recommended',
   )
   const recommendedEffects = filteredEffects.filter(
     (effect) => effect.status === 'recommended',
   )
+  const customizeOwnedEffects = useMemo(
+    () =>
+      customizeCategoryEffects.filter(
+        (effect) => effect.status !== 'recommended',
+      ),
+    [customizeCategoryEffects],
+  )
+  const customizeRecommendedEffects = useMemo(
+    () =>
+      customizeCategoryEffects.filter(
+        (effect) => effect.status === 'recommended',
+      ),
+    [customizeCategoryEffects],
+  )
+  const selectedCustomizeEffect =
+    selectedCustomizeEffectId === null || selectedCustomizeEffectId === undefined
+      ? null
+      : customizeCategoryEffects.find(
+          (effect) => effect.id === selectedCustomizeEffectId,
+        ) ?? null
+
+  useEffect(() => {
+    setSelectedCustomizeEffectId((currentEffectId) => {
+      if (currentEffectId === null) {
+        return currentEffectId
+      }
+
+      if (
+        currentEffectId !== undefined &&
+        customizeOwnedEffects.some((effect) => effect.id === currentEffectId)
+      ) {
+        return currentEffectId
+      }
+
+      return (
+        customizeOwnedEffects.find((effect) => effect.status === 'equipped') ??
+        customizeOwnedEffects[0]
+      )?.id
+    })
+  }, [customizeOwnedEffects])
+
+  const clearCustomizeQuery = () => {
+    if (!searchParams.has('customize')) {
+      return
+    }
+
+    const nextSearchParams = new URLSearchParams(searchParams)
+    nextSearchParams.delete('customize')
+    setSearchParams(nextSearchParams, { replace: true })
+  }
 
   const handlePointHistoryOpen = () => {
     setActiveModal('pointHistory')
   }
 
+  const handleCustomizeOpen = () => {
+    setActiveModal('customize')
+  }
+
   const handleModalClose = () => {
+    clearCustomizeQuery()
     setActiveModal(null)
     setSelectedEffect(null)
   }
@@ -309,6 +443,23 @@ export function useStorePage() {
   const handlePurchaseOpen = (effect: StoreEffect) => {
     setSelectedEffect(effect)
     setActiveModal('purchase')
+  }
+
+  const handleCustomizeCategorySelect = (category: StoreCategory) => {
+    if (category === '전체') {
+      return
+    }
+
+    setSelectedCustomizeCategory(category)
+    setSelectedCustomizeEffectId(undefined)
+  }
+
+  const handleCustomizeEffectSelect = (effect: StoreEffect | null) => {
+    setSelectedCustomizeEffectId(effect?.id ?? null)
+  }
+
+  const handleCustomizeReset = () => {
+    setSelectedCustomizeEffectId(null)
   }
 
   const handlePurchase = async () => {
@@ -397,19 +548,58 @@ export function useStorePage() {
     }
   }
 
+  const handleCustomizeSave = async () => {
+    if (isActionPending) {
+      return
+    }
+
+    const itemType = STORE_CATEGORY_ITEM_TYPE[selectedCustomizeCategory]
+
+    setIsActionPending(true)
+    setErrorMessage('')
+
+    try {
+      const equippedItems = await updateEquippedItem(
+        selectedCustomizeEffect
+          ? { itemId: selectedCustomizeEffect.id, itemType }
+          : { itemType },
+      )
+
+      setStoreEffects((currentEffects) =>
+        applyEquippedItems(currentEffects, equippedItems, itemType),
+      )
+      handleModalClose()
+    } catch {
+      setErrorMessage('효과 설정을 저장하지 못했어요')
+    } finally {
+      setIsActionPending(false)
+    }
+  }
+
   return {
     activeModal,
     categories: STORE_CATEGORIES,
+    customizeCategories: CUSTOMIZE_CATEGORIES,
+    customizeOwnedEffects,
+    customizeRecommendedEffects,
     errorMessage,
     isActionPending,
     isLoading,
     ownedEffects,
     point,
     pointHistories: POINT_HISTORIES,
+    profilePreview,
     recommendedEffects,
     selectedCategory,
+    selectedCustomizeCategory,
+    selectedCustomizeEffect,
     selectedEffect,
     onCategorySelect: setSelectedCategory,
+    onCustomizeCategorySelect: handleCustomizeCategorySelect,
+    onCustomizeEffectSelect: handleCustomizeEffectSelect,
+    onCustomizeOpen: handleCustomizeOpen,
+    onCustomizeReset: handleCustomizeReset,
+    onCustomizeSave: handleCustomizeSave,
     onEffectEquip: handleEquip,
     onEffectRemove: handleRemove,
     onModalClose: handleModalClose,

@@ -415,19 +415,26 @@ export const PreviewImage = styled(StoreItemImage)`
   object-fit: contain;
 `
 
-export const PreviewName = styled.p`
+export const PreviewName = styled.p<{
+  $color?: string
+  $isGradient: boolean
+}>`
   margin: 0;
-  background-image: linear-gradient(
-    90deg,
-    rgb(116 0 0) 0%,
-    rgb(233 148 0) 15%,
-    rgb(171 192 17) 30%,
-    rgb(49 174 7) 45%,
-    rgb(0 204 226) 60%,
-    rgb(27 49 211) 75%,
-    rgb(66 7 110) 90%
-  );
-  color: transparent;
+  background-image: ${({ $color, $isGradient }) =>
+    $isGradient && !$color
+      ? `linear-gradient(
+          90deg,
+          rgb(116 0 0) 0%,
+          rgb(233 148 0) 15%,
+          rgb(171 192 17) 30%,
+          rgb(49 174 7) 45%,
+          rgb(0 204 226) 60%,
+          rgb(27 49 211) 75%,
+          rgb(66 7 110) 90%
+        )`
+      : 'none'};
+  color: ${({ $color, $isGradient }) =>
+    $color ?? ($isGradient ? 'transparent' : token.colors.gray.gray80)};
   background-clip: text;
   ${token.typography('heading', 'xl', 'bold')}
 `
@@ -510,6 +517,269 @@ export const ModalButton = styled.button<{ $variant?: 'primary' | 'secondary' }>
 
 export const ModalButtonRow = styled.div`
   ${token.flexRow}
+  gap: 10px;
+  width: 100%;
+`
+
+
+export const CustomizeModal = styled.div`
+  ${token.flexColumn}
+  gap: 20px;
+  box-sizing: border-box;
+  width: 1000px;
+  height: min(700px, calc(100dvh - 80px));
+  padding: 30px;
+  overflow: hidden;
+  border-radius: ${token.shapes.large};
+  background: ${token.colors.white};
+  box-shadow: 0 20px 60px rgb(14 13 12 / 18%);
+`
+
+export const CustomizeBody = styled.div`
+  ${token.flexRow}
+  align-items: flex-start;
+  gap: 20px;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+`
+
+export const CustomizeTabList = styled.div`
+  ${token.flexColumn}
+  gap: 10px;
+  flex: 0 0 200px;
+  height: 100%;
+  overflow: hidden;
+`
+
+export const CustomizeTabButton = styled.button<{ $isActive: boolean }>`
+  width: 100%;
+  padding: 15px 20px;
+  border-radius: ${token.shapes.medium};
+  color: ${({ $isActive }) =>
+    $isActive ? token.colors.gray.gray90 : token.colors.gray.gray50};
+  text-align: left;
+  background: ${({ $isActive }) =>
+    $isActive ? token.colors.gray.gray10 : token.colors.white};
+  ${token.typography('body', 'lg', 'medium')}
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+
+  &:hover {
+    color: ${token.colors.gray.gray90};
+    background: ${token.colors.gray.gray0};
+  }
+`
+
+export const CustomizeEffectPanel = styled.div`
+  ${token.flexColumn}
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+`
+
+export const CustomizeSectionTitle = styled.p`
+  margin: 0;
+  color: ${token.colors.gray.gray80};
+  ${token.typography('body', 'lg', 'medium')}
+`
+
+export const CustomizeOptionGrid = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-start;
+  gap: 10px;
+  width: 350px;
+  min-height: 110px;
+`
+
+export const CustomizeEffectOption = styled.button<{
+  $isLocked: boolean
+  $isSelected: boolean
+}>`
+  ${token.flexCenter}
+  position: relative;
+  flex-direction: column;
+  flex: 0 0 110px;
+  width: 110px;
+  height: 110px;
+  padding: 12px;
+  overflow: hidden;
+  border: ${({ $isSelected }) =>
+    $isSelected
+      ? `2px solid ${token.colors.primary.primary50}`
+      : '2px solid transparent'};
+  border-radius: ${token.shapes.medium};
+  background: ${({ $isSelected }) =>
+    $isSelected ? token.colors.white : token.colors.gray.gray0};
+  opacity: ${({ $isLocked }) => ($isLocked ? 0.5 : 1)};
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    transform 120ms ease;
+
+  &:hover:not(:disabled) {
+    border-color: ${token.colors.primary.primary40};
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+`
+
+export const CustomizeNonePreview = styled.span`
+  ${token.flexColumn}
+  align-items: center;
+  gap: 6px;
+  color: ${token.colors.gray.gray70};
+`
+
+export const CustomizeNoneIcon = styled.span`
+  ${token.flexCenter}
+  width: 28px;
+  height: 28px;
+  border: 2px solid ${token.colors.gray.gray40};
+  border-radius: ${token.shapes.circle};
+  color: ${token.colors.gray.gray40};
+  ${token.typography('body', 'lg', 'semibold')}
+`
+
+export const CustomizeNoneLabel = styled.span`
+  color: ${token.colors.gray.gray70};
+  ${token.typography('caption', 'lg', 'medium')}
+`
+
+export const CustomizeOptionImage = styled(StoreItemImage)`
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+`
+
+export const CustomizeNameSample = styled.span<{ $color?: string }>`
+  background-image: ${({ $color }) =>
+    $color
+      ? 'none'
+      : `linear-gradient(
+          90deg,
+          rgb(116 0 0) 0%,
+          rgb(233 148 0) 15%,
+          rgb(171 192 17) 30%,
+          rgb(49 174 7) 45%,
+          rgb(0 204 226) 60%,
+          rgb(27 49 211) 75%,
+          rgb(66 7 110) 90%
+        )`};
+  color: ${({ $color }) => $color ?? 'transparent'};
+  background-clip: text;
+  white-space: nowrap;
+  ${token.typography('body', 'lg', 'semibold')}
+`
+
+export const CustomizeOptionText = styled.span`
+  color: ${token.colors.gray.gray70};
+  text-align: center;
+  word-break: keep-all;
+  ${token.typography('body', 'sm', 'medium')}
+`
+
+export const CustomizeLockLabel = styled.span`
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  color: ${token.colors.gray.gray40};
+  ${token.typography('caption', 'lg', 'medium')}
+`
+
+export const CustomizeEmptyText = styled.p`
+  margin: 0;
+  padding: 20px 0;
+  color: ${token.colors.gray.gray50};
+  ${token.typography('body', 'sm', 'medium')}
+`
+
+export const CustomizeStoreButton = styled.button`
+  ${token.flexCenter}
+  width: 100%;
+  margin-top: auto;
+  padding: 10px 20px;
+  border: 1px solid ${token.colors.primary.primary80};
+  border-radius: ${token.shapes.small};
+  color: ${token.colors.primary.primary80};
+  ${token.typography('body', 'md', 'medium')}
+  transition:
+    border-color 120ms ease,
+    color 120ms ease,
+    transform 120ms ease;
+
+  &:hover {
+    border-color: ${token.colors.primary.primary60};
+    color: ${token.colors.primary.primary60};
+    transform: translateY(-1px);
+  }
+`
+
+export const CustomizePreviewPanel = styled.div`
+  ${token.flexColumn}
+  align-items: stretch;
+  justify-content: space-between;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+`
+
+export const CustomizePreviewTop = styled.div`
+  ${token.flexColumn}
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+`
+
+export const CustomizePreviewTextGroup = styled.div`
+  ${token.flexColumn}
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+`
+
+export const CustomizePreviewName = styled.p<{
+  $color?: string
+  $isGradient: boolean
+}>`
+  margin: 0;
+  background-image: ${({ $color, $isGradient }) =>
+    $isGradient && !$color
+      ? `linear-gradient(
+          90deg,
+          rgb(116 0 0) 0%,
+          rgb(233 148 0) 15%,
+          rgb(171 192 17) 30%,
+          rgb(49 174 7) 45%,
+          rgb(0 204 226) 60%,
+          rgb(27 49 211) 75%,
+          rgb(66 7 110) 90%
+        )`
+      : 'none'};
+  color: ${({ $color, $isGradient }) =>
+    $color ?? ($isGradient ? 'transparent' : token.colors.gray.gray80)};
+  background-clip: text;
+  ${token.typography('heading', 'xl', 'bold')}
+`
+
+export const CustomizePreviewDescription = styled.p`
+  margin: 0;
+  color: ${token.colors.gray.gray60};
+  text-align: center;
+  ${token.typography('body', 'lg', 'regular')}
+`
+
+export const CustomizeActionGroup = styled.div`
+  ${token.flexColumn}
   gap: 10px;
   width: 100%;
 `

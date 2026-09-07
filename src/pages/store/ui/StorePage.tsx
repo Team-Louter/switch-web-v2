@@ -4,22 +4,33 @@ import { PointHistoryModal } from './components/PointHistoryModal'
 import { StoreEffectCard } from './components/StoreEffectCard'
 import { StoreFilterBar } from './components/StoreFilterBar'
 import { StorePurchaseModal } from './components/StorePurchaseModal'
+import { StoreProfileCustomizeModal } from './components/StoreProfileCustomizeModal'
 import { MoreIcon, PointIcon } from './icons'
 
 export function StorePage() {
   const {
     activeModal,
     categories,
+    customizeCategories,
+    customizeOwnedEffects,
+    customizeRecommendedEffects,
     errorMessage,
     isActionPending,
     isLoading,
     ownedEffects,
     point,
     pointHistories,
+    profilePreview,
     recommendedEffects,
     selectedCategory,
+    selectedCustomizeCategory,
+    selectedCustomizeEffect,
     selectedEffect,
     onCategorySelect,
+    onCustomizeCategorySelect,
+    onCustomizeEffectSelect,
+    onCustomizeReset,
+    onCustomizeSave,
     onEffectEquip,
     onEffectRemove,
     onModalClose,
@@ -98,6 +109,23 @@ export function StorePage() {
         </S.EffectSections>
       </S.Content>
 
+      {activeModal === 'customize' && (
+        <StoreProfileCustomizeModal
+          categories={customizeCategories}
+          isActionPending={isActionPending}
+          ownedEffects={customizeOwnedEffects}
+          profile={profilePreview}
+          recommendedEffects={customizeRecommendedEffects}
+          selectedCategory={selectedCustomizeCategory}
+          selectedEffect={selectedCustomizeEffect}
+          onCategorySelect={onCustomizeCategorySelect}
+          onClose={onModalClose}
+          onEffectSelect={onCustomizeEffectSelect}
+          onPurchaseOpen={onPurchaseOpen}
+          onReset={onCustomizeReset}
+          onSave={onCustomizeSave}
+        />
+      )}
       {activeModal === 'pointHistory' && (
         <PointHistoryModal histories={pointHistories} onClose={onModalClose} />
       )}
@@ -108,6 +136,7 @@ export function StorePage() {
             isComplete={activeModal === 'purchaseComplete'}
             isActionPending={isActionPending}
             point={point}
+            profile={profilePreview}
             onClose={onModalClose}
             onEquip={onEffectEquip}
             onPurchase={onPurchase}

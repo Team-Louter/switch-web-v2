@@ -12,6 +12,7 @@ export interface UnlockCondition {
 }
 
 export interface ShopItemResponse {
+  displayType?: 'COVER' | 'FRAME'
   itemId: number
   itemType: StoreItemType
   itemName: string
@@ -20,7 +21,9 @@ export interface ShopItemResponse {
   originalImageUrl?: string
   previewImageUrl?: string
   thumbnailUrl?: string
+  valueColor?: string
   valueImageUrl?: string
+  valueText?: string
   itemPrice: number
   equipped: boolean
   owned: boolean
@@ -32,6 +35,7 @@ export interface ShopItemListResponse {
 }
 
 export interface ProfileItemResponse {
+  displayType?: 'COVER' | 'FRAME'
   itemId: number
   itemType: StoreItemType
   itemName: string
@@ -48,6 +52,7 @@ export interface ProfileItemResponse {
 }
 
 export interface EquippedItemResponse {
+  displayType?: 'COVER' | 'FRAME'
   itemId: number
   itemType: StoreItemType
   itemName: string
@@ -74,6 +79,7 @@ export interface EquipItemRequest {
 }
 
 export interface ProfileItemCardResponse {
+  displayType?: 'COVER' | 'FRAME'
   itemId: number
   itemType: StoreItemType
   itemName: string
@@ -82,7 +88,9 @@ export interface ProfileItemCardResponse {
   originalImageUrl?: string
   previewImageUrl?: string
   thumbnailUrl?: string
+  valueColor?: string
   valueImageUrl?: string
+  valueText?: string
   itemPrice: number
 }
 

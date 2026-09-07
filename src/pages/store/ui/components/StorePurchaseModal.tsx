@@ -1,29 +1,66 @@
+import { ProfileAvatar } from '@/shared/ui'
+
 import * as S from '../StorePage.style'
 import { CloseIcon, PointIcon } from '../icons'
 
-import type { StoreEffect } from '../../types'
+import type { ProfileAvatarDecorationItem } from '@/shared/ui'
+import type { StoreEffect, StoreProfilePreview } from '../../types'
 
 type StorePurchaseModalProps = {
   effect: StoreEffect
   isComplete: boolean
   isActionPending: boolean
   point: number
+  profile: StoreProfilePreview | null
   onClose: () => void
   onEquip: (effectId: number) => void
   onPurchase: () => void
 }
+
+const STORE_EFFECT_EQUIPPED_ITEM_KEY = {
+  BADGE: 'badge',
+  BORDER: 'border',
+  NAME_COLOR: 'nameColor',
+  TITLE: 'title',
+} as const
+
+const getEffectDecorationItem = (
+  effect: StoreEffect,
+): ProfileAvatarDecorationItem => ({
+  displayType: effect.displayType,
+  imageUrl: effect.imageUrl,
+  itemImageUrl: effect.imageUrl,
+  itemName: effect.title,
+  thumbnailUrl: effect.thumbnailUrl,
+  valueImageUrl: effect.imageUrl,
+})
+
+const getPurchasePreviewEquippedItems = (
+  profile: StoreProfilePreview | null,
+  effect: StoreEffect,
+) => ({
+  ...profile?.equippedItems,
+  [STORE_EFFECT_EQUIPPED_ITEM_KEY[effect.itemType]]: getEffectDecorationItem(effect),
+})
 
 export function StorePurchaseModal({
   effect,
   isComplete,
   isActionPending,
   point,
+  profile,
   onClose,
   onEquip,
   onPurchase,
 }: StorePurchaseModalProps) {
   const canPurchase = effect.canPurchase !== false
-  const previewImageUrl = effect.imageUrl ?? effect.thumbnailUrl
+  const previewEquippedItems = getPurchasePreviewEquippedItems(profile, effect)
+  const previewNameColor =
+    effect.itemType === 'NAME_COLOR'
+      ? effect.valueColor
+      : profile?.equippedItems?.nameColor?.valueColor
+  const isNameColorSelected =
+    effect.itemType === 'NAME_COLOR' || Boolean(profile?.equippedItems?.nameColor)
 
   return (
     <S.Overlay>
@@ -35,12 +72,17 @@ export function StorePurchaseModal({
           </S.CloseButton>
         </S.ModalHeader>
         <S.PreviewSection>
-          <S.ProfilePreview aria-label={`${effect.title} 효과 프로필 미리보기`}>
-            {previewImageUrl && (
-              <S.PreviewImage src={previewImageUrl} alt="" />
-            )}
-          </S.ProfilePreview>
-          <S.PreviewName>이윤지</S.PreviewName>
+          <ProfileAvatar
+            imageUrl={profile?.imageUrl}
+            equippedItems={previewEquippedItems}
+            size={200}
+          />
+          <S.PreviewName
+            $color={previewNameColor}
+            $isGradient={isNameColorSelected}
+          >
+            {profile?.name ?? ''}
+          </S.PreviewName>
         </S.PreviewSection>
         <S.PurchaseEffectTitle>{effect.title}</S.PurchaseEffectTitle>
         {effect.hasConditions && effect.conditionLabels && (
