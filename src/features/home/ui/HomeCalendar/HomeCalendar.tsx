@@ -7,10 +7,10 @@ import { FaFlag } from 'react-icons/fa6'
 import type { Schedule, ScheduleColor } from '@/entities/schedule'
 import { toDateKey, toDateKeyFromServer } from '@/shared/lib/calendar'
 
-import * as S from './V1Calendar.style'
-import { EventDetailCard } from './EventDetailCard'
+import * as S from './HomeCalendar.style'
+import { ScheduleDetailPopover } from './ScheduleDetailPopover'
 
-interface V1CalendarProps {
+interface HomeCalendarProps {
   schedules: Schedule[]
   loading: boolean
 }
@@ -20,7 +20,7 @@ const COLORS: Record<ScheduleColor, string> = {
   LIGHTGREEN: 'lightgreen', LIGHTBLUE: 'lightblue',
 }
 
-export function V1Calendar({ schedules, loading }: V1CalendarProps) {
+export function HomeCalendar({ schedules, loading }: HomeCalendarProps) {
   const [selected, setSelected] = useState<{ schedule: Schedule; x: number; y: number } | null>(null)
   const events = schedules.map((schedule) => {
     // FullCalendar의 종료일은 exclusive이며 API 종료일은 inclusive이다.
@@ -70,7 +70,7 @@ export function V1Calendar({ schedules, loading }: V1CalendarProps) {
         }}
         moreLinkClick="popover"
       />
-      {selected && <EventDetailCard key={`${selected.schedule.scheduleId}-${selected.x}-${selected.y}`} {...selected} onClose={() => setSelected(null)} />}
+      {selected && <ScheduleDetailPopover key={`${selected.schedule.scheduleId}-${selected.x}-${selected.y}`} {...selected} onClose={() => setSelected(null)} />}
     </S.CalendarWrapper>
   )
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { getAllSchedules } from '@/entities/schedule'
 import type { Schedule } from '@/entities/schedule'
-import { V1Calendar, V1HomeSidebar } from '@/features/home'
+import { HomeCalendar, HomeSidebar } from '@/features/home'
 import { HomeMemberSection } from './HomeMemberSection/HomeMemberSection'
 import * as S from './HomePage.style'
 
@@ -35,8 +35,8 @@ export function HomePage() {
     <S.PageContainer>
       <S.Viewport ref={viewport} style={{ height: HOME_TOP_CONTENT_HEIGHT * scale }}>
         <S.Canvas style={{ transform: `scale(${scale})` }}>
-          <S.CalendarArea><V1Calendar schedules={schedules} loading={loading} /></S.CalendarArea>
-          <V1HomeSidebar />
+          <S.CalendarArea><HomeCalendar schedules={schedules} loading={loading} /></S.CalendarArea>
+          <HomeSidebar />
         </S.Canvas>
       </S.Viewport>
       <HomeMemberSection />

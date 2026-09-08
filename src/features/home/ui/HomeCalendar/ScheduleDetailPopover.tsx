@@ -3,14 +3,14 @@ import { createPortal } from 'react-dom'
 import styled from 'styled-components'
 import type { Schedule } from '@/entities/schedule'
 
-interface EventDetailCardProps {
+interface ScheduleDetailPopoverProps {
   schedule: Schedule
   x: number
   y: number
   onClose: () => void
 }
 
-export function EventDetailCard({ schedule, x, y, onClose }: EventDetailCardProps) {
+export function ScheduleDetailPopover({ schedule, x, y, onClose }: ScheduleDetailPopoverProps) {
   const card = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState({ x: Math.max(8, Math.min(x, window.innerWidth - 416)), y: Math.max(8, Math.min(y, window.innerHeight - 300)) })
   const drag = useRef<{ x: number; y: number } | null>(null)

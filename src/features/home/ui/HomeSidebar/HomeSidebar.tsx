@@ -9,9 +9,9 @@ import type { Ranking, TypingProblemType } from '@/entities/typing';
 import medal1stIcon from '../../assets/medal-1st.svg';
 import medal2ndIcon from '../../assets/medal-2nd.svg';
 import { DEFAULT_TYPING_RANKING_TAB, TYPING_RANKING_TABS } from '../../lib/typingRankingTab';
-import * as S from './V1HomeSidebar.style';
+import * as S from './HomeSidebar.style';
 
-export function V1HomeSidebar() {
+export function HomeSidebar() {
   const navigate = useNavigate();
   const user = useUserStore((state) => state.user);
   const [recent, setRecent] = useState<RecentHomePost | null>(null);
