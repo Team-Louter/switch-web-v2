@@ -42,7 +42,7 @@ export function HomeCalendar({ schedules, loading }: HomeCalendarProps) {
   }, [])
 
   return (
-    <S.CalendarWrapper aria-label="월간 일정" aria-busy={loading}>
+    <S.CalendarWrapper $loading={loading} aria-label="월간 일정" aria-busy={loading}>
       <FullCalendar
         plugins={[dayGridPlugin]}
         locale={koLocale}

@@ -6,6 +6,7 @@ import { HomeMemberSection } from './HomeMemberSection/HomeMemberSection'
 import * as S from './HomePage.style'
 
 const HOME_TOP_CONTENT_HEIGHT = 675
+const SCHEDULE_SKELETON_DURATION = 1200
 
 export function HomePage() {
   const viewport = useRef<HTMLDivElement>(null)
@@ -24,11 +25,25 @@ export function HomePage() {
 
   useEffect(() => {
     let cancelled = false
+    let loadingTimer: ReturnType<typeof window.setTimeout> | undefined
+
     getAllSchedules()
-      .then((data) => { if (!cancelled) setSchedules(data) })
-      .catch(() => {})
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
+      .then((data) => {
+        if (cancelled) return
+
+        setSchedules(data)
+        loadingTimer = window.setTimeout(() => {
+          if (!cancelled) setLoading(false)
+        }, SCHEDULE_SKELETON_DURATION)
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+      if (loadingTimer) window.clearTimeout(loadingTimer)
+    }
   }, [])
 
   return (

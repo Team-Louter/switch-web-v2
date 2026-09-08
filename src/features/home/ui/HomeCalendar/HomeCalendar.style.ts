@@ -1,5 +1,5 @@
 import * as token from '@/shared/styles/values/token';
-import styled, { createGlobalStyle, keyframes } from 'styled-components';
+import styled, { createGlobalStyle, css, keyframes } from 'styled-components';
 
 const eventShimmer = keyframes`
   from { background-position: 100% 0; }
@@ -24,7 +24,9 @@ export const SkeletonStyle = createGlobalStyle`
   }
 `;
 
-export const CalendarWrapper = styled.div`
+export const CalendarWrapper = styled.div<{
+  $loading: boolean
+}>`
   width: 100%;
   height: 100%;
   ${token.flexColumn}
@@ -207,6 +209,15 @@ export const CalendarWrapper = styled.div`
     overflow: hidden;
     text-overflow: ellipsis;
     box-sizing: border-box;
+
+    ${({ $loading }) => $loading && css`
+      border: 0;
+      background: linear-gradient(90deg, #edf0f3 25%, #f7f8f9 37%, #edf0f3 63%) !important;
+      background-size: 400% 100% !important;
+      animation: ${eventShimmer} 1.2s ease-in-out infinite;
+      color: transparent !important;
+      cursor: default;
+    `}
   }
 
   .fc .fc-h-event .fc-event-main {
@@ -219,11 +230,13 @@ export const CalendarWrapper = styled.div`
     background-color: rgb(252, 222, 25);
   }
 
-  .fc .fc-event.calendar-event-skeleton {
+  .fc .fc-event.calendar-event-skeleton,
+  .fc .fc-event.calendar-event-skeleton:hover {
     border: 0;
     background: linear-gradient(90deg, #edf0f3 25%, #f7f8f9 37%, #edf0f3 63%) !important;
     background-size: 400% 100% !important;
     animation: ${eventShimmer} 1.2s ease-in-out infinite;
+    color: transparent !important;
     cursor: default;
   }
 
