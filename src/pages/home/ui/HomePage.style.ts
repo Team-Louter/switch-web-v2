@@ -5,6 +5,7 @@ import * as token from '@/shared/styles/values/token'
 export const PageContainer = styled.section`
   width: 100%;
   min-height: 100dvh;
+  overflow-anchor: none;
   /* AppLayout의 SidebarContainer와 같은 상단 기준선에서 콘텐츠를 시작한다. */
   padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px)
     clamp(20px, 2vw, 30px) 0;
@@ -18,7 +19,11 @@ export const CalendarArea = styled.div`
   flex-shrink: 0;
 `
 
-export const Viewport = styled.div`width: 100%; position: relative;`
+export const Viewport = styled.div`
+  width: 100%;
+  position: relative;
+  overflow-anchor: none;
+`
 export const Canvas = styled.div`
   display: flex;
   gap: 32px;

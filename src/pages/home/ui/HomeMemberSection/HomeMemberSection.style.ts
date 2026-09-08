@@ -62,6 +62,7 @@ export const MemberList = styled.div<{ $loaded: boolean }>`
   flex-direction: column;
   width: 100%;
   margin: 0 auto;
+  overflow-anchor: none;
   animation: ${({ $loaded }) => $loaded && css`${reveal} 360ms ease-out both`};
 `
 
