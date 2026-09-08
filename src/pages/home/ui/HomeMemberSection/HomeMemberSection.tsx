@@ -7,7 +7,7 @@ import * as S from './HomeMemberSection.style'
 
 const ALL_GENERATIONS = '전체'
 const DEFAULT_GENERATIONS = [1, 2, 3]
-const MEMBER_BATCH_SIZE = 8
+const MEMBER_BATCH_SIZE = 5
 
 export function HomeMemberSection() {
   const [members, setMembers] = useState<Member[]>([])
