@@ -9,6 +9,8 @@ import {
   EmailField as LoginEmailField,
   EmailInput as LoginEmailInput,
   LoadingSpinner as LoginLoadingSpinner,
+  PasswordField as LoginPasswordField,
+  PasswordVisibilityButton as LoginPasswordVisibilityButton,
   ValidationMessage as LoginValidationMessage,
   ValidationMessageSlot as LoginValidationMessageSlot,
 } from '../LoginForm/LoginForm.style'
@@ -292,6 +294,14 @@ export const Input = styled(LoginEmailInput)`
   flex: 0 0 38px;
   padding: 0 14px;
 `
+
+export const PasswordField = styled(LoginPasswordField)``
+
+export const PasswordInput = styled(Input)`
+  padding-right: 56px;
+`
+
+export const PasswordVisibilityButton = styled(LoginPasswordVisibilityButton)``
 
 export const ClubCodeField = styled.div`
   ${token.flexColumn}
