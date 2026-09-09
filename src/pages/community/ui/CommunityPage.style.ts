@@ -31,7 +31,7 @@ export const Content = styled.div`
 export const Header = styled.header`
   ${token.flexColumn}
   position: sticky;
-  top: 0;
+  top: clamp(20px, 2vw, 30px);
   z-index: 10;
   gap: 10px;
   width: 100%;
