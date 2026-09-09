@@ -60,7 +60,9 @@ export function formatCommunityCount(value: number): string {
     return normalizedValue.toString()
   }
 
-  return `${Math.floor(normalizedValue / 1000)}K`
+  const compactValue = (normalizedValue / 1000).toFixed(1)
+
+  return `${compactValue.endsWith('.0') ? compactValue.slice(0, -2) : compactValue}K`
 }
 
 export function resolveCommunityAssetUrl(
