@@ -129,6 +129,18 @@ export const CategoryChevron = styled.img<{ $open: boolean }>`
   transition: transform 150ms ease;
 `
 
+const categoryOptionsEnter = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scaleY(.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+`
+
 export const CategoryOptions = styled.div`
   position: absolute;
   top: calc(100% + 6px);
@@ -142,6 +154,12 @@ export const CategoryOptions = styled.div`
   border-radius: ${token.shapes.medium};
   background: ${token.colors.white};
   box-shadow: 0 8px 20px rgb(0 0 0 / 12%);
+  transform-origin: top center;
+  animation: ${categoryOptionsEnter} 160ms ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 export const CategoryOption = styled.button<{ $selected: boolean }>`
