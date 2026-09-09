@@ -82,7 +82,12 @@ function getFileKeyFromPresignedUrl(fileUrl: URL): string | undefined {
   }
 
   const normalizedPathname = decodeFilePath(fileUrl.pathname)
+  const filesPathIndex = normalizedPathname.indexOf('/files/')
   const postsPathIndex = normalizedPathname.indexOf('/posts/')
+
+  if (filesPathIndex >= 0) {
+    return normalizedPathname.slice(filesPathIndex + 1) || undefined
+  }
 
   if (postsPathIndex < 0) {
     return undefined

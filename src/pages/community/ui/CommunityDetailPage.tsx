@@ -141,6 +141,13 @@ export function CommunityDetailPage() {
   const attachmentFiles =
     post?.files?.filter((file) => !file.fileType.startsWith('image/')) ?? []
   const firstAttachment = attachmentFiles[0]
+  const resolvePostMediaUrl = (mediaUrl: string | undefined): string => {
+    const matchingFile = post?.files?.find(
+      (file) => file.fileName === mediaUrl,
+    )
+
+    return getCommunityFileDownloadUrl(matchingFile?.fileUrl ?? mediaUrl) ?? mediaUrl ?? ''
+  }
   const serializedPostContent = post?.postContent
   const postBlocks = useMemo(
     () =>
@@ -856,9 +863,19 @@ export function CommunityDetailPage() {
                   <CommunityPostBlockContent
                     key={post.postId}
                     blocks={postBlocks}
+                    files={post.files ?? []}
                   />
                 ) : (
                   <ReactMarkdown
+                    components={{
+                      img: ({ src, alt, ...imageProps }) => (
+                        <img
+                          {...imageProps}
+                          src={resolvePostMediaUrl(src)}
+                          alt={alt ?? ''}
+                        />
+                      ),
+                    }}
                     remarkPlugins={[remarkGfm]}
                     rehypePlugins={[
                       rehypeRaw,

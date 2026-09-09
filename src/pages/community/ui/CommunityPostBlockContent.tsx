@@ -6,17 +6,63 @@ import { BlockNoteView } from '@blocknote/mantine'
 import { useCreateBlockNote } from '@blocknote/react'
 import type { MouseEvent } from 'react'
 
-import { getCommunityFileDownloadUrl } from '@/entities/community'
+import {
+  getCommunityFileDownloadUrl,
+  type PostFileResponse,
+} from '@/entities/community'
 
 interface CommunityPostBlockContentProps {
   blocks: readonly Block[]
+  files: readonly PostFileResponse[]
+}
+
+function resolveMediaUrl(
+  mediaUrl: unknown,
+  files: readonly PostFileResponse[],
+): string | undefined {
+  if (typeof mediaUrl !== 'string' || !mediaUrl.trim()) {
+    return undefined
+  }
+
+  const matchingFile = files.find((file) => file.fileName === mediaUrl)
+
+  return getCommunityFileDownloadUrl(matchingFile?.fileUrl ?? mediaUrl)
+}
+
+function normalizeMediaUrls(
+  blocks: readonly Block[],
+  files: readonly PostFileResponse[],
+): Block[] {
+  return blocks.map((block) => {
+    const blockWithUrlProps = block as unknown as {
+      props: Record<string, unknown>
+      children: readonly Block[]
+    }
+    const children = normalizeMediaUrls(blockWithUrlProps.children, files)
+    const isMediaBlock = ['audio', 'file', 'image', 'video'].includes(
+      block.type,
+    )
+    const mediaUrl = isMediaBlock
+      ? resolveMediaUrl(blockWithUrlProps.props.url, files)
+      : undefined
+
+    return {
+      ...block,
+      props: mediaUrl
+        ? { ...blockWithUrlProps.props, url: mediaUrl }
+        : blockWithUrlProps.props,
+      children,
+    } as unknown as Block
+  })
 }
 
 export function CommunityPostBlockContent({
   blocks,
+  files,
 }: CommunityPostBlockContentProps) {
+  const normalizedBlocks = normalizeMediaUrls(blocks, files)
   const editor = useCreateBlockNote({
-    initialContent: [...blocks],
+    initialContent: normalizedBlocks,
     domAttributes: {
       editor: { 'aria-label': '게시글 본문' },
     },
