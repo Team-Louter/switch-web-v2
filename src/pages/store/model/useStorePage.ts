@@ -44,6 +44,18 @@ type StoreItemImageSource = {
   valueText?: string
 }
 
+type StoreItemConditionField = UnlockCondition[] | UnlockCondition | undefined
+
+type StoreItemConditionSource = {
+  condition?: StoreItemConditionField
+  conditions?: StoreItemConditionField
+  unlockCondition?: StoreItemConditionField
+  unlockConditionList?: StoreItemConditionField
+  unlockConditionResponses?: StoreItemConditionField
+  unlockConditions?: StoreItemConditionField
+  unlock_conditions?: StoreItemConditionField
+}
+
 const STORE_CATEGORIES: StoreCategory[] = [
   '전체',
   '이름 색상',
@@ -87,12 +99,60 @@ const MAJOR_LABEL: Record<ProfileMajor, string> = {
   SECURITY: '보안',
 }
 
-const UNLOCK_CONDITION_LABEL: Record<UnlockCondition['unlockConditionType'], string> = {
+type StoreItemConditionType = UnlockCondition['unlockConditionType'] & string
+
+const UNLOCK_CONDITION_LABEL: Record<StoreItemConditionType, string> = {
   COMMENT_COUNT: '댓글 작성',
   GIVE_HEART: '좋아요 누르기',
   POST_COUNT: '게시글 작성',
   RECEIVED_HEART: '받은 좋아요',
 }
+
+const normalizeStoreItemConditions = (
+  conditions: StoreItemConditionField,
+): UnlockCondition[] => {
+  if (!conditions) {
+    return []
+  }
+
+  return Array.isArray(conditions) ? conditions : [conditions]
+}
+
+const getStoreItemConditions = (item: StoreItemConditionSource) =>
+  normalizeStoreItemConditions(
+    item.unlockConditions ??
+      item.conditions ??
+      item.condition ??
+      item.unlockCondition ??
+      item.unlockConditionList ??
+      item.unlockConditionResponses ??
+      item.unlock_conditions,
+  )
+
+const getUnlockConditionType = (condition: UnlockCondition) =>
+  condition.unlockConditionType ??
+  condition.conditionType ??
+  condition.unlock_condition_type ??
+  condition.condition_type
+
+const getUnlockConditionRequiredCount = (condition: UnlockCondition) =>
+  condition.requiredCount ??
+  condition.required ??
+  condition.requiredValue ??
+  condition.required_count ??
+  condition.value
+
+const formatUnlockConditionLabels = (item: StoreItemConditionSource) =>
+  getStoreItemConditions(item).flatMap((condition) => {
+    const conditionType = getUnlockConditionType(condition)
+    const requiredCount = getUnlockConditionRequiredCount(condition)
+
+    if (!conditionType || requiredCount === undefined) {
+      return []
+    }
+
+    return `${UNLOCK_CONDITION_LABEL[conditionType] ?? '조건'} ${requiredCount}회`
+  })
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 
@@ -158,46 +218,53 @@ const formatStoreProfile = (profile: ProfileResponse): StoreProfilePreview => ({
   name: profile.userName,
 })
 
-const mapShopItemToStoreEffect = (item: ShopItemResponse): StoreEffect => ({
-  id: item.itemId,
-  itemType: item.itemType,
-  displayType: item.displayType,
-  title: item.itemName,
-  category: STORE_ITEM_CATEGORY[item.itemType],
-  type: STORE_ITEM_EFFECT_TYPE[item.itemType],
-  status: getStoreEffectStatus(item),
-  price: item.itemPrice,
-  imageUrl: getStoreEffectPreviewImageUrl(item),
-  nameStyleKey: getStoreEffectNameStyleKey(item),
-  thumbnailUrl: getStoreEffectThumbnailUrl(item),
-  valueColor: item.valueColor ?? item.value_color,
-  valueText: item.valueText,
-  canPurchase: item.purchasable,
-})
+const mapShopItemToStoreEffect = (item: ShopItemResponse): StoreEffect => {
+  const conditionLabels = formatUnlockConditionLabels(item)
+
+  return {
+    id: item.itemId,
+    itemType: item.itemType,
+    displayType: item.displayType,
+    title: item.itemName,
+    category: STORE_ITEM_CATEGORY[item.itemType],
+    type: STORE_ITEM_EFFECT_TYPE[item.itemType],
+    status: getStoreEffectStatus(item),
+    price: item.itemPrice,
+    imageUrl: getStoreEffectPreviewImageUrl(item),
+    nameStyleKey: getStoreEffectNameStyleKey(item),
+    thumbnailUrl: getStoreEffectThumbnailUrl(item),
+    valueColor: item.valueColor ?? item.value_color,
+    valueText: item.valueText,
+    hasConditions: conditionLabels.length > 0,
+    canPurchase: item.purchasable,
+    conditionLabels,
+  }
+}
 
 const mapProfileItemToOwnedEffect = (
   item: ProfileItemResponse,
-): StoreEffect => ({
-  id: item.itemId,
-  itemType: item.itemType,
-  displayType: item.displayType,
-  title: item.itemName,
-  category: STORE_ITEM_CATEGORY[item.itemType],
-  type: STORE_ITEM_EFFECT_TYPE[item.itemType],
-  status: 'owned',
-  price: item.itemPrice,
-  imageUrl: getStoreEffectPreviewImageUrl(item),
-  nameStyleKey: getStoreEffectNameStyleKey(item),
-  thumbnailUrl: getStoreEffectThumbnailUrl(item),
-  valueColor: item.valueColor ?? item.value_color,
-  valueText: item.valueText,
-  hasConditions: Boolean(item.unlockConditions?.length),
-  canPurchase: true,
-  conditionLabels: item.unlockConditions?.map(
-    (condition) =>
-      `${UNLOCK_CONDITION_LABEL[condition.unlockConditionType]} ${condition.requiredCount}회`,
-  ),
-})
+): StoreEffect => {
+  const conditionLabels = formatUnlockConditionLabels(item)
+
+  return {
+    id: item.itemId,
+    itemType: item.itemType,
+    displayType: item.displayType,
+    title: item.itemName,
+    category: STORE_ITEM_CATEGORY[item.itemType],
+    type: STORE_ITEM_EFFECT_TYPE[item.itemType],
+    status: 'owned',
+    price: item.itemPrice,
+    imageUrl: getStoreEffectPreviewImageUrl(item),
+    nameStyleKey: getStoreEffectNameStyleKey(item),
+    thumbnailUrl: getStoreEffectThumbnailUrl(item),
+    valueColor: item.valueColor ?? item.value_color,
+    valueText: item.valueText,
+    hasConditions: conditionLabels.length > 0,
+    canPurchase: true,
+    conditionLabels,
+  }
+}
 
 const getEquippedItemId = (
   equippedItems: EquippedItemsResponse,
@@ -270,25 +337,6 @@ export function useStorePage() {
         ] as const)
 
       if (itemsResult.status === 'fulfilled') {
-        const nameColorItems = itemsResult.value.items.filter(
-          (item) => item.itemType === 'NAME_COLOR',
-        )
-
-        console.log('[store] name color items:', nameColorItems)
-        console.log(
-          '[store] resolved name color keys:',
-          nameColorItems.map((item) => ({
-            itemId: item.itemId,
-            itemName: item.itemName,
-            styleKey: item.styleKey,
-            itemType: item.itemType,
-            valueColor: item.valueColor,
-            value_color: item.value_color,
-            valueText: item.valueText,
-            resolvedKey: getStoreEffectNameStyleKey(item),
-          })),
-        )
-
         if (!shouldIgnore) {
           setStoreEffects(itemsResult.value.items.map(mapShopItemToStoreEffect))
         }

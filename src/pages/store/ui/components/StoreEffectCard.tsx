@@ -24,6 +24,7 @@ export function StoreEffectCard({
   const hoverImageUrl = effect.imageUrl ?? defaultImageUrl
   const hasHoverImage =
     Boolean(defaultImageUrl && hoverImageUrl) && defaultImageUrl !== hoverImageUrl
+  const conditionText = effect.conditionLabels?.join(' · ')
 
   const handleActionClick = () => {
     if (isRecommended) {
@@ -73,6 +74,9 @@ export function StoreEffectCard({
       </S.EffectPreview>
       <S.EffectTextGroup>
         <S.EffectTitle>{effect.title}</S.EffectTitle>
+        {isRecommended && conditionText && (
+          <S.EffectConditionText>{conditionText}</S.EffectConditionText>
+        )}
         <S.CardActionArea>
           {isRecommended ? (
             <S.PriceRow>

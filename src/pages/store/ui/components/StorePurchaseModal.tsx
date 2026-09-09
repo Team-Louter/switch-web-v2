@@ -55,6 +55,7 @@ export function StorePurchaseModal({
   onPurchase,
 }: StorePurchaseModalProps) {
   const canPurchase = effect.canPurchase !== false
+  const conditionLabels = effect.conditionLabels ?? []
   const previewEquippedItems = getPurchasePreviewEquippedItems(profile, effect)
   const equippedNameColor = profile?.equippedItems?.nameColor
   const previewNameStyleKey =
@@ -88,13 +89,13 @@ export function StorePurchaseModal({
           </S.PreviewName>
         </S.PreviewSection>
         <S.PurchaseEffectTitle>{effect.title}</S.PurchaseEffectTitle>
-        {effect.hasConditions && effect.conditionLabels && (
+        {conditionLabels.length > 0 && (
           <S.ConditionList>
             <S.ConditionFirstRow>
               <S.ConditionText>조건</S.ConditionText>
-              <S.ConditionText>{effect.conditionLabels[0]}</S.ConditionText>
+              <S.ConditionText>{conditionLabels[0]}</S.ConditionText>
             </S.ConditionFirstRow>
-            {effect.conditionLabels.slice(1).map((condition) => (
+            {conditionLabels.slice(1).map((condition) => (
               <S.ConditionRow key={condition}>
                 <S.ConditionText>{condition}</S.ConditionText>
               </S.ConditionRow>

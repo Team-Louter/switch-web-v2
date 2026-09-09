@@ -261,6 +261,16 @@ export const EffectTitle = styled.p`
   ${token.typography('body', 'sm', 'medium')}
 `
 
+export const EffectConditionText = styled.p`
+  width: 100%;
+  margin: 0;
+  overflow: hidden;
+  color: ${token.colors.gray.gray50};
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  ${token.typography('caption', 'md', 'medium')}
+`
+
 export const CardActionArea = styled.div`
   position: relative;
   width: 100%;

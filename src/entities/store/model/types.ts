@@ -7,8 +7,15 @@ export type UnlockConditionType =
   | 'RECEIVED_HEART'
 
 export interface UnlockCondition {
-  unlockConditionType: UnlockConditionType
-  requiredCount: number
+  conditionType?: UnlockConditionType
+  condition_type?: UnlockConditionType
+  required?: number
+  requiredCount?: number
+  required_count?: number
+  requiredValue?: number
+  unlockConditionType?: UnlockConditionType
+  unlock_condition_type?: UnlockConditionType
+  value?: number
 }
 
 export interface ShopItemResponse {
@@ -30,6 +37,7 @@ export interface ShopItemResponse {
   equipped: boolean
   owned: boolean
   purchasable: boolean
+  unlockConditions?: UnlockCondition[] | UnlockCondition
 }
 
 export interface ShopItemListResponse {
@@ -52,7 +60,7 @@ export interface ProfileItemResponse {
   valueImageUrl?: string
   valueText?: string
   itemPrice: number
-  unlockConditions?: UnlockCondition[]
+  unlockConditions?: UnlockCondition[] | UnlockCondition
 }
 
 export interface EquippedItemResponse {
@@ -99,6 +107,7 @@ export interface ProfileItemCardResponse {
   valueImageUrl?: string
   valueText?: string
   itemPrice: number
+  unlockConditions?: UnlockCondition[] | UnlockCondition
 }
 
 export interface CustomizePageResponse {
