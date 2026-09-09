@@ -19,6 +19,7 @@ export function HomeMemberSection() {
   const [isVisible, setIsVisible] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
   const loadMoreRef = useRef<HTMLDivElement>(null)
+  const preloadRequestRef = useRef(0)
 
   useEffect(() => {
     if (!shouldLoad) return
@@ -80,8 +81,11 @@ export function HomeMemberSection() {
       if (!entry.isIntersecting) return
       observer.unobserve(entry.target)
       const nextMembers = visibleMembers.slice(visibleCount, visibleCount + MEMBER_BATCH_SIZE)
+      const preloadRequest = preloadRequestRef.current
       setIsLoadingMore(true)
       void preloadMemberImages(nextMembers).then(() => {
+        if (preloadRequest !== preloadRequestRef.current) return
+
         setVisibleCount((count) => count + nextMembers.length)
         setIsLoadingMore(false)
       })
@@ -92,8 +96,10 @@ export function HomeMemberSection() {
   }, [hasMoreMembers, isLoading, isLoadingMore, shouldLoad, visibleCount, visibleMembers])
 
   function handleGenerationChange(generation: string) {
+    preloadRequestRef.current += 1
     setSelectedGeneration(generation)
     setVisibleCount(MEMBER_BATCH_SIZE)
+    setIsLoadingMore(false)
   }
 
   return (
