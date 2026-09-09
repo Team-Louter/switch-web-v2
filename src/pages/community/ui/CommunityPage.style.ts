@@ -36,6 +36,20 @@ export const Header = styled.header`
   gap: 10px;
   width: 100%;
   background: ${token.colors.white};
+
+  &::before {
+    position: absolute;
+    top: -30px;
+    right: 0;
+    left: 0;
+    height: 30px;
+    background: ${token.colors.white};
+    content: '';
+  }
+
+  > * {
+    position: relative;
+  }
 `
 
 export const TabActionRow = styled.div`
