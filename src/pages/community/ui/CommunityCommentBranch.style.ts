@@ -89,6 +89,7 @@ export const CommentTreeNode = styled.div<CommentTreeNodeProps>`
   position: relative;
   gap: 12px;
   width: 100%;
+  min-width: 0;
 
   &::before {
     display: ${({ $hasNextSibling }) =>
@@ -135,8 +136,21 @@ export const CommentChildren = styled.div`
   box-sizing: border-box;
   gap: 12px;
   width: calc(100% - 20px);
+  min-width: 0;
   margin-left: 20px;
   padding-left: 28px;
+
+  @container community-detail (max-width: 520px) {
+    width: calc(100% - 12px);
+    margin-left: 12px;
+    padding-left: 16px;
+  }
+
+  @container community-detail (max-width: 380px) {
+    width: calc(100% - 8px);
+    margin-left: 8px;
+    padding-left: 12px;
+  }
 `
 
 export const RepliesToggle = styled.button`
@@ -247,6 +261,7 @@ export const CommentRow = styled.article<CommentRowProps>`
   gap: 12px;
   width: 100%;
   min-height: 0;
+  min-width: 0;
 
   &::before {
     display: none;
@@ -296,6 +311,11 @@ export const CommentItem = styled.div`
   border: 0;
   border-radius: ${token.shapes.medium};
   background: ${token.colors.white};
+
+  @container community-detail (max-width: 430px) {
+    gap: 8px;
+    padding: 12px;
+  }
 `
 
 export const CommentAuthorImage = styled.img`
@@ -305,6 +325,12 @@ export const CommentAuthorImage = styled.img`
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.circle};
   object-fit: cover;
+
+  @container community-detail (max-width: 430px) {
+    flex-basis: 28px;
+    width: 28px;
+    height: 28px;
+  }
 `
 
 export const CommentContent = styled.div`
