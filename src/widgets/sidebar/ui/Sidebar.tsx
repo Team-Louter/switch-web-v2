@@ -18,6 +18,7 @@ import {
   Divider,
   Logo,
   LogoArea,
+  LogoButton,
   MenuButton,
   MenuLabel,
   MenuList,
@@ -87,7 +88,13 @@ export function Sidebar({
   return (
     <Aside aria-label="주요 메뉴">
       <LogoArea>
-        <Logo src={switchLogo} alt="Switch" />
+        <LogoButton
+          type="button"
+          aria-label="홈으로 이동"
+          onClick={() => onItemSelect?.('home')}
+        >
+          <Logo src={switchLogo} alt="Switch" />
+        </LogoButton>
       </LogoArea>
 
       <MenuList>

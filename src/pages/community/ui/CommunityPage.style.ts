@@ -10,7 +10,7 @@ export const Page = styled.section`
   justify-content: flex-start;
   box-sizing: border-box;
   min-height: 100dvh;
-  padding: clamp(32px, 5.1dvh, 50px) clamp(24px, 8.31%, 100px);
+  padding: clamp(24px, 3.2dvh, 32px) clamp(20px, 4%, 48px);
   container-name: community-page;
   container-type: inline-size;
   background: ${token.colors.white};
@@ -18,24 +18,24 @@ export const Page = styled.section`
 
 export const Content = styled.div`
   ${token.flexColumn}
-  gap: 40px;
+  gap: 28px;
   width: 100%;
   max-width: calc(1003px / 0.9);
   zoom: 0.9;
 
   @container community-page (max-width: 760px) {
-    gap: 28px;
+    gap: 24px;
   }
 `
 
 export const Header = styled.header`
   ${token.flexColumn}
-  gap: 20px;
+  gap: 16px;
 `
 
 export const HeadingRow = styled.div`
   ${token.flexBetween}
-  gap: 24px;
+  gap: 16px;
 
   @container community-page (max-width: 600px) {
     align-items: flex-start;
