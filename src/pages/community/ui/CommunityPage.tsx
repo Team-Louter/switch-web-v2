@@ -2,6 +2,7 @@ import {
   type KeyboardEvent,
   type SyntheticEvent,
   useEffect,
+  useLayoutEffect,
   useState,
 } from 'react'
 import { PiNoteBlank, PiPencilSimpleLineBold } from 'react-icons/pi'
@@ -133,6 +134,10 @@ export function CommunityPage() {
   const handleRetry = () => {
     setReloadKey((currentKey) => currentKey + 1)
   }
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
   useEffect(() => {
     let isCancelled = false
