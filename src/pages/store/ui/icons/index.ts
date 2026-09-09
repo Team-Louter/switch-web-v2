@@ -1,4 +1,5 @@
 export { CloseIcon } from './CloseIcon'
 export { MoreIcon } from './MoreIcon'
 export { PointIcon } from './PointIcon'
+export { LockIcon } from './LockIcon'
 export type { StoreIconProps } from './types'

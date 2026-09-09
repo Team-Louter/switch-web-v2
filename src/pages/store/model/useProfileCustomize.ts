@@ -73,6 +73,7 @@ export function useProfileCustomize({
     }
   }, [isOpen])
 
+
   const categoryEffects = useMemo(
     () => storeEffects.filter((effect) => effect.category === selectedCategory),
     [selectedCategory, storeEffects],
@@ -87,9 +88,9 @@ export function useProfileCustomize({
     [categoryEffects],
   )
   const selectedEffect =
-    selectedEffectId === null || selectedEffectId === undefined
-      ? null
-      : ownedEffects.find((effect) => effect.id === selectedEffectId) ?? null
+  selectedEffectId === null || selectedEffectId === undefined
+    ? null
+    : categoryEffects.find((effect) => effect.id === selectedEffectId) ?? null
 
   useEffect(() => {
     setSelectedEffectId((currentId) => {
@@ -99,7 +100,7 @@ export function useProfileCustomize({
 
       if (
         currentId !== undefined &&
-        ownedEffects.some((effect) => effect.id === currentId)
+        categoryEffects.some((effect) => effect.id === currentId)
       ) {
         return currentId
       }
@@ -109,7 +110,7 @@ export function useProfileCustomize({
         ownedEffects[0]
       )?.id
     })
-  }, [ownedEffects])
+  }, [categoryEffects, ownedEffects])
 
   const onCategorySelect = (category: StoreCategory) => {
     if (category === '전체') {

@@ -380,6 +380,22 @@ export function useStorePage() {
   }, [searchParams])
 
   useEffect(() => {
+    const categoryParam = searchParams.get('category')
+  
+    if (!categoryParam) {
+      return
+    }
+  
+    const matchedCategory = STORE_CATEGORIES.find(
+      (category) => category === categoryParam,
+    )
+  
+    if (matchedCategory) {
+      setSelectedCategory(matchedCategory)
+    }
+  }, [searchParams])
+
+  useEffect(() => {
     if (activeModal !== 'purchaseComplete') {
       return
     }
@@ -404,6 +420,8 @@ export function useStorePage() {
       shouldIgnore = true
     }
   }, [activeModal])
+
+
 
   const filteredEffects = useMemo(() => {
     if (selectedCategory === '전체') {
@@ -469,12 +487,13 @@ export function useStorePage() {
   }, [customizeOwnedEffects])
 
   const clearCustomizeQuery = () => {
-    if (!searchParams.has('customize')) {
+    if (!searchParams.has('customize') && !searchParams.has('category')) {
       return
     }
-
+  
     const nextSearchParams = new URLSearchParams(searchParams)
     nextSearchParams.delete('customize')
+    nextSearchParams.delete('category')
     setSearchParams(nextSearchParams, { replace: true })
   }
 

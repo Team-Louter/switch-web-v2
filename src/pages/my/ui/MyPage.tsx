@@ -328,7 +328,7 @@ export function MyPage() {
           onCategorySelect={customize.onCategorySelect}
           onClose={() => setIsCustomizeOpen(false)}
           onEffectSelect={customize.onEffectSelect}
-          onGoToStore={() => navigate('/store')}
+          onGoToStore={(category) => navigate(`/store?category=${encodeURIComponent(category)}`)}
           onPurchaseOpen={() => navigate('/store')}
           onReset={customize.onReset}
           onSave={handleCustomizeSave}

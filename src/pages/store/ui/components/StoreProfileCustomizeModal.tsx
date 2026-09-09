@@ -2,7 +2,7 @@ import { ProfileAvatar } from '@/shared/ui'
 import { getNameStyleKey } from '@/shared/styles'
 
 import * as S from '../StorePage.style'
-import { CloseIcon } from '../icons'
+import { CloseIcon, LockIcon } from '../icons'
 
 import type { ProfileAvatarDecorationItem } from '@/shared/ui'
 import type {
@@ -22,7 +22,7 @@ type StoreProfileCustomizeModalProps = {
   onCategorySelect: (category: StoreCategory) => void
   onClose: () => void
   onEffectSelect: (effect: StoreEffect | null) => void
-  onGoToStore: () => void
+  onGoToStore: (category: StoreCategory) => void
   onPurchaseOpen: (effect: StoreEffect) => void
   onReset: () => void
   onSave: () => void
@@ -91,7 +91,6 @@ function CustomizeEffectOption({
     <S.CustomizeEffectOption
       $isLocked={isLocked}
       $isSelected={isSelected}
-      disabled={isLocked}
       onClick={onClick}
       type="button"
     >
@@ -112,7 +111,12 @@ function CustomizeEffectOption({
       ) : (
         <S.CustomizeOptionText>{effect?.title}</S.CustomizeOptionText>
       )}
-      {isLocked && <S.CustomizeLockLabel>잠금</S.CustomizeLockLabel>}
+
+      {isLocked && (
+        <S.CustomizeLockOverlay>
+          <LockIcon />
+        </S.CustomizeLockOverlay>
+      )}
     </S.CustomizeEffectOption>
   )
 }
@@ -153,6 +157,12 @@ export function StoreProfileCustomizeModal({
           equippedNameColor?.valueText ??
           equippedNameColor?.itemName,
       )
+  const previewTitle = previewEquippedItems?.title
+  const previewTitleText = previewTitle?.valueText ?? previewTitle?.itemName
+  const isSelectedEffectLocked = Boolean(
+    selectedEffect &&
+      recommendedEffects.some((effect) => effect.id === selectedEffect.id),
+  )
 
   return (
     <S.Overlay>
@@ -202,19 +212,19 @@ export function StoreProfileCustomizeModal({
                   recommendedEffects.map((effect) => (
                     <CustomizeEffectOption
                       effect={effect}
-                      isLocked={effect.canPurchase === false}
-                      isSelected={false}
+                      isLocked
+                      isSelected={selectedEffect?.id === effect.id}
                       key={effect.id}
-                      onClick={() => onPurchaseOpen(effect)}
+                      onClick={() => onEffectSelect(effect)}
                     />
                   ))
                 ) : (
-                <S.CustomizeEmptyText>추천 효과가 없어요</S.CustomizeEmptyText>
-              )}
-            </S.CustomizeOptionGrid>
+                  <S.CustomizeEmptyText>추천 효과가 없어요</S.CustomizeEmptyText>
+                )}
+              </S.CustomizeOptionGrid>
             </S.CustomizeEffectScrollArea>
 
-            <S.CustomizeStoreButton onClick={onGoToStore} type="button">
+            <S.CustomizeStoreButton onClick={() => onGoToStore(selectedCategory)} type="button">
               상점으로 이동
             </S.CustomizeStoreButton>
           </S.CustomizeEffectPanel>
@@ -227,6 +237,9 @@ export function StoreProfileCustomizeModal({
                 size={200}
               />
               <S.CustomizePreviewTextGroup>
+                {previewTitleText && (
+                  <S.CustomizePreviewTitle>{previewTitleText}</S.CustomizePreviewTitle>
+                )}
                 <S.CustomizePreviewName styleKey={previewNameStyleKey}>
                   {profile?.name ?? ''}
                 </S.CustomizePreviewName>
@@ -246,7 +259,7 @@ export function StoreProfileCustomizeModal({
                 onClick={onReset}
                 type="button"
               >
-                초기화
+                전체 초기화
               </S.ModalButton>
               <S.ModalButtonRow>
                 <S.ModalButton
@@ -258,7 +271,7 @@ export function StoreProfileCustomizeModal({
                   취소
                 </S.ModalButton>
                 <S.ModalButton
-                  disabled={isActionPending}
+                  disabled={isActionPending || isSelectedEffectLocked}
                   onClick={onSave}
                   type="button"
                 >

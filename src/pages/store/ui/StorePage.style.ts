@@ -632,7 +632,6 @@ export const CustomizeEffectOption = styled.button<{
   border-radius: ${token.shapes.medium};
   background: ${({ $isSelected }) =>
     $isSelected ? token.colors.white : token.colors.gray.gray0};
-  opacity: ${({ $isLocked }) => ($isLocked ? 0.5 : 1)};
   transition:
     border-color 120ms ease,
     background-color 120ms ease,
@@ -689,12 +688,12 @@ export const CustomizeOptionText = styled.span`
   ${token.typography('body', 'sm', 'medium')}
 `
 
-export const CustomizeLockLabel = styled.span`
+export const CustomizeLockOverlay = styled.div`
+  ${token.flexCenter}
   position: absolute;
-  right: 8px;
-  bottom: 8px;
-  color: ${token.colors.gray.gray40};
-  ${token.typography('caption', 'lg', 'medium')}
+  inset: 0;
+  border-radius: ${token.shapes.medium};
+  background: rgb(255 255 255 / 70%);
 `
 
 export const CustomizeEmptyText = styled.p`
@@ -746,6 +745,11 @@ export const CustomizePreviewTextGroup = styled.div`
   align-items: center;
   gap: 10px;
   width: 100%;
+`
+export const CustomizePreviewTitle = styled.p`
+  margin: 0;
+  color: #FFA20A;
+  ${token.typography('body', 'lg', 'regular')}
 `
 
 export const CustomizePreviewName = styled(UserName)`
