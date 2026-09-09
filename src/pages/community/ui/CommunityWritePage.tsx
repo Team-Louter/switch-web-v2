@@ -163,7 +163,9 @@ export function CommunityWritePage() {
   const imageInputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const editorAreaRef = useRef<HTMLElement>(null)
+  const categoryFieldRef = useRef<HTMLDivElement>(null)
   const [category, setCategory] = useState<PostCategory | ''>('')
+  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false)
   const [tag, setTag] = useState<PostTag | undefined>(undefined)
   const [title, setTitle] = useState('')
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
@@ -182,6 +184,14 @@ export function CommunityWritePage() {
     : postLoadError
   const isEditorDisabled =
     isSubmitting || isPostLoading || Boolean(visiblePostLoadError)
+  const selectedCategoryLabel =
+    POST_CATEGORY_OPTIONS.find((option) => option.value === category)?.label ??
+    '카테고리'
+
+  const handleCategorySelect = (nextCategory: PostCategory) => {
+    setCategory(nextCategory)
+    setIsCategoryMenuOpen(false)
+  }
 
   const uploadPostFile = useCallback(
     async (file: File) => {
@@ -617,6 +627,27 @@ export function CommunityWritePage() {
   }, [editor, editingPostId, isEditing, isEditRoute])
 
   useEffect(() => {
+    if (!isCategoryMenuOpen) {
+      return
+    }
+
+    const handleOutsidePointerDown = (event: PointerEvent) => {
+      if (
+        event.target instanceof Node &&
+        !categoryFieldRef.current?.contains(event.target)
+      ) {
+        setIsCategoryMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('pointerdown', handleOutsidePointerDown)
+
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsidePointerDown)
+    }
+  }, [isCategoryMenuOpen])
+
+  useEffect(() => {
     const handleDocumentMouseMove = (event: MouseEvent) => {
       const editorBounds = editorAreaRef.current?.getBoundingClientRect()
 
@@ -673,26 +704,49 @@ export function CommunityWritePage() {
             </S.TitleRow>
 
             <S.Fields>
-              <S.CategoryField>
-                <S.CategorySelect
-                  value={category}
+              <S.CategoryField ref={categoryFieldRef}>
+                <S.CategoryTrigger
+                  type="button"
+                  role="combobox"
                   aria-label="카테고리"
-                  required
+                  aria-controls="community-category-options"
+                  aria-expanded={isCategoryMenuOpen}
+                  aria-haspopup="listbox"
                   disabled={isEditorDisabled}
-                  onChange={(event) =>
-                    setCategory(event.target.value as PostCategory | '')
-                  }
+                  onClick={() => setIsCategoryMenuOpen((isOpen) => !isOpen)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape') {
+                      setIsCategoryMenuOpen(false)
+                    }
+                  }}
                 >
-                  <option value="" disabled>
-                    카테고리
-                  </option>
+                  {selectedCategoryLabel}
+                </S.CategoryTrigger>
+                <S.CategoryChevron
+                  src={attachmentChevronIcon}
+                  alt=""
+                  $open={isCategoryMenuOpen}
+                />
+                {isCategoryMenuOpen && (
+                  <S.CategoryOptions
+                    id="community-category-options"
+                    role="listbox"
+                    aria-label="카테고리 목록"
+                  >
                   {POST_CATEGORY_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
+                    <S.CategoryOption
+                      key={option.value}
+                      type="button"
+                      role="option"
+                      aria-selected={category === option.value}
+                      $selected={category === option.value}
+                      onClick={() => handleCategorySelect(option.value)}
+                    >
                       {option.label}
-                    </option>
+                    </S.CategoryOption>
                   ))}
-                </S.CategorySelect>
-                <S.CategoryChevron src={attachmentChevronIcon} alt="" />
+                  </S.CategoryOptions>
+                )}
               </S.CategoryField>
 
               <S.TitleInput

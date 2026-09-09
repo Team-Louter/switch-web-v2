@@ -90,7 +90,9 @@ export const CategoryField = styled.div`
   }
 `
 
-export const CategorySelect = styled.select`
+export const CategoryTrigger = styled.button`
+  display: flex;
+  align-items: center;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
@@ -103,23 +105,64 @@ export const CategorySelect = styled.select`
   background: #f5f5f5;
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1;
-  appearance: none;
+  text-align: left;
   cursor: pointer;
 
   &:focus-visible {
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: -2px;
   }
+
+  &:disabled {
+    cursor: default;
+  }
 `
 
-export const CategoryChevron = styled.img`
+export const CategoryChevron = styled.img<{ $open: boolean }>`
   position: absolute;
   top: 20px;
   right: 12px;
   width: 20px;
   height: 12px;
   pointer-events: none;
-  transform: rotate(180deg);
+  transform: rotate(${({ $open }) => ($open ? '0deg' : '180deg')});
+  transition: transform 150ms ease;
+`
+
+export const CategoryOptions = styled.div`
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.medium};
+  background: ${token.colors.white};
+  box-shadow: 0 8px 20px rgb(0 0 0 / 12%);
+`
+
+export const CategoryOption = styled.button<{ $selected: boolean }>`
+  width: 100%;
+  min-height: 36px;
+  padding: 8px;
+  border: 0;
+  border-radius: ${token.shapes.small};
+  color: ${({ $selected }) =>
+    $selected ? token.colors.gray.gray100 : token.colors.gray.gray60};
+  background: ${({ $selected }) =>
+    $selected ? token.colors.primary.primary10 : 'transparent'};
+  ${token.typography('body', 'sm', 'medium')}
+  text-align: left;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    background: ${token.colors.gray.gray0};
+  }
 `
 
 export const TitleInput = styled.input`
