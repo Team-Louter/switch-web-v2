@@ -19,6 +19,7 @@ interface WriteModalProps {
   month?: number
   weekNumber?: number
   study?: StudyRecord
+  authorName?: string
   readOnly?: boolean
   onPrevious?: () => void
   onNext?: () => void
@@ -31,6 +32,7 @@ function WriteModalContent({
   month: providedMonth,
   weekNumber: providedWeekNumber,
   study,
+  authorName,
   readOnly = false,
   onPrevious,
   onNext,
@@ -89,10 +91,15 @@ function WriteModalContent({
     }
   }
 
-  const displayedTitle = readOnly ? (study?.title ?? '') : title
-  const displayedOwnContent = readOnly ? (study?.ownContent ?? '') : ownContent
+  const emptyStudyMessage = '아직 학습일지를 작성하지 않았습니다'
+  const displayedTitle = readOnly
+    ? (study?.title ?? emptyStudyMessage)
+    : title
+  const displayedOwnContent = readOnly
+    ? (study?.ownContent ?? emptyStudyMessage)
+    : ownContent
   const displayedClubContent = readOnly
-    ? (study?.clubContent ?? '')
+    ? (study?.clubContent ?? emptyStudyMessage)
     : clubContent
 
   return (
@@ -120,8 +127,8 @@ function WriteModalContent({
         )}
         <S.Header>
           <S.Title>{month}월 {weekNumber}주차 학습일지</S.Title>
-          {readOnly && study?.authorName && (
-            <S.Author>{study.authorName}</S.Author>
+          {readOnly && (study?.authorName || authorName) && (
+            <S.Author>{study?.authorName ?? authorName}</S.Author>
           )}
         </S.Header>
         <S.Column>
