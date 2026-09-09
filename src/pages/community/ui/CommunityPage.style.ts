@@ -308,7 +308,7 @@ export const PostCategory = styled.span`
   border-radius: ${token.shapes.medium};
   color: ${token.colors.primary.text};
   background: transparent;
-  ${token.typography('caption', 'lg', 'semibold')}
+  ${token.typography('body', 'sm', 'medium')}
   line-height: 1;
   white-space: nowrap;
 `
@@ -418,9 +418,9 @@ export const Date = styled.time`
 `
 
 export const Stats = styled.div`
-  ${token.flexCenter}
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   flex: 0 0 180px;
-  gap: 8px;
   box-sizing: border-box;
   height: 100%;
   padding: 8px 12px;
@@ -428,7 +428,6 @@ export const Stats = styled.div`
 
   @container community-page (max-width: 900px) {
     flex-basis: 150px;
-    gap: 8px;
     padding-inline: 8px;
   }
 
@@ -439,7 +438,6 @@ export const Stats = styled.div`
 
   @container community-page (max-width: 430px) {
     flex-basis: 114px;
-    gap: 4px;
   }
 
   @container community-page (max-width: 300px) {
@@ -449,22 +447,26 @@ export const Stats = styled.div`
 
 export const Stat = styled.span`
   ${token.flexLeft}
-  flex: 0 0 44px;
+  justify-content: flex-start;
+  min-width: 0;
   gap: 3px;
-  width: 44px;
   color: ${token.colors.gray.gray80};
   ${token.typography('body', 'sm', 'medium')}
+  font-variant-numeric: tabular-nums;
   line-height: 1;
 
   @container community-page (max-width: 600px) {
-    flex: 1 1 0;
-    width: auto;
+    gap: 2px;
   }
 
   @container community-page (max-width: 430px) {
     gap: 2px;
     font-size: ${token.fontSize.body.sm};
   }
+`
+
+export const StatValue = styled.span`
+  min-width: 3ch;
 `
 
 export const StatIcon = styled.img<{ $kind: StatIconKind }>`

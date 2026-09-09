@@ -8,6 +8,7 @@ import { PiNoteBlank, PiPencilSimpleLineBold } from 'react-icons/pi'
 import { useNavigate } from 'react-router-dom'
 
 import {
+  formatCommunityCount,
   formatCommunityListDate,
   getPostCategoryLabel,
   getPosts,
@@ -58,6 +59,7 @@ import {
   SkeletonTitle,
   Stat,
   StatIcon,
+  StatValue,
   Stats,
   StatusMessage,
   StatusState,
@@ -291,7 +293,7 @@ export function CommunityPage() {
                         alt=""
                         $kind="heart"
                       />
-                      {post.likeCount}
+                      <StatValue>{formatCommunityCount(post.likeCount)}</StatValue>
                     </Stat>
                     <Stat>
                       <StatIcon
@@ -299,11 +301,13 @@ export function CommunityPage() {
                         alt=""
                         $kind="comment"
                       />
-                      {post.commentCount}
+                      <StatValue>
+                        {formatCommunityCount(post.commentCount)}
+                      </StatValue>
                     </Stat>
                     <Stat>
                       <StatIcon src={eyeIcon} alt="" $kind="view" />
-                      {post.viewers}
+                      <StatValue>{formatCommunityCount(post.viewers)}</StatValue>
                     </Stat>
                   </Stats>
                 </PostRow>

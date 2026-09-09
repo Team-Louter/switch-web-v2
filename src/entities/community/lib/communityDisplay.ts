@@ -53,6 +53,16 @@ export function formatCommunityListDate(dateValue: string): string {
   return `${date.getFullYear().toString().slice(-2)}.${monthAndDay}`
 }
 
+export function formatCommunityCount(value: number): string {
+  const normalizedValue = Math.max(0, Math.trunc(value))
+
+  if (normalizedValue < 1000) {
+    return normalizedValue.toString()
+  }
+
+  return `${Math.floor(normalizedValue / 1000)}K`
+}
+
 export function resolveCommunityAssetUrl(
   assetUrl: string | undefined,
 ): string | undefined {
