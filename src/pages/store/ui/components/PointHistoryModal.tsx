@@ -1,17 +1,12 @@
 import * as S from '../StorePage.style'
 import { CloseIcon } from '../icons'
 
-import type { PointHistory } from '../../types'
-
 type PointHistoryModalProps = {
-  histories: PointHistory[]
+  point: number
   onClose: () => void
 }
 
-export function PointHistoryModal({
-  histories,
-  onClose,
-}: PointHistoryModalProps) {
+export function PointHistoryModal({ point, onClose }: PointHistoryModalProps) {
   return (
     <S.Overlay>
       <S.Modal aria-modal="true" role="dialog">
@@ -22,19 +17,17 @@ export function PointHistoryModal({
           </S.CloseButton>
         </S.ModalHeader>
         <S.PointHistoryList>
-          {histories.map((history) => (
-            <S.PointHistoryRow key={history.id}>
-              <S.PointHistoryInfo>
-                <S.PointHistoryTitle>{history.title}</S.PointHistoryTitle>
-                <S.PointHistoryDescription>
-                  {history.description}
-                </S.PointHistoryDescription>
-              </S.PointHistoryInfo>
-              <S.PointHistoryAmount $isPositive={history.isPositive}>
-                {history.amountLabel}
-              </S.PointHistoryAmount>
-            </S.PointHistoryRow>
-          ))}
+          <S.PointHistoryRow>
+            <S.PointHistoryInfo>
+              <S.PointHistoryTitle>현재 보유 포인트</S.PointHistoryTitle>
+              <S.PointHistoryDescription>
+                상점에서 사용할 수 있는 포인트
+              </S.PointHistoryDescription>
+            </S.PointHistoryInfo>
+            <S.PointHistoryAmount $isPositive>
+              {point.toLocaleString()}
+            </S.PointHistoryAmount>
+          </S.PointHistoryRow>
         </S.PointHistoryList>
       </S.Modal>
     </S.Overlay>

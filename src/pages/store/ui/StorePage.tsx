@@ -87,7 +87,6 @@ export function StorePage() {
     isLoading,
     ownedEffects,
     point,
-    pointHistories,
     profilePreview,
     recommendedEffects,
     selectedCategory,
@@ -185,7 +184,7 @@ export function StorePage() {
         />
       )}
       {activeModal === 'pointHistory' && (
-        <PointHistoryModal histories={pointHistories} onClose={onModalClose} />
+        <PointHistoryModal point={point} onClose={onModalClose} />
       )}
       {(activeModal === 'purchase' || activeModal === 'purchaseComplete') &&
         selectedEffect && (

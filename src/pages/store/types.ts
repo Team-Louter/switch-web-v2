@@ -40,11 +40,3 @@ export type StoreProfilePreview = {
   majors: string
   name: string
 }
-
-export type PointHistory = {
-  id: number
-  title: string
-  description: string
-  amountLabel: string
-  isPositive: boolean
-}

@@ -21,7 +21,6 @@ import type {
   UnlockCondition,
 } from '@/entities/store'
 import type {
-  PointHistory,
   StoreCategory,
   StoreEffect,
   StoreEffectStatus,
@@ -56,30 +55,6 @@ const CUSTOMIZE_CATEGORIES: StoreCategory[] = [
   '이름 색상',
   '테두리',
   '칭호',
-]
-
-const POINT_HISTORIES: PointHistory[] = [
-  {
-    id: 1,
-    title: '게시물 작성',
-    description: '보상 · 26.07.15',
-    amountLabel: '+00',
-    isPositive: true,
-  },
-  {
-    id: 2,
-    title: '무지개',
-    description: '효과 구매 · 26.07.15',
-    amountLabel: '-00',
-    isPositive: false,
-  },
-  {
-    id: 3,
-    title: '게시물 작성',
-    description: '보상 · 26.07.15',
-    amountLabel: '+00',
-    isPositive: true,
-  },
 ]
 
 const STORE_ITEM_CATEGORY: Record<StoreItemType, StoreCategory> = {
@@ -628,7 +603,6 @@ export function useStorePage() {
     isLoading,
     ownedEffects,
     point,
-    pointHistories: POINT_HISTORIES,
     profilePreview,
     recommendedEffects,
     selectedCategory,
