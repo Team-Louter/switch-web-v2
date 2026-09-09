@@ -20,7 +20,8 @@ export const Page = styled.section`
 export const Content = styled.div`
   ${token.flexColumn}
   gap: 28px;
-  width: 100%;
+  /* zoom으로 축소된 표시 폭이 부모 영역을 채우도록 보정한다. */
+  width: calc(100% / 0.9);
   max-width: calc(1003px / 0.9);
   zoom: 0.9;
 
