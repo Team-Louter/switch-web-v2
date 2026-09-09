@@ -5,6 +5,7 @@ import {
   MentorStudyModal,
   MentorTotalStudyModal,
   MonthlyStudyWeeks,
+  WriteModal,
 } from '@/features/study'
 import {
   getAllStudies,
@@ -30,6 +31,12 @@ export function MentorLearningPage() {
     Record<string, StudyStatus[]>
   >({})
   const [isStudyModalOpen, setIsStudyModalOpen] = useState(false)
+  const [selectedMenteeStudy, setSelectedMenteeStudy] = useState<{
+    month: number
+    weekNumber: number
+    authorName: string
+    study?: StudyRecord
+  }>()
   const [isTotalStudyModalOpen, setIsTotalStudyModalOpen] = useState(false)
   const [selectedTotalStudyWeek, setSelectedTotalStudyWeek] = useState<{
     year: number
@@ -128,6 +135,42 @@ export function MentorLearningPage() {
     }
   }
 
+  const handleOpenMenteeStudy = async (
+    studyStatus: StudyStatus,
+    year: number,
+    month: number,
+    weekNumber: number,
+  ) => {
+    if (studyStatus.status !== 'SUBMITTED') {
+      setSelectedMenteeStudy({
+        month,
+        weekNumber,
+        authorName: studyStatus.userName,
+      })
+      return
+    }
+
+    try {
+      const allStudies = await getAllStudies()
+      const study = allStudies.find(
+        (item) =>
+          item.studyId === studyStatus.studyId &&
+          isStudyInWeek(item, year, month, weekNumber),
+      )
+
+      if (study) {
+        setSelectedMenteeStudy({
+          month,
+          weekNumber,
+          authorName: studyStatus.userName,
+          study,
+        })
+      }
+    } catch {
+      // 조회 실패 시 현재 화면을 유지한다.
+    }
+  }
+
   return (
     <S.PageContainer>
       <S.ScrollArea>
@@ -211,6 +254,20 @@ export function MentorLearningPage() {
                 <S.DiaryContent>
                   <MonthlyStudyWeeks
                     items={items}
+                    onItemClick={(item) => {
+                      const studyStatus = weekStatuses.find(
+                        ({ userId }) => userId === item.id,
+                      )
+
+                      if (!studyStatus) return
+
+                      void handleOpenMenteeStudy(
+                        studyStatus,
+                        year,
+                        month,
+                        weekNumber,
+                      )
+                    }}
                   />
                   <S.DecoImg
                     aria-hidden="true"
@@ -248,6 +305,15 @@ export function MentorLearningPage() {
         weekNumber={selectedWeek?.weekNumber}
         studies={studies}
         isLoading={isStudiesLoading}
+      />
+      <WriteModal
+        isOpen={selectedMenteeStudy !== undefined}
+        onClose={() => setSelectedMenteeStudy(undefined)}
+        month={selectedMenteeStudy?.month}
+        weekNumber={selectedMenteeStudy?.weekNumber}
+        study={selectedMenteeStudy?.study}
+        authorName={selectedMenteeStudy?.authorName}
+        readOnly
       />
       {isTotalStudyModalOpen && selectedTotalStudyWeek !== null && (
         <MentorTotalStudyModal
