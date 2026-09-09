@@ -27,6 +27,7 @@ import {
   ProfileMeta,
   ProfileName,
   ProfileText,
+  ProfileTitle,
   Spacer,
   type NotificationCountAnimationDirection,
 } from './Sidebar.style'
@@ -56,6 +57,8 @@ export function Sidebar({
   const notificationCountLabel =
     notificationCount >= 15 ? '15+' : String(notificationCount)
   const profileNameColor = profile?.equippedItems?.nameColor
+  const profileTitle = profile?.equippedItems?.title
+  const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName
   const profileNameStyleKey = getNameStyleKey(
     profileNameColor?.styleKey ??
       profileNameColor?.valueColor ??
@@ -147,9 +150,10 @@ export function Sidebar({
         <ProfileAvatar
           imageUrl={profile?.imageUrl}
           equippedItems={profile?.equippedItems}
-          size={43}
+          size={50}
         />
         <ProfileText>
+          {profileTitleText && <ProfileTitle>{profileTitleText}</ProfileTitle>}
           <ProfileName>
             <UserName styleKey={profileNameStyleKey}>
               {profile?.name ?? ''}

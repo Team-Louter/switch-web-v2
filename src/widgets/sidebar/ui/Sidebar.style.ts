@@ -202,8 +202,17 @@ export const ProfileText = styled.div`
   gap: clamp(3px, 0.58dvh, 5px);
   min-width: 0;
   overflow: hidden;
-  white-space: nowrap;
+`
 
+export const ProfileTitle = styled.span`
+  max-width: 100%;
+  overflow: hidden;
+  color: ${token.colors.primary.text};
+  line-height: 1;
+  text-overflow: ellipsis;
+  ${token.typography('caption', 'sm', 'medium')}
+
+  font-size: 11px;
 `
 
 export const ProfileName = styled.span`

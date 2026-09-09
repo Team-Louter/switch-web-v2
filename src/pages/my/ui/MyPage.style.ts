@@ -49,6 +49,13 @@ export const ProfileIdentity = styled.div`
   gap: 10px;
 `
 
+export const ProfileTitle = styled.span`
+  margin: 0;
+  color: ${token.colors.primary.text};
+  line-height: 1;
+  ${token.typography('body', 'lg', 'regular')}
+`
+
 export const ProfileName = styled.h1`
   margin: 0;
   color: ${token.colors.gray.gray80};

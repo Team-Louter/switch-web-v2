@@ -61,6 +61,8 @@ export function MyPage() {
       profileNameColor?.valueText ??
       profileNameColor?.itemName,
   )
+  const profileTitle = profile.equippedItems?.title
+  const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName 
   const canResendWithdrawalCode =
     withdrawStep === 'verify' && withdrawResendRemainingSeconds === 0
 
@@ -173,17 +175,18 @@ export function MyPage() {
 
           <S.ProfileInfo>
             <S.ProfileTextGroup>
-              <S.ProfileIdentity>
-                <S.ProfileName>
-                  <UserName styleKey={profileNameStyleKey}>
-                    {profile.name}
-                  </UserName>
-                </S.ProfileName>
-                <S.ProfileDescription>{profile.classInfo}</S.ProfileDescription>
-                {profile.majors && (
-                  <S.ProfileDescription>{profile.majors}</S.ProfileDescription>
-                )}
-              </S.ProfileIdentity>
+            <S.ProfileIdentity>
+            {profileTitleText && <S.ProfileTitle>{profileTitleText}</S.ProfileTitle>}
+            <S.ProfileName>
+              <UserName styleKey={profileNameStyleKey}>
+                {profile.name}
+              </UserName>
+            </S.ProfileName>
+            <S.ProfileDescription>{profile.classInfo}</S.ProfileDescription>
+            {profile.majors && (
+              <S.ProfileDescription>{profile.majors}</S.ProfileDescription>
+            )}
+            </S.ProfileIdentity>
               <S.ProfileEmail>{profile.email}</S.ProfileEmail>
             </S.ProfileTextGroup>
 
