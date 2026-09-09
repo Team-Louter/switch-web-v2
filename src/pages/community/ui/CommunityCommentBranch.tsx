@@ -24,7 +24,7 @@ import {
 } from './communityCommentTree'
 import * as S from './CommunityCommentBranch.style'
 
-const FLATTENED_TREE_DEPTH = 5
+const FLATTENED_TREE_DEPTH = 4
 
 interface ReplyLoadingSkeletonProps {
   isWithinReplies?: boolean
