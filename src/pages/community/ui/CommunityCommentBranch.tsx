@@ -16,7 +16,6 @@ import { ConfirmModal } from '@/shared/ui'
 import anonymousProfileImage from '../assets/images/anonymousProfile.png'
 import kebabIcon from '../assets/svg/kebab.svg'
 import {
-  REPLY_LOAD_DEPTH_INTERVAL,
   type CommentTreeNode,
   type CommunityCommentDeleteHandler,
   type CommunityCommentUpdateHandler,
@@ -24,8 +23,6 @@ import {
   type CommunityReplySubmitHandler,
 } from './communityCommentTree'
 import * as S from './CommunityCommentBranch.style'
-
-const VISIBLE_REPLY_COUNT = 3
 
 interface ReplyLoadingSkeletonProps {
   isWithinReplies?: boolean
@@ -94,9 +91,6 @@ export function CommunityCommentBranch({
   const [isCommentMutating, setIsCommentMutating] = useState(false)
   const [isCommentDeleteConfirmOpen, setIsCommentDeleteConfirmOpen] =
     useState(false)
-  const [visibleReplyCount, setVisibleReplyCount] = useState(
-    VISIBLE_REPLY_COUNT,
-  )
   const commentMenuRef = useRef<HTMLDivElement>(null)
 
   const loadedReplyCount = node.children.length
@@ -111,17 +105,13 @@ export function CommunityCommentBranch({
     loadedReplyCount === 0
   const shouldShowReplies =
     hasReplies && (isExpandedByAncestor || isRepliesOpen)
-  const visibleReplies = node.children.slice(0, visibleReplyCount)
-  const hasHiddenReplies = node.children.length > visibleReplies.length
   const hasCollapseControl = !isExpandedByAncestor
   const repliesToggleLabel = isRepliesOpen
     ? '답글 숨기기'
     : `답글 ${totalReplyCount}개`
   const repliesLoadLabel = replyLoadError
     ? '답글 다시 불러오기'
-    : comment.depth >= REPLY_LOAD_DEPTH_INTERVAL
-      ? '답글 더보기'
-      : `답글 ${totalReplyCount}개`
+    : '답글 더보기'
 
   const handleReplyComposerOpen = () => {
     setIsReplyComposerOpen(true)
@@ -155,7 +145,6 @@ export function CommunityCommentBranch({
       setReplySubmitError(submitError)
     } else {
       setIsRepliesOpen(true)
-      setVisibleReplyCount(node.children.length + 1)
       setReplyLoadError(null)
       setHasReplyLoadAttempted(true)
       handleReplyComposerCancel()
@@ -470,11 +459,9 @@ export function CommunityCommentBranch({
         <>
           {shouldShowReplies && (
             <S.CommentChildren>
-              {visibleReplies.map((child, index) => {
+              {node.children.map((child, index) => {
                 const hasFollowingItem =
-                  index < visibleReplies.length - 1 ||
-                  hasHiddenReplies ||
-                  hasCollapseControl
+                  index < node.children.length - 1 || hasCollapseControl
 
                 return (
                   <CommunityCommentBranch
@@ -493,18 +480,6 @@ export function CommunityCommentBranch({
                   />
                 )
               })}
-              {hasHiddenReplies && (
-                <S.RepliesToggleRow $isWithinReplies>
-                  <S.RepliesToggle
-                    type="button"
-                    aria-label="남은 답글 더보기"
-                    onClick={() => setVisibleReplyCount(node.children.length)}
-                  >
-                    답글 더보기
-                    <S.RepliesCaret $isOpen={false} aria-hidden="true" />
-                  </S.RepliesToggle>
-                </S.RepliesToggleRow>
-              )}
               {hasCollapseControl && (
                 <S.RepliesToggleRow $isWithinReplies>
                   <S.RepliesToggle
