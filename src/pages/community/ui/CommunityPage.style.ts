@@ -289,12 +289,12 @@ export const SkeletonStats = styled.span`
 
 export const CategoryCell = styled.div`
   ${token.flexCenter}
-  flex: 0 0 80px;
+  flex: 0 0 96px;
   height: 100%;
   overflow: hidden;
 
   @container community-page (max-width: 430px) {
-    flex-basis: 72px;
+    flex-basis: 84px;
   }
 `
 
@@ -309,8 +309,8 @@ export const PostCategory = styled.span`
   border-radius: ${token.shapes.medium};
   color: ${token.colors.primary.text};
   background: transparent;
-  ${token.typography('body', 'sm', 'medium')}
-  line-height: 20px;
+  ${token.typography('caption', 'lg', 'semibold')}
+  line-height: 1;
   white-space: nowrap;
 `
 
