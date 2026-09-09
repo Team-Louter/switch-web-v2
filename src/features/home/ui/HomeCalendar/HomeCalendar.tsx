@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { DatesSetArg } from '@fullcalendar/core'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import koLocale from '@fullcalendar/core/locales/ko'
@@ -20,26 +21,35 @@ const COLORS: Record<ScheduleColor, string> = {
   LIGHTGREEN: 'lightgreen', LIGHTBLUE: 'lightblue',
 }
 
+const LOADING_EVENT_DAYS = [2, 9]
+
 export function HomeCalendar({ schedules, loading }: HomeCalendarProps) {
   const [selected, setSelected] = useState<{ schedule: Schedule; x: number; y: number } | null>(null)
-  const events = schedules.map((schedule) => {
-    // FullCalendar의 종료일은 exclusive이며 API 종료일은 inclusive이다.
-    const end = new Date(`${toDateKeyFromServer(schedule.endDate)}T00:00:00Z`)
-    end.setUTCDate(end.getUTCDate() + 1)
-    return {
-      id: String(schedule.scheduleId), title: schedule.title,
-      start: toDateKeyFromServer(schedule.startDate),
-      end: toDateKey(end.getUTCFullYear(), end.getUTCMonth() + 1, end.getUTCDate()),
-      allDay: true, color: COLORS[schedule.color] ?? 'gold',
-      classNames: loading ? ['calendar-event-skeleton'] : [],
-    }
-  })
+  const [visibleDate, setVisibleDate] = useState(() => new Date())
+  const events = loading
+    ? getLoadingEvents(visibleDate)
+    : schedules.map((schedule) => {
+      // FullCalendar의 종료일은 exclusive이며 API 종료일은 inclusive이다.
+      const end = new Date(`${toDateKeyFromServer(schedule.endDate)}T00:00:00Z`)
+      end.setUTCDate(end.getUTCDate() + 1)
+      return {
+        id: String(schedule.scheduleId), title: schedule.title,
+        start: toDateKeyFromServer(schedule.startDate),
+        end: toDateKey(end.getUTCFullYear(), end.getUTCMonth() + 1, end.getUTCDate()),
+        allDay: true, color: COLORS[schedule.color] ?? 'gold',
+      }
+    })
 
   useEffect(() => {
     const close = () => setSelected(null)
     window.addEventListener('resize', close)
     return () => window.removeEventListener('resize', close)
   }, [])
+
+  function handleDatesSet({ view }: DatesSetArg) {
+    setSelected(null)
+    setVisibleDate(view.currentStart)
+  }
 
   return (
     <S.CalendarWrapper $loading={loading} aria-label="월간 일정" aria-busy={loading}>
@@ -55,7 +65,7 @@ export function HomeCalendar({ schedules, loading }: HomeCalendarProps) {
         fixedWeekCount
         height="100%"
         eventOrder="-duration,start"
-        datesSet={() => setSelected(null)}
+        datesSet={handleDatesSet}
         eventContent={({ event }) => loading
           ? <S.EventSkeleton aria-label="일정 불러오는 중" />
           : <S.EventContentWrapper>
@@ -73,4 +83,17 @@ export function HomeCalendar({ schedules, loading }: HomeCalendarProps) {
       {selected && <ScheduleDetailPopover key={`${selected.schedule.scheduleId}-${selected.x}-${selected.y}`} {...selected} onClose={() => setSelected(null)} />}
     </S.CalendarWrapper>
   )
+}
+
+function getLoadingEvents(date: Date) {
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1
+
+  return LOADING_EVENT_DAYS.map((day) => ({
+    id: `loading-${year}-${month}-${day}`,
+    title: '일정 불러오는 중',
+    start: toDateKey(year, month, day),
+    allDay: true,
+    classNames: ['calendar-event-skeleton'],
+  }))
 }
