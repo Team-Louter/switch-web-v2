@@ -144,7 +144,7 @@ export const PostSection = styled.section`
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding: 14px 0 10px;
+  padding: 14px 0 14px;
   border-top: 1px solid #eee;
 
   ${PanelTitle} {
