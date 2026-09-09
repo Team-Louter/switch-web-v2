@@ -30,7 +30,12 @@ export const Content = styled.div`
 
 export const Header = styled.header`
   ${token.flexColumn}
+  position: sticky;
+  top: 0;
+  z-index: 10;
   gap: 10px;
+  width: 100%;
+  background: ${token.colors.white};
 `
 
 export const TabActionRow = styled.div`
