@@ -155,16 +155,7 @@ export function StoreProfileCustomizeModal({
     selectedEffectsByCategory,
   )
   const selectedNameColorEffect = selectedEffectsByCategory['이름 색상']
-  const equippedNameColor = profile?.equippedItems?.nameColor
-  const previewNameStyleKey = selectedNameColorEffect
-    ? selectedNameColorEffect.nameStyleKey
-    : getNameStyleKey(
-        equippedNameColor?.styleKey ??
-          equippedNameColor?.valueColor ??
-          equippedNameColor?.value_color ??
-          equippedNameColor?.valueText ??
-          equippedNameColor?.itemName,
-      )
+  const previewNameStyleKey = selectedNameColorEffect?.nameStyleKey
   const previewTitle = previewEquippedItems?.title
   const previewTitleText = previewTitle?.valueText ?? previewTitle?.itemName
   const isAnySelectionLocked = Object.values(selectedEffectsByCategory).some(

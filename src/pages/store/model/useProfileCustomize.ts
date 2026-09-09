@@ -138,31 +138,48 @@ export function useProfileCustomize({
   }
   
   const onReset = () => {
-    setSelections(getInitialSelections(storeEffects))
+    setSelections({
+      '이름 색상': null,
+      '테두리': null,
+      '칭호': null,
+    })
   }
 
   const onSave = async () => {
     if (isActionPending) {
       return false
     }
-
-    const itemType = STORE_CATEGORY_ITEM_TYPE[selectedCategory] as StoreItemType
-
+  
     setIsActionPending(true)
     setErrorMessage('')
-
+  
     try {
-      const equippedItems = await updateEquippedItem(
-        selectedEffect
-          ? { itemId: selectedEffect.id, itemType }
-          : { itemType },
-      )
-
-      setStoreEffects((currentEffects) =>
-        applyEquippedItems(currentEffects, equippedItems, itemType),
-      )
-      onEquippedItemsChange(equippedItems)
-
+      let latestEquippedItems: EquippedItemsResponse | null = null
+  
+      for (const category of CUSTOMIZE_CATEGORIES) {
+        const itemType = STORE_CATEGORY_ITEM_TYPE[category] as StoreItemType
+        const effect = selectedEffectsByCategory[category]
+  
+        latestEquippedItems = await updateEquippedItem(
+          effect ? { itemId: effect.id, itemType } : { itemType },
+        )
+      }
+  
+      if (latestEquippedItems) {
+        setStoreEffects((currentEffects) =>
+          CUSTOMIZE_CATEGORIES.reduce(
+            (effects, category) =>
+              applyEquippedItems(
+                effects,
+                latestEquippedItems!,
+                STORE_CATEGORY_ITEM_TYPE[category] as StoreItemType,
+              ),
+            currentEffects,
+          ),
+        )
+        onEquippedItemsChange(latestEquippedItems)
+      }
+  
       return true
     } catch {
       setErrorMessage('효과 설정을 저장하지 못했어요')
