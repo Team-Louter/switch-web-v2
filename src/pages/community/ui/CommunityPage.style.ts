@@ -10,7 +10,8 @@ export const Page = styled.section`
   justify-content: flex-start;
   box-sizing: border-box;
   min-height: 100dvh;
-  padding: clamp(24px, 3.2dvh, 32px) clamp(20px, 4%, 48px);
+  padding: clamp(24px, 3.2dvh, 32px) clamp(20px, 2vw, 30px)
+    clamp(24px, 3.2dvh, 32px) 0;
   container-name: community-page;
   container-type: inline-size;
   background: ${token.colors.white};
