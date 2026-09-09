@@ -178,6 +178,7 @@ export function StorePage() {
           onCategorySelect={onCustomizeCategorySelect}
           onClose={onModalClose}
           onEffectSelect={onCustomizeEffectSelect}
+          onGoToStore={onModalClose}
           onPurchaseOpen={onPurchaseOpen}
           onReset={onCustomizeReset}
           onSave={onCustomizeSave}

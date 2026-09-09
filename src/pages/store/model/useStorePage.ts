@@ -75,7 +75,7 @@ const STORE_ITEM_CATEGORY: Record<StoreItemType, StoreCategory> = {
   TITLE: '칭호',
 }
 
-const STORE_CATEGORY_ITEM_TYPE: Record<Exclude<StoreCategory, '전체'>, StoreItemType> = {
+export const STORE_CATEGORY_ITEM_TYPE: Record<Exclude<StoreCategory, '전체'>, StoreItemType> = {
   '이름 색상': 'NAME_COLOR',
   '칭호': 'TITLE',
   '테두리': 'BORDER',
@@ -218,7 +218,7 @@ const formatStoreProfile = (profile: ProfileResponse): StoreProfilePreview => ({
   name: profile.userName,
 })
 
-const mapShopItemToStoreEffect = (item: ShopItemResponse): StoreEffect => {
+export const mapShopItemToStoreEffect = (item: ShopItemResponse): StoreEffect => {
   const conditionLabels = formatUnlockConditionLabels(item)
 
   return {
@@ -279,7 +279,7 @@ const getEquippedItemId = (
   return equippedItemByType[itemType]?.itemId
 }
 
-const applyEquippedItems = (
+export const applyEquippedItems = (
   effects: StoreEffect[],
   equippedItems: EquippedItemsResponse,
   targetItemType: StoreItemType,

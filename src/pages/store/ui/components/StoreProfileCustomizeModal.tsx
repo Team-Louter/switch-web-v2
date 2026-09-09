@@ -22,6 +22,7 @@ type StoreProfileCustomizeModalProps = {
   onCategorySelect: (category: StoreCategory) => void
   onClose: () => void
   onEffectSelect: (effect: StoreEffect | null) => void
+  onGoToStore: () => void
   onPurchaseOpen: (effect: StoreEffect) => void
   onReset: () => void
   onSave: () => void
@@ -131,6 +132,7 @@ export function StoreProfileCustomizeModal({
   onCategorySelect,
   onClose,
   onEffectSelect,
+  onGoToStore,
   onPurchaseOpen,
   onReset,
   onSave,
@@ -211,7 +213,7 @@ export function StoreProfileCustomizeModal({
               )}
             </S.CustomizeOptionGrid>
 
-            <S.CustomizeStoreButton onClick={onClose} type="button">
+            <S.CustomizeStoreButton onClick={onGoToStore} type="button">
               상점으로 이동
             </S.CustomizeStoreButton>
           </S.CustomizeEffectPanel>

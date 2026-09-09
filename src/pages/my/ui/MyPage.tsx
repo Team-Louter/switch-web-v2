@@ -25,6 +25,12 @@ import { MyStatIcon } from './icons/MyStatIcon'
 import * as S from './MyPage.style'
 import type { WithdrawModalStep } from './components'
 
+import { useProfileCustomize } from '@/pages/store/model/useProfileCustomize'
+import { StoreProfileCustomizeModal } from '@/pages/store/ui/components/StoreProfileCustomizeModal'
+import { dispatchProfileSync } from '@/shared/lib/profileSync'
+
+import type { EquippedItemsResponse } from '@/entities/store'
+
 const WITHDRAW_CODE_TIME_LIMIT_SECONDS = 120
 const WITHDRAW_CODE_RESEND_DELAY_SECONDS = 30
 
@@ -41,6 +47,9 @@ export function MyPage() {
     useState(WITHDRAW_CODE_TIME_LIMIT_SECONDS)
   const [withdrawResendRemainingSeconds, setWithdrawResendRemainingSeconds] =
     useState(WITHDRAW_CODE_RESEND_DELAY_SECONDS)
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false)
+  const [equippedItemsOverride, setEquippedItemsOverride] =
+    useState<EquippedItemsResponse | undefined>(undefined)
   const {
     activeTabId,
     activityTabs,
@@ -51,9 +60,13 @@ export function MyPage() {
     stats,
   } = useMyPage()
 
+  const displayProfile = equippedItemsOverride
+    ? { ...profile, equippedItems: equippedItemsOverride }
+    : profile
+
   const hasPosts = posts.length > 0
   const canManageMembers = profile.role === 'LEADER'
-  const profileNameColor = profile.equippedItems?.nameColor
+  const profileNameColor = displayProfile.equippedItems?.nameColor
   const profileNameStyleKey = getNameStyleKey(
     profileNameColor?.styleKey ??
       profileNameColor?.valueColor ??
@@ -61,8 +74,8 @@ export function MyPage() {
       profileNameColor?.valueText ??
       profileNameColor?.itemName,
   )
-  const profileTitle = profile.equippedItems?.title
-  const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName 
+  const profileTitle = displayProfile.equippedItems?.title
+  const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName
   const canResendWithdrawalCode =
     withdrawStep === 'verify' && withdrawResendRemainingSeconds === 0
 
@@ -94,6 +107,21 @@ export function MyPage() {
     return () => window.clearInterval(timerId)
   }, [withdrawResendRemainingSeconds, withdrawStep])
 
+  const { onSave: onCustomizeSaveRaw, ...customize } = useProfileCustomize({
+    isOpen: isCustomizeOpen,
+    onEquippedItemsChange: (equippedItems) => {
+      setEquippedItemsOverride(equippedItems)
+      dispatchProfileSync({ equippedItems })
+    },
+  })
+  
+  const handleCustomizeSave = async () => {
+    const didSave = await onCustomizeSaveRaw()
+  
+    if (didSave) {
+      setIsCustomizeOpen(false)
+    }
+  }
   const resetWithdrawalVerificationState = () => {
     setVerificationCode('')
     setWithdrawCodeRemainingSeconds(WITHDRAW_CODE_TIME_LIMIT_SECONDS)
@@ -168,9 +196,9 @@ export function MyPage() {
       <S.Content>
         <S.ProfileSection>
           <ProfileAvatar
-            imageUrl={profile.imageUrl}
-            equippedItems={profile.equippedItems}
-            size={200}
+          imageUrl={displayProfile.imageUrl}
+          equippedItems={displayProfile.equippedItems}
+          size={200}
           />
 
           <S.ProfileInfo>
@@ -179,12 +207,12 @@ export function MyPage() {
             {profileTitleText && <S.ProfileTitle>{profileTitleText}</S.ProfileTitle>}
             <S.ProfileName>
               <UserName styleKey={profileNameStyleKey}>
-                {profile.name}
+                {displayProfile.name}
               </UserName>
             </S.ProfileName>
-            <S.ProfileDescription>{profile.classInfo}</S.ProfileDescription>
-            {profile.majors && (
-              <S.ProfileDescription>{profile.majors}</S.ProfileDescription>
+            <S.ProfileDescription>{displayProfile.classInfo}</S.ProfileDescription>
+            {displayProfile.majors && (
+              <S.ProfileDescription>{displayProfile.majors}</S.ProfileDescription>
             )}
             </S.ProfileIdentity>
               <S.ProfileEmail>{profile.email}</S.ProfileEmail>
@@ -202,7 +230,7 @@ export function MyPage() {
               )}
               <S.ActionButton
                 type="button"
-                onClick={() => navigate('/store?customize=1')}
+                onClick={() => setIsCustomizeOpen(true)}
               >
                 프로필 꾸미기
               </S.ActionButton>
@@ -287,7 +315,26 @@ export function MyPage() {
           onWithdraw={handleCompleteWithdrawal}
         />
       )}
-
+      
+      {isCustomizeOpen && (
+        <StoreProfileCustomizeModal
+          categories={customize.categories}
+          isActionPending={customize.isActionPending}
+          ownedEffects={customize.ownedEffects}
+          profile={displayProfile}
+          recommendedEffects={customize.recommendedEffects}
+          selectedCategory={customize.selectedCategory}
+          selectedEffect={customize.selectedEffect}
+          onCategorySelect={customize.onCategorySelect}
+          onClose={() => setIsCustomizeOpen(false)}
+          onEffectSelect={customize.onEffectSelect}
+          onGoToStore={() => navigate('/store')}
+          onPurchaseOpen={() => navigate('/store')}
+          onReset={customize.onReset}
+          onSave={handleCustomizeSave}
+        />
+      )}
+      
       {isMemberManagementOpen && (
         <MemberManagementModal
           onClose={() => setIsMemberManagementOpen(false)}
