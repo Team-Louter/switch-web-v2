@@ -582,8 +582,19 @@ export const CustomizeEffectPanel = styled.div`
   gap: 10px;
   flex: 1 1 0;
   min-width: 0;
+  min-height: 0;
   height: 100%;
   overflow: hidden;
+`
+
+export const CustomizeEffectScrollArea = styled.div`
+  ${token.flexColumn}
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow-y: auto;
 `
 
 export const CustomizeSectionTitle = styled.p`
@@ -696,7 +707,7 @@ export const CustomizeEmptyText = styled.p`
 export const CustomizeStoreButton = styled.button`
   ${token.flexCenter}
   width: 100%;
-  margin-top: auto;
+  flex-shrink: 0;
   padding: 10px 20px;
   border: 1px solid ${token.colors.primary.primary80};
   border-radius: ${token.shapes.small};

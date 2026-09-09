@@ -179,39 +179,40 @@ export function StoreProfileCustomizeModal({
           </S.CustomizeTabList>
 
           <S.CustomizeEffectPanel>
-            <S.CustomizeSectionTitle>내 효과</S.CustomizeSectionTitle>
-            <S.CustomizeOptionGrid>
-              <CustomizeEffectOption
-                isNone
-                isSelected={selectedEffect === null}
-                onClick={() => onEffectSelect(null)}
-              />
-              {ownedEffects.map((effect) => (
+            <S.CustomizeEffectScrollArea>
+              <S.CustomizeSectionTitle>내 효과</S.CustomizeSectionTitle>
+              <S.CustomizeOptionGrid>
                 <CustomizeEffectOption
-                  effect={effect}
-                  isSelected={selectedEffect?.id === effect.id}
-                  key={effect.id}
-                  onClick={() => onEffectSelect(effect)}
+                  isNone
+                  isSelected={selectedEffect === null}
+                  onClick={() => onEffectSelect(null)}
                 />
-              ))}
-            </S.CustomizeOptionGrid>
-
-            <S.CustomizeSectionTitle>추천 효과</S.CustomizeSectionTitle>
-            <S.CustomizeOptionGrid>
-              {recommendedEffects.length > 0 ? (
-                recommendedEffects.map((effect) => (
+                {ownedEffects.map((effect) => (
                   <CustomizeEffectOption
                     effect={effect}
-                    isLocked={effect.canPurchase === false}
-                    isSelected={false}
+                    isSelected={selectedEffect?.id === effect.id}
                     key={effect.id}
-                    onClick={() => onPurchaseOpen(effect)}
+                    onClick={() => onEffectSelect(effect)}
                   />
-                ))
-              ) : (
+                ))}
+              </S.CustomizeOptionGrid>
+              <S.CustomizeSectionTitle>추천 효과</S.CustomizeSectionTitle>
+              <S.CustomizeOptionGrid>
+                {recommendedEffects.length > 0 ? (
+                  recommendedEffects.map((effect) => (
+                    <CustomizeEffectOption
+                      effect={effect}
+                      isLocked={effect.canPurchase === false}
+                      isSelected={false}
+                      key={effect.id}
+                      onClick={() => onPurchaseOpen(effect)}
+                    />
+                  ))
+                ) : (
                 <S.CustomizeEmptyText>추천 효과가 없어요</S.CustomizeEmptyText>
               )}
             </S.CustomizeOptionGrid>
+            </S.CustomizeEffectScrollArea>
 
             <S.CustomizeStoreButton onClick={onGoToStore} type="button">
               상점으로 이동
