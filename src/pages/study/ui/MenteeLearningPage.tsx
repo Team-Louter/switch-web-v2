@@ -5,6 +5,7 @@ import {
   WriteModal,
 } from '@/features/study'
 import type { WeekStatus } from '@/features/study'
+import { useUserStore } from '@/entities/profile'
 import { getMyStatus, getStudy } from '@/entities/study'
 import type { StudyRecord, StudyStatus } from '@/entities/study'
 import {
@@ -24,6 +25,10 @@ import {
 import * as S from './LearningPage.style'
 
 export function MenteeLearningPage() {
+  const user = useUserStore((state) => state.user)
+  const studentNumber = user
+    ? `${user.grade}${user.classRoom}${String(user.number).padStart(2, '0')}`
+    : ''
   const currentDate = useMemo(() => getCurrentKoreaDate(), [])
   const currentMonth = getCurrentMonth()
   const months = useMemo(() => getMonthsFromCurrentMonth(), [])
@@ -179,7 +184,11 @@ export function MenteeLearningPage() {
                     }
                   />
                   <S.ButtonContent>
-                    <S.Name>2213 최현수</S.Name>
+                    <S.Name>
+                      {[studentNumber, user?.userName]
+                        .filter(Boolean)
+                        .join(' ')}
+                    </S.Name>
                     <S.Week>
                       {selectedWeek
                         ? `${selectedWeek.weekNumber}주차 학습일지`

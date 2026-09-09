@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { AnimationEvent } from 'react'
+import { FiEye, FiEyeOff } from 'react-icons/fi'
 
 import { Turnstile } from '@/features/auth'
 
@@ -24,6 +25,8 @@ export function SignupPage({
   shouldAnimate = false,
 }: SignupPageProps) {
   const [isReturningToLogin, setIsReturningToLogin] = useState(false)
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
+  const [isPasswordConfirmationVisible, setIsPasswordConfirmationVisible] = useState(false)
   const controller = useSignupForm(initialEmail, onSignupComplete)
   const {
     values,
@@ -144,24 +147,58 @@ export function SignupPage({
                       placeholder="이름"
                       autoComplete="name"
                     />
-                    <S.Input
-                      type="password"
-                      name="password"
-                      value={values.password}
-                      onChange={handleInputChange}
-                      aria-label="비밀번호"
-                      placeholder="비밀번호"
-                      autoComplete="new-password"
-                    />
-                    <S.Input
-                      type="password"
-                      name="passwordConfirmation"
-                      value={values.passwordConfirmation}
-                      onChange={handleInputChange}
-                      aria-label="비밀번호 확인"
-                      placeholder="비밀번호 확인"
-                      autoComplete="new-password"
-                    />
+                    <S.PasswordField>
+                      <S.PasswordInput
+                        type={isPasswordVisible ? 'text' : 'password'}
+                        name="password"
+                        value={values.password}
+                        onChange={handleInputChange}
+                        aria-label="비밀번호"
+                        placeholder="비밀번호"
+                        autoComplete="new-password"
+                      />
+                      {values.password.length > 0 && (
+                        <S.PasswordVisibilityButton
+                          type="button"
+                          aria-label={
+                            isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 표시'
+                          }
+                          onClick={() => setIsPasswordVisible((visible) => !visible)}
+                        >
+                          {isPasswordVisible ? (
+                            <FiEyeOff aria-hidden="true" size={18} />
+                          ) : (
+                            <FiEye aria-hidden="true" size={18} />
+                          )}
+                        </S.PasswordVisibilityButton>
+                      )}
+                    </S.PasswordField>
+                    <S.PasswordField>
+                      <S.PasswordInput
+                        type={isPasswordConfirmationVisible ? 'text' : 'password'}
+                        name="passwordConfirmation"
+                        value={values.passwordConfirmation}
+                        onChange={handleInputChange}
+                        aria-label="비밀번호 확인"
+                        placeholder="비밀번호 확인"
+                        autoComplete="new-password"
+                      />
+                      {values.passwordConfirmation.length > 0 && (
+                        <S.PasswordVisibilityButton
+                          type="button"
+                          aria-label={
+                            isPasswordConfirmationVisible ? '비밀번호 확인 숨기기' : '비밀번호 확인 표시'
+                          }
+                          onClick={() => setIsPasswordConfirmationVisible((visible) => !visible)}
+                        >
+                          {isPasswordConfirmationVisible ? (
+                            <FiEyeOff aria-hidden="true" size={18} />
+                          ) : (
+                            <FiEye aria-hidden="true" size={18} />
+                          )}
+                        </S.PasswordVisibilityButton>
+                      )}
+                    </S.PasswordField>
                     <S.ClubCodeField>
                       <S.Input
                         type="text"

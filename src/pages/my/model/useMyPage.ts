@@ -1,18 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { formatProfileClassInfo } from '@/entities/profile'
-import {
-  getProfileSyncPayload,
-  mergeSyncedEquippedItems,
-  PROFILE_SYNC_EVENT_NAME,
-} from '@/shared/lib/profileSync'
+import { formatProfileClassInfo, useUserStore } from '@/entities/profile'
 
 import {
   getMyComments,
   getMyLikedPosts,
   getMyPoint,
   getMyPosts,
-  getMyProfile,
   getMyReceivedLikeCount,
 } from '../api'
 import type {
@@ -119,12 +113,6 @@ const formatProfile = (profile: ProfileResponse): MyProfile => {
     role: profile.role,
   }
 
-  const equippedItems = mergeSyncedEquippedItems(profile.equippedItems)
-
-  if (equippedItems) {
-    nextProfile.equippedItems = equippedItems
-  }
-
   if (profile.profileImageUrl) {
     nextProfile.imageUrl = profile.profileImageUrl
   }
@@ -179,6 +167,7 @@ const getActivityTabPosts = (tabId: MyActivityTabId) => {
 
 // 마이 페이지의 프로필과 활동 데이터를 서버 응답 기준으로 구성한다.
 export function useMyPage() {
+  const fetchUser = useUserStore((state) => state.fetchUser)
   const [activeTabId, setActiveTabId] = useState<MyActivityTabId>('posts')
   const [profile, setProfile] = useState<MyProfile>(initialProfile)
   const [stats, setStats] = useState<MyStat[]>(initialStats)
@@ -225,7 +214,7 @@ export function useMyPage() {
           point,
           receivedLikeCount,
         ] = await Promise.all([
-          getMyProfile(),
+          fetchUser(),
           getMyPosts(),
           getMyPoint(),
           getMyReceivedLikeCount(),
@@ -308,7 +297,7 @@ export function useMyPage() {
     return () => {
       shouldIgnore = true
     }
-  }, [])
+  }, [fetchUser])
 
   useEffect(() => {
     if (isLoading || loadedTabs[activeTabId]) {
@@ -317,27 +306,6 @@ export function useMyPage() {
 
     void loadActivityTab(activeTabId)
   }, [activeTabId, isLoading, loadedTabs, loadActivityTab])
-
-  useEffect(() => {
-    const handleProfileSync = (event: Event) => {
-      const payload = getProfileSyncPayload(event)
-
-      if (!payload?.equippedItems) {
-        return
-      }
-
-      setProfile((currentProfile) => ({
-        ...currentProfile,
-        equippedItems: payload.equippedItems,
-      }))
-    }
-
-    window.addEventListener(PROFILE_SYNC_EVENT_NAME, handleProfileSync)
-
-    return () => {
-      window.removeEventListener(PROFILE_SYNC_EVENT_NAME, handleProfileSync)
-    }
-  }, [])
 
   const emptyMessage = useMemo(() => {
     if (isLoading) {

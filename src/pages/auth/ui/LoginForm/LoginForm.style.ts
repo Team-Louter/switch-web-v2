@@ -193,7 +193,32 @@ export const PasswordFieldMotion = styled.div<{ $isVisible: boolean }>`
   }
 `
 
+export const PasswordField = styled.div`
+  position: relative;
+  width: 100%;
+`
+
 export const PasswordInput = styled(EmailInput)``
+
+export const PasswordVisibilityButton = styled.button`
+  ${token.flexCenter}
+  position: absolute;
+  top: 0;
+  right: 4px;
+  width: 38px;
+  height: 38px;
+  color: ${token.colors.gray.gray40};
+  border-radius: ${token.shapes.xsmall};
+
+  &:hover {
+    color: ${token.colors.gray.gray70};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: -2px;
+  }
+`
 
 export const TurnstileConfigMessage = styled.p`
   ${token.flexCenter}

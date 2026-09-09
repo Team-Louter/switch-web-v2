@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { FiEye, FiEyeOff } from 'react-icons/fi'
 
 import { startGoogleLogin, Turnstile } from '@/features/auth'
 
@@ -11,6 +13,7 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ controller }: LoginFormProps) {
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const {
     email,
     password,
@@ -73,7 +76,10 @@ export function LoginForm({ controller }: LoginFormProps) {
               <S.ChangeEmailButton
                 type="button"
                 $isVisible={isPasswordStep}
-                onClick={handleChangeEmail}
+                onClick={() => {
+                  setIsPasswordVisible(false)
+                  handleChangeEmail()
+                }}
                 aria-hidden={!isPasswordStep}
                 tabIndex={isPasswordStep ? 0 : -1}
               >
@@ -99,24 +105,37 @@ export function LoginForm({ controller }: LoginFormProps) {
               aria-hidden={!isPasswordStep}
             >
               <S.PasswordFieldMotion $isVisible={isPasswordStep}>
-                <S.PasswordInput
-                  type="password"
-                  name="password"
-                  value={password}
-                  onChange={handlePasswordChange}
-                  aria-label="비밀번호"
-                  placeholder="비밀번호를 입력해주세요"
-                  autoComplete="current-password"
-                  disabled={!isPasswordStep}
-                  tabIndex={isPasswordStep ? 0 : -1}
-                  $hasError={hasLoginValidationError}
-                  aria-invalid={hasLoginValidationError}
-                  aria-describedby={
-                    hasLoginValidationError
-                      ? 'login-password-validation'
-                      : undefined
-                  }
-                />
+                <S.PasswordField>
+                  <S.PasswordInput
+                    type={isPasswordVisible ? 'text' : 'password'}
+                    name="password"
+                    value={password}
+                    onChange={handlePasswordChange}
+                    aria-label="비밀번호"
+                    placeholder="비밀번호를 입력해주세요"
+                    autoComplete="current-password"
+                    disabled={!isPasswordStep}
+                    tabIndex={isPasswordStep ? 0 : -1}
+                    $hasError={hasLoginValidationError}
+                    aria-invalid={hasLoginValidationError}
+                    aria-describedby={
+                      hasLoginValidationError
+                        ? 'login-password-validation'
+                        : undefined
+                    }
+                  />
+                  {password.length > 0 && (
+                    <S.PasswordVisibilityButton
+                      type="button"
+                      aria-label={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 표시'}
+                      disabled={!isPasswordStep}
+                      tabIndex={isPasswordStep ? 0 : -1}
+                      onClick={() => setIsPasswordVisible((visible) => !visible)}
+                    >
+                      {isPasswordVisible ? <FiEyeOff aria-hidden="true" size={18} /> : <FiEye aria-hidden="true" size={18} />}
+                    </S.PasswordVisibilityButton>
+                  )}
+                </S.PasswordField>
               </S.PasswordFieldMotion>
             </S.PasswordFieldSlot>
 

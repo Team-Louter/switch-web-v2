@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { useUserStore } from '@/entities/profile'
+
 import {
   getAdminMentorDetail,
   getAdminMentoringOverview,
   getAdminMentors,
   getAdminQuestionDetail,
-  getCurrentUserProfile,
 } from './adminMentoringApi'
 import type {
   AdminMentoringMentorsResponse,
@@ -213,6 +214,7 @@ const mapMessage = (message: MentoringMessageResponse): ChatMessageSummary => ({
 // 3) 필터, 검색, 정렬, 사이드시트 상태를 함께 반환한다
 export function useMentoringPage() {
   const navigate = useNavigate()
+  const currentUserId = useUserStore((state) => state.user?.userId ?? null)
   const closeChatPanelTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   )
@@ -232,7 +234,6 @@ export function useMentoringPage() {
   const [mentors, setMentors] = useState<MentorSummary[]>([])
   const [questions, setQuestions] = useState<QuestionSummary[]>([])
   const [messages, setMessages] = useState<ChatMessageSummary[]>([])
-  const [currentUserId, setCurrentUserId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -241,30 +242,6 @@ export function useMentoringPage() {
       if (closeChatPanelTimeoutRef.current) {
         clearTimeout(closeChatPanelTimeoutRef.current)
       }
-    }
-  }, [])
-
-  useEffect(() => {
-    let ignore = false
-
-    const loadCurrentUser = async () => {
-      try {
-        const profile = await getCurrentUserProfile()
-
-        if (!ignore) {
-          setCurrentUserId(profile.userId)
-        }
-      } catch {
-        if (!ignore) {
-          setCurrentUserId(null)
-        }
-      }
-    }
-
-    void loadCurrentUser()
-
-    return () => {
-      ignore = true
     }
   }, [])
 
