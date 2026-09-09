@@ -306,7 +306,7 @@ export const PostCategory = styled.span`
   min-height: 26px;
   padding: 3px 10px;
   border: 1px solid ${token.colors.primary.text};
-  border-radius: ${token.shapes.medium};
+  border-radius: 999px;
   color: ${token.colors.primary.text};
   background: transparent;
   ${token.typography('caption', 'lg', 'semibold')}
