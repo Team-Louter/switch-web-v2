@@ -6,7 +6,7 @@ type StatIconKind = 'heart' | 'comment' | 'view'
 
 export const Page = styled.section`
   ${token.flexColumn}
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-start;
   box-sizing: border-box;
   min-height: 100dvh;
