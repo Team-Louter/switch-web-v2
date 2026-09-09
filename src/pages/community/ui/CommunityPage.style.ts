@@ -498,7 +498,7 @@ export const PageButton = styled.button<{ $active: boolean }>`
   height: 28px;
   padding: 4px;
   border: 0;
-  border-radius: ${token.shapes.large};
+  border-radius: 8px;
   color: ${token.colors.gray.gray100};
   background: ${({ $active }) =>
     $active ? token.colors.primary.primary20 : 'transparent'};
