@@ -207,7 +207,7 @@ export const ProfileText = styled.div`
 export const ProfileTitle = styled.span`
   max-width: 100%;
   overflow: hidden;
-  color: ${token.colors.primary.text};
+  color: #FFA20A;
   line-height: 1;
   text-overflow: ellipsis;
   ${token.typography('caption', 'sm', 'medium')}

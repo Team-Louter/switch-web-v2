@@ -58,7 +58,7 @@ export const ProfileTitle = styled.span`
 
 export const ProfileName = styled.h1`
   margin: 0;
-  color: ${token.colors.gray.gray80};
+  color: #FFA20A;
   line-height: 1;
   ${token.typography('heading', 'lg', 'bold')}
 `
