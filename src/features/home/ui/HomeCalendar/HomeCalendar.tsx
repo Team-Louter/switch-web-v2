@@ -21,8 +21,6 @@ const COLORS: Record<ScheduleColor, string> = {
   LIGHTGREEN: 'lightgreen', LIGHTBLUE: 'lightblue',
 }
 
-const LOADING_EVENT_DAYS = [2, 9]
-
 export function HomeCalendar({ schedules, loading }: HomeCalendarProps) {
   const [selected, setSelected] = useState<{ schedule: Schedule; x: number; y: number } | null>(null)
   const [visibleDate, setVisibleDate] = useState(() => new Date())
@@ -88,12 +86,17 @@ export function HomeCalendar({ schedules, loading }: HomeCalendarProps) {
 function getLoadingEvents(date: Date) {
   const year = date.getFullYear()
   const month = date.getMonth() + 1
+  const dayCount = new Date(year, month, 0).getDate()
 
-  return LOADING_EVENT_DAYS.map((day) => ({
-    id: `loading-${year}-${month}-${day}`,
-    title: '일정 불러오는 중',
-    start: toDateKey(year, month, day),
-    allDay: true,
-    classNames: ['calendar-event-skeleton'],
-  }))
+  return Array.from({ length: dayCount }, (_, index) => {
+    const day = index + 1
+
+    return {
+      id: `loading-${year}-${month}-${day}`,
+      title: '일정 불러오는 중',
+      start: toDateKey(year, month, day),
+      allDay: true,
+      classNames: ['calendar-event-skeleton'],
+    }
+  })
 }
