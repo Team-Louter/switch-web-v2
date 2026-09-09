@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { UserName } from '@/entities/user'
+import { getNameStyleKey } from '@/shared/styles'
 import {
   clearAccessToken,
   clearPendingAccessToken,
@@ -51,6 +53,14 @@ export function MyPage() {
 
   const hasPosts = posts.length > 0
   const canManageMembers = profile.role === 'LEADER'
+  const profileNameColor = profile.equippedItems?.nameColor
+  const profileNameStyleKey = getNameStyleKey(
+    profileNameColor?.styleKey ??
+      profileNameColor?.valueColor ??
+      profileNameColor?.value_color ??
+      profileNameColor?.valueText ??
+      profileNameColor?.itemName,
+  )
   const canResendWithdrawalCode =
     withdrawStep === 'verify' && withdrawResendRemainingSeconds === 0
 
@@ -164,7 +174,11 @@ export function MyPage() {
           <S.ProfileInfo>
             <S.ProfileTextGroup>
               <S.ProfileIdentity>
-                <S.ProfileName>{profile.name}</S.ProfileName>
+                <S.ProfileName>
+                  <UserName styleKey={profileNameStyleKey}>
+                    {profile.name}
+                  </UserName>
+                </S.ProfileName>
                 <S.ProfileDescription>{profile.classInfo}</S.ProfileDescription>
                 {profile.majors && (
                   <S.ProfileDescription>{profile.majors}</S.ProfileDescription>

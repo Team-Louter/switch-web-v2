@@ -1,4 +1,5 @@
 import { ProfileAvatar } from '@/shared/ui'
+import { getNameStyleKey } from '@/shared/styles'
 
 import * as S from '../StorePage.style'
 import { CloseIcon } from '../icons'
@@ -26,13 +27,12 @@ type StoreProfileCustomizeModalProps = {
   onSave: () => void
 }
 
-type EquippedItemKey = 'badge' | 'border' | 'nameColor' | 'title'
+type EquippedItemKey = 'border' | 'nameColor' | 'title'
 
 const CATEGORY_EQUIPPED_ITEM_KEY: Record<
   Exclude<StoreCategory, '전체'>,
   EquippedItemKey
 > = {
-  '뱃지': 'badge',
   '이름 색상': 'nameColor',
   '칭호': 'title',
   '테두리': 'border',
@@ -46,6 +46,7 @@ const getEffectDecorationItem = (
   itemImageUrl: effect.imageUrl,
   itemName: effect.title,
   thumbnailUrl: effect.thumbnailUrl,
+  styleKey: effect.nameStyleKey,
   valueImageUrl: effect.imageUrl,
 })
 
@@ -104,8 +105,8 @@ function CustomizeEffectOption({
           alt=""
         />
       ) : effect?.type === 'nameColor' ? (
-        <S.CustomizeNameSample $color={effect.valueColor}>
-          이름 Name
+        <S.CustomizeNameSample styleKey={effect.nameStyleKey}>
+          Switch
         </S.CustomizeNameSample>
       ) : (
         <S.CustomizeOptionText>{effect?.title}</S.CustomizeOptionText>
@@ -140,12 +141,16 @@ export function StoreProfileCustomizeModal({
     selectedCategory,
     selectedEffect,
   )
-  const previewNameColor = isEditingNameColor
-    ? selectedEffect?.valueColor
-    : profile?.equippedItems?.nameColor?.valueColor
-  const isNameColorSelected = isEditingNameColor
-    ? selectedEffect?.type === 'nameColor'
-    : Boolean(profile?.equippedItems?.nameColor)
+  const equippedNameColor = profile?.equippedItems?.nameColor
+  const previewNameStyleKey = isEditingNameColor
+    ? selectedEffect?.nameStyleKey
+    : getNameStyleKey(
+        equippedNameColor?.styleKey ??
+          equippedNameColor?.valueColor ??
+          equippedNameColor?.value_color ??
+          equippedNameColor?.valueText ??
+          equippedNameColor?.itemName,
+      )
 
   return (
     <S.Overlay>
@@ -219,10 +224,7 @@ export function StoreProfileCustomizeModal({
                 size={200}
               />
               <S.CustomizePreviewTextGroup>
-                <S.CustomizePreviewName
-                  $color={previewNameColor}
-                  $isGradient={isNameColorSelected}
-                >
+                <S.CustomizePreviewName styleKey={previewNameStyleKey}>
                   {profile?.name ?? ''}
                 </S.CustomizePreviewName>
                 <S.CustomizePreviewDescription>

@@ -6,6 +6,8 @@ import {
   PRIMARY_SIDEBAR_MENU,
   UTILITY_SIDEBAR_MENU,
 } from '@/shared/constants/sidebar'
+import { UserName } from '@/entities/user'
+import { getNameStyleKey } from '@/shared/styles'
 import { ProfileAvatar } from '@/shared/ui'
 
 import type { ProfileAvatarEquippedItems } from '@/shared/ui'
@@ -52,6 +54,14 @@ export function Sidebar({
     useState<NotificationCountAnimationDirection>()
   const notificationCountLabel =
     notificationCount >= 15 ? '15+' : String(notificationCount)
+  const profileNameColor = profile?.equippedItems?.nameColor
+  const profileNameStyleKey = getNameStyleKey(
+    profileNameColor?.styleKey ??
+      profileNameColor?.valueColor ??
+      profileNameColor?.value_color ??
+      profileNameColor?.valueText ??
+      profileNameColor?.itemName,
+  )
 
   useEffect(() => {
     const previousNotificationCount = previousNotificationCountRef.current
@@ -133,7 +143,11 @@ export function Sidebar({
           size={43}
         />
         <ProfileText>
-          <ProfileName>{profile?.name ?? ''}</ProfileName>
+          <ProfileName>
+            <UserName styleKey={profileNameStyleKey}>
+              {profile?.name ?? ''}
+            </UserName>
+          </ProfileName>
           <ProfileMeta>{profile?.classInfo ?? ''}</ProfileMeta>
         </ProfileText>
       </ProfileButton>

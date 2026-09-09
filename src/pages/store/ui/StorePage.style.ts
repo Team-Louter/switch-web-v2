@@ -1,5 +1,6 @@
 import styled, { css } from 'styled-components'
 
+import { UserName } from '@/entities/user'
 import * as token from '@/shared/styles/values/token'
 
 import { StoreItemImage } from './components/StoreItemImage'
@@ -130,6 +131,26 @@ export const CardGrid = styled.div`
   width: 100%;
 `
 
+export const CategoryGroups = styled.div`
+  ${token.flexColumn}
+  align-items: flex-start;
+  gap: 24px;
+  width: 100%;
+`
+
+export const CategoryGroup = styled.div`
+  ${token.flexColumn}
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+`
+
+export const CategoryTitle = styled.p`
+  margin: 0;
+  color: ${token.colors.gray.gray50};
+  ${token.typography('caption', 'lg', 'medium')}
+`
+
 const cardHoverButtonStyle = css`
   background: ${token.colors.primary.primary50};
   color: ${token.colors.gray.gray100};
@@ -174,21 +195,10 @@ export const EffectPreview = styled.div<{ $type: StoreEffectType }>`
   }
 `
 
-export const EffectPreviewText = styled.p`
-  margin: 0;
-  background-image: linear-gradient(
-    90deg,
-    rgb(116 0 0) 0%,
-    rgb(233 148 0) 15%,
-    rgb(171 192 17) 30%,
-    rgb(49 174 7) 45%,
-    rgb(0 204 226) 60%,
-    rgb(27 49 211) 75%,
-    rgb(66 7 110) 90%
-  );
-  color: transparent;
-  background-clip: text;
-  ${token.typography('heading', 'lg', 'semibold')}
+export const EffectPreviewText = styled(UserName)`
+  font-family: ${token.fontFamily.system};
+  font-size: ${token.fontSize.heading.lg};
+  white-space: nowrap;
 `
 
 export const EffectOutlinePreview = styled.div`
@@ -418,28 +428,9 @@ export const PreviewImage = styled(StoreItemImage)`
   object-fit: contain;
 `
 
-export const PreviewName = styled.p<{
-  $color?: string
-  $isGradient: boolean
-}>`
-  margin: 0;
-  background-image: ${({ $color, $isGradient }) =>
-    $isGradient && !$color
-      ? `linear-gradient(
-          90deg,
-          rgb(116 0 0) 0%,
-          rgb(233 148 0) 15%,
-          rgb(171 192 17) 30%,
-          rgb(49 174 7) 45%,
-          rgb(0 204 226) 60%,
-          rgb(27 49 211) 75%,
-          rgb(66 7 110) 90%
-        )`
-      : 'none'};
-  color: ${({ $color, $isGradient }) =>
-    $color ?? ($isGradient ? 'transparent' : token.colors.gray.gray80)};
-  background-clip: text;
-  ${token.typography('heading', 'xl', 'bold')}
+export const PreviewName = styled(UserName)`
+  font-family: ${token.fontFamily.system};
+  font-size: ${token.fontSize.heading.xl};
 `
 
 export const PurchaseEffectTitle = styled.p`
@@ -664,24 +655,10 @@ export const CustomizeOptionImage = styled(StoreItemImage)`
   object-fit: contain;
 `
 
-export const CustomizeNameSample = styled.span<{ $color?: string }>`
-  background-image: ${({ $color }) =>
-    $color
-      ? 'none'
-      : `linear-gradient(
-          90deg,
-          rgb(116 0 0) 0%,
-          rgb(233 148 0) 15%,
-          rgb(171 192 17) 30%,
-          rgb(49 174 7) 45%,
-          rgb(0 204 226) 60%,
-          rgb(27 49 211) 75%,
-          rgb(66 7 110) 90%
-        )`};
-  color: ${({ $color }) => $color ?? 'transparent'};
-  background-clip: text;
+export const CustomizeNameSample = styled(UserName)`
+  font-family: ${token.fontFamily.system};
+  font-size: ${token.fontSize.body.lg};
   white-space: nowrap;
-  ${token.typography('body', 'lg', 'semibold')}
 `
 
 export const CustomizeOptionText = styled.span`
@@ -750,28 +727,9 @@ export const CustomizePreviewTextGroup = styled.div`
   width: 100%;
 `
 
-export const CustomizePreviewName = styled.p<{
-  $color?: string
-  $isGradient: boolean
-}>`
-  margin: 0;
-  background-image: ${({ $color, $isGradient }) =>
-    $isGradient && !$color
-      ? `linear-gradient(
-          90deg,
-          rgb(116 0 0) 0%,
-          rgb(233 148 0) 15%,
-          rgb(171 192 17) 30%,
-          rgb(49 174 7) 45%,
-          rgb(0 204 226) 60%,
-          rgb(27 49 211) 75%,
-          rgb(66 7 110) 90%
-        )`
-      : 'none'};
-  color: ${({ $color, $isGradient }) =>
-    $color ?? ($isGradient ? 'transparent' : token.colors.gray.gray80)};
-  background-clip: text;
-  ${token.typography('heading', 'xl', 'bold')}
+export const CustomizePreviewName = styled(UserName)`
+  font-family: ${token.fontFamily.system};
+  font-size: ${token.fontSize.heading.xl};
 `
 
 export const CustomizePreviewDescription = styled.p`

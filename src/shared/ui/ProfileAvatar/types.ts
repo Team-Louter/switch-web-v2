@@ -1,12 +1,16 @@
 export type ProfileAvatarDecorationItem = {
   displayType?: 'COVER' | 'FRAME'
   imageUrl?: string
+  itemId?: number
   itemImageUrl?: string
   itemName?: string
+  itemType?: string
   originalImageUrl?: string
   previewImageUrl?: string
+  styleKey?: string
   thumbnailUrl?: string
   valueColor?: string
+  value_color?: string
   valueText?: string
   valueImageUrl?: string
 }

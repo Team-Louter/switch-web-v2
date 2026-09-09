@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { formatProfileClassInfo } from '@/entities/profile'
+import {
+  getProfileSyncPayload,
+  mergeSyncedEquippedItems,
+  PROFILE_SYNC_EVENT_NAME,
+} from '@/shared/lib/profileSync'
 
 import {
   getMyComments,
@@ -114,8 +119,10 @@ const formatProfile = (profile: ProfileResponse): MyProfile => {
     role: profile.role,
   }
 
-  if (profile.equippedItems) {
-    nextProfile.equippedItems = profile.equippedItems
+  const equippedItems = mergeSyncedEquippedItems(profile.equippedItems)
+
+  if (equippedItems) {
+    nextProfile.equippedItems = equippedItems
   }
 
   if (profile.profileImageUrl) {
@@ -310,6 +317,27 @@ export function useMyPage() {
 
     void loadActivityTab(activeTabId)
   }, [activeTabId, isLoading, loadedTabs, loadActivityTab])
+
+  useEffect(() => {
+    const handleProfileSync = (event: Event) => {
+      const payload = getProfileSyncPayload(event)
+
+      if (!payload?.equippedItems) {
+        return
+      }
+
+      setProfile((currentProfile) => ({
+        ...currentProfile,
+        equippedItems: payload.equippedItems,
+      }))
+    }
+
+    window.addEventListener(PROFILE_SYNC_EVENT_NAME, handleProfileSync)
+
+    return () => {
+      window.removeEventListener(PROFILE_SYNC_EVENT_NAME, handleProfileSync)
+    }
+  }, [])
 
   const emptyMessage = useMemo(() => {
     if (isLoading) {

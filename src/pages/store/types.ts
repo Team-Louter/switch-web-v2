@@ -1,9 +1,9 @@
 import type { StoreItemType } from '@/entities/store'
 import type { ProfileAvatarEquippedItems } from '@/shared/ui'
 
-export type StoreCategory = '전체' | '이름 색상' | '테두리' | '뱃지' | '칭호'
+export type StoreCategory = '전체' | '이름 색상' | '테두리' | '칭호'
 
-export type StoreEffectType = 'nameColor' | 'outline' | 'badge' | 'nickname'
+export type StoreEffectType = 'nameColor' | 'outline' | 'nickname'
 
 export type StoreEffectStatus = 'owned' | 'equipped' | 'recommended'
 
@@ -23,8 +23,10 @@ export type StoreEffect = {
   status: StoreEffectStatus
   price: number
   imageUrl?: string
+  nameStyleKey?: string
   thumbnailUrl?: string
   valueColor?: string
+  value_color?: string
   valueText?: string
   hasConditions?: boolean
   canPurchase?: boolean

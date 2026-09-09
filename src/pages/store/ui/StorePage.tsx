@@ -7,6 +7,74 @@ import { StorePurchaseModal } from './components/StorePurchaseModal'
 import { StoreProfileCustomizeModal } from './components/StoreProfileCustomizeModal'
 import { MoreIcon, PointIcon } from './icons'
 
+import type { StoreCategory, StoreEffect } from '../types'
+
+const STORE_SECTION_CATEGORIES: Exclude<StoreCategory, '전체'>[] = [
+  '테두리',
+  '이름 색상',
+  '칭호',
+]
+
+type StoreEffectListProps = {
+  effects: StoreEffect[]
+  emptyMessage: string
+  isActionPending: boolean
+  selectedCategory: StoreCategory
+  onEquip: (effectId: number) => void
+  onPurchaseOpen: (effect: StoreEffect) => void
+  onRemove: (effectId: number) => void
+}
+
+function StoreEffectList({
+  effects,
+  emptyMessage,
+  isActionPending,
+  selectedCategory,
+  onEquip,
+  onPurchaseOpen,
+  onRemove,
+}: StoreEffectListProps) {
+  if (effects.length === 0) {
+    return <S.EmptyGridMessage>{emptyMessage}</S.EmptyGridMessage>
+  }
+
+  const renderEffectCard = (effect: StoreEffect) => (
+    <StoreEffectCard
+      effect={effect}
+      isActionPending={isActionPending}
+      key={effect.id}
+      onEquip={onEquip}
+      onPurchaseOpen={onPurchaseOpen}
+      onRemove={onRemove}
+    />
+  )
+
+  if (selectedCategory !== '전체') {
+    return <S.CardGrid>{effects.map(renderEffectCard)}</S.CardGrid>
+  }
+
+  return (
+    <S.CategoryGroups>
+      {STORE_SECTION_CATEGORIES.map((category) => {
+        const categoryEffects = effects.filter(
+          (effect) => effect.category === category,
+        )
+
+        if (categoryEffects.length === 0) {
+          return null
+        }
+
+        return (
+          <S.CategoryGroup key={category}>
+            <S.CategoryTitle>{category}</S.CategoryTitle>
+            <S.CardGrid>{categoryEffects.map(renderEffectCard)}</S.CardGrid>
+          </S.CategoryGroup>
+        )
+      })}
+    </S.CategoryGroups>
+  )
+}
+
 export function StorePage() {
   const {
     activeModal,
@@ -69,42 +137,32 @@ export function StorePage() {
         <S.EffectSections>
           <S.Section>
             <S.SectionTitle>내 효과</S.SectionTitle>
-            <S.CardGrid>
-              {!isLoading && ownedEffects.length > 0 ? (
-                ownedEffects.map((effect) => (
-                  <StoreEffectCard
-                    effect={effect}
-                    isActionPending={isActionPending}
-                    key={effect.id}
-                    onEquip={onEffectEquip}
-                    onPurchaseOpen={onPurchaseOpen}
-                    onRemove={onEffectRemove}
-                  />
-                ))
-              ) : !isLoading ? (
-                <S.EmptyGridMessage>보유한 효과가 없어요</S.EmptyGridMessage>
-              ) : null}
-            </S.CardGrid>
+            {!isLoading && (
+              <StoreEffectList
+                effects={ownedEffects}
+                emptyMessage="보유한 효과가 없어요"
+                isActionPending={isActionPending}
+                selectedCategory={selectedCategory}
+                onEquip={onEffectEquip}
+                onPurchaseOpen={onPurchaseOpen}
+                onRemove={onEffectRemove}
+              />
+            )}
           </S.Section>
 
           <S.Section>
             <S.SectionTitle>추천 효과</S.SectionTitle>
-            <S.CardGrid>
-              {!isLoading && recommendedEffects.length > 0 ? (
-                recommendedEffects.map((effect) => (
-                  <StoreEffectCard
-                    effect={effect}
-                    isActionPending={isActionPending}
-                    key={effect.id}
-                    onEquip={onEffectEquip}
-                    onPurchaseOpen={onPurchaseOpen}
-                    onRemove={onEffectRemove}
-                  />
-                ))
-              ) : !isLoading ? (
-                <S.EmptyGridMessage>추천 효과가 없어요</S.EmptyGridMessage>
-              ) : null}
-            </S.CardGrid>
+            {!isLoading && (
+              <StoreEffectList
+                effects={recommendedEffects}
+                emptyMessage="추천 효과가 없어요"
+                isActionPending={isActionPending}
+                selectedCategory={selectedCategory}
+                onEquip={onEffectEquip}
+                onPurchaseOpen={onPurchaseOpen}
+                onRemove={onEffectRemove}
+              />
+            )}
           </S.Section>
         </S.EffectSections>
       </S.Content>

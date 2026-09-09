@@ -1,4 +1,5 @@
 import { ProfileAvatar } from '@/shared/ui'
+import { getNameStyleKey } from '@/shared/styles'
 
 import * as S from '../StorePage.style'
 import { CloseIcon, PointIcon } from '../icons'
@@ -18,7 +19,6 @@ type StorePurchaseModalProps = {
 }
 
 const STORE_EFFECT_EQUIPPED_ITEM_KEY = {
-  BADGE: 'badge',
   BORDER: 'border',
   NAME_COLOR: 'nameColor',
   TITLE: 'title',
@@ -32,6 +32,7 @@ const getEffectDecorationItem = (
   itemImageUrl: effect.imageUrl,
   itemName: effect.title,
   thumbnailUrl: effect.thumbnailUrl,
+  styleKey: effect.nameStyleKey,
   valueImageUrl: effect.imageUrl,
 })
 
@@ -55,12 +56,17 @@ export function StorePurchaseModal({
 }: StorePurchaseModalProps) {
   const canPurchase = effect.canPurchase !== false
   const previewEquippedItems = getPurchasePreviewEquippedItems(profile, effect)
-  const previewNameColor =
+  const equippedNameColor = profile?.equippedItems?.nameColor
+  const previewNameStyleKey =
     effect.itemType === 'NAME_COLOR'
-      ? effect.valueColor
-      : profile?.equippedItems?.nameColor?.valueColor
-  const isNameColorSelected =
-    effect.itemType === 'NAME_COLOR' || Boolean(profile?.equippedItems?.nameColor)
+      ? effect.nameStyleKey
+      : getNameStyleKey(
+          equippedNameColor?.styleKey ??
+          equippedNameColor?.valueColor ??
+          equippedNameColor?.value_color ??
+          equippedNameColor?.valueText ??
+          equippedNameColor?.itemName,
+        )
 
   return (
     <S.Overlay>
@@ -77,10 +83,7 @@ export function StorePurchaseModal({
             equippedItems={previewEquippedItems}
             size={200}
           />
-          <S.PreviewName
-            $color={previewNameColor}
-            $isGradient={isNameColorSelected}
-          >
+          <S.PreviewName styleKey={previewNameStyleKey}>
             {profile?.name ?? ''}
           </S.PreviewName>
         </S.PreviewSection>

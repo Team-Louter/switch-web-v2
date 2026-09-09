@@ -1,4 +1,4 @@
-export type StoreItemType = 'BADGE' | 'BORDER' | 'NAME_COLOR' | 'TITLE'
+export type StoreItemType = 'BORDER' | 'NAME_COLOR' | 'TITLE'
 
 export type UnlockConditionType =
   | 'COMMENT_COUNT'
@@ -21,7 +21,9 @@ export interface ShopItemResponse {
   originalImageUrl?: string
   previewImageUrl?: string
   thumbnailUrl?: string
+  styleKey?: string
   valueColor?: string
+  value_color?: string
   valueImageUrl?: string
   valueText?: string
   itemPrice: number
@@ -44,7 +46,9 @@ export interface ProfileItemResponse {
   originalImageUrl?: string
   previewImageUrl?: string
   thumbnailUrl?: string
+  styleKey?: string
   valueColor?: string
+  value_color?: string
   valueImageUrl?: string
   valueText?: string
   itemPrice: number
@@ -61,13 +65,14 @@ export interface EquippedItemResponse {
   originalImageUrl?: string
   previewImageUrl?: string
   thumbnailUrl?: string
+  styleKey?: string
   valueColor?: string
+  value_color?: string
   valueImageUrl?: string
   valueText?: string
 }
 
 export interface EquippedItemsResponse {
-  badge?: EquippedItemResponse
   nameColor?: EquippedItemResponse
   border?: EquippedItemResponse
   title?: EquippedItemResponse
@@ -88,7 +93,9 @@ export interface ProfileItemCardResponse {
   originalImageUrl?: string
   previewImageUrl?: string
   thumbnailUrl?: string
+  styleKey?: string
   valueColor?: string
+  value_color?: string
   valueImageUrl?: string
   valueText?: string
   itemPrice: number

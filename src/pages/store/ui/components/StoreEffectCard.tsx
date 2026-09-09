@@ -45,7 +45,11 @@ export function StoreEffectCard({
         $type={effect.type}
         aria-label={`${effect.title} 효과 미리보기`}
       >
-        {defaultImageUrl ? (
+        {effect.type === 'nameColor' ? (
+          <S.EffectPreviewText styleKey={effect.nameStyleKey}>
+            Switch
+          </S.EffectPreviewText>
+        ) : defaultImageUrl ? (
           <>
             <S.EffectImage
               $hasHoverImage={hasHoverImage}
@@ -61,8 +65,6 @@ export function StoreEffectCard({
               />
             )}
           </>
-        ) : effect.type === 'nameColor' ? (
-          <S.EffectPreviewText>이름 Name</S.EffectPreviewText>
         ) : effect.type === 'outline' ? (
           <S.EffectOutlinePreview>Louter</S.EffectOutlinePreview>
         ) : (

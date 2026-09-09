@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { formatProfileClassInfo, getMyProfile } from '@/entities/profile'
+import { dispatchProfileSync } from '@/shared/lib/profileSync'
+import { getNameStyleKey } from '@/shared/styles'
 import {
   getShopItems,
   getUserPoint,
@@ -30,12 +32,15 @@ import type {
 
 type StoreItemImageSource = {
   displayType?: 'COVER' | 'FRAME'
+  itemName?: string
   imageUrl?: string
   itemImageUrl?: string
   originalImageUrl?: string
   previewImageUrl?: string
   thumbnailUrl?: string
+  styleKey?: string
   valueColor?: string
+  value_color?: string
   valueImageUrl?: string
   valueText?: string
 }
@@ -44,18 +49,14 @@ const STORE_CATEGORIES: StoreCategory[] = [
   '전체',
   '이름 색상',
   '테두리',
-  '뱃지',
   '칭호',
 ]
 
 const CUSTOMIZE_CATEGORIES: StoreCategory[] = [
   '이름 색상',
   '테두리',
-  '뱃지',
   '칭호',
 ]
-
-const PROFILE_SYNC_EVENT_NAME = 'switch:profile-sync'
 
 const POINT_HISTORIES: PointHistory[] = [
   {
@@ -82,21 +83,18 @@ const POINT_HISTORIES: PointHistory[] = [
 ]
 
 const STORE_ITEM_CATEGORY: Record<StoreItemType, StoreCategory> = {
-  BADGE: '뱃지',
   BORDER: '테두리',
   NAME_COLOR: '이름 색상',
   TITLE: '칭호',
 }
 
 const STORE_CATEGORY_ITEM_TYPE: Record<Exclude<StoreCategory, '전체'>, StoreItemType> = {
-  '뱃지': 'BADGE',
   '이름 색상': 'NAME_COLOR',
   '칭호': 'TITLE',
   '테두리': 'BORDER',
 }
 
 const STORE_ITEM_EFFECT_TYPE: Record<StoreItemType, StoreEffectType> = {
-  BADGE: 'badge',
   BORDER: 'outline',
   NAME_COLOR: 'nameColor',
   TITLE: 'nickname',
@@ -165,6 +163,15 @@ const getStoreEffectPreviewImageUrl = (item: StoreItemImageSource) =>
       item.thumbnailUrl,
   )
 
+const getStoreEffectNameStyleKey = (item: StoreItemImageSource) =>
+  getNameStyleKey(
+    item.styleKey ??
+      item.valueColor ??
+      item.value_color ??
+      item.valueText ??
+      item.itemName,
+  )
+
 const formatMajorText = (majors?: ProfileMajor[]) =>
   majors?.map((major) => MAJOR_LABEL[major]).join(' · ') ?? ''
 
@@ -186,8 +193,9 @@ const mapShopItemToStoreEffect = (item: ShopItemResponse): StoreEffect => ({
   status: getStoreEffectStatus(item),
   price: item.itemPrice,
   imageUrl: getStoreEffectPreviewImageUrl(item),
+  nameStyleKey: getStoreEffectNameStyleKey(item),
   thumbnailUrl: getStoreEffectThumbnailUrl(item),
-  valueColor: item.valueColor,
+  valueColor: item.valueColor ?? item.value_color,
   valueText: item.valueText,
   canPurchase: item.purchasable,
 })
@@ -204,8 +212,9 @@ const mapProfileItemToOwnedEffect = (
   status: 'owned',
   price: item.itemPrice,
   imageUrl: getStoreEffectPreviewImageUrl(item),
+  nameStyleKey: getStoreEffectNameStyleKey(item),
   thumbnailUrl: getStoreEffectThumbnailUrl(item),
-  valueColor: item.valueColor,
+  valueColor: item.valueColor ?? item.value_color,
   valueText: item.valueText,
   hasConditions: Boolean(item.unlockConditions?.length),
   canPurchase: true,
@@ -220,7 +229,6 @@ const getEquippedItemId = (
   itemType: StoreItemType,
 ) => {
   const equippedItemByType: Record<StoreItemType, EquippedItemResponse | undefined> = {
-    BADGE: equippedItems.badge,
     BORDER: equippedItems.border,
     NAME_COLOR: equippedItems.nameColor,
     TITLE: equippedItems.title,
@@ -287,6 +295,25 @@ export function useStorePage() {
         ] as const)
 
       if (itemsResult.status === 'fulfilled') {
+        const nameColorItems = itemsResult.value.items.filter(
+          (item) => item.itemType === 'NAME_COLOR',
+        )
+
+        console.log('[store] name color items:', nameColorItems)
+        console.log(
+          '[store] resolved name color keys:',
+          nameColorItems.map((item) => ({
+            itemId: item.itemId,
+            itemName: item.itemName,
+            styleKey: item.styleKey,
+            itemType: item.itemType,
+            valueColor: item.valueColor,
+            value_color: item.value_color,
+            valueText: item.valueText,
+            resolvedKey: getStoreEffectNameStyleKey(item),
+          })),
+        )
+
         if (!shouldIgnore) {
           setStoreEffects(itemsResult.value.items.map(mapShopItemToStoreEffect))
         }
@@ -447,11 +474,13 @@ export function useStorePage() {
     setActiveModal('purchase')
   }
 
-  const synchronizeEquippedItems = (equippedItems: EquippedItemsResponse) => {
+  const synchronizeEquippedItems = (
+    equippedItems: StoreProfilePreview['equippedItems'],
+  ) => {
     setProfilePreview((currentProfile) =>
       currentProfile ? { ...currentProfile, equippedItems } : currentProfile,
     )
-    window.dispatchEvent(new Event(PROFILE_SYNC_EVENT_NAME))
+    dispatchProfileSync({ equippedItems })
   }
 
   const handleCustomizeCategorySelect = (category: StoreCategory) => {
