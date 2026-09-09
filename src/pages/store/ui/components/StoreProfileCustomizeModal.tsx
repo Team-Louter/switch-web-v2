@@ -19,6 +19,7 @@ type StoreProfileCustomizeModalProps = {
   recommendedEffects: StoreEffect[]
   selectedCategory: StoreCategory
   selectedEffect: StoreEffect | null
+  selectedEffectsByCategory: SelectedEffectsByCategory
   onCategorySelect: (category: StoreCategory) => void
   onClose: () => void
   onEffectSelect: (effect: StoreEffect | null) => void
@@ -51,24 +52,31 @@ const getEffectDecorationItem = (
   valueImageUrl: effect.imageUrl,
 })
 
+type SelectedEffectsByCategory = Record<
+  Exclude<StoreCategory, '전체'>,
+  StoreEffect | null
+>
+
 const getCustomizePreviewEquippedItems = (
   profile: StoreProfilePreview | null,
-  selectedCategory: StoreCategory,
-  selectedEffect: StoreEffect | null,
+  selectedEffectsByCategory: SelectedEffectsByCategory,
 ) => {
-  if (selectedCategory === '전체') {
-    return profile?.equippedItems
-  }
-
   const equippedItems = { ...profile?.equippedItems }
-  const targetKey = CATEGORY_EQUIPPED_ITEM_KEY[selectedCategory]
 
-  if (!selectedEffect) {
-    delete equippedItems[targetKey]
-    return equippedItems
+  for (const category of Object.keys(
+    CATEGORY_EQUIPPED_ITEM_KEY,
+  ) as Exclude<StoreCategory, '전체'>[]) {
+    const targetKey = CATEGORY_EQUIPPED_ITEM_KEY[category]
+    const effect = selectedEffectsByCategory[category]
+
+    if (!effect) {
+      delete equippedItems[targetKey]
+      continue
+    }
+
+    equippedItems[targetKey] = getEffectDecorationItem(effect)
   }
 
-  equippedItems[targetKey] = getEffectDecorationItem(selectedEffect)
   return equippedItems
 }
 
@@ -133,6 +141,7 @@ export function StoreProfileCustomizeModal({
   recommendedEffects,
   selectedCategory,
   selectedEffect,
+  selectedEffectsByCategory,
   onCategorySelect,
   onClose,
   onEffectSelect,
@@ -141,15 +150,14 @@ export function StoreProfileCustomizeModal({
   onReset,
   onSave,
 }: StoreProfileCustomizeModalProps) {
-  const isEditingNameColor = selectedCategory === '이름 색상'
   const previewEquippedItems = getCustomizePreviewEquippedItems(
     profile,
-    selectedCategory,
-    selectedEffect,
+    selectedEffectsByCategory,
   )
+  const selectedNameColorEffect = selectedEffectsByCategory['이름 색상']
   const equippedNameColor = profile?.equippedItems?.nameColor
-  const previewNameStyleKey = isEditingNameColor
-    ? selectedEffect?.nameStyleKey
+  const previewNameStyleKey = selectedNameColorEffect
+    ? selectedNameColorEffect.nameStyleKey
     : getNameStyleKey(
         equippedNameColor?.styleKey ??
           equippedNameColor?.valueColor ??
@@ -159,9 +167,8 @@ export function StoreProfileCustomizeModal({
       )
   const previewTitle = previewEquippedItems?.title
   const previewTitleText = previewTitle?.valueText ?? previewTitle?.itemName
-  const isSelectedEffectLocked = Boolean(
-    selectedEffect &&
-      recommendedEffects.some((effect) => effect.id === selectedEffect.id),
+  const isAnySelectionLocked = Object.values(selectedEffectsByCategory).some(
+    (effect) => effect?.status === 'recommended',
   )
 
   return (
@@ -271,11 +278,11 @@ export function StoreProfileCustomizeModal({
                   취소
                 </S.ModalButton>
                 <S.ModalButton
-                  disabled={isActionPending || isSelectedEffectLocked}
-                  onClick={onSave}
-                  type="button"
+                disabled={isActionPending || isAnySelectionLocked}
+                onClick={onSave}
+                type="button"
                 >
-                  저장
+                저장
                 </S.ModalButton>
               </S.ModalButtonRow>
             </S.CustomizeActionGroup>

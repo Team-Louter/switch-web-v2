@@ -318,28 +318,24 @@ export function MyPage() {
       
       {isCustomizeOpen && (
         <StoreProfileCustomizeModal
-          categories={customize.categories}
-          isActionPending={customize.isActionPending}
-          ownedEffects={customize.ownedEffects}
-          profile={displayProfile}
-          recommendedEffects={customize.recommendedEffects}
-          selectedCategory={customize.selectedCategory}
-          selectedEffect={customize.selectedEffect}
-          onCategorySelect={customize.onCategorySelect}
-          onClose={() => setIsCustomizeOpen(false)}
-          onEffectSelect={customize.onEffectSelect}
-          onGoToStore={(category) => navigate(`/store?category=${encodeURIComponent(category)}`)}
-          onPurchaseOpen={() => navigate('/store')}
-          onReset={customize.onReset}
-          onSave={handleCustomizeSave}
-        />
-      )}
-      
-      {isMemberManagementOpen && (
-        <MemberManagementModal
-          onClose={() => setIsMemberManagementOpen(false)}
-          onComplete={setMemberActionToastMessage}
-        />
+        categories={customize.categories}
+        isActionPending={customize.isActionPending}
+        ownedEffects={customize.ownedEffects}
+        profile={displayProfile}
+        recommendedEffects={customize.recommendedEffects}
+        selectedCategory={customize.selectedCategory}
+        selectedEffect={customize.selectedEffect}
+        selectedEffectsByCategory={customize.selectedEffectsByCategory}
+        onCategorySelect={customize.onCategorySelect}
+        onClose={() => setIsCustomizeOpen(false)}
+        onEffectSelect={customize.onEffectSelect}
+        onGoToStore={(category) =>
+          navigate(`/store?category=${encodeURIComponent(category)}`)
+        }
+        onPurchaseOpen={() => navigate('/store')}
+        onReset={customize.onReset}
+        onSave={handleCustomizeSave}
+      />
       )}
 
       {memberActionToastMessage && (

@@ -17,6 +17,21 @@ const CUSTOMIZE_CATEGORIES: Exclude<StoreCategory, '전체'>[] = [
   '칭호',
 ]
 
+type CategorySelections = Record<Exclude<StoreCategory, '전체'>, number | null>
+
+const getInitialSelections = (effects: StoreEffect[]): CategorySelections => {
+  const initial = {} as CategorySelections
+
+  for (const category of CUSTOMIZE_CATEGORIES) {
+    const equippedEffect = effects.find(
+      (effect) => effect.category === category && effect.status === 'equipped',
+    )
+    initial[category] = equippedEffect?.id ?? null
+  }
+
+  return initial
+}
+
 type UseProfileCustomizeParams = {
   isOpen: boolean
   onEquippedItemsChange: (equippedItems: EquippedItemsResponse) => void
@@ -30,8 +45,9 @@ export function useProfileCustomize({
 }: UseProfileCustomizeParams) {
   const [selectedCategory, setSelectedCategory] =
     useState<Exclude<StoreCategory, '전체'>>('이름 색상')
-  const [selectedEffectId, setSelectedEffectId] =
-    useState<number | null | undefined>(undefined)
+  const [selections, setSelections] = useState<CategorySelections>(
+    getInitialSelections([]),
+  )
   const [storeEffects, setStoreEffects] = useState<StoreEffect[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isActionPending, setIsActionPending] = useState(false)
@@ -47,13 +63,14 @@ export function useProfileCustomize({
     const loadItems = async () => {
       setIsLoading(true)
       setErrorMessage('')
-
+    
       try {
         const response = await getShopItems()
         const effects = response.items.map(mapShopItemToStoreEffect)
-
+    
         if (!shouldIgnore) {
           setStoreEffects(effects)
+          setSelections(getInitialSelections(effects))
         }
       } catch {
         if (!shouldIgnore) {
@@ -87,46 +104,41 @@ export function useProfileCustomize({
     () => categoryEffects.filter((effect) => effect.status === 'recommended'),
     [categoryEffects],
   )
+  const selectedEffectId = selections[selectedCategory]
   const selectedEffect =
-  selectedEffectId === null || selectedEffectId === undefined
-    ? null
-    : categoryEffects.find((effect) => effect.id === selectedEffectId) ?? null
-
-  useEffect(() => {
-    setSelectedEffectId((currentId) => {
-      if (currentId === null) {
-        return currentId
-      }
-
-      if (
-        currentId !== undefined &&
-        categoryEffects.some((effect) => effect.id === currentId)
-      ) {
-        return currentId
-      }
-
-      return (
-        ownedEffects.find((effect) => effect.status === 'equipped') ??
-        ownedEffects[0]
-      )?.id
-    })
-  }, [categoryEffects, ownedEffects])
-
+    selectedEffectId === null
+      ? null
+      : categoryEffects.find((effect) => effect.id === selectedEffectId) ?? null
+  
+  const getEffectById = (id: number | null) =>
+    id === null ? null : storeEffects.find((effect) => effect.id === id) ?? null
+  
+  const selectedEffectsByCategory = useMemo(
+    () => ({
+      '이름 색상': getEffectById(selections['이름 색상']),
+      '테두리': getEffectById(selections['테두리']),
+      '칭호': getEffectById(selections['칭호']),
+    }),
+    [selections, storeEffects],
+  )
+  
   const onCategorySelect = (category: StoreCategory) => {
     if (category === '전체') {
       return
     }
-
+  
     setSelectedCategory(category)
-    setSelectedEffectId(undefined)
   }
-
+  
   const onEffectSelect = (effect: StoreEffect | null) => {
-    setSelectedEffectId(effect?.id ?? null)
+    setSelections((current) => ({
+      ...current,
+      [selectedCategory]: effect?.id ?? null,
+    }))
   }
-
+  
   const onReset = () => {
-    setSelectedEffectId(null)
+    setSelections(getInitialSelections(storeEffects))
   }
 
   const onSave = async () => {
@@ -169,6 +181,7 @@ export function useProfileCustomize({
     recommendedEffects,
     selectedCategory,
     selectedEffect,
+    selectedEffectsByCategory, 
     onCategorySelect,
     onEffectSelect,
     onReset,
