@@ -141,12 +141,18 @@ export const RankingSection = styled.section`
 `;
 export const PostSection = styled.section`
   flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
-  padding: 14px 0 28px;
+  padding: 14px 0 10px;
   border-top: 1px solid #eee;
 
   ${PanelTitle} {
     margin: 0 16px 8px;
+  }
+
+  > h2 + * {
+    margin-top: auto;
   }
 `;
 export const PanelHeader = styled.div`
