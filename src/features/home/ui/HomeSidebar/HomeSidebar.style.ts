@@ -33,6 +33,7 @@ const Card = styled.section`
 `;
 export const ProfileCard = styled(Card)`
   height: 35%;
+  padding-bottom: 4px;
   flex-shrink: 0;
 `;
 export const PopularCard = styled(Card)`
