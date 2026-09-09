@@ -4,7 +4,12 @@ import '@blocknote/mantine/style.css'
 import type { Block } from '@blocknote/core'
 import { BlockNoteView } from '@blocknote/mantine'
 import { useCreateBlockNote } from '@blocknote/react'
-import type { MouseEvent } from 'react'
+import {
+  type MouseEvent,
+  type SyntheticEvent,
+  useEffect,
+  useRef,
+} from 'react'
 
 import {
   getCommunityFileDownloadUrl,
@@ -60,6 +65,7 @@ export function CommunityPostBlockContent({
   blocks,
   files,
 }: CommunityPostBlockContentProps) {
+  const contentRef = useRef<HTMLDivElement>(null)
   const normalizedBlocks = normalizeMediaUrls(blocks, files)
   const editor = useCreateBlockNote({
     initialContent: normalizedBlocks,
@@ -93,8 +99,63 @@ export function CommunityPostBlockContent({
     window.open(downloadUrl, '_blank', 'noopener,noreferrer')
   }
 
+  function handleMediaLoadState(event: SyntheticEvent<HTMLDivElement>) {
+    if (!(event.target instanceof HTMLImageElement)) {
+      return
+    }
+
+    const mediaWrapper = event.target.closest<HTMLElement>(
+      '.bn-visual-media-wrapper',
+    )
+
+    if (mediaWrapper) {
+      mediaWrapper.dataset.mediaLoading = 'false'
+    }
+  }
+
+  useEffect(() => {
+    const content = contentRef.current
+
+    if (!content) {
+      return
+    }
+
+    const syncMediaLoadingStates = () => {
+      content.querySelectorAll<HTMLImageElement>('.bn-visual-media').forEach(
+        (image) => {
+          const mediaWrapper = image.closest<HTMLElement>(
+            '.bn-visual-media-wrapper',
+          )
+
+          if (mediaWrapper) {
+            mediaWrapper.dataset.mediaLoading = String(!image.complete)
+          }
+        },
+      )
+    }
+
+    const observer = new MutationObserver(syncMediaLoadingStates)
+
+    syncMediaLoadingStates()
+    observer.observe(content, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['src'],
+    })
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [editor])
+
   return (
-    <div onClick={handleFileBlockClick}>
+    <div
+      ref={contentRef}
+      onClick={handleFileBlockClick}
+      onLoadCapture={handleMediaLoadState}
+      onErrorCapture={handleMediaLoadState}
+    >
       <BlockNoteView
         className="community-post-blocks"
         editor={editor}

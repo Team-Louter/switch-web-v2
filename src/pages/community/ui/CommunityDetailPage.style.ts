@@ -480,8 +480,27 @@ export const BodyText = styled.div`
 
   .community-post-blocks [data-file-block] .bn-file-block-content-wrapper,
   .community-post-blocks [data-file-block] .bn-visual-media-wrapper {
+    position: relative;
     box-sizing: border-box;
     max-width: 100% !important;
+  }
+
+  .community-post-blocks
+    [data-file-block]
+    .bn-visual-media-wrapper[data-media-loading='true'] {
+    min-height: 180px;
+  }
+
+  .community-post-blocks
+    [data-file-block]
+    .bn-visual-media-wrapper[data-media-loading='true']::after {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    border-radius: ${token.shapes.small};
+    pointer-events: none;
+    content: '';
+    ${skeletonSurface}
   }
 
   .community-post-blocks [data-file-block] .bn-visual-media {
