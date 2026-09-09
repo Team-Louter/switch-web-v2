@@ -35,6 +35,24 @@ export function formatCommunityDate(dateValue: string): string {
   return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
+/** 목록에서는 연도를 생략해 행 밀도를 유지하되, 다른 연도는 구분한다. */
+export function formatCommunityListDate(dateValue: string): string {
+  const date = new Date(dateValue)
+
+  if (Number.isNaN(date.getTime())) {
+    return dateValue
+  }
+
+  const pad = (value: number) => value.toString().padStart(2, '0')
+  const monthAndDay = `${pad(date.getMonth() + 1)}.${pad(date.getDate())}`
+
+  if (date.getFullYear() === new Date().getFullYear()) {
+    return monthAndDay
+  }
+
+  return `${date.getFullYear().toString().slice(-2)}.${monthAndDay}`
+}
+
 export function resolveCommunityAssetUrl(
   assetUrl: string | undefined,
 ): string | undefined {

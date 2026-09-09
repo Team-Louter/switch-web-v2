@@ -35,9 +35,7 @@ import {
   togglePostHeart,
   updateComment,
 } from '@/features/community'
-import commentIcon from '@/shared/assets/my/comment-icon.svg'
 import eyeIcon from '@/shared/assets/my/eye-icon.svg'
-import heartIcon from '@/shared/assets/my/heart-icon.svg'
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
 import { parseBlockNotePostContent } from '@/shared/lib/blockNotePostContent'
 import { renderCustomUnderlineMarkdown } from '@/shared/lib/markdown'
@@ -45,7 +43,9 @@ import { Button, ConfirmModal } from '@/shared/ui'
 
 import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg'
 import backChevronIcon from '../assets/svg/back-chevron.svg'
+import commentOutlineIcon from '../assets/svg/comment-outline.svg'
 import heartColoredIcon from '../assets/svg/heart-colored.svg'
+import heartOutlineIcon from '../assets/svg/heart-outline.svg'
 import kebabIcon from '../assets/svg/kebab.svg'
 import paperclipIcon from '../assets/svg/paperclip.svg'
 import pinIcon from '../assets/svg/pin-solid.svg'
@@ -898,13 +898,13 @@ export function CommunityDetailPage() {
                     onClick={handleHeartToggle}
                   >
                     <S.StatIcon
-                      src={post.isHearted ? heartColoredIcon : heartIcon}
+                      src={post.isHearted ? heartColoredIcon : heartOutlineIcon}
                       alt="좋아요"
                     />
                     <CommunityRollingNumber value={post.likeCount} />
                   </S.HeartButton>
                   <S.Stat>
-                    <S.StatIcon src={commentIcon} alt="댓글" />
+                    <S.StatIcon src={commentOutlineIcon} alt="댓글" />
                     {post.commentCount}
                   </S.Stat>
                   <S.Stat>

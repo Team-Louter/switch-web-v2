@@ -4,10 +4,11 @@ import {
   useEffect,
   useState,
 } from 'react'
+import { PiNoteBlank, PiPencilSimpleLineBold } from 'react-icons/pi'
 import { useNavigate } from 'react-router-dom'
 
 import {
-  formatCommunityDate,
+  formatCommunityListDate,
   getPostCategoryLabel,
   getPosts,
   POST_CATEGORY_OPTIONS,
@@ -16,12 +17,14 @@ import {
   type PostResponse,
 } from '@/entities/community'
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
-import commentIcon from '@/shared/assets/my/comment-icon.svg'
 import eyeIcon from '@/shared/assets/my/eye-icon.svg'
-import heartIcon from '@/shared/assets/my/heart-icon.svg'
 import { Button } from '@/shared/ui'
 
+import commentOutlineIcon from '../assets/svg/comment-outline.svg'
 import heartColoredIcon from '../assets/svg/heart-colored.svg'
+import heartOutlineIcon from '../assets/svg/heart-outline.svg'
+import fileAttachmentIcon from '../assets/svg/file-attachment.svg'
+import imageAttachmentIcon from '../assets/svg/image-attachment.svg'
 import pinIcon from '../assets/svg/pin-solid.svg'
 import {
   Author,
@@ -32,11 +35,12 @@ import {
   CategoryTabs,
   Content,
   Date,
+  EmptyDescription,
+  EmptyIcon,
+  EmptyState,
+  EmptyTitle,
   Header,
-  Heading,
-  HeadingDescription,
-  HeadingGroup,
-  HeadingRow,
+  ImageAttachmentIcon,
   Page,
   PageButton,
   Pagination,
@@ -45,6 +49,7 @@ import {
   PostList,
   PostRow,
   PostTitle,
+  PostTitleText,
   SkeletonAuthor,
   SkeletonCategory,
   SkeletonDate,
@@ -56,6 +61,8 @@ import {
   Stats,
   StatusMessage,
   StatusState,
+  TabActionRow,
+  WriteButton,
 } from './CommunityPage.style'
 
 interface CategoryTabItem {
@@ -64,7 +71,7 @@ interface CategoryTabItem {
 }
 
 const CATEGORY_TABS: readonly CategoryTabItem[] = [
-  { value: null, label: '전체 글' },
+  { value: null, label: '전체글' },
   ...POST_CATEGORY_OPTIONS,
 ]
 
@@ -166,31 +173,26 @@ export function CommunityPage() {
     <Page>
       <Content>
         <Header>
-          <HeadingRow>
-            <HeadingGroup>
-              <Heading>커뮤니티</Heading>
-              <HeadingDescription>
-                동아리의 최신 소식을 부원들과 공유해 보세요!
-              </HeadingDescription>
-            </HeadingGroup>
-            <Button size="md" onClick={handleWritePost}>
-              새 글 쓰기
-            </Button>
-          </HeadingRow>
-          <CategoryTabs role="tablist" aria-label="게시글 카테고리">
-            {CATEGORY_TABS.map((category) => (
-              <CategoryTab
-                key={category.label}
-                type="button"
-                role="tab"
-                aria-selected={selectedCategory === category.value}
-                $active={selectedCategory === category.value}
-                onClick={() => handleCategorySelect(category.value)}
-              >
-                {category.label}
-              </CategoryTab>
-            ))}
-          </CategoryTabs>
+          <TabActionRow>
+            <CategoryTabs role="tablist" aria-label="게시글 카테고리">
+              {CATEGORY_TABS.map((category) => (
+                <CategoryTab
+                  key={category.label}
+                  type="button"
+                  role="tab"
+                  aria-selected={selectedCategory === category.value}
+                  $active={selectedCategory === category.value}
+                  onClick={() => handleCategorySelect(category.value)}
+                >
+                  {category.label}
+                </CategoryTab>
+              ))}
+            </CategoryTabs>
+            <WriteButton size="sm" onClick={handleWritePost}>
+              <PiPencilSimpleLineBold size={16} aria-hidden="true" />
+              글쓰기
+            </WriteButton>
+          </TabActionRow>
         </Header>
 
         <PostList aria-label="게시글 목록" aria-busy={isLoading}>
@@ -218,9 +220,13 @@ export function CommunityPage() {
           )}
 
           {!isLoading && !loadError && posts.length === 0 && (
-            <StatusState>
-              <StatusMessage>아직 등록된 게시글이 없습니다.</StatusMessage>
-            </StatusState>
+            <EmptyState>
+              <EmptyIcon>
+                <PiNoteBlank size={18} aria-hidden="true" />
+              </EmptyIcon>
+              <EmptyTitle>등록된 게시글이 없습니다.</EmptyTitle>
+              <EmptyDescription>첫 게시글을 작성해 보세요.</EmptyDescription>
+            </EmptyState>
           )}
 
           {!isLoading &&
@@ -229,6 +235,12 @@ export function CommunityPage() {
               const authorImage =
                 resolveCommunityAssetUrl(post.userProfileImageUrl) ??
                 fallbackProfileImage
+              const hasImageAttachment = post.files?.some((file) =>
+                file.fileType.startsWith('image/'),
+              )
+              const hasFileAttachment = post.files?.some(
+                (file) => !file.fileType.startsWith('image/'),
+              )
 
               return (
                 <PostRow
@@ -249,7 +261,13 @@ export function CommunityPage() {
                     <PinnedIcon src={pinIcon} alt="고정된 게시글" />
                   )}
                   <PostTitle $pinned={post.pinned}>
-                    {post.postTitle}
+                    <PostTitleText>{post.postTitle}</PostTitleText>
+                    {hasImageAttachment && (
+                      <ImageAttachmentIcon src={imageAttachmentIcon} alt="" />
+                    )}
+                    {hasFileAttachment && (
+                      <ImageAttachmentIcon src={fileAttachmentIcon} alt="" />
+                    )}
                   </PostTitle>
                   <Author>
                     <AuthorImage
@@ -257,24 +275,30 @@ export function CommunityPage() {
                       alt={`${post.userName} 프로필`}
                       onError={handleProfileImageError}
                     />
-                    <AuthorName>{post.userName}</AuthorName>
+                    <AuthorName $pinned={post.pinned}>
+                      {post.userName}
+                    </AuthorName>
                   </Author>
                   <Date dateTime={post.createdAt}>
-                    {formatCommunityDate(post.createdAt)}
+                    {formatCommunityListDate(post.createdAt)}
                   </Date>
                   <Stats
                     aria-label={`좋아요 ${post.likeCount}, 댓글 ${post.commentCount}, 조회 ${post.viewers}`}
                   >
                     <Stat>
                       <StatIcon
-                        src={post.isHearted ? heartColoredIcon : heartIcon}
+                        src={post.isHearted ? heartColoredIcon : heartOutlineIcon}
                         alt=""
                         $kind="heart"
                       />
                       {post.likeCount}
                     </Stat>
                     <Stat>
-                      <StatIcon src={commentIcon} alt="" $kind="comment" />
+                      <StatIcon
+                        src={commentOutlineIcon}
+                        alt=""
+                        $kind="comment"
+                      />
                       {post.commentCount}
                     </Stat>
                     <Stat>
