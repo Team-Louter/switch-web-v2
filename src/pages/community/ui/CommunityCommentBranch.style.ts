@@ -18,6 +18,10 @@ interface CommentTreeNodeProps {
   $hasNextSibling?: boolean
 }
 
+interface CommentChildrenProps {
+  $isFlattened: boolean
+}
+
 interface RepliesCaretProps {
   $isOpen: boolean
 }
@@ -131,7 +135,7 @@ export const RepliesToggleRow = styled.div<RepliesToggleRowProps>`
   }
 `
 
-export const CommentChildren = styled.div`
+export const CommentChildren = styled.div<CommentChildrenProps>`
   ${token.flexColumn}
   box-sizing: border-box;
   gap: 12px;
@@ -140,16 +144,32 @@ export const CommentChildren = styled.div`
   margin-left: 20px;
   padding-left: 28px;
 
+  ${({ $isFlattened }) =>
+    $isFlattened &&
+    css`
+      width: 100%;
+      margin-left: 0;
+      padding-left: 0;
+    `}
+
   @container community-detail (max-width: 520px) {
-    width: calc(100% - 12px);
-    margin-left: 12px;
-    padding-left: 16px;
+    ${({ $isFlattened }) =>
+      !$isFlattened &&
+      css`
+        width: calc(100% - 12px);
+        margin-left: 12px;
+        padding-left: 16px;
+      `}
   }
 
   @container community-detail (max-width: 380px) {
-    width: calc(100% - 8px);
-    margin-left: 8px;
-    padding-left: 12px;
+    ${({ $isFlattened }) =>
+      !$isFlattened &&
+      css`
+        width: calc(100% - 8px);
+        margin-left: 8px;
+        padding-left: 12px;
+      `}
   }
 `
 
@@ -485,6 +505,13 @@ export const CommentText = styled.p<CommentTextProps>`
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1.5;
   overflow-wrap: anywhere;
+`
+
+export const CommentMention = styled.span`
+  margin-right: 6px;
+  color: ${token.colors.primary.primary60};
+  ${token.typography('body', 'lg', 'semibold')}
+  white-space: nowrap;
 `
 
 export const CommentEditForm = styled.div`

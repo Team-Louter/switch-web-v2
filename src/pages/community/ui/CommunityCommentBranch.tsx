@@ -24,6 +24,8 @@ import {
 } from './communityCommentTree'
 import * as S from './CommunityCommentBranch.style'
 
+const FLATTENED_TREE_DEPTH = 4
+
 interface ReplyLoadingSkeletonProps {
   isWithinReplies?: boolean
 }
@@ -38,6 +40,7 @@ interface CommunityCommentBranchProps {
   currentMemberId: number | null
   loadedReplyCommentIds: ReadonlySet<number>
   replyAuthorProfileImageUrl?: string
+  replyToUserName?: string
   isExpandedByAncestor?: boolean
   hasNextSibling?: boolean
 }
@@ -70,6 +73,7 @@ export function CommunityCommentBranch({
   currentMemberId,
   loadedReplyCommentIds,
   replyAuthorProfileImageUrl,
+  replyToUserName,
   isExpandedByAncestor = false,
   hasNextSibling = false,
 }: CommunityCommentBranchProps) {
@@ -106,6 +110,8 @@ export function CommunityCommentBranch({
   const shouldShowReplies =
     hasReplies && (isExpandedByAncestor || isRepliesOpen)
   const hasCollapseControl = !isExpandedByAncestor
+  const shouldFlattenChildTree =
+    comment.depth >= FLATTENED_TREE_DEPTH - 1
   const repliesToggleLabel = isRepliesOpen
     ? '답글 숨기기'
     : `답글 ${totalReplyCount}개`
@@ -360,6 +366,9 @@ export function CommunityCommentBranch({
             ) : (
               <>
                 <S.CommentText $isDeleted={comment.deleted}>
+                  {replyToUserName && (
+                    <S.CommentMention>@{replyToUserName}</S.CommentMention>
+                  )}
                   {comment.content}
                 </S.CommentText>
                 <S.ReplyActionButton
@@ -458,7 +467,7 @@ export function CommunityCommentBranch({
       {hasReplies && (
         <>
           {shouldShowReplies && (
-            <S.CommentChildren>
+            <S.CommentChildren $isFlattened={shouldFlattenChildTree}>
               {node.children.map((child, index) => {
                 const hasFollowingItem =
                   index < node.children.length - 1 || hasCollapseControl
@@ -475,6 +484,11 @@ export function CommunityCommentBranch({
                     currentMemberId={currentMemberId}
                     loadedReplyCommentIds={loadedReplyCommentIds}
                     replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
+                    replyToUserName={
+                      child.comment.depth >= FLATTENED_TREE_DEPTH
+                        ? comment.userName
+                        : undefined
+                    }
                     isExpandedByAncestor={shouldShowReplies}
                     hasNextSibling={hasFollowingItem}
                   />
