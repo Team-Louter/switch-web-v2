@@ -303,13 +303,14 @@ export const PostCategory = styled.span`
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  min-height: 26px;
   padding: 3px 10px;
   border: 1px solid ${token.colors.primary.text};
   border-radius: ${token.shapes.medium};
   color: ${token.colors.primary.text};
   background: transparent;
   ${token.typography('body', 'sm', 'medium')}
-  line-height: 1;
+  line-height: 20px;
   white-space: nowrap;
 `
 
