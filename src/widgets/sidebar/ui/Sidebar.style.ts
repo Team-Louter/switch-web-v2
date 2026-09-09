@@ -8,11 +8,15 @@ export const Aside = styled.aside`
   ${token.flexColumnStart}
   width: 100%;
   min-width: 220px;
-  min-height: calc(100dvh - clamp(40px, 4vw, 60px));
-  gap: clamp(24px, 3.25dvh, 40px);
+  height: 100%;
+  min-height: 0;
+  gap: clamp(20px, 3.25dvh, 40px);
   padding: 36px 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border-radius: ${token.shapes.xlarge};
   background: ${token.colors.gray.gray0};
+
 `
 
 export const LogoArea = styled.div`
@@ -21,6 +25,19 @@ export const LogoArea = styled.div`
   width: 100%;
   padding: 0 10px;
 `
+
+export const LogoButton = styled.button`
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary40};
+    outline-offset: 4px;
+  }
+`;
 
 export const Logo = styled.img`
   width: 91.667px;
@@ -31,15 +48,15 @@ export const MenuList = styled.div`
   ${token.flexColumnStart}
   flex: 0 0 auto;
   width: 100%;
-  gap: 15px;
+  gap: clamp(10px, 1.74dvh, 15px);
 `
 
 export const MenuButton = styled.button<{ $active?: boolean }>`
   ${token.flexLeft}
   width: 100%;
-  gap: 15px;
+  gap: clamp(12px, 1.74dvh, 15px);
   overflow: hidden;
-  padding: 13px 10px;
+  padding: clamp(10px, 1.51dvh, 13px) clamp(8px, 1.16dvh, 10px);
   border-radius: ${token.shapes.medium};
   background: ${({ $active }) => ($active ? token.colors.white : 'transparent')};
   transition:
@@ -95,6 +112,8 @@ export const MenuLabel = styled.span<{ $active?: boolean }>`
   line-height: 1;
   white-space: nowrap;
   ${token.typography('body', 'md', 'semibold')}
+
+  font-size: clamp(14px, 1.85dvh, 16px);
 `
 
 export type NotificationCountAnimationDirection = 'increase' | 'decrease'
@@ -165,9 +184,9 @@ export const ProfileButton = styled.button`
   ${token.flexLeft}
   flex: 0 0 auto;
   width: 100%;
-  gap: 10px;
+  gap: clamp(8px, 1.16dvh, 10px);
   overflow: hidden;
-  padding: 13px 10px;
+  padding: clamp(10px, 1.51dvh, 13px) clamp(8px, 1.16dvh, 10px);
   border-radius: ${token.shapes.medium};
 
   &:focus-visible {
@@ -178,11 +197,12 @@ export const ProfileButton = styled.button`
 
 export const AvatarWrap = styled.div`
   position: relative;
-  flex: 0 0 43px;
-  width: 43px;
-  height: 43px;
+  flex: 0 0 clamp(36px, 4.98dvh, 43px);
+  width: clamp(36px, 4.98dvh, 43px);
+  height: clamp(36px, 4.98dvh, 43px);
   overflow: hidden;
   border-radius: ${token.shapes.circle};
+
 `
 
 export const Avatar = styled.img`
@@ -195,10 +215,11 @@ export const ProfileText = styled.div`
   ${token.flexColumn}
   align-items: flex-start;
   justify-content: center;
-  gap: 5px;
+  gap: clamp(3px, 0.58dvh, 5px);
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
+
 `
 
 export const ProfileName = styled.span`
@@ -208,6 +229,8 @@ export const ProfileName = styled.span`
   line-height: 1;
   text-overflow: ellipsis;
   ${token.typography('body', 'lg', 'semibold')}
+
+  font-size: clamp(15px, 1.85dvh, 16px);
 `
 
 export const ProfileMeta = styled.span`
@@ -217,4 +240,6 @@ export const ProfileMeta = styled.span`
   line-height: 1;
   text-overflow: ellipsis;
   ${token.typography('caption', 'sm', 'regular')}
+
+  font-size: clamp(11px, 1.39dvh, 12px);
 `
