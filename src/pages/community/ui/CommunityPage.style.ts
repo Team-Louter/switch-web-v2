@@ -484,7 +484,7 @@ export const StatIcon = styled.img<{ $kind: StatIconKind }>`
 
 export const Pagination = styled.nav`
   ${token.flexCenter}
-  gap: 12px;
+  gap: 8px;
 
   @container community-page (max-width: 430px) {
     gap: 6px;
@@ -494,15 +494,15 @@ export const Pagination = styled.nav`
 export const PageButton = styled.button<{ $active: boolean }>`
   ${token.flexCenter}
   box-sizing: border-box;
-  width: 36px;
-  height: 36px;
-  padding: 7px 12px;
+  width: 28px;
+  height: 28px;
+  padding: 4px;
   border: 0;
   border-radius: ${token.shapes.large};
   color: ${token.colors.gray.gray100};
   background: ${({ $active }) =>
     $active ? token.colors.primary.primary20 : 'transparent'};
-  ${token.typography('heading', 'sm', 'medium')}
+  ${token.typography('body', 'sm', 'medium')}
   line-height: 1;
   cursor: pointer;
 
