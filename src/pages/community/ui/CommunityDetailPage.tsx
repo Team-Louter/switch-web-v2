@@ -54,6 +54,7 @@ import { CommunityCommentBranch } from './CommunityCommentBranch'
 import { CommunityPostBlockContent } from './CommunityPostBlockContent'
 import { CommunityRollingNumber } from './CommunityRollingNumber'
 import {
+  REPLY_LOAD_DEPTH_INTERVAL,
   appendCommentReplies,
   appendReplyComment,
   buildCommentTree,
@@ -314,22 +315,53 @@ export function CommunityDetailPage() {
     }
 
     try {
-      const replies = await getCommentReplies(post.postId, parentCommentId)
-      const directReplies = replies.map((reply) => ({
-        ...reply,
-        depth: parentComment.depth + 1,
-      }))
+      const replyPostId = post.postId
+      const maxReplyDepth =
+        parentComment.depth + REPLY_LOAD_DEPTH_INTERVAL
+      const requestedCommentIds = new Set<number>([parentCommentId])
+
+      async function loadReplyBranch(
+        comment: CommentResponse,
+        depth: number,
+      ): Promise<CommentResponse[]> {
+        const currentComment = await withTotalReplyCount(replyPostId, {
+          ...comment,
+          depth,
+        })
+
+        if (depth >= maxReplyDepth) {
+          return [currentComment]
+        }
+
+        requestedCommentIds.add(comment.commentId)
+        const replies = await getCommentReplies(replyPostId, comment.commentId)
+        const replyBranches = await Promise.all(
+          replies.map((reply) => loadReplyBranch(reply, depth + 1)),
+        )
+
+        return [currentComment, ...replyBranches.flat()]
+      }
+
+      const replies = await getCommentReplies(replyPostId, parentCommentId)
+      const replyBranches = await Promise.all(
+        replies.map((reply) =>
+          loadReplyBranch(reply, parentComment.depth + 1),
+        ),
+      )
 
       setComments((currentComments) =>
         appendCommentReplies(
           currentComments,
           parentCommentId,
-          directReplies,
+          replyBranches.flat(),
         ),
       )
       setLoadedReplyCommentIds((currentIds) => {
         const nextIds = new Set(currentIds)
-        nextIds.add(parentCommentId)
+
+        for (const commentId of requestedCommentIds) {
+          nextIds.add(commentId)
+        }
 
         return nextIds
       })
