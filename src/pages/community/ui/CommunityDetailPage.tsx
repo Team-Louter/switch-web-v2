@@ -324,10 +324,10 @@ export function CommunityDetailPage() {
         comment: CommentResponse,
         depth: number,
       ): Promise<CommentResponse[]> {
-        const currentComment = await withTotalReplyCount(replyPostId, {
+        const currentComment = {
           ...comment,
           depth,
-        })
+        }
 
         if (depth >= maxReplyDepth) {
           return [currentComment]
