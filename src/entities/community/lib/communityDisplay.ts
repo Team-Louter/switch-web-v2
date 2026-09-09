@@ -120,7 +120,7 @@ function getFileKeyFromPresignedUrl(fileUrl: URL): string | undefined {
   }
 
   if (postsPathIndex < 0) {
-    return undefined
+    return normalizedPathname.replace(/^\/+/, '') || undefined
   }
 
   return normalizedPathname.slice(postsPathIndex + 1) || undefined
