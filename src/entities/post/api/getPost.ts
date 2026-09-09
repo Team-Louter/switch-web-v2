@@ -6,6 +6,8 @@ export interface RecentHomePost {
   postId: number
   postTitle: string
   viewers: number
+  likeCount?: number
+  isHearted?: boolean
 }
 
 interface MyPostsResponse {

@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MdOutlineRemoveRedEye } from 'react-icons/md';
 import { getHotPosts, getRecentHomePost } from '@/entities/post';
-import type { RecentHomePost } from '@/entities/post';
+import type { Post, RecentHomePost } from '@/entities/post';
 import { useUserStore, formatProfileClassInfo } from '@/entities/profile';
 import { getRankingList } from '@/entities/typing';
 import type { Ranking, TypingProblemType } from '@/entities/typing';
 import medal1stIcon from '../../assets/medal-1st.svg';
 import medal2ndIcon from '../../assets/medal-2nd.svg';
+import heartFilledIcon from '../../assets/heart-filled.svg';
+import heartOutlineIcon from '../../assets/heart-outline.svg';
 import { DEFAULT_TYPING_RANKING_TAB, TYPING_RANKING_TABS } from '../../lib/typingRankingTab';
 import * as S from './HomeSidebar.style';
 
@@ -15,7 +17,7 @@ export function HomeSidebar() {
   const navigate = useNavigate();
   const user = useUserStore((state) => state.user);
   const [recent, setRecent] = useState<RecentHomePost | null>(null);
-  const [popular, setPopular] = useState<RecentHomePost[]>([]);
+  const [popular, setPopular] = useState<Post[]>([]);
   const [rankings, setRankings] = useState<Ranking[]>([]);
   const [rankingType, setRankingType] = useState<TypingProblemType>(DEFAULT_TYPING_RANKING_TAB);
   const [recentStatus, setRecentStatus] = useState('불러오는 중입니다.');
@@ -144,15 +146,21 @@ function RankingItem({ ranking }: { ranking: Ranking }) {
   );
 }
 
-function PostItem({ post }: { post: RecentHomePost }) {
+function PostItem({ post }: { post: RecentHomePost | Post }) {
   const navigate = useNavigate();
   return (
     <S.Post type="button" onClick={() => navigate(`/community/${post.postId}`)}>
       <S.PostTitle>{post.postTitle}</S.PostTitle>
-      <S.Views>
-        <MdOutlineRemoveRedEye aria-hidden="true" />
-        <span>조회수 {post.viewers.toLocaleString()}</span>
-      </S.Views>
+      <S.PostStats>
+        <S.Views>
+          <MdOutlineRemoveRedEye aria-hidden="true" />
+          <span>{post.viewers.toLocaleString()}</span>
+        </S.Views>
+        <S.Likes>
+          <S.HeartIcon src={post.isHearted ? heartFilledIcon : heartOutlineIcon} alt="" />
+          <span>{(post.likeCount ?? 0).toLocaleString()}</span>
+        </S.Likes>
+      </S.PostStats>
     </S.Post>
   );
 }
@@ -161,7 +169,10 @@ function PostSkeleton({ label }: { label?: string }) {
   return (
     <S.PostSkeleton aria-label={label}>
       <S.PostTitleSkeleton />
-      <S.PostViewsSkeleton />
+      <S.PostStatsSkeleton>
+        <S.PostViewsSkeleton />
+        <S.PostLikeSkeleton />
+      </S.PostStatsSkeleton>
     </S.PostSkeleton>
   );
 }

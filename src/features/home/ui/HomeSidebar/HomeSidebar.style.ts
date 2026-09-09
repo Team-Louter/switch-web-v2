@@ -262,6 +262,19 @@ export const Views = styled.span`
   font-size: 13px;
   font-weight: 500;
 `;
+export const PostStats = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: visible;
+`;
+export const Likes = styled(Views)``;
+export const HeartIcon = styled.img`
+  flex: 0 0 auto;
+  width: 13px;
+  height: 12px;
+  overflow: visible;
+`;
 export const Message = styled.p`
   padding: 20px;
   color: #727272;
@@ -286,6 +299,16 @@ export const PostSkeleton = styled.div`
 export const PostTitleSkeleton = styled(SkeletonSurface)`
   width: 58%;
   height: 16px;
+  border-radius: 4px;
+`;
+export const PostStatsSkeleton = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+export const PostLikeSkeleton = styled(SkeletonSurface)`
+  width: 28px;
+  height: 13px;
   border-radius: 4px;
 `;
 export const PostViewsSkeleton = styled(SkeletonSurface)`
