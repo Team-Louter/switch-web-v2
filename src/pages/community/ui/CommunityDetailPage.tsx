@@ -419,8 +419,22 @@ export function CommunityDetailPage() {
 
     try {
       await deleteComment(post.postId, commentId)
-      setComments((currentComments) =>
-        currentComments.map((currentComment) =>
+      setComments((currentComments) => {
+        const commentIndex = currentComments.findIndex(
+          (currentComment) => currentComment.commentId === commentId,
+        )
+        const deletedComment = currentComments[commentIndex]
+        const hasChildComments =
+          deletedComment !== undefined &&
+          currentComments[commentIndex + 1]?.depth > deletedComment.depth
+
+        if (!hasChildComments) {
+          return currentComments.filter(
+            (currentComment) => currentComment.commentId !== commentId,
+          )
+        }
+
+        return currentComments.map((currentComment) =>
           currentComment.commentId === commentId
             ? {
                 ...currentComment,
@@ -428,8 +442,8 @@ export function CommunityDetailPage() {
                 deleted: true,
               }
             : currentComment,
-        ),
-      )
+        )
+      })
       setPost((currentPost) =>
         currentPost
           ? {
