@@ -1,9 +1,9 @@
-import styled, { css, keyframes } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components';
 
-import * as token from '@/shared/styles/values/token'
-import { Button } from '@/shared/ui'
+import * as token from '@/shared/styles/values/token';
+import { Button } from '@/shared/ui';
 
-type StatIconKind = 'heart' | 'comment' | 'view'
+type StatIconKind = 'heart' | 'comment' | 'view';
 
 export const Page = styled.section`
   ${token.flexColumn}
@@ -11,12 +11,12 @@ export const Page = styled.section`
   justify-content: flex-start;
   box-sizing: border-box;
   min-height: 100dvh;
-  padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px)
-    clamp(20px, 2vw, 30px) 0;
+  padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px)
+    0;
   container-name: community-page;
   container-type: inline-size;
   background: ${token.colors.white};
-`
+`;
 
 export const Content = styled.div`
   ${token.flexColumn}
@@ -26,7 +26,7 @@ export const Content = styled.div`
   @container community-page (max-width: 760px) {
     gap: 24px;
   }
-`
+`;
 
 export const Header = styled.header`
   ${token.flexColumn}
@@ -50,7 +50,7 @@ export const Header = styled.header`
   > * {
     position: relative;
   }
-`
+`;
 
 export const TabActionRow = styled.div`
   ${token.flexLeft}
@@ -64,7 +64,7 @@ export const TabActionRow = styled.div`
   @container community-page (max-width: 600px) {
     gap: 8px;
   }
-`
+`;
 
 export const WriteButton = styled(Button)`
   gap: 6px;
@@ -75,7 +75,7 @@ export const WriteButton = styled(Button)`
     flex: 0 0 auto;
     color: currentColor;
   }
-`
+`;
 
 export const CategoryTabs = styled.div`
   display: flex;
@@ -92,8 +92,7 @@ export const CategoryTabs = styled.div`
   &::-webkit-scrollbar {
     display: none;
   }
-
-`
+`;
 
 export const CategoryTab = styled.button<{ $active: boolean }>`
   position: relative;
@@ -121,13 +120,13 @@ export const CategoryTab = styled.button<{ $active: boolean }>`
   @container community-page (max-width: 600px) {
     flex-basis: 96px;
   }
-`
+`;
 
 export const PostList = styled.section`
   overflow: hidden;
   width: 100%;
   background: ${token.colors.white};
-`
+`;
 
 export const StatusState = styled.div`
   ${token.flexColumnCenter}
@@ -136,11 +135,11 @@ export const StatusState = styled.div`
   min-height: 240px;
   color: ${token.colors.gray.gray60};
   ${token.typography('body', 'lg', 'medium')}
-`
+`;
 
 export const StatusMessage = styled.p`
   margin: 0;
-`
+`;
 
 export const EmptyState = styled.div`
   ${token.flexColumnCenter}
@@ -149,7 +148,7 @@ export const EmptyState = styled.div`
   min-height: calc(100dvh - 204px);
   padding: 24px;
   border-bottom: 1px solid ${token.colors.gray.gray10};
-`
+`;
 
 export const EmptyIcon = styled.div`
   ${token.flexCenter}
@@ -159,19 +158,19 @@ export const EmptyIcon = styled.div`
   border-radius: ${token.shapes.circle};
   color: ${token.colors.gray.gray40};
   background: ${token.colors.gray.gray0};
-`
+`;
 
 export const EmptyTitle = styled.p`
   margin: 0;
   color: ${token.colors.gray.gray60};
   ${token.typography('body', 'sm', 'semibold')}
-`
+`;
 
 export const EmptyDescription = styled.p`
   margin: 0;
   color: ${token.colors.gray.gray60};
   ${token.typography('caption', 'lg', 'regular')}
-`
+`;
 
 export const PostRow = styled.article`
   display: flex;
@@ -195,7 +194,7 @@ export const PostRow = styled.article`
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: -2px;
   }
-`
+`;
 
 const skeletonShimmer = keyframes`
   from {
@@ -205,7 +204,7 @@ const skeletonShimmer = keyframes`
   to {
     background-position: -200% 0;
   }
-`
+`;
 
 const skeletonSurface = css`
   border-radius: ${token.shapes.small};
@@ -221,7 +220,7 @@ const skeletonSurface = css`
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
-`
+`;
 
 export const SkeletonRow = styled.div`
   display: flex;
@@ -232,7 +231,7 @@ export const SkeletonRow = styled.div`
   height: 56px;
   padding: 6px 10px;
   border-bottom: 1px solid ${token.colors.gray.gray10};
-`
+`;
 
 export const SkeletonCategory = styled.span`
   ${skeletonSurface}
@@ -242,14 +241,14 @@ export const SkeletonCategory = styled.span`
   @container community-page (max-width: 430px) {
     flex-basis: 72px;
   }
-`
+`;
 
 export const SkeletonTitle = styled.span`
   ${skeletonSurface}
   flex: 1 1 0;
   min-width: 0;
   height: 20px;
-`
+`;
 
 export const SkeletonAuthor = styled.span`
   ${skeletonSurface}
@@ -263,7 +262,7 @@ export const SkeletonAuthor = styled.span`
   @container community-page (max-width: 600px) {
     display: none;
   }
-`
+`;
 
 export const SkeletonDate = styled.span`
   ${skeletonSurface}
@@ -279,7 +278,7 @@ export const SkeletonDate = styled.span`
   @container community-page (max-width: 760px) {
     display: none;
   }
-`
+`;
 
 export const SkeletonStats = styled.span`
   ${skeletonSurface}
@@ -304,7 +303,7 @@ export const SkeletonStats = styled.span`
   @container community-page (max-width: 300px) {
     display: none;
   }
-`
+`;
 
 export const CategoryCell = styled.div`
   ${token.flexCenter}
@@ -315,7 +314,7 @@ export const CategoryCell = styled.div`
   @container community-page (max-width: 430px) {
     flex-basis: 84px;
   }
-`
+`;
 
 export const PostCategory = styled.span`
   display: inline-flex;
@@ -331,7 +330,7 @@ export const PostCategory = styled.span`
   ${token.typography('caption', 'lg', 'semibold')}
   line-height: 1;
   white-space: nowrap;
-`
+`;
 
 export const PinnedIcon = styled.img`
   flex: 0 0 20px;
@@ -342,7 +341,7 @@ export const PinnedIcon = styled.img`
     width: 18px;
     height: 18px;
   }
-`
+`;
 
 export const PostTitle = styled.p<{ $pinned: boolean }>`
   display: flex;
@@ -361,7 +360,7 @@ export const PostTitle = styled.p<{ $pinned: boolean }>`
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
-`
+`;
 
 export const PostTitleText = styled.span`
   flex: 0 1 auto;
@@ -369,13 +368,13 @@ export const PostTitleText = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-`
+`;
 
 export const ImageAttachmentIcon = styled.img`
   flex: 0 0 auto;
   width: 14px;
   height: 14px;
-`
+`;
 
 export const Author = styled.div`
   ${token.flexCenter}
@@ -393,7 +392,7 @@ export const Author = styled.div`
   @container community-page (max-width: 600px) {
     display: none;
   }
-`
+`;
 
 export const AuthorImage = styled.img`
   flex: 0 0 auto;
@@ -402,7 +401,7 @@ export const AuthorImage = styled.img`
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.circle};
   object-fit: cover;
-`
+`;
 
 export const AuthorName = styled.p<{ $pinned: boolean }>`
   flex: 0 0 136px;
@@ -414,7 +413,7 @@ export const AuthorName = styled.p<{ $pinned: boolean }>`
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
-`
+`;
 
 export const Date = styled.time`
   ${token.flexCenter}
@@ -435,7 +434,7 @@ export const Date = styled.time`
   @container community-page (max-width: 760px) {
     display: none;
   }
-`
+`;
 
 export const Stats = styled.div`
   display: grid;
@@ -463,7 +462,7 @@ export const Stats = styled.div`
   @container community-page (max-width: 300px) {
     display: none;
   }
-`
+`;
 
 export const Stat = styled.span`
   ${token.flexLeft}
@@ -483,11 +482,11 @@ export const Stat = styled.span`
     gap: 2px;
     font-size: ${token.fontSize.body.sm};
   }
-`
+`;
 
 export const StatValue = styled.span`
   min-width: 3ch;
-`
+`;
 
 export const StatIcon = styled.img<{ $kind: StatIconKind }>`
   flex: 0 0 auto;
@@ -499,7 +498,7 @@ export const StatIcon = styled.img<{ $kind: StatIconKind }>`
     width: ${({ $kind }) => ($kind === 'comment' ? '12px' : '14px')};
     height: ${({ $kind }) => ($kind === 'comment' ? '12px' : '14px')};
   }
-`
+`;
 
 export const Pagination = styled.nav`
   ${token.flexCenter}
@@ -508,7 +507,7 @@ export const Pagination = styled.nav`
   @container community-page (max-width: 430px) {
     gap: 6px;
   }
-`
+`;
 
 export const PageButton = styled.button<{ $active: boolean }>`
   ${token.flexCenter}
@@ -528,4 +527,4 @@ export const PageButton = styled.button<{ $active: boolean }>`
   &:disabled {
     cursor: default;
   }
-`
+`;
