@@ -5,13 +5,13 @@ import {
   useMemo,
   useRef,
   useState,
-} from 'react'
-import { isAxiosError } from 'axios'
-import ReactMarkdown from 'react-markdown'
-import { useNavigate, useParams } from 'react-router-dom'
-import rehypeRaw from 'rehype-raw'
-import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
-import remarkGfm from 'remark-gfm'
+} from 'react';
+import { isAxiosError } from 'axios';
+import ReactMarkdown from 'react-markdown';
+import { useNavigate, useParams } from 'react-router-dom';
+import rehypeRaw from 'rehype-raw';
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
+import remarkGfm from 'remark-gfm';
 
 import {
   formatCommunityDate,
@@ -26,8 +26,8 @@ import {
   resolveCommunityAssetUrl,
   type CommentResponse,
   type PostResponse,
-} from '@/entities/community'
-import { getCurrentMember } from '@/entities/member'
+} from '@/entities/community';
+import { getCurrentMember } from '@/entities/member';
 import {
   createComment,
   deleteComment,
@@ -35,22 +35,22 @@ import {
   setPostPinned,
   togglePostHeart,
   updateComment,
-} from '@/features/community'
-import eyeIcon from '@/shared/assets/my/eye-icon.svg'
-import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
-import { parseBlockNotePostContent } from '@/shared/lib/blockNotePostContent'
-import { renderCustomUnderlineMarkdown } from '@/shared/lib/markdown'
-import { Button, ConfirmModal } from '@/shared/ui'
+} from '@/features/community';
+import eyeIcon from '@/shared/assets/my/eye-icon.svg';
+import fallbackProfileImage from '@/shared/assets/sidebar/profile.png';
+import { parseBlockNotePostContent } from '@/shared/lib/blockNotePostContent';
+import { renderCustomUnderlineMarkdown } from '@/shared/lib/markdown';
+import { Button, ConfirmModal } from '@/shared/ui';
 
-import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg'
-import backChevronIcon from '../assets/svg/back-chevron.svg'
-import commentOutlineIcon from '../assets/svg/comment-outline.svg'
-import heartColoredIcon from '../assets/svg/heart-colored.svg'
-import heartOutlineIcon from '../assets/svg/heart-outline.svg'
-import kebabIcon from '../assets/svg/kebab.svg'
-import paperclipIcon from '../assets/svg/paperclip.svg'
-import pinIcon from '../assets/svg/pin-solid.svg'
-import sendIcon from '../assets/svg/send.svg'
+import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg';
+import backChevronIcon from '../assets/svg/back-chevron.svg';
+import commentOutlineIcon from '../assets/svg/comment-outline.svg';
+import heartColoredIcon from '../assets/svg/heart-colored.svg';
+import heartOutlineIcon from '../assets/svg/heart-outline.svg';
+import kebabIcon from '../assets/svg/kebab.svg';
+import paperclipIcon from '../assets/svg/paperclip.svg';
+import pinIcon from '../assets/svg/pin-solid.svg';
+import sendIcon from '../assets/svg/send.svg';
 import {
   FLATTENED_TREE_DEPTH,
   REPLY_LOAD_DEPTH_INTERVAL,
@@ -61,11 +61,11 @@ import {
   type CommunityCommentUpdateHandler,
   type CommunityReplyLoadHandler,
   type CommunityReplySubmitHandler,
-} from '../model/commentTree'
-import { CommunityCommentBranch } from './CommunityCommentBranch'
-import { CommunityPostBlockContent } from './CommunityPostBlockContent'
-import { CommunityRollingNumber } from './CommunityRollingNumber'
-import * as S from './CommunityDetailPage.style'
+} from '../model/commentTree';
+import { CommunityCommentBranch } from './CommunityCommentBranch';
+import { CommunityPostBlockContent } from './CommunityPostBlockContent';
+import { CommunityRollingNumber } from './CommunityRollingNumber';
+import * as S from './CommunityDetailPage.style';
 
 const markdownSanitizeSchema = {
   ...defaultSchema,
@@ -74,137 +74,141 @@ const markdownSanitizeSchema = {
     ...defaultSchema.attributes,
     img: [...(defaultSchema.attributes?.img ?? []), 'alt', 'width'],
   },
-}
+};
 
-const COMMENT_SKELETON_ITEMS = [0, 1, 2]
-const FLOATING_CONFIRM_ANIMATION_MS = 180
+const COMMENT_SKELETON_ITEMS = [0, 1, 2];
+const FLOATING_CONFIRM_ANIMATION_MS = 180;
 
 async function withTotalReplyCount(
   postId: number,
   comment: CommentResponse,
 ): Promise<CommentResponse> {
   try {
-    const { count } = await getCommentTotalReplyCount(postId, comment.commentId)
+    const { count } = await getCommentTotalReplyCount(
+      postId,
+      comment.commentId,
+    );
 
     return {
       ...comment,
       replyCount: Number.isSafeInteger(count)
         ? Math.max(0, count)
         : comment.replyCount,
-    }
+    };
   } catch {
-    return comment
+    return comment;
   }
 }
 
 export function CommunityDetailPage() {
-  const navigate = useNavigate()
-  const { postId: postIdParam } = useParams()
-  const postId = Number(postIdParam)
-  const [post, setPost] = useState<PostResponse | null>(null)
-  const [comments, setComments] = useState<CommentResponse[]>([])
+  const navigate = useNavigate();
+  const { postId: postIdParam } = useParams();
+  const postId = Number(postIdParam);
+  const [post, setPost] = useState<PostResponse | null>(null);
+  const [comments, setComments] = useState<CommentResponse[]>([]);
   const [loadedReplyCommentIds, setLoadedReplyCommentIds] = useState<
     ReadonlySet<number>
-  >(() => new Set())
-  const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState<string | null>(null)
-  const [isPostNotFound, setIsPostNotFound] = useState(false)
-  const [reloadKey, setReloadKey] = useState(0)
-  const [isCommentsLoading, setIsCommentsLoading] = useState(true)
-  const [commentLoadError, setCommentLoadError] = useState<string | null>(null)
-  const [commentReloadKey, setCommentReloadKey] = useState(0)
-  const [commentContent, setCommentContent] = useState('')
-  const [isAnonymous, setIsAnonymous] = useState(false)
-  const [isCommentSubmitting, setIsCommentSubmitting] = useState(false)
-  const [isHeartMutating, setIsHeartMutating] = useState(false)
-  const [currentMemberId, setCurrentMemberId] = useState<number | null>(null)
+  >(() => new Set());
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isPostNotFound, setIsPostNotFound] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [isCommentsLoading, setIsCommentsLoading] = useState(true);
+  const [commentLoadError, setCommentLoadError] = useState<string | null>(null);
+  const [commentReloadKey, setCommentReloadKey] = useState(0);
+  const [commentContent, setCommentContent] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
+  const [isHeartMutating, setIsHeartMutating] = useState(false);
+  const [currentMemberId, setCurrentMemberId] = useState<number | null>(null);
   const [currentMemberProfileImageUrl, setCurrentMemberProfileImageUrl] =
-    useState<string | undefined>(undefined)
-  const [canManagePostPin, setCanManagePostPin] = useState(false)
-  const [isPinMutating, setIsPinMutating] = useState(false)
-  const [isPostDeleting, setIsPostDeleting] = useState(false)
-  const [isPostDeleteConfirmOpen, setIsPostDeleteConfirmOpen] =
-    useState(false)
-  const [isPostMenuOpen, setIsPostMenuOpen] = useState(false)
+    useState<string | undefined>(undefined);
+  const [canManagePostPin, setCanManagePostPin] = useState(false);
+  const [isPinMutating, setIsPinMutating] = useState(false);
+  const [isPostDeleting, setIsPostDeleting] = useState(false);
+  const [isPostDeleteConfirmOpen, setIsPostDeleteConfirmOpen] = useState(false);
+  const [isPostMenuOpen, setIsPostMenuOpen] = useState(false);
   const [pendingCommentDeleteId, setPendingCommentDeleteId] = useState<
     number | null
-  >(null)
+  >(null);
   const [isCommentDeleteConfirmClosing, setIsCommentDeleteConfirmClosing] =
-    useState(false)
-  const [isCommentDeleting, setIsCommentDeleting] = useState(false)
-  const [isAttachmentListOpen, setIsAttachmentListOpen] = useState(false)
-  const [actionError, setActionError] = useState<string | null>(null)
-  const [postActionError, setPostActionError] = useState<string | null>(null)
-  const postMenuRef = useRef<HTMLDivElement>(null)
-  const attachmentListRef = useRef<HTMLDivElement>(null)
-  const isHeartMutatingRef = useRef(false)
-  const postStatsRefreshVersionRef = useRef(0)
-  const commentDeleteCloseTimerRef = useRef<number | null>(null)
+    useState(false);
+  const [isCommentDeleting, setIsCommentDeleting] = useState(false);
+  const [isAttachmentListOpen, setIsAttachmentListOpen] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [postActionError, setPostActionError] = useState<string | null>(null);
+  const postMenuRef = useRef<HTMLDivElement>(null);
+  const attachmentListRef = useRef<HTMLDivElement>(null);
+  const isHeartMutatingRef = useRef(false);
+  const postStatsRefreshVersionRef = useRef(0);
+  const commentDeleteCloseTimerRef = useRef<number | null>(null);
 
-  const canManagePost = currentMemberId === post?.userId
-  const canOpenPostMenu = canManagePostPin || canManagePost
-  const isPostActionMutating = isPinMutating || isPostDeleting
-  const isPostStatsPollingReady = post?.postId === postId
+  const canManagePost = currentMemberId === post?.userId;
+  const canOpenPostMenu = canManagePostPin || canManagePost;
+  const isPostActionMutating = isPinMutating || isPostDeleting;
+  const isPostStatsPollingReady = post?.postId === postId;
   const replyAuthorProfileImageUrl = resolveCommunityAssetUrl(
     currentMemberProfileImageUrl,
-  )
+  );
   const attachmentFiles =
-    post?.files?.filter((file) => !file.fileType.startsWith('image/')) ?? []
-  const firstAttachment = attachmentFiles[0]
+    post?.files?.filter((file) => !file.fileType.startsWith('image/')) ?? [];
+  const firstAttachment = attachmentFiles[0];
   const resolvePostMediaUrl = (mediaUrl: string | undefined): string => {
     const matchingFile = post?.files?.find(
       (file) => file.fileName === mediaUrl,
-    )
+    );
 
-    return getCommunityFileDownloadUrl(matchingFile?.fileUrl ?? mediaUrl) ?? mediaUrl ?? ''
-  }
-  const serializedPostContent = post?.postContent
+    return (
+      getCommunityFileDownloadUrl(matchingFile?.fileUrl ?? mediaUrl) ??
+      mediaUrl ??
+      ''
+    );
+  };
+  const serializedPostContent = post?.postContent;
   const postBlocks = useMemo(
     () =>
       serializedPostContent
         ? parseBlockNotePostContent(serializedPostContent)
         : null,
     [serializedPostContent],
-  )
-  const commentTree = useMemo(() => buildCommentTree(comments), [comments])
+  );
+  const commentTree = useMemo(() => buildCommentTree(comments), [comments]);
 
   const handleBackToList = () => {
-    navigate('/community')
-  }
+    navigate('/community');
+  };
 
   const handleRetry = () => {
-    setReloadKey((currentKey) => currentKey + 1)
-  }
+    setReloadKey((currentKey) => currentKey + 1);
+  };
 
   const handleCommentsRetry = () => {
-    setCommentReloadKey((currentKey) => currentKey + 1)
-  }
+    setCommentReloadKey((currentKey) => currentKey + 1);
+  };
 
-  const handleProfileImageError = (
-    event: SyntheticEvent<HTMLImageElement>,
-  ) => {
-    event.currentTarget.onerror = null
-    event.currentTarget.src = fallbackProfileImage
-  }
+  const handleProfileImageError = (event: SyntheticEvent<HTMLImageElement>) => {
+    event.currentTarget.onerror = null;
+    event.currentTarget.src = fallbackProfileImage;
+  };
 
   const handleHeartToggle = async () => {
     if (!post || isHeartMutating) {
-      return
+      return;
     }
 
-    postStatsRefreshVersionRef.current += 1
-    isHeartMutatingRef.current = true
-    setIsHeartMutating(true)
-    setActionError(null)
+    postStatsRefreshVersionRef.current += 1;
+    isHeartMutatingRef.current = true;
+    setIsHeartMutating(true);
+    setActionError(null);
 
     try {
-      await togglePostHeart(post.postId)
+      await togglePostHeart(post.postId);
       setPost((currentPost) => {
         if (!currentPost) {
-          return currentPost
+          return currentPost;
         }
 
-        const nextIsHearted = !currentPost.isHearted
+        const nextIsHearted = !currentPost.isHearted;
 
         return {
           ...currentPost,
@@ -213,83 +217,83 @@ export function CommunityDetailPage() {
             0,
             currentPost.likeCount + (nextIsHearted ? 1 : -1),
           ),
-        }
-      })
+        };
+      });
     } catch {
-      setActionError('좋아요 상태를 변경하지 못했습니다.')
+      setActionError('좋아요 상태를 변경하지 못했습니다.');
     } finally {
-      isHeartMutatingRef.current = false
-      setIsHeartMutating(false)
+      isHeartMutatingRef.current = false;
+      setIsHeartMutating(false);
     }
-  }
+  };
 
   const handlePinToggle = async () => {
     if (!post || !canManagePostPin || isPinMutating) {
-      return
+      return;
     }
 
-    const nextPinned = !post.pinned
+    const nextPinned = !post.pinned;
 
-    setIsPinMutating(true)
-    setIsPostMenuOpen(false)
-    setPostActionError(null)
+    setIsPinMutating(true);
+    setIsPostMenuOpen(false);
+    setPostActionError(null);
 
     try {
-      await setPostPinned(post.postId, nextPinned)
+      await setPostPinned(post.postId, nextPinned);
       setPost((currentPost) =>
         currentPost ? { ...currentPost, pinned: nextPinned } : currentPost,
-      )
+      );
     } catch {
       setPostActionError(
         nextPinned
           ? '게시글을 고정하지 못했습니다. 잠시 후 다시 시도해주세요.'
           : '게시글 고정을 해제하지 못했습니다. 잠시 후 다시 시도해주세요.',
-      )
+      );
     } finally {
-      setIsPinMutating(false)
+      setIsPinMutating(false);
     }
-  }
+  };
 
   const handleCommentSubmit = async () => {
-    const trimmedContent = commentContent.trim()
+    const trimmedContent = commentContent.trim();
 
     if (!post || !trimmedContent || isCommentSubmitting) {
-      return
+      return;
     }
 
-    setIsCommentSubmitting(true)
-    setActionError(null)
+    setIsCommentSubmitting(true);
+    setActionError(null);
 
     try {
       const comment = await createComment(post.postId, {
         content: trimmedContent,
         isAnonymous,
-      })
+      });
 
-      setComments((currentComments) => [...currentComments, comment])
+      setComments((currentComments) => [...currentComments, comment]);
       setPost((currentPost) =>
         currentPost
           ? { ...currentPost, commentCount: currentPost.commentCount + 1 }
           : currentPost,
-      )
-      setCommentContent('')
-      setIsAnonymous(false)
+      );
+      setCommentContent('');
+      setIsAnonymous(false);
     } catch {
-      setActionError('댓글을 등록하지 못했습니다.')
+      setActionError('댓글을 등록하지 못했습니다.');
     } finally {
-      setIsCommentSubmitting(false)
+      setIsCommentSubmitting(false);
     }
-  }
+  };
 
   const handleReplySubmit: CommunityReplySubmitHandler = async (
     parentCommentId,
     content,
     replyIsAnonymous,
   ) => {
-    const trimmedContent = content.trim()
+    const trimmedContent = content.trim();
 
     if (!post || !trimmedContent) {
-      return '답글 내용을 입력해주세요.'
+      return '답글 내용을 입력해주세요.';
     }
 
     try {
@@ -297,39 +301,40 @@ export function CommunityDetailPage() {
         content: trimmedContent,
         isAnonymous: replyIsAnonymous,
         parentId: parentCommentId,
-      })
+      });
       setComments((currentComments) =>
         appendReplyComment(currentComments, parentCommentId, replyComment),
-      )
+      );
       setPost((currentPost) =>
         currentPost
           ? { ...currentPost, commentCount: currentPost.commentCount + 1 }
           : currentPost,
-      )
+      );
 
-      return null
+      return null;
     } catch {
-      return '답글을 등록하지 못했습니다.'
+      return '답글을 등록하지 못했습니다.';
     }
-  }
+  };
 
   const handleRepliesLoad: CommunityReplyLoadHandler = async (
     parentCommentId,
   ) => {
     const parentComment = comments.find(
       (comment) => comment.commentId === parentCommentId,
-    )
+    );
 
     if (!post || !parentComment) {
-      return '답글을 불러오지 못했습니다.'
+      return '답글을 불러오지 못했습니다.';
     }
 
     try {
-      const replyPostId = post.postId
-      const maxReplyDepth = parentComment.depth >= FLATTENED_TREE_DEPTH
-        ? Number.POSITIVE_INFINITY
-        : parentComment.depth + REPLY_LOAD_DEPTH_INTERVAL
-      const requestedCommentIds = new Set<number>([parentCommentId])
+      const replyPostId = post.postId;
+      const maxReplyDepth =
+        parentComment.depth >= FLATTENED_TREE_DEPTH
+          ? Number.POSITIVE_INFINITY
+          : parentComment.depth + REPLY_LOAD_DEPTH_INTERVAL;
+      const requestedCommentIds = new Set<number>([parentCommentId]);
 
       async function loadReplyBranch(
         comment: CommentResponse,
@@ -338,27 +343,25 @@ export function CommunityDetailPage() {
         const currentComment = {
           ...comment,
           depth,
-        }
+        };
 
         if (depth >= maxReplyDepth) {
-          return [currentComment]
+          return [currentComment];
         }
 
-        requestedCommentIds.add(comment.commentId)
-        const replies = await getCommentReplies(replyPostId, comment.commentId)
+        requestedCommentIds.add(comment.commentId);
+        const replies = await getCommentReplies(replyPostId, comment.commentId);
         const replyBranches = await Promise.all(
           replies.map((reply) => loadReplyBranch(reply, depth + 1)),
-        )
+        );
 
-        return [currentComment, ...replyBranches.flat()]
+        return [currentComment, ...replyBranches.flat()];
       }
 
-      const replies = await getCommentReplies(replyPostId, parentCommentId)
+      const replies = await getCommentReplies(replyPostId, parentCommentId);
       const replyBranches = await Promise.all(
-        replies.map((reply) =>
-          loadReplyBranch(reply, parentComment.depth + 1),
-        ),
-      )
+        replies.map((reply) => loadReplyBranch(reply, parentComment.depth + 1)),
+      );
 
       setComments((currentComments) =>
         appendCommentReplies(
@@ -366,35 +369,35 @@ export function CommunityDetailPage() {
           parentCommentId,
           replyBranches.flat(),
         ),
-      )
+      );
       setLoadedReplyCommentIds((currentIds) => {
-        const nextIds = new Set(currentIds)
+        const nextIds = new Set(currentIds);
 
         for (const commentId of requestedCommentIds) {
-          nextIds.add(commentId)
+          nextIds.add(commentId);
         }
 
-        return nextIds
-      })
+        return nextIds;
+      });
 
-      return null
+      return null;
     } catch {
-      return '답글을 불러오지 못했습니다.'
+      return '답글을 불러오지 못했습니다.';
     }
-  }
+  };
 
   const handleCommentUpdate: CommunityCommentUpdateHandler = async (
     commentId,
     content,
   ) => {
     if (!post) {
-      return '댓글을 수정하지 못했습니다.'
+      return '댓글을 수정하지 못했습니다.';
     }
 
     try {
       const updatedComment = await updateComment(post.postId, commentId, {
         content,
-      })
+      });
 
       setComments((currentComments) =>
         currentComments.map((currentComment) =>
@@ -402,36 +405,36 @@ export function CommunityDetailPage() {
             ? { ...currentComment, ...updatedComment }
             : currentComment,
         ),
-      )
+      );
 
-      return null
+      return null;
     } catch {
-      return '댓글을 수정하지 못했습니다. 잠시 후 다시 시도해주세요.'
+      return '댓글을 수정하지 못했습니다. 잠시 후 다시 시도해주세요.';
     }
-  }
+  };
 
   const handleCommentDelete: CommunityCommentDeleteHandler = async (
     commentId,
   ) => {
     if (!post) {
-      return '댓글을 삭제하지 못했습니다.'
+      return '댓글을 삭제하지 못했습니다.';
     }
 
     try {
-      await deleteComment(post.postId, commentId)
+      await deleteComment(post.postId, commentId);
       setComments((currentComments) => {
         const commentIndex = currentComments.findIndex(
           (currentComment) => currentComment.commentId === commentId,
-        )
-        const deletedComment = currentComments[commentIndex]
+        );
+        const deletedComment = currentComments[commentIndex];
         const hasChildComments =
           deletedComment !== undefined &&
-          currentComments[commentIndex + 1]?.depth > deletedComment.depth
+          currentComments[commentIndex + 1]?.depth > deletedComment.depth;
 
         if (!hasChildComments) {
           return currentComments.filter(
             (currentComment) => currentComment.commentId !== commentId,
-          )
+          );
         }
 
         return currentComments.map((currentComment) =>
@@ -442,8 +445,8 @@ export function CommunityDetailPage() {
                 deleted: true,
               }
             : currentComment,
-        )
-      })
+        );
+      });
       setPost((currentPost) =>
         currentPost
           ? {
@@ -451,169 +454,171 @@ export function CommunityDetailPage() {
               commentCount: Math.max(0, currentPost.commentCount - 1),
             }
           : currentPost,
-      )
+      );
 
-      return null
+      return null;
     } catch {
-      return '댓글을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.'
+      return '댓글을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.';
     }
-  }
+  };
 
   const clearCommentDeleteCloseTimer = () => {
     if (commentDeleteCloseTimerRef.current !== null) {
-      window.clearTimeout(commentDeleteCloseTimerRef.current)
-      commentDeleteCloseTimerRef.current = null
+      window.clearTimeout(commentDeleteCloseTimerRef.current);
+      commentDeleteCloseTimerRef.current = null;
     }
-  }
+  };
 
   const closeCommentDeleteConfirm = (force = false) => {
     if (pendingCommentDeleteId === null || (isCommentDeleting && !force)) {
-      return
+      return;
     }
 
-    clearCommentDeleteCloseTimer()
-    setIsCommentDeleteConfirmClosing(true)
+    clearCommentDeleteCloseTimer();
+    setIsCommentDeleteConfirmClosing(true);
     commentDeleteCloseTimerRef.current = window.setTimeout(() => {
-      setPendingCommentDeleteId(null)
-      setIsCommentDeleteConfirmClosing(false)
-      commentDeleteCloseTimerRef.current = null
-    }, FLOATING_CONFIRM_ANIMATION_MS)
-  }
+      setPendingCommentDeleteId(null);
+      setIsCommentDeleteConfirmClosing(false);
+      commentDeleteCloseTimerRef.current = null;
+    }, FLOATING_CONFIRM_ANIMATION_MS);
+  };
 
   const handleCommentDeleteRequest = (commentId: number) => {
     if (isCommentDeleting || pendingCommentDeleteId === commentId) {
-      return
+      return;
     }
 
     if (pendingCommentDeleteId === null) {
-      setPendingCommentDeleteId(commentId)
-      return
+      setPendingCommentDeleteId(commentId);
+      return;
     }
 
-    clearCommentDeleteCloseTimer()
-    setIsCommentDeleteConfirmClosing(true)
+    clearCommentDeleteCloseTimer();
+    setIsCommentDeleteConfirmClosing(true);
     commentDeleteCloseTimerRef.current = window.setTimeout(() => {
-      setPendingCommentDeleteId(commentId)
-      setIsCommentDeleteConfirmClosing(false)
-      commentDeleteCloseTimerRef.current = null
-    }, FLOATING_CONFIRM_ANIMATION_MS)
-  }
+      setPendingCommentDeleteId(commentId);
+      setIsCommentDeleteConfirmClosing(false);
+      commentDeleteCloseTimerRef.current = null;
+    }, FLOATING_CONFIRM_ANIMATION_MS);
+  };
 
   const handleCommentDeleteConfirm = async () => {
     if (pendingCommentDeleteId === null || isCommentDeleting) {
-      return
+      return;
     }
 
-    setIsCommentDeleting(true)
-    const deleteError = await handleCommentDelete(pendingCommentDeleteId)
-    setIsCommentDeleting(false)
+    setIsCommentDeleting(true);
+    const deleteError = await handleCommentDelete(pendingCommentDeleteId);
+    setIsCommentDeleting(false);
 
     if (!deleteError) {
-      closeCommentDeleteConfirm(true)
+      closeCommentDeleteConfirm(true);
     }
-  }
+  };
 
   useEffect(
     () => () => {
       if (commentDeleteCloseTimerRef.current !== null) {
-        window.clearTimeout(commentDeleteCloseTimerRef.current)
+        window.clearTimeout(commentDeleteCloseTimerRef.current);
       }
     },
     [],
-  )
+  );
 
   const handleCommentKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      event.preventDefault()
-      void handleCommentSubmit()
+      event.preventDefault();
+      void handleCommentSubmit();
     }
-  }
+  };
 
   const handlePostMenuKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape') {
-      setIsPostMenuOpen(false)
-      event.currentTarget.querySelector<HTMLButtonElement>('button')?.focus()
+      setIsPostMenuOpen(false);
+      event.currentTarget.querySelector<HTMLButtonElement>('button')?.focus();
     }
-  }
+  };
 
   const handlePostEdit = () => {
     if (!post || !canManagePost) {
-      return
+      return;
     }
 
-    setIsPostMenuOpen(false)
-    navigate(`/community/${post.postId}/edit`)
-  }
+    setIsPostMenuOpen(false);
+    navigate(`/community/${post.postId}/edit`);
+  };
 
   const handlePostDeleteRequest = () => {
     if (!post || !canManagePost || isPostDeleting) {
-      return
+      return;
     }
 
-    setIsPostMenuOpen(false)
-    setIsPostDeleteConfirmOpen(true)
-  }
+    setIsPostMenuOpen(false);
+    setIsPostDeleteConfirmOpen(true);
+  };
 
   const handlePostDelete = async () => {
     if (!post || !canManagePost || isPostDeleting) {
-      return
+      return;
     }
 
-    setIsPostDeleting(true)
-    setPostActionError(null)
+    setIsPostDeleting(true);
+    setPostActionError(null);
 
     try {
-      await deletePost(post.postId)
-      setIsPostDeleteConfirmOpen(false)
-      navigate('/community', { replace: true })
+      await deletePost(post.postId);
+      setIsPostDeleteConfirmOpen(false);
+      navigate('/community', { replace: true });
     } catch {
-      setPostActionError('게시글을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.')
+      setPostActionError(
+        '게시글을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.',
+      );
     } finally {
-      setIsPostDeleting(false)
+      setIsPostDeleting(false);
     }
-  }
+  };
 
   const handleAttachmentOpen = (fileKeyOrUrl: string) => {
-    const attachmentUrl = getCommunityFileDownloadUrl(fileKeyOrUrl)
+    const attachmentUrl = getCommunityFileDownloadUrl(fileKeyOrUrl);
 
     if (attachmentUrl) {
-      window.open(attachmentUrl, '_blank', 'noopener,noreferrer')
+      window.open(attachmentUrl, '_blank', 'noopener,noreferrer');
     }
-  }
+  };
 
   useEffect(() => {
-    let isCancelled = false
+    let isCancelled = false;
 
     async function loadCurrentMember() {
       try {
-        const currentMember = await getCurrentMember()
+        const currentMember = await getCurrentMember();
         const canManagePin =
-          currentMember.role === 'LEADER' || currentMember.role === 'MENTOR'
+          currentMember.role === 'LEADER' || currentMember.role === 'MENTOR';
 
         if (!isCancelled) {
-          setCurrentMemberId(currentMember.userId)
-          setCurrentMemberProfileImageUrl(currentMember.profileImageUrl)
-          setCanManagePostPin(canManagePin)
+          setCurrentMemberId(currentMember.userId);
+          setCurrentMemberProfileImageUrl(currentMember.profileImageUrl);
+          setCanManagePostPin(canManagePin);
         }
       } catch {
         if (!isCancelled) {
-          setCurrentMemberId(null)
-          setCurrentMemberProfileImageUrl(undefined)
-          setCanManagePostPin(false)
+          setCurrentMemberId(null);
+          setCurrentMemberProfileImageUrl(undefined);
+          setCanManagePostPin(false);
         }
       }
     }
 
-    void loadCurrentMember()
+    void loadCurrentMember();
 
     return () => {
-      isCancelled = true
-    }
-  }, [])
+      isCancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isPostMenuOpen) {
-      return
+      return;
     }
 
     function handleOutsidePointerDown(event: PointerEvent) {
@@ -621,20 +626,20 @@ export function CommunityDetailPage() {
         event.target instanceof Node &&
         !postMenuRef.current?.contains(event.target)
       ) {
-        setIsPostMenuOpen(false)
+        setIsPostMenuOpen(false);
       }
     }
 
-    document.addEventListener('pointerdown', handleOutsidePointerDown)
+    document.addEventListener('pointerdown', handleOutsidePointerDown);
 
     return () => {
-      document.removeEventListener('pointerdown', handleOutsidePointerDown)
-    }
-  }, [isPostMenuOpen])
+      document.removeEventListener('pointerdown', handleOutsidePointerDown);
+    };
+  }, [isPostMenuOpen]);
 
   useEffect(() => {
     if (!isAttachmentListOpen) {
-      return
+      return;
     }
 
     function handleOutsidePointerDown(event: PointerEvent) {
@@ -642,85 +647,85 @@ export function CommunityDetailPage() {
         event.target instanceof Node &&
         !attachmentListRef.current?.contains(event.target)
       ) {
-        setIsAttachmentListOpen(false)
+        setIsAttachmentListOpen(false);
       }
     }
 
-    document.addEventListener('pointerdown', handleOutsidePointerDown)
+    document.addEventListener('pointerdown', handleOutsidePointerDown);
 
     return () => {
-      document.removeEventListener('pointerdown', handleOutsidePointerDown)
-    }
-  }, [isAttachmentListOpen])
+      document.removeEventListener('pointerdown', handleOutsidePointerDown);
+    };
+  }, [isAttachmentListOpen]);
 
   useEffect(() => {
-    let isCancelled = false
+    let isCancelled = false;
 
     async function loadPost() {
       if (!Number.isSafeInteger(postId) || postId <= 0) {
-        setLoadError('삭제되었거나 존재하지 않는 게시글입니다.')
-        setIsPostNotFound(true)
-        setIsLoading(false)
-        return
+        setLoadError('삭제되었거나 존재하지 않는 게시글입니다.');
+        setIsPostNotFound(true);
+        setIsLoading(false);
+        return;
       }
 
-      setIsLoading(true)
-      setLoadError(null)
-      setIsPostNotFound(false)
+      setIsLoading(true);
+      setLoadError(null);
+      setIsPostNotFound(false);
 
       try {
-        const postResponse = await getPost(postId)
+        const postResponse = await getPost(postId);
 
         if (!isCancelled) {
-          setPost(postResponse)
+          setPost(postResponse);
         }
       } catch (error) {
         if (!isCancelled) {
           const isNotFound =
-            isAxiosError(error) && error.response?.status === 404
+            isAxiosError(error) && error.response?.status === 404;
 
-          setIsPostNotFound(isNotFound)
+          setIsPostNotFound(isNotFound);
           setLoadError(
             isNotFound
               ? '삭제되었거나 존재하지 않는 게시글입니다.'
               : '게시글을 불러오지 못했습니다.',
-          )
-          setPost(null)
-          setComments([])
+          );
+          setPost(null);
+          setComments([]);
         }
       } finally {
         if (!isCancelled) {
-          setIsLoading(false)
+          setIsLoading(false);
         }
       }
     }
 
-    void loadPost()
+    void loadPost();
 
     return () => {
-      isCancelled = true
-    }
-  }, [postId, reloadKey])
+      isCancelled = true;
+    };
+  }, [postId, reloadKey]);
 
   useEffect(() => {
     if (!isPostStatsPollingReady) {
-      return
+      return;
     }
 
-    let isCancelled = false
+    let isCancelled = false;
 
     async function refreshPostStats() {
-      const refreshVersion = postStatsRefreshVersionRef.current
+      const refreshVersion = postStatsRefreshVersionRef.current;
 
       try {
-        const refreshedStats = await getPostStats(postId)
+        const refreshedStats = await getPostStats(postId);
 
         if (
           isCancelled ||
           isHeartMutatingRef.current ||
           refreshVersion !== postStatsRefreshVersionRef.current
         ) {
-          return
+          return;
         }
 
         setPost((currentPost) =>
@@ -731,43 +736,43 @@ export function CommunityDetailPage() {
                 viewers: refreshedStats.viewers,
               }
             : currentPost,
-        )
+        );
       } catch {
         // 반응 수 갱신 실패는 게시글 조회 화면을 방해하지 않는다.
       }
     }
 
     const refreshIntervalId = window.setInterval(() => {
-      void refreshPostStats()
-    }, 5_000)
+      void refreshPostStats();
+    }, 5_000);
 
     return () => {
-      isCancelled = true
-      window.clearInterval(refreshIntervalId)
-    }
-  }, [isPostStatsPollingReady, postId])
+      isCancelled = true;
+      window.clearInterval(refreshIntervalId);
+    };
+  }, [isPostStatsPollingReady, postId]);
 
   useEffect(() => {
-    let isCancelled = false
+    let isCancelled = false;
 
     async function loadComments() {
       if (!Number.isSafeInteger(postId) || postId <= 0) {
-        setComments([])
-        setCommentLoadError(null)
-        setIsCommentsLoading(false)
-        return
+        setComments([]);
+        setCommentLoadError(null);
+        setIsCommentsLoading(false);
+        return;
       }
 
-      setIsCommentsLoading(true)
-      setCommentLoadError(null)
-      setComments([])
-      setLoadedReplyCommentIds(new Set())
+      setIsCommentsLoading(true);
+      setCommentLoadError(null);
+      setComments([]);
+      setLoadedReplyCommentIds(new Set());
 
       try {
-        const rootComments = await getComments(postId)
+        const rootComments = await getComments(postId);
         const commentsWithReplyCounts = await Promise.all(
           rootComments.map((comment) => withTotalReplyCount(postId, comment)),
-        )
+        );
 
         if (!isCancelled) {
           setComments(
@@ -775,26 +780,26 @@ export function CommunityDetailPage() {
               ...comment,
               depth: 0,
             })),
-          )
+          );
         }
       } catch {
         if (!isCancelled) {
-          setComments([])
-          setCommentLoadError('댓글을 불러오지 못했습니다.')
+          setComments([]);
+          setCommentLoadError('댓글을 불러오지 못했습니다.');
         }
       } finally {
         if (!isCancelled) {
-          setIsCommentsLoading(false)
+          setIsCommentsLoading(false);
         }
       }
     }
 
-    void loadComments()
+    void loadComments();
 
     return () => {
-      isCancelled = true
-    }
-  }, [postId, reloadKey, commentReloadKey])
+      isCancelled = true;
+    };
+  }, [postId, reloadKey, commentReloadKey]);
 
   return (
     <S.Page>
@@ -1016,7 +1021,7 @@ export function CommunityDetailPage() {
                     <S.StatIcon src={eyeIcon} alt="조회" />
                     <CommunityRollingNumber value={post.viewers} />
                   </S.Stat>
-                  </S.StatGroup>
+                </S.StatGroup>
 
                 {firstAttachment && (
                   <S.AttachmentArea ref={attachmentListRef}>
@@ -1062,10 +1067,7 @@ export function CommunityDetailPage() {
                             tabIndex={isAttachmentListOpen ? 0 : -1}
                             onClick={() => handleAttachmentOpen(file.fileUrl)}
                           >
-                            <S.AttachmentFileIcon
-                              src={paperclipIcon}
-                              alt=""
-                            />
+                            <S.AttachmentFileIcon src={paperclipIcon} alt="" />
                             <S.AttachmentFileName>
                               {file.fileName}
                             </S.AttachmentFileName>
@@ -1075,7 +1077,6 @@ export function CommunityDetailPage() {
                     </S.AttachmentPanel>
                   </S.AttachmentArea>
                 )}
-
               </S.EngagementRow>
               <S.Divider />
             </S.Engagement>
@@ -1111,9 +1112,7 @@ export function CommunityDetailPage() {
                     type="checkbox"
                     checked={isAnonymous}
                     disabled={isCommentSubmitting}
-                    onChange={(event) =>
-                      setIsAnonymous(event.target.checked)
-                    }
+                    onChange={(event) => setIsAnonymous(event.target.checked)}
                   />
                   익명으로 게시
                 </S.AnonymousLabel>
@@ -1199,5 +1198,5 @@ export function CommunityDetailPage() {
         )}
       </S.Content>
     </S.Page>
-  )
+  );
 }
