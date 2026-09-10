@@ -80,6 +80,7 @@ const CATEGORY_TABS: readonly CategoryTabItem[] = [
 
 const MAX_VISIBLE_PAGE_COUNT = 5
 const SKELETON_ROW_COUNT = 16
+const POST_REFRESH_INTERVAL_MS = 30_000
 
 export function CommunityPage() {
   const navigate = useNavigate()
@@ -137,6 +138,16 @@ export function CommunityPage() {
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
+  }, [])
+
+  useEffect(() => {
+    const refreshIntervalId = window.setInterval(() => {
+      setReloadKey((currentKey) => currentKey + 1)
+    }, POST_REFRESH_INTERVAL_MS)
+
+    return () => {
+      window.clearInterval(refreshIntervalId)
+    }
   }, [])
 
   useEffect(() => {
