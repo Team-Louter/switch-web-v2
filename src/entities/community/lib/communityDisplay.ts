@@ -23,15 +23,22 @@ export function getPostCategoryLabel(category: PostCategory): string {
   return POST_CATEGORY_LABELS[category]
 }
 
+function getElapsedSeconds(dateValue: string, now: number): number | null {
+  const timestamp = new Date(dateValue).getTime()
+
+  if (Number.isNaN(timestamp)) return null
+
+  return Math.max(0, Math.floor((now - timestamp) / 1000))
+}
+
 export function formatCommunityRelativeDate(
   dateValue: string,
   now: number = Date.now(),
 ): string {
-  const timestamp = new Date(dateValue).getTime()
+  const seconds = getElapsedSeconds(dateValue, now)
 
-  if (Number.isNaN(timestamp)) return dateValue
+  if (seconds === null) return dateValue
 
-  const seconds = Math.max(0, Math.floor((now - timestamp) / 1000))
   if (seconds < 60) return `${seconds}초 전`
   const minutes = Math.floor(seconds / 60)
   if (minutes < 60) return `${minutes}분 전`
@@ -49,11 +56,10 @@ export function formatCommunityListRecentDate(
   dateValue: string,
   now: number = Date.now(),
 ): string {
-  const timestamp = new Date(dateValue).getTime()
+  const seconds = getElapsedSeconds(dateValue, now)
 
-  if (Number.isNaN(timestamp)) return dateValue
+  if (seconds === null) return dateValue
 
-  const seconds = Math.max(0, Math.floor((now - timestamp) / 1000))
   if (seconds < 60) return `${seconds}초 전`
   const minutes = Math.floor(seconds / 60)
   if (minutes < 60) return `${minutes}분 전`
