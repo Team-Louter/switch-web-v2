@@ -437,7 +437,7 @@ export const CommentMetaDot = styled.span`
 `
 
 export const CommentDate = styled.time`
-  color: ${token.colors.gray.gray40};
+  color: ${token.colors.gray.gray70};
   ${token.typography('body', 'md', 'regular')}
   line-height: 1;
   white-space: nowrap;
@@ -539,7 +539,7 @@ export const CommentMenuDivider = styled.span`
 export const CommentText = styled.p<CommentTextProps>`
   margin: 0;
   color: ${({ $isDeleted }) =>
-    $isDeleted ? token.colors.gray.gray40 : '#404040'};
+    $isDeleted ? token.colors.gray.gray70 : '#404040'};
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -547,7 +547,7 @@ export const CommentText = styled.p<CommentTextProps>`
 
 export const CommentMention = styled.span`
   margin-right: 6px;
-  color: ${token.colors.primary.primary60};
+  color: ${token.colors.primary.primary80};
   ${token.typography('body', 'lg', 'semibold')}
   white-space: nowrap;
 `
@@ -684,7 +684,7 @@ export const ReplyComposerInput = styled.input`
   line-height: 1.5;
 
   &::placeholder {
-    color: ${token.colors.gray.gray40};
+    color: ${token.colors.gray.gray70};
   }
 `
 

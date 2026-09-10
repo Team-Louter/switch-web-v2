@@ -995,7 +995,7 @@ export function CommunityDetailPage() {
 
             <S.Engagement aria-label="게시글 반응과 첨부파일">
               <S.EngagementRow>
-                <S.StatGroup aria-label="게시글 반응">
+                <S.StatGroup role="group" aria-label="게시글 반응">
                   <S.HeartButton
                     type="button"
                     aria-pressed={post.isHearted}
@@ -1122,7 +1122,7 @@ export function CommunityDetailPage() {
                 )}
               </S.CommentComposer>
 
-              <S.CommentList aria-label="댓글 목록">
+              <S.CommentList role="region" aria-label="댓글 목록">
                 {isCommentsLoading && (
                   <S.CommentSkeletonList
                     role="status"

@@ -154,7 +154,7 @@ export const PageStatus = styled.div`
   gap: 16px;
   width: 100%;
   min-height: 320px;
-  color: ${token.colors.gray.gray50};
+  color: ${token.colors.gray.gray70};
   ${token.typography('body', 'lg', 'medium')}
 `
 
@@ -169,7 +169,7 @@ export const BackButton = styled.button`
   height: 21px;
   padding: 0;
   border: 0;
-  color: ${token.colors.gray.gray50};
+  color: ${token.colors.gray.gray70};
   background: transparent;
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1;
@@ -313,7 +313,7 @@ export const MetaDot = styled.span`
 `
 
 export const PostDate = styled.time`
-  color: ${token.colors.gray.gray50};
+  color: ${token.colors.gray.gray70};
   ${token.typography('body', 'md', 'regular')}
   line-height: 1;
   white-space: nowrap;
@@ -988,7 +988,7 @@ export const CommentInput = styled.input`
   line-height: 1;
 
   &::placeholder {
-    color: ${token.colors.gray.gray40};
+    color: ${token.colors.gray.gray70};
   }
 `
 
@@ -1094,7 +1094,7 @@ export const CommentSkeletonMeta = styled.div`
 
 export const CommentStatus = styled.p`
   margin: 12px 4px;
-  color: ${token.colors.gray.gray50};
+  color: ${token.colors.gray.gray70};
   ${token.typography('body', 'md', 'medium')}
   line-height: 1.4;
 `
