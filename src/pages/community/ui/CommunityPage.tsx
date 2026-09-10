@@ -160,13 +160,19 @@ export function CommunityPage() {
       setLoadError(null)
 
       try {
-        const response = await getPosts({
-          category: selectedCategory ?? undefined,
-          page: currentPage,
-        })
+        const [response, pinnedResponse] = await Promise.all([
+          getPosts({
+            category: selectedCategory ?? undefined,
+            page: currentPage,
+          }),
+          getPosts({ page: 0 }),
+        ])
 
         if (!isCancelled) {
-          setPosts(response.content)
+          const pinnedPosts = pinnedResponse.content.filter((post) => post.pinned)
+          const categoryPosts = response.content.filter((post) => !post.pinned)
+
+          setPosts([...pinnedPosts, ...categoryPosts])
           setTotalPages(response.totalPages)
         }
       } catch {
