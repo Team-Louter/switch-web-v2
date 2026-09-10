@@ -15,7 +15,6 @@ import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
 import { ConfirmModal } from '@/shared/ui'
 
 import anonymousProfileImage from '../assets/images/anonymousProfile.png'
-import kebabIcon from '../assets/svg/kebab.svg'
 import {
   FLATTENED_TREE_DEPTH,
   type CommentTreeNode,
@@ -23,7 +22,8 @@ import {
   type CommunityCommentUpdateHandler,
   type CommunityReplyLoadHandler,
   type CommunityReplySubmitHandler,
-} from './communityCommentTree'
+} from '../model/commentTree'
+import kebabIcon from '../assets/svg/kebab.svg'
 import * as S from './CommunityCommentBranch.style'
 
 interface ReplyLoadingSkeletonProps {

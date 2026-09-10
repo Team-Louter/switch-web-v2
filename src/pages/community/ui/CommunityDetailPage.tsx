@@ -51,9 +51,6 @@ import kebabIcon from '../assets/svg/kebab.svg'
 import paperclipIcon from '../assets/svg/paperclip.svg'
 import pinIcon from '../assets/svg/pin-solid.svg'
 import sendIcon from '../assets/svg/send.svg'
-import { CommunityCommentBranch } from './CommunityCommentBranch'
-import { CommunityPostBlockContent } from './CommunityPostBlockContent'
-import { CommunityRollingNumber } from './CommunityRollingNumber'
 import {
   FLATTENED_TREE_DEPTH,
   REPLY_LOAD_DEPTH_INTERVAL,
@@ -64,7 +61,10 @@ import {
   type CommunityCommentUpdateHandler,
   type CommunityReplyLoadHandler,
   type CommunityReplySubmitHandler,
-} from './communityCommentTree'
+} from '../model/commentTree'
+import { CommunityCommentBranch } from './CommunityCommentBranch'
+import { CommunityPostBlockContent } from './CommunityPostBlockContent'
+import { CommunityRollingNumber } from './CommunityRollingNumber'
 import * as S from './CommunityDetailPage.style'
 
 const markdownSanitizeSchema = {
