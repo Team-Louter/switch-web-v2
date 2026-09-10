@@ -1,5 +1,5 @@
 import type { Block } from '@blocknote/core'
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
 
 import { getCommunityFileDownloadUrl, type PostFileResponse } from '@/entities/community'
 
@@ -90,6 +90,42 @@ function imageUrl(block: Block, files: readonly PostFileResponse[]) {
   return resolved && /^(https?:\/\/|\/(?!\/))/i.test(resolved) ? resolved : undefined
 }
 
+interface PostImageProps {
+  alt: string
+  caption?: string
+  fetchPriority: 'auto' | 'high'
+  loading: 'eager' | 'lazy'
+  src: string
+  width?: number
+}
+
+function PostImage({
+  alt,
+  caption,
+  fetchPriority,
+  loading,
+  src,
+  width,
+}: PostImageProps) {
+  const [isLoading, setIsLoading] = useState(true)
+
+  return (
+    <S.Figure $isLoading={isLoading} aria-busy={isLoading}>
+      <img
+        src={src}
+        alt={alt}
+        width={width}
+        fetchPriority={fetchPriority}
+        loading={loading}
+        decoding="async"
+        onLoad={() => setIsLoading(false)}
+        onError={() => setIsLoading(false)}
+      />
+      {caption && <figcaption>{caption}</figcaption>}
+    </S.Figure>
+  )
+}
+
 export function CommunityPostBlockContent({ blocks, files }: CommunityPostBlockContentProps) {
   if (!blocks.every(supportsStaticBlock)) {
     return (
@@ -128,15 +164,21 @@ export function CommunityPostBlockContent({ blocks, files }: CommunityPostBlockC
         if (block.type === 'image') {
           const src = imageUrl(block, files)
           const width = block.props.previewWidth
+
+          if (!src) {
+            return null
+          }
+
           return (
-            <S.Figure key={block.id}>
-              {src && <img src={src} alt={block.props.name || '본문 이미지'}
-                width={Number.isFinite(width) && width > 0 ? width : undefined}
-                fetchPriority={block.id === firstImageId ? 'high' : 'auto'}
-                loading={block.id === firstImageId ? 'eager' : 'lazy'}
-                decoding="async" />}
-              {block.props.caption && <figcaption>{block.props.caption}</figcaption>}
-            </S.Figure>
+            <PostImage
+              key={block.id}
+              src={src}
+              alt={block.props.name || '본문 이미지'}
+              caption={block.props.caption || undefined}
+              width={Number.isFinite(width) && width > 0 ? width : undefined}
+              fetchPriority={block.id === firstImageId ? 'high' : 'auto'}
+              loading={block.id === firstImageId ? 'eager' : 'lazy'}
+            />
           )
         }
         const text = Array.isArray(block.content)

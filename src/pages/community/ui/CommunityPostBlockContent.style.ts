@@ -16,12 +16,32 @@ export const Content = styled.section`
   }
 `
 
-export const Figure = styled.figure`
+export const Figure = styled.figure<{ $isLoading?: boolean }>`
+  position: relative;
+  min-height: ${({ $isLoading }) => ($isLoading ? '180px' : '0')};
   margin: 0;
   padding: 3px 0;
+  overflow: hidden;
+  border-radius: 4px;
+  background: ${({ $isLoading }) =>
+    $isLoading
+      ? 'linear-gradient(90deg, #f3f2f1 25%, #e8e7e3 50%, #f3f2f1 75%)'
+      : 'transparent'};
+  background-size: 200% 100%;
+  animation: ${({ $isLoading }) => ($isLoading ? shimmer : 'none')} 1.4s ease-in-out infinite;
 
-  img { display: block; }
+  img {
+    display: block;
+    opacity: ${({ $isLoading }) => ($isLoading ? 0 : 1)};
+    transition: opacity 180ms ease-out;
+  }
+
   figcaption { margin-top: 8px; white-space: pre-wrap; }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    img { transition: none; }
+  }
 `
 
 export const VideoEmbed = styled.div`
