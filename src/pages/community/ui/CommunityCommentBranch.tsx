@@ -4,44 +4,44 @@ import {
   useEffect,
   useRef,
   useState,
-} from 'react'
+} from 'react';
 
 import {
   formatCommunityDate,
   formatCommunityRelativeDate,
   resolveCommunityAssetUrl,
-} from '@/entities/community'
-import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
+} from '@/entities/community';
+import fallbackProfileImage from '@/shared/assets/sidebar/profile.png';
 
-import anonymousProfileImage from '../assets/images/anonymousProfile.png'
+import anonymousProfileImage from '../assets/images/anonymousProfile.png';
 import {
   FLATTENED_TREE_DEPTH,
   type CommentTreeNode,
   type CommunityCommentUpdateHandler,
   type CommunityReplyLoadHandler,
   type CommunityReplySubmitHandler,
-} from '../model/commentTree'
-import kebabIcon from '../assets/svg/kebab.svg'
-import * as S from './CommunityCommentBranch.style'
+} from '../model/commentTree';
+import kebabIcon from '../assets/svg/kebab.svg';
+import * as S from './CommunityCommentBranch.style';
 
 interface ReplyLoadingSkeletonProps {
-  isWithinReplies?: boolean
+  isWithinReplies?: boolean;
 }
 
 interface CommunityCommentBranchProps {
-  node: CommentTreeNode
-  onProfileImageError: (event: SyntheticEvent<HTMLImageElement>) => void
-  onReplySubmit: CommunityReplySubmitHandler
-  onRepliesLoad: CommunityReplyLoadHandler
-  onCommentUpdate: CommunityCommentUpdateHandler
-  onCommentDeleteRequest: (commentId: number) => void
-  onCommentEditStart: () => void
-  currentMemberId: number | null
-  loadedReplyCommentIds: ReadonlySet<number>
-  replyAuthorProfileImageUrl?: string
-  replyToUserName?: string
-  isExpandedByAncestor?: boolean
-  hasNextSibling?: boolean
+  node: CommentTreeNode;
+  onProfileImageError: (event: SyntheticEvent<HTMLImageElement>) => void;
+  onReplySubmit: CommunityReplySubmitHandler;
+  onRepliesLoad: CommunityReplyLoadHandler;
+  onCommentUpdate: CommunityCommentUpdateHandler;
+  onCommentDeleteRequest: (commentId: number) => void;
+  onCommentEditStart: () => void;
+  currentMemberId: number | null;
+  loadedReplyCommentIds: ReadonlySet<number>;
+  replyAuthorProfileImageUrl?: string;
+  replyToUserName?: string;
+  isExpandedByAncestor?: boolean;
+  hasNextSibling?: boolean;
 }
 
 function ReplyLoadingSkeleton({
@@ -59,7 +59,7 @@ function ReplyLoadingSkeleton({
         <S.ReplyLoadSkeletonLine $width="76%" />
       </S.ReplyLoadSkeletonContent>
     </S.ReplyLoadSkeleton>
-  )
+  );
 }
 
 export function CommunityCommentBranch({
@@ -77,177 +77,176 @@ export function CommunityCommentBranch({
   isExpandedByAncestor = false,
   hasNextSibling = false,
 }: CommunityCommentBranchProps) {
-  const { comment } = node
-  const [isRepliesOpen, setIsRepliesOpen] = useState(false)
-  const [isReplyComposerOpen, setIsReplyComposerOpen] = useState(false)
-  const [replyContent, setReplyContent] = useState('')
-  const [isReplyAnonymous, setIsReplyAnonymous] = useState(false)
-  const [isReplySubmitting, setIsReplySubmitting] = useState(false)
-  const [replySubmitError, setReplySubmitError] = useState<string | null>(null)
-  const [isRepliesLoading, setIsRepliesLoading] = useState(false)
-  const [replyLoadError, setReplyLoadError] = useState<string | null>(null)
+  const { comment } = node;
+  const [isRepliesOpen, setIsRepliesOpen] = useState(false);
+  const [isReplyComposerOpen, setIsReplyComposerOpen] = useState(false);
+  const [replyContent, setReplyContent] = useState('');
+  const [isReplyAnonymous, setIsReplyAnonymous] = useState(false);
+  const [isReplySubmitting, setIsReplySubmitting] = useState(false);
+  const [replySubmitError, setReplySubmitError] = useState<string | null>(null);
+  const [isRepliesLoading, setIsRepliesLoading] = useState(false);
+  const [replyLoadError, setReplyLoadError] = useState<string | null>(null);
   const [hasReplyLoadAttempted, setHasReplyLoadAttempted] = useState(
     loadedReplyCommentIds.has(comment.commentId) || node.children.length > 0,
-  )
-  const [isCommentMenuOpen, setIsCommentMenuOpen] = useState(false)
-  const [isCommentEditing, setIsCommentEditing] = useState(false)
-  const [editedCommentContent, setEditedCommentContent] = useState('')
-  const [isCommentMutating, setIsCommentMutating] = useState(false)
-  const commentMenuRef = useRef<HTMLDivElement>(null)
+  );
+  const [isCommentMenuOpen, setIsCommentMenuOpen] = useState(false);
+  const [isCommentEditing, setIsCommentEditing] = useState(false);
+  const [editedCommentContent, setEditedCommentContent] = useState('');
+  const [isCommentMutating, setIsCommentMutating] = useState(false);
+  const commentMenuRef = useRef<HTMLDivElement>(null);
 
-  const loadedReplyCount = node.children.length
-  const totalReplyCount = Math.max(0, comment.replyCount)
-  const hasReplies = totalReplyCount > 0 || loadedReplyCount > 0
-  const canManageComment = !comment.deleted && currentMemberId === comment.userId
-  const isReplyLoadKnown = loadedReplyCommentIds.has(comment.commentId)
+  const loadedReplyCount = node.children.length;
+  const totalReplyCount = Math.max(0, comment.replyCount);
+  const hasReplies = totalReplyCount > 0 || loadedReplyCount > 0;
+  const canManageComment =
+    !comment.deleted && currentMemberId === comment.userId;
+  const isReplyLoadKnown = loadedReplyCommentIds.has(comment.commentId);
   const requiresInitialReplyLoad =
     hasReplies &&
     !hasReplyLoadAttempted &&
     !isReplyLoadKnown &&
-    loadedReplyCount === 0
+    loadedReplyCount === 0;
   const hasCollapseControl =
-    !isExpandedByAncestor || comment.depth === FLATTENED_TREE_DEPTH
+    !isExpandedByAncestor || comment.depth === FLATTENED_TREE_DEPTH;
   const shouldShowReplies =
-    hasReplies && (!hasCollapseControl || isRepliesOpen)
-  const shouldFlattenChildTree =
-    comment.depth > FLATTENED_TREE_DEPTH
-  const isFlattenedTree = comment.depth > FLATTENED_TREE_DEPTH
-  const hasCommonConnector = comment.depth === FLATTENED_TREE_DEPTH
+    hasReplies && (!hasCollapseControl || isRepliesOpen);
+  const shouldFlattenChildTree = comment.depth > FLATTENED_TREE_DEPTH;
+  const isFlattenedTree = comment.depth > FLATTENED_TREE_DEPTH;
+  const hasCommonConnector = comment.depth === FLATTENED_TREE_DEPTH;
   const repliesToggleLabel = isRepliesOpen
     ? '답글 숨기기'
     : comment.depth >= FLATTENED_TREE_DEPTH
       ? '답글 더보기'
-      : `답글 ${totalReplyCount}개`
+      : `답글 ${totalReplyCount}개`;
   const repliesLoadLabel = replyLoadError
     ? '답글 다시 불러오기'
-    : '답글 더보기'
+    : '답글 더보기';
 
   const handleReplyComposerOpen = () => {
-    setIsReplyComposerOpen(true)
-    setReplySubmitError(null)
-  }
+    setIsReplyComposerOpen(true);
+    setReplySubmitError(null);
+  };
 
   const handleReplyComposerCancel = () => {
-    setIsReplyComposerOpen(false)
-    setReplyContent('')
-    setIsReplyAnonymous(false)
-    setReplySubmitError(null)
-  }
+    setIsReplyComposerOpen(false);
+    setReplyContent('');
+    setIsReplyAnonymous(false);
+    setReplySubmitError(null);
+  };
 
   const handleReplyFormSubmit = async () => {
-    const trimmedContent = replyContent.trim()
+    const trimmedContent = replyContent.trim();
 
     if (!trimmedContent || isReplySubmitting) {
-      return
+      return;
     }
 
-    setIsReplySubmitting(true)
-    setReplySubmitError(null)
+    setIsReplySubmitting(true);
+    setReplySubmitError(null);
 
     const submitError = await onReplySubmit(
       comment.commentId,
       trimmedContent,
       isReplyAnonymous,
-    )
+    );
 
     if (submitError) {
-      setReplySubmitError(submitError)
+      setReplySubmitError(submitError);
     } else {
-      setIsRepliesOpen(true)
-      setReplyLoadError(null)
-      setHasReplyLoadAttempted(true)
-      handleReplyComposerCancel()
+      setIsRepliesOpen(true);
+      setReplyLoadError(null);
+      setHasReplyLoadAttempted(true);
+      handleReplyComposerCancel();
     }
 
-    setIsReplySubmitting(false)
-  }
+    setIsReplySubmitting(false);
+  };
 
   const handleRepliesLoad = async () => {
     if (isRepliesLoading) {
-      return
+      return;
     }
 
-    setIsRepliesLoading(true)
-    setReplyLoadError(null)
+    setIsRepliesLoading(true);
+    setReplyLoadError(null);
 
-    const loadError = await onRepliesLoad(comment.commentId)
+    const loadError = await onRepliesLoad(comment.commentId);
 
-    setReplyLoadError(loadError)
+    setReplyLoadError(loadError);
     if (!loadError) {
-      setHasReplyLoadAttempted(true)
-      setIsRepliesOpen(true)
+      setHasReplyLoadAttempted(true);
+      setIsRepliesOpen(true);
     }
-    setIsRepliesLoading(false)
-  }
+    setIsRepliesLoading(false);
+  };
 
   const handleReplyKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      event.preventDefault()
-      void handleReplyFormSubmit()
+      event.preventDefault();
+      void handleReplyFormSubmit();
     }
-  }
+  };
 
   const handleCommentEditStart = () => {
-    onCommentEditStart()
-    setEditedCommentContent(comment.content)
-    setIsCommentEditing(true)
-    setIsCommentMenuOpen(false)
-  }
+    onCommentEditStart();
+    setEditedCommentContent(comment.content);
+    setIsCommentEditing(true);
+    setIsCommentMenuOpen(false);
+  };
 
   const handleCommentEditCancel = () => {
-    setEditedCommentContent('')
-    setIsCommentEditing(false)
-  }
+    setEditedCommentContent('');
+    setIsCommentEditing(false);
+  };
 
   const handleCommentEditSubmit = async () => {
-    const trimmedContent = editedCommentContent.trim()
+    const trimmedContent = editedCommentContent.trim();
 
     if (!trimmedContent || isCommentMutating) {
-      return
+      return;
     }
 
-    setIsCommentMutating(true)
+    setIsCommentMutating(true);
 
-    const actionError = await onCommentUpdate(comment.commentId, trimmedContent)
+    const actionError = await onCommentUpdate(
+      comment.commentId,
+      trimmedContent,
+    );
 
     if (!actionError) {
-      setIsCommentEditing(false)
-      setEditedCommentContent('')
+      setIsCommentEditing(false);
+      setEditedCommentContent('');
     }
 
-    setIsCommentMutating(false)
-  }
+    setIsCommentMutating(false);
+  };
 
-  const handleCommentEditKeyDown = (
-    event: KeyboardEvent<HTMLInputElement>,
-  ) => {
+  const handleCommentEditKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      event.preventDefault()
-      void handleCommentEditSubmit()
+      event.preventDefault();
+      void handleCommentEditSubmit();
     }
-  }
+  };
 
   const handleCommentDeleteRequest = () => {
     if (isCommentMutating) {
-      return
+      return;
     }
 
-    setIsCommentMenuOpen(false)
-    onCommentDeleteRequest(comment.commentId)
-  }
+    setIsCommentMenuOpen(false);
+    onCommentDeleteRequest(comment.commentId);
+  };
 
-  const handleCommentMenuKeyDown = (
-    event: KeyboardEvent<HTMLDivElement>,
-  ) => {
+  const handleCommentMenuKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape') {
-      setIsCommentMenuOpen(false)
-      event.currentTarget.querySelector<HTMLButtonElement>('button')?.focus()
+      setIsCommentMenuOpen(false);
+      event.currentTarget.querySelector<HTMLButtonElement>('button')?.focus();
     }
-  }
+  };
 
   useEffect(() => {
     if (!isCommentMenuOpen) {
-      return
+      return;
     }
 
     function handleOutsidePointerDown(event: PointerEvent) {
@@ -255,16 +254,16 @@ export function CommunityCommentBranch({
         event.target instanceof Node &&
         !commentMenuRef.current?.contains(event.target)
       ) {
-        setIsCommentMenuOpen(false)
+        setIsCommentMenuOpen(false);
       }
     }
 
-    document.addEventListener('pointerdown', handleOutsidePointerDown)
+    document.addEventListener('pointerdown', handleOutsidePointerDown);
 
     return () => {
-      document.removeEventListener('pointerdown', handleOutsidePointerDown)
-    }
-  }, [isCommentMenuOpen])
+      document.removeEventListener('pointerdown', handleOutsidePointerDown);
+    };
+  }, [isCommentMenuOpen]);
 
   return (
     <S.CommentTreeNode
@@ -345,7 +344,7 @@ export function CommunityCommentBranch({
                   value={editedCommentContent}
                   disabled={isCommentMutating}
                   onChange={(event) => {
-                    setEditedCommentContent(event.target.value)
+                    setEditedCommentContent(event.target.value);
                   }}
                   onKeyDown={handleCommentEditKeyDown}
                 />
@@ -388,7 +387,7 @@ export function CommunityCommentBranch({
                       src={
                         isReplyAnonymous
                           ? anonymousProfileImage
-                          : replyAuthorProfileImageUrl ?? fallbackProfileImage
+                          : (replyAuthorProfileImageUrl ?? fallbackProfileImage)
                       }
                       alt=""
                       onError={onProfileImageError}
@@ -401,8 +400,8 @@ export function CommunityCommentBranch({
                         value={replyContent}
                         disabled={isReplySubmitting}
                         onChange={(event) => {
-                          setReplyContent(event.target.value)
-                          setReplySubmitError(null)
+                          setReplyContent(event.target.value);
+                          setReplySubmitError(null);
                         }}
                         onKeyDown={handleReplyKeyDown}
                       />
@@ -430,9 +429,7 @@ export function CommunityCommentBranch({
                           </S.ReplyCancelButton>
                           <S.ReplySubmitButton
                             type="button"
-                            disabled={
-                              !replyContent.trim() || isReplySubmitting
-                            }
+                            disabled={!replyContent.trim() || isReplySubmitting}
                             onClick={() => void handleReplyFormSubmit()}
                           >
                             답글
@@ -469,69 +466,72 @@ export function CommunityCommentBranch({
         ))}
       {hasReplies && (
         <>
-          {shouldShowReplies && (loadedReplyCount > 0 || hasCollapseControl) && (
-            <S.CommentChildren
-              $isFlattened={shouldFlattenChildTree}
-              $hasCommonConnector={hasCommonConnector}
-            >
-              {node.children.map((child, index) => {
-                const hasFollowingItem =
-                  index < node.children.length - 1 || hasCollapseControl
-
-                return (
-                  <CommunityCommentBranch
-                    key={child.comment.commentId}
-                    node={child}
-                    onProfileImageError={onProfileImageError}
-                    onReplySubmit={onReplySubmit}
-                    onRepliesLoad={onRepliesLoad}
-                    onCommentUpdate={onCommentUpdate}
-                    onCommentDeleteRequest={onCommentDeleteRequest}
-                    onCommentEditStart={onCommentEditStart}
-                    currentMemberId={currentMemberId}
-                    loadedReplyCommentIds={loadedReplyCommentIds}
-                    replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
-                    replyToUserName={
-                      child.comment.depth > FLATTENED_TREE_DEPTH
-                        ? comment.userName
-                        : undefined
-                    }
-                    isExpandedByAncestor={shouldShowReplies}
-                    hasNextSibling={hasFollowingItem}
-                  />
-                )
-              })}
-              {hasCollapseControl && (
-                <S.RepliesToggleRow $isWithinReplies>
-                  <S.RepliesToggle
-                    type="button"
-                    aria-expanded={isRepliesOpen}
-                    onClick={() => setIsRepliesOpen((isOpen) => !isOpen)}
-                  >
-                    {repliesToggleLabel}
-                    <S.RepliesCaret
-                      $isOpen={isRepliesOpen}
-                      aria-hidden="true"
-                    />
-                  </S.RepliesToggle>
-                </S.RepliesToggleRow>
-              )}
-            </S.CommentChildren>
-          )}
-          {hasCollapseControl && !isRepliesOpen && !requiresInitialReplyLoad && (
-            <S.RepliesToggleRow $isWithinReplies={shouldFlattenChildTree}>
-              <S.RepliesToggle
-                type="button"
-                aria-expanded={isRepliesOpen}
-                onClick={() => setIsRepliesOpen((isOpen) => !isOpen)}
+          {shouldShowReplies &&
+            (loadedReplyCount > 0 || hasCollapseControl) && (
+              <S.CommentChildren
+                $isFlattened={shouldFlattenChildTree}
+                $hasCommonConnector={hasCommonConnector}
               >
-                {repliesToggleLabel}
-                <S.RepliesCaret $isOpen={isRepliesOpen} aria-hidden="true" />
-              </S.RepliesToggle>
-            </S.RepliesToggleRow>
-          )}
+                {node.children.map((child, index) => {
+                  const hasFollowingItem =
+                    index < node.children.length - 1 || hasCollapseControl;
+
+                  return (
+                    <CommunityCommentBranch
+                      key={child.comment.commentId}
+                      node={child}
+                      onProfileImageError={onProfileImageError}
+                      onReplySubmit={onReplySubmit}
+                      onRepliesLoad={onRepliesLoad}
+                      onCommentUpdate={onCommentUpdate}
+                      onCommentDeleteRequest={onCommentDeleteRequest}
+                      onCommentEditStart={onCommentEditStart}
+                      currentMemberId={currentMemberId}
+                      loadedReplyCommentIds={loadedReplyCommentIds}
+                      replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
+                      replyToUserName={
+                        child.comment.depth > FLATTENED_TREE_DEPTH
+                          ? comment.userName
+                          : undefined
+                      }
+                      isExpandedByAncestor={shouldShowReplies}
+                      hasNextSibling={hasFollowingItem}
+                    />
+                  );
+                })}
+                {hasCollapseControl && (
+                  <S.RepliesToggleRow $isWithinReplies>
+                    <S.RepliesToggle
+                      type="button"
+                      aria-expanded={isRepliesOpen}
+                      onClick={() => setIsRepliesOpen((isOpen) => !isOpen)}
+                    >
+                      {repliesToggleLabel}
+                      <S.RepliesCaret
+                        $isOpen={isRepliesOpen}
+                        aria-hidden="true"
+                      />
+                    </S.RepliesToggle>
+                  </S.RepliesToggleRow>
+                )}
+              </S.CommentChildren>
+            )}
+          {hasCollapseControl &&
+            !isRepliesOpen &&
+            !requiresInitialReplyLoad && (
+              <S.RepliesToggleRow $isWithinReplies={shouldFlattenChildTree}>
+                <S.RepliesToggle
+                  type="button"
+                  aria-expanded={isRepliesOpen}
+                  onClick={() => setIsRepliesOpen((isOpen) => !isOpen)}
+                >
+                  {repliesToggleLabel}
+                  <S.RepliesCaret $isOpen={isRepliesOpen} aria-hidden="true" />
+                </S.RepliesToggle>
+              </S.RepliesToggleRow>
+            )}
         </>
       )}
     </S.CommentTreeNode>
-  )
+  );
 }
