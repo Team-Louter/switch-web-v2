@@ -162,6 +162,15 @@ export const CalendarWrapper = styled.div<{
     border: 1px solid #eeeeee;
   }
 
+  /* 외곽 scrollgrid 테두리와 겹치지 않도록 마지막 행·열 셀의 테두리를 제거합니다. */
+  .fc .fc-daygrid-body tr > .fc-daygrid-day:last-child {
+    border-right: 0;
+  }
+
+  .fc .fc-daygrid-body tr:last-child > .fc-daygrid-day {
+    border-bottom: 0;
+  }
+
   .fc .fc-daygrid-day-frame {
     height: 100%;
     position: relative;
