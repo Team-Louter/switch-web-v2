@@ -44,6 +44,26 @@ export function formatCommunityRelativeDate(
   return `${Math.floor(days / 365)}년 전`
 }
 
+/** 목록에서는 최근 10일만 상대 시간으로 표시해 날짜 열의 밀도를 유지한다. */
+export function formatCommunityListRecentDate(
+  dateValue: string,
+  now: number = Date.now(),
+): string {
+  const timestamp = new Date(dateValue).getTime()
+
+  if (Number.isNaN(timestamp)) return dateValue
+
+  const seconds = Math.max(0, Math.floor((now - timestamp) / 1000))
+  if (seconds < 60) return `${seconds}초 전`
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}분 전`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}시간 전`
+  const days = Math.floor(hours / 24)
+
+  return days < 11 ? `${days}일 전` : formatCommunityListDate(dateValue)
+}
+
 export function formatCommunityDate(dateValue: string): string {
   const date = new Date(dateValue)
 

@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom'
 
 import {
   formatCommunityCount,
-  formatCommunityListDate,
+  formatCommunityListRecentDate,
   getPostCategoryLabel,
   getPosts,
   POST_CATEGORY_OPTIONS,
@@ -287,7 +287,7 @@ export function CommunityPage() {
                     </AuthorName>
                   </Author>
                   <Date dateTime={post.createdAt}>
-                    {formatCommunityListDate(post.createdAt)}
+                    {formatCommunityListRecentDate(post.createdAt)}
                   </Date>
                   <Stats
                     aria-label={`좋아요 ${post.likeCount}, 댓글 ${post.commentCount}, 조회 ${post.viewers}`}
