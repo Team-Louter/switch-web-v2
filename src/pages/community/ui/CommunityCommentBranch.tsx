@@ -107,16 +107,17 @@ export function CommunityCommentBranch({
     !hasReplyLoadAttempted &&
     !isReplyLoadKnown &&
     loadedReplyCount === 0
+  const hasCollapseControl =
+    !isExpandedByAncestor || comment.depth === FLATTENED_TREE_DEPTH
   const shouldShowReplies =
-    hasReplies && (isExpandedByAncestor || isRepliesOpen)
-  const hasCollapseControl = !isExpandedByAncestor
+    hasReplies && (!hasCollapseControl || isRepliesOpen)
   const shouldFlattenChildTree =
     comment.depth > FLATTENED_TREE_DEPTH
   const isFlattenedTree = comment.depth > FLATTENED_TREE_DEPTH
   const hasCommonConnector = comment.depth === FLATTENED_TREE_DEPTH
   const repliesToggleLabel = isRepliesOpen
     ? '답글 숨기기'
-    : `답글 ${totalReplyCount}개`
+    : shouldFlattenChildTree ? '답글 더보기' : `답글 ${totalReplyCount}개`
   const repliesLoadLabel = replyLoadError
     ? '답글 다시 불러오기'
     : '답글 더보기'
