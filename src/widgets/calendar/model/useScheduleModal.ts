@@ -10,7 +10,8 @@ import type { Schedule } from '@/shared/types/schedule'
 
 type ScheduleModalState =
   | { type: 'none' }
-  | { type: 'create'; startDate: Date; endDate: Date }
+  | { type: 'create'; date: Date }
+  | { type: 'detail'; schedule: Schedule }
   | { type: 'edit'; schedule: Schedule }
 
 export function useScheduleModal() {
@@ -18,12 +19,20 @@ export function useScheduleModal() {
     type: 'none',
   })
 
-  const handleDateClick = (startDate: Date, endDate: Date = startDate) => {
-    setModalState({ type: 'create', startDate, endDate })
+  const handleDateClick = (date: Date) => {
+    setModalState({ type: 'create', date })
   }
 
   const handleScheduleClick = (schedule: Schedule) => {
-    setModalState({ type: 'edit', schedule })
+    setModalState({ type: 'detail', schedule })
+  }
+
+  const handleEditClick = () => {
+    setModalState((previousState) =>
+      previousState.type === 'detail'
+        ? { type: 'edit', schedule: previousState.schedule }
+        : previousState,
+    )
   }
 
   const handleModalClose = () => {
@@ -34,6 +43,7 @@ export function useScheduleModal() {
     modalState,
     handleDateClick,
     handleScheduleClick,
+    handleEditClick,
     handleModalClose,
   }
 }
