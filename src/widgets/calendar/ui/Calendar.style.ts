@@ -17,6 +17,8 @@ export const SkeletonStyle = createGlobalStyle`
 export const CalendarWrapper = styled.div`
   width: 100%;
   height: 100%;
+  min-width: 0;
+  container-type: inline-size;
   ${token.flexColumn}
 
   .fc {
@@ -31,7 +33,7 @@ export const CalendarWrapper = styled.div`
 
   .fc-header-toolbar.fc-toolbar {
     ${token.flexCenter}
-    padding: 20px;
+    padding: clamp(10px, 2cqw, 24px);
     flex-shrink: 0;
     margin: 0;
   }
@@ -62,6 +64,7 @@ export const CalendarWrapper = styled.div`
 
   .fc-header-toolbar .fc-toolbar-title {
     ${token.typography("heading", "sm", "medium")}
+    font-size: clamp(16px, 1.4cqw, 28px);
     color: ${token.colors.text.normal};
     margin: 0;
     padding: 0;
@@ -87,6 +90,7 @@ export const CalendarWrapper = styled.div`
 
   .fc-view-harness {
     flex: 1;
+    min-height: 0;
     ${token.flexCenter}
   }
 
@@ -107,10 +111,10 @@ export const CalendarWrapper = styled.div`
   .fc .fc-scrollgrid {
     border: 1px solid ${token.colors.line.light};
     border-radius: ${token.shapes.xsmall};
-    width: 90%;
-    max-width: 1200px;
+    width: calc(100% - clamp(16px, 4cqw, 64px));
+    max-width: none;
     margin: 0 auto;
-    height: 90%;
+    height: calc(100% - clamp(16px, 4cqw, 64px));
   }
 
   .fc .fc-scrollgrid-section-body > td {
@@ -135,6 +139,7 @@ export const CalendarWrapper = styled.div`
 
   .fc .fc-daygrid-day-number {
     ${token.typography("caption", "sm", "regular")};
+    font-size: clamp(11px, 0.9cqw, 18px);
     padding: 8px;
     color: ${token.colors.calendar.black};
     position: absolute;
@@ -156,6 +161,7 @@ export const CalendarWrapper = styled.div`
 
   .fc .fc-event {
     ${token.typography("caption", "md", "semibold")};
+    font-size: clamp(11px, 0.9cqw, 18px);
     display: block;
     width: calc(100% - 8px);
     min-height: 22px;
@@ -231,6 +237,32 @@ export const CalendarWrapper = styled.div`
 
     &:hover {
       background-color: rgba(0, 0, 0, 0.08);
+    }
+  }
+
+  @container (max-width: 600px) {
+    .fc .fc-col-header-cell {
+      padding: 8px 0;
+      text-align: center;
+    }
+
+    .fc .fc-daygrid-day-number {
+      padding: 4px;
+    }
+
+    .fc .fc-event {
+      width: calc(100% - 4px);
+      margin: 2px;
+      padding: 4px 2px;
+    }
+
+    .fc .fc-event svg {
+      display: none;
+    }
+
+    .fc .fc-daygrid-more-link {
+      padding: 2px;
+      font-size: 10px;
     }
   }
 `;

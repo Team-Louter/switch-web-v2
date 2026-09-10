@@ -4,20 +4,32 @@ import * as token from "../lib/calendarTokens";
 export const Background = styled.div`
     position: fixed;
     inset: 0;
+    padding: 16px;
     background-color: rgba(0, 0, 0, 0.5);
     ${token.flexCenter};
     z-index: 1100;
 `
 
 export const Container = styled.div`
-    width: 37%;
-    height: content-fit;
-    min-width: 400px;
+    box-sizing: border-box;
+    width: clamp(400px, 37vw, 640px);
+    max-width: 100%;
+    max-height: calc(100dvh - 32px);
+    min-width: 0;
+    overflow-y: auto;
     background-color: ${token.colors.background.white};
     border-radius: ${token.shapes.large};
-    padding: 40px;
+    padding: clamp(20px, 3vw, 40px);
     gap: 13px;
     ${token.flexColumn};
+
+    > * {
+        flex-shrink: 0;
+    }
+
+    @media (max-width: 480px) {
+        width: 100%;
+    }
 `
 
 export const ModalTitle = styled.h2`
@@ -30,6 +42,12 @@ export const ForRow = styled.div`
     ${token.flexBetween};
     width: 100%;
     align-items: flex-start;
+    gap: 12px;
+
+    @media (max-width: 480px) {
+        flex-direction: column;
+        gap: 6px;
+    }
 `
 
 export const Name = styled.span`
@@ -38,11 +56,18 @@ export const Name = styled.span`
     padding-top: 6px;
     white-space: nowrap;
     width: 90px;
+    flex-shrink: 0;
 `
 
 export const ForColumn = styled.div`
     ${token.flexColumn}
-    width: 80%;
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+
+    @media (max-width: 480px) {
+        flex: none;
+    }
 `
 
 export const ForPosition = styled.div`
@@ -107,11 +132,16 @@ export const LetterCount = styled.span`
 `
 
 export const ColorContainer = styled.div`
-    width: 80%;
+    flex: 1;
+    width: 100%;
     height: 20px;
-    align-self: center;
+    align-self: flex-start;
     ${token.flexRow}
     gap: 10px;
+
+    @media (max-width: 480px) {
+        flex: none;
+    }
 `
 
 export const Color = styled.div`
@@ -146,10 +176,11 @@ export const TextArea = styled.textarea`
 
 export const Buttons = styled.div`
     width: 100%;
-    height: 35px;
+    min-height: 35px;
+    flex-shrink: 0;
     margin-top: 20px;
     ${token.flexRight};
-    gap: 20px;
+    gap: clamp(8px, 2vw, 20px);
 `
 
 export const CancelButton = styled.button`
