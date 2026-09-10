@@ -545,6 +545,7 @@ export function CommunityCommentBranch({
       )}
       {isCommentDeleteConfirmOpen && (
         <ConfirmModal
+          placement="bottom-right"
           title="댓글을 삭제할까요?"
           description="삭제한 댓글은 복구할 수 없습니다."
           confirmLabel="삭제"

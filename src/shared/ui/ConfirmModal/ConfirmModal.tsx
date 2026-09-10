@@ -8,6 +8,7 @@ interface ConfirmModalProps {
   description: string
   confirmLabel?: string
   isConfirming?: boolean
+  placement?: 'center' | 'bottom-right'
   onCancel: () => void
   onConfirm: () => void
 }
@@ -17,6 +18,7 @@ export function ConfirmModal({
   description,
   confirmLabel = '확인',
   isConfirming = false,
+  placement = 'center',
   onCancel,
   onConfirm,
 }: ConfirmModalProps) {
@@ -27,8 +29,8 @@ export function ConfirmModal({
   }
 
   return (
-    <Modal label={title} onClose={handleClose} width={420}>
-      <S.Content>
+    <Modal label={title} onClose={handleClose} width={placement === 'bottom-right' ? 360 : 420} placement={placement}>
+      <S.Content $compact={placement === 'bottom-right'}>
         <S.Title>{title}</S.Title>
         <S.Description>{description}</S.Description>
         <S.Actions>

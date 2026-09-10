@@ -1077,6 +1077,7 @@ export function CommunityDetailPage() {
         {isPostDeleteConfirmOpen && post && (
           <ConfirmModal
             title="게시글을 삭제할까요?"
+            placement="bottom-right"
             description="삭제한 게시글은 복구할 수 없습니다."
             confirmLabel="삭제"
             isConfirming={isPostDeleting}

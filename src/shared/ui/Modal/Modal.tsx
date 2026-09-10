@@ -13,6 +13,7 @@ type ModalProps = {
   children: ReactNode
   width?: number
   minHeight?: number
+  placement?: 'center' | 'bottom-right'
   onClose: () => void
 }
 
@@ -21,6 +22,7 @@ export function Modal({
   children,
   width = 486,
   minHeight,
+  placement = 'center',
   onClose,
 }: ModalProps) {
   const mouseDownTargetRef = useRef<EventTarget | null>(null)
@@ -105,7 +107,7 @@ export function Modal({
   }
 
   return createPortal(
-    <Overlay onMouseDown={handleOverlayMouseDown} onClick={handleOverlayClick}>
+    <Overlay $placement={placement} onMouseDown={handleOverlayMouseDown} onClick={handleOverlayClick}>
       <Card
         ref={cardRef}
         role="dialog"
@@ -113,6 +115,7 @@ export function Modal({
         aria-label={label}
         tabIndex={-1}
         $width={width}
+        $placement={placement}
         $minHeight={minHeight}
       >
         {children}
