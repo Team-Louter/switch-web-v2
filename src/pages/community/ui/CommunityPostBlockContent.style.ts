@@ -79,7 +79,7 @@ export const LinkCard = styled.div`
   margin: 12px 0;
   overflow: hidden;
   border: 1px solid ${token.colors.gray.gray20};
-  border-left: 4px solid ${token.colors.gray.gray60};
+  border-left: 4px solid ${token.colors.primary.primary50};
   border-radius: 8px;
   background: ${token.colors.gray.gray0};
 `
