@@ -123,7 +123,7 @@ export function CommunityRollingNumber({
   const characters = getNumberCharacters(previousCharacters, currentCharacters)
 
   return (
-    <S.RollingNumber aria-label={`${value}`} aria-live="polite">
+    <S.RollingNumber role="status" aria-label={formatNumber(value)} aria-live="polite">
       {characters.map((character, index) => {
         const previousDigit = isNumberCharacter(character.previous)
           ? character.previous
