@@ -29,7 +29,7 @@ export function ConfirmModal({
   }
 
   return (
-    <Modal label={title} onClose={handleClose} width={placement === 'bottom-right' ? 360 : 420} placement={placement}>
+    <Modal label={title} onClose={handleClose} width={placement === 'bottom-right' ? 300 : 420} placement={placement}>
       <S.Content $compact={placement === 'bottom-right'}>
         <S.Title>{title}</S.Title>
         <S.Description>{description}</S.Description>
