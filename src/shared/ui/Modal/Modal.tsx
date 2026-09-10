@@ -25,6 +25,7 @@ export function Modal({
   placement = 'center',
   onClose,
 }: ModalProps) {
+  const isFloating = placement === 'bottom-right'
   const mouseDownTargetRef = useRef<EventTarget | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
 
@@ -35,8 +36,10 @@ export function Modal({
         []),
     ].filter((element) => element.tabIndex !== -1)
 
-  // ESC 키로 닫고, Tab 이동을 모달 안에 가두고, 열려 있는 동안 배경 스크롤을 막습니다.
+  // 중앙 모달만 배경을 차단하고 포커스를 가둡니다. 오른쪽 아래 확인 카드는 페이지 조작을 유지합니다.
   useEffect(() => {
+    if (isFloating) return
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose()
@@ -85,10 +88,12 @@ export function Modal({
       document.body.style.overflow = previousOverflow
       previouslyFocusedElement?.focus()
     }
-  }, [onClose])
+  }, [isFloating, onClose])
 
   /** 누르기 시작한 위치를 기억합니다. (카드 안에서 드래그해 밖에서 뗀 경우 닫히지 않도록) */
   const handleOverlayMouseDown = (event: MouseEvent<HTMLDivElement>) => {
+    if (isFloating) return
+
     mouseDownTargetRef.current = event.target
   }
 
@@ -98,6 +103,8 @@ export function Modal({
    * mousedown이 아닌 click에서 닫아야 뒤쪽 캘린더로 클릭이 이어지지 않습니다.
    */
   const handleOverlayClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (isFloating) return
+
     if (
       event.target === event.currentTarget &&
       mouseDownTargetRef.current === event.currentTarget
@@ -107,11 +114,15 @@ export function Modal({
   }
 
   return createPortal(
-    <Overlay $placement={placement} onMouseDown={handleOverlayMouseDown} onClick={handleOverlayClick}>
+    <Overlay
+      $placement={placement}
+      onMouseDown={handleOverlayMouseDown}
+      onClick={handleOverlayClick}
+    >
       <Card
         ref={cardRef}
         role="dialog"
-        aria-modal="true"
+        aria-modal={!isFloating}
         aria-label={label}
         tabIndex={-1}
         $width={width}

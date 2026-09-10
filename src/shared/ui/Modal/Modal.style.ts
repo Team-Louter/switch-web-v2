@@ -11,6 +11,8 @@ export const Overlay = styled.div<{ $placement: 'center' | 'bottom-right' }>`
   padding: 20px;
   align-items: ${({ $placement }) => $placement === 'bottom-right' ? 'flex-end' : 'center'};
   justify-content: ${({ $placement }) => $placement === 'bottom-right' ? 'flex-end' : 'center'};
+  pointer-events: ${({ $placement }) =>
+    $placement === 'bottom-right' ? 'none' : 'auto'};
   background: ${({ $placement }) => $placement === 'bottom-right' ? 'transparent' : 'rgba(0, 0, 0, 0.5)'};
 `
 
@@ -26,4 +28,5 @@ export const Card = styled.div<{ $width: number; $minHeight?: number; $placement
   border: ${({ $placement }) => $placement === 'bottom-right' ? `1px solid ${token.colors.gray.gray0}` : 'none'};
   border-radius: ${({ $placement }) => $placement === 'bottom-right' ? '20px' : token.shapes.large};
   background: ${token.colors.white};
+  pointer-events: auto;
 `
