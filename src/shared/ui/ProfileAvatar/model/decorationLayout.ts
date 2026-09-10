@@ -38,7 +38,7 @@ const LAYOUTS: Record<string, DecorationLayout> = {
   },
   // 귀와 리본은 사진 위쪽 둘레에 걸친다. 열린 장식에는 마스크를 씌우지 않는다.
   'f26c9247-3d96-4e4c-9733-4b43cdac028b.png': {
-    canvasSize: 512, profileDiameter: 400, centerX: 256, centerY: 320,
+    canvasSize: 512, profileDiameter: 400, centerX: 256, centerY: 248,
   },
   // 분홍 링
   '75f26650-8dbc-467d-8353-581099544ff7.png': {
