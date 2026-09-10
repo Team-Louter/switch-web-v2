@@ -1155,9 +1155,6 @@ export function CommunityDetailPage() {
                     </Button>
                   </S.CommentStatus>
                 )}
-                {!isCommentsLoading && !commentLoadError && comments.length === 0 && (
-                  <S.CommentStatus>첫 댓글을 남겨보세요.</S.CommentStatus>
-                )}
                 {commentTree.map((node) => (
                   <CommunityCommentBranch
                     key={node.comment.commentId}
