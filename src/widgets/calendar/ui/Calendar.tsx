@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import koLocale from '@fullcalendar/core/locales/ko';
 import type { DateSelectArg, EventClickArg, EventContentArg, EventInput } from '@fullcalendar/core';
 import { FaFlag } from "react-icons/fa6";
 import * as S from './Calendar.style.ts';
@@ -214,7 +215,7 @@ export function Calendar({
           }}
           initialDate={initialDate}
           events={calendarEvents}
-          editable={!readOnly}
+          editable={false}
           selectable={!readOnly}
           selectMirror={true}
           dayMaxEvents={true}
@@ -222,7 +223,7 @@ export function Calendar({
           select={handleDateSelect}
           eventClick={handleEventClick}
           eventContent={renderEventContent}
-          locale="ko"
+          locale={koLocale}
           height="100%"
           fixedWeekCount={false}
           eventOrder={(a: unknown, b: unknown) => {

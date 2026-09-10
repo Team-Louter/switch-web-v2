@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction } from 'react'
 import type { EventInput } from '@fullcalendar/core'
 import type { Member } from '@/shared/types/member'
 import type { ScheduleColor } from '@/shared/types/schedule'
+import { toEndDateTime, toStartDateTime } from '@/shared/utils/schedule'
 import { createSchedule, deleteSchedule, modifySchedule, getAllSchedules } from '../api/scheduleApi'
 import { formatEvents, getScheduleTarget } from '../lib/calendarEvents'
 
@@ -36,8 +37,8 @@ export function useEventEditor(params: EditorParams) {
     setError('')
     const payload = {
       title: params.title, content: params.content,
-      startDate: new Date(params.startDate).toISOString(),
-      endDate: new Date(params.endDate).toISOString(),
+      startDate: toStartDateTime(params.startDate),
+      endDate: toEndDateTime(params.endDate),
       color: params.selectedColor.toUpperCase() as ScheduleColor,
       ...getScheduleTarget(params.selectedMemberIds, params.allMembers),
     }
