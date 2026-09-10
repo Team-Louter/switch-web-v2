@@ -1,4 +1,9 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
+
+const shimmer = keyframes`
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+`
 
 export const Content = styled.section`
   width: 100%;
@@ -17,4 +22,24 @@ export const Figure = styled.figure`
 
   img { display: block; }
   figcaption { margin-top: 8px; white-space: pre-wrap; }
+`
+
+export const LoadingSkeleton = styled.div`
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  padding: 3px 0;
+`
+
+export const SkeletonLine = styled.span<{ $width: string }>`
+  width: ${({ $width }) => $width};
+  height: 18px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f3f2f1 25%, #e8e7e3 50%, #f3f2f1 75%);
+  background-size: 200% 100%;
+  animation: ${shimmer} 1.4s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `

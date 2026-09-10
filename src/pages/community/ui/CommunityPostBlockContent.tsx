@@ -41,7 +41,11 @@ function imageUrl(block: Block, files: readonly PostFileResponse[]) {
 export function CommunityPostBlockContent({ blocks, files }: CommunityPostBlockContentProps) {
   if (!blocks.every(supportsStaticBlock)) {
     return (
-      <Suspense fallback={<p role="status">본문을 불러오는 중입니다.</p>}>
+      <Suspense fallback={<S.LoadingSkeleton aria-busy="true" aria-label="게시글 본문을 불러오는 중입니다.">
+        <S.SkeletonLine $width="42%" />
+        <S.SkeletonLine $width="100%" />
+        <S.SkeletonLine $width="76%" />
+      </S.LoadingSkeleton>}>
         <BlockFallback blocks={blocks} files={files} />
       </Suspense>
     )
