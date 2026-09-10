@@ -3,14 +3,18 @@ import styled from 'styled-components'
 import * as token from '@/shared/styles/values/token'
 
 export const CalendarContainer = styled.div`
+  box-sizing: border-box;
   width: 100%;
-  height: calc(100dvh - 60px);
+  height: 100dvh;
+  padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px)
+    clamp(20px, 2vw, 30px) 0;
   ${token.flexCenter}
 `
 
 export const CalendarContent = styled.div`
-  width: 80%;
-  height: 90%;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
 `
 
 export const Container = styled.section`
