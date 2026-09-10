@@ -98,7 +98,7 @@ export function CommunityCommentBranch({
   const loadedReplyCount = node.children.length
   const totalReplyCount = Math.max(0, comment.replyCount)
   const hasReplies = totalReplyCount > 0 || loadedReplyCount > 0
-  const canManageComment = currentMemberId === comment.userId
+  const canManageComment = !comment.deleted && currentMemberId === comment.userId
   const isReplyLoadKnown = loadedReplyCommentIds.has(comment.commentId)
   const requiresInitialReplyLoad =
     hasReplies &&

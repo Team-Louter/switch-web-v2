@@ -419,8 +419,25 @@ export function CommunityDetailPage() {
 
     try {
       await deleteComment(post.postId, commentId)
-      setCommentReloadKey((currentKey) => currentKey + 1)
-      setReloadKey((currentKey) => currentKey + 1)
+      setComments((currentComments) =>
+        currentComments.map((currentComment) =>
+          currentComment.commentId === commentId
+            ? {
+                ...currentComment,
+                content: '삭제된 댓글입니다.',
+                deleted: true,
+              }
+            : currentComment,
+        ),
+      )
+      setPost((currentPost) =>
+        currentPost
+          ? {
+              ...currentPost,
+              commentCount: Math.max(0, currentPost.commentCount - 1),
+            }
+          : currentPost,
+      )
 
       return null
     } catch {
@@ -474,9 +491,12 @@ export function CommunityDetailPage() {
     }
 
     setIsCommentDeleting(true)
-    await handleCommentDelete(pendingCommentDeleteId)
+    const deleteError = await handleCommentDelete(pendingCommentDeleteId)
     setIsCommentDeleting(false)
-    closeCommentDeleteConfirm(true)
+
+    if (!deleteError) {
+      closeCommentDeleteConfirm(true)
+    }
   }
 
   useEffect(
