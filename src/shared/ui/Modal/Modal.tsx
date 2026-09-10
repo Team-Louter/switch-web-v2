@@ -14,6 +14,7 @@ type ModalProps = {
   width?: number
   minHeight?: number
   placement?: 'center' | 'bottom-right'
+  isClosing?: boolean
   onClose: () => void
 }
 
@@ -23,6 +24,7 @@ export function Modal({
   width = 486,
   minHeight,
   placement = 'center',
+  isClosing = false,
   onClose,
 }: ModalProps) {
   const isFloating = placement === 'bottom-right'
@@ -127,6 +129,7 @@ export function Modal({
         tabIndex={-1}
         $width={width}
         $placement={placement}
+        $isClosing={isClosing}
         $minHeight={minHeight}
       >
         {children}

@@ -77,6 +77,7 @@ const markdownSanitizeSchema = {
 }
 
 const COMMENT_SKELETON_ITEMS = [0, 1, 2]
+const FLOATING_CONFIRM_ANIMATION_MS = 180
 
 async function withTotalReplyCount(
   postId: number,
@@ -125,6 +126,12 @@ export function CommunityDetailPage() {
   const [isPostDeleteConfirmOpen, setIsPostDeleteConfirmOpen] =
     useState(false)
   const [isPostMenuOpen, setIsPostMenuOpen] = useState(false)
+  const [pendingCommentDeleteId, setPendingCommentDeleteId] = useState<
+    number | null
+  >(null)
+  const [isCommentDeleteConfirmClosing, setIsCommentDeleteConfirmClosing] =
+    useState(false)
+  const [isCommentDeleting, setIsCommentDeleting] = useState(false)
   const [isAttachmentListOpen, setIsAttachmentListOpen] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const [postActionError, setPostActionError] = useState<string | null>(null)
@@ -132,6 +139,7 @@ export function CommunityDetailPage() {
   const attachmentListRef = useRef<HTMLDivElement>(null)
   const isHeartMutatingRef = useRef(false)
   const postStatsRefreshVersionRef = useRef(0)
+  const commentDeleteCloseTimerRef = useRef<number | null>(null)
 
   const canManagePost = currentMemberId === post?.userId
   const canOpenPostMenu = canManagePostPin || canManagePost
@@ -419,6 +427,66 @@ export function CommunityDetailPage() {
       return '댓글을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.'
     }
   }
+
+  const clearCommentDeleteCloseTimer = () => {
+    if (commentDeleteCloseTimerRef.current !== null) {
+      window.clearTimeout(commentDeleteCloseTimerRef.current)
+      commentDeleteCloseTimerRef.current = null
+    }
+  }
+
+  const closeCommentDeleteConfirm = (force = false) => {
+    if (pendingCommentDeleteId === null || (isCommentDeleting && !force)) {
+      return
+    }
+
+    clearCommentDeleteCloseTimer()
+    setIsCommentDeleteConfirmClosing(true)
+    commentDeleteCloseTimerRef.current = window.setTimeout(() => {
+      setPendingCommentDeleteId(null)
+      setIsCommentDeleteConfirmClosing(false)
+      commentDeleteCloseTimerRef.current = null
+    }, FLOATING_CONFIRM_ANIMATION_MS)
+  }
+
+  const handleCommentDeleteRequest = (commentId: number) => {
+    if (isCommentDeleting || pendingCommentDeleteId === commentId) {
+      return
+    }
+
+    if (pendingCommentDeleteId === null) {
+      setPendingCommentDeleteId(commentId)
+      return
+    }
+
+    clearCommentDeleteCloseTimer()
+    setIsCommentDeleteConfirmClosing(true)
+    commentDeleteCloseTimerRef.current = window.setTimeout(() => {
+      setPendingCommentDeleteId(commentId)
+      setIsCommentDeleteConfirmClosing(false)
+      commentDeleteCloseTimerRef.current = null
+    }, FLOATING_CONFIRM_ANIMATION_MS)
+  }
+
+  const handleCommentDeleteConfirm = async () => {
+    if (pendingCommentDeleteId === null || isCommentDeleting) {
+      return
+    }
+
+    setIsCommentDeleting(true)
+    await handleCommentDelete(pendingCommentDeleteId)
+    setIsCommentDeleting(false)
+    closeCommentDeleteConfirm(true)
+  }
+
+  useEffect(
+    () => () => {
+      if (commentDeleteCloseTimerRef.current !== null) {
+        window.clearTimeout(commentDeleteCloseTimerRef.current)
+      }
+    },
+    [],
+  )
 
   const handleCommentKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
@@ -1065,7 +1133,8 @@ export function CommunityDetailPage() {
                     onRepliesLoad={handleRepliesLoad}
                     loadedReplyCommentIds={loadedReplyCommentIds}
                     onCommentUpdate={handleCommentUpdate}
-                    onCommentDelete={handleCommentDelete}
+                    onCommentDeleteRequest={handleCommentDeleteRequest}
+                    onCommentEditStart={closeCommentDeleteConfirm}
                     currentMemberId={currentMemberId}
                     replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
                   />
@@ -1083,6 +1152,18 @@ export function CommunityDetailPage() {
             isConfirming={isPostDeleting}
             onCancel={() => setIsPostDeleteConfirmOpen(false)}
             onConfirm={() => void handlePostDelete()}
+          />
+        )}
+        {pendingCommentDeleteId !== null && (
+          <ConfirmModal
+            placement="bottom-right"
+            title="댓글을 삭제할까요?"
+            description="삭제한 댓글은 복구할 수 없습니다."
+            confirmLabel="삭제"
+            isConfirming={isCommentDeleting}
+            isClosing={isCommentDeleteConfirmClosing}
+            onCancel={closeCommentDeleteConfirm}
+            onConfirm={() => void handleCommentDeleteConfirm()}
           />
         )}
       </S.Content>

@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
@@ -16,7 +16,36 @@ export const Overlay = styled.div<{ $placement: 'center' | 'bottom-right' }>`
   background: ${({ $placement }) => $placement === 'bottom-right' ? 'transparent' : 'rgba(0, 0, 0, 0.5)'};
 `
 
-export const Card = styled.div<{ $width: number; $minHeight?: number; $placement: 'center' | 'bottom-right' }>`
+const floatingCardEnter = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+`
+
+const floatingCardExit = keyframes`
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+`
+
+export const Card = styled.div<{
+  $width: number
+  $minHeight?: number
+  $placement: 'center' | 'bottom-right'
+  $isClosing: boolean
+}>`
   ${token.flexColumnStart}
   box-sizing: border-box;
   width: ${({ $width }) => $width}px;
@@ -29,4 +58,8 @@ export const Card = styled.div<{ $width: number; $minHeight?: number; $placement
   border-radius: ${({ $placement }) => $placement === 'bottom-right' ? '20px' : token.shapes.large};
   background: ${token.colors.white};
   pointer-events: auto;
+  animation: ${({ $placement, $isClosing }) =>
+    $placement === 'bottom-right'
+      ? `${$isClosing ? floatingCardExit : floatingCardEnter} 180ms ease both`
+      : 'none'};
 `

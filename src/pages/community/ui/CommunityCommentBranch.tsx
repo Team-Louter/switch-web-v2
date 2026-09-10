@@ -12,13 +12,11 @@ import {
   resolveCommunityAssetUrl,
 } from '@/entities/community'
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
-import { ConfirmModal } from '@/shared/ui'
 
 import anonymousProfileImage from '../assets/images/anonymousProfile.png'
 import {
   FLATTENED_TREE_DEPTH,
   type CommentTreeNode,
-  type CommunityCommentDeleteHandler,
   type CommunityCommentUpdateHandler,
   type CommunityReplyLoadHandler,
   type CommunityReplySubmitHandler,
@@ -36,7 +34,8 @@ interface CommunityCommentBranchProps {
   onReplySubmit: CommunityReplySubmitHandler
   onRepliesLoad: CommunityReplyLoadHandler
   onCommentUpdate: CommunityCommentUpdateHandler
-  onCommentDelete: CommunityCommentDeleteHandler
+  onCommentDeleteRequest: (commentId: number) => void
+  onCommentEditStart: () => void
   currentMemberId: number | null
   loadedReplyCommentIds: ReadonlySet<number>
   replyAuthorProfileImageUrl?: string
@@ -69,7 +68,8 @@ export function CommunityCommentBranch({
   onReplySubmit,
   onRepliesLoad,
   onCommentUpdate,
-  onCommentDelete,
+  onCommentDeleteRequest,
+  onCommentEditStart,
   currentMemberId,
   loadedReplyCommentIds,
   replyAuthorProfileImageUrl,
@@ -93,8 +93,6 @@ export function CommunityCommentBranch({
   const [isCommentEditing, setIsCommentEditing] = useState(false)
   const [editedCommentContent, setEditedCommentContent] = useState('')
   const [isCommentMutating, setIsCommentMutating] = useState(false)
-  const [isCommentDeleteConfirmOpen, setIsCommentDeleteConfirmOpen] =
-    useState(false)
   const commentMenuRef = useRef<HTMLDivElement>(null)
 
   const loadedReplyCount = node.children.length
@@ -190,6 +188,7 @@ export function CommunityCommentBranch({
   }
 
   const handleCommentEditStart = () => {
+    onCommentEditStart()
     setEditedCommentContent(comment.content)
     setIsCommentEditing(true)
     setIsCommentMenuOpen(false)
@@ -234,18 +233,7 @@ export function CommunityCommentBranch({
     }
 
     setIsCommentMenuOpen(false)
-    setIsCommentDeleteConfirmOpen(true)
-  }
-
-  const handleCommentDelete = async () => {
-    if (isCommentMutating) {
-      return
-    }
-
-    setIsCommentMutating(true)
-    await onCommentDelete(comment.commentId)
-    setIsCommentMutating(false)
-    setIsCommentDeleteConfirmOpen(false)
+    onCommentDeleteRequest(comment.commentId)
   }
 
   const handleCommentMenuKeyDown = (
@@ -498,7 +486,8 @@ export function CommunityCommentBranch({
                     onReplySubmit={onReplySubmit}
                     onRepliesLoad={onRepliesLoad}
                     onCommentUpdate={onCommentUpdate}
-                    onCommentDelete={onCommentDelete}
+                    onCommentDeleteRequest={onCommentDeleteRequest}
+                    onCommentEditStart={onCommentEditStart}
                     currentMemberId={currentMemberId}
                     loadedReplyCommentIds={loadedReplyCommentIds}
                     replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
@@ -542,17 +531,6 @@ export function CommunityCommentBranch({
             </S.RepliesToggleRow>
           )}
         </>
-      )}
-      {isCommentDeleteConfirmOpen && (
-        <ConfirmModal
-          placement="bottom-right"
-          title="댓글을 삭제할까요?"
-          description="삭제한 댓글은 복구할 수 없습니다."
-          confirmLabel="삭제"
-          isConfirming={isCommentMutating}
-          onCancel={() => setIsCommentDeleteConfirmOpen(false)}
-          onConfirm={() => void handleCommentDelete()}
-        />
       )}
     </S.CommentTreeNode>
   )

@@ -9,6 +9,7 @@ interface ConfirmModalProps {
   confirmLabel?: string
   isConfirming?: boolean
   placement?: 'center' | 'bottom-right'
+  isClosing?: boolean
   onCancel: () => void
   onConfirm: () => void
 }
@@ -19,6 +20,7 @@ export function ConfirmModal({
   confirmLabel = '확인',
   isConfirming = false,
   placement = 'center',
+  isClosing = false,
   onCancel,
   onConfirm,
 }: ConfirmModalProps) {
@@ -29,7 +31,13 @@ export function ConfirmModal({
   }
 
   return (
-    <Modal label={title} onClose={handleClose} width={placement === 'bottom-right' ? 300 : 420} placement={placement}>
+    <Modal
+      label={title}
+      onClose={handleClose}
+      width={placement === 'bottom-right' ? 300 : 420}
+      placement={placement}
+      isClosing={isClosing}
+    >
       <S.Content $compact={placement === 'bottom-right'}>
         <S.Title>{title}</S.Title>
         <S.Description>{description}</S.Description>
@@ -37,7 +45,7 @@ export function ConfirmModal({
           <Button
             size="md"
             variant="neutral"
-            disabled={isConfirming}
+            disabled={isConfirming || isClosing}
             onClick={onCancel}
           >
             취소
@@ -45,7 +53,7 @@ export function ConfirmModal({
           <Button
             size="md"
             variant="danger"
-            disabled={isConfirming}
+            disabled={isConfirming || isClosing}
             onClick={onConfirm}
           >
             {isConfirming ? '처리 중' : confirmLabel}
