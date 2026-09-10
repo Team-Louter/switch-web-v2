@@ -1,4 +1,4 @@
-import styled, { keyframes } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
@@ -60,6 +60,6 @@ export const Card = styled.div<{
   pointer-events: auto;
   animation: ${({ $placement, $isClosing }) =>
     $placement === 'bottom-right'
-      ? `${$isClosing ? floatingCardExit : floatingCardEnter} 180ms ease both`
+      ? css`${$isClosing ? floatingCardExit : floatingCardEnter} 180ms ease both`
       : 'none'};
 `
