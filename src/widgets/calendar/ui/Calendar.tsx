@@ -101,6 +101,16 @@ export function Calendar({
     setModalMode('추가');
   };
 
+  const handleCreateScheduleClick = () => {
+    const currentDate = new Date();
+
+    setSelectedDate(currentDate);
+    setSelectedEndDate(currentDate);
+    setSelectedEvent(null);
+    setIsModalOpen(true);
+    setModalMode('추가');
+  };
+
   const handleEventClick = (clickInfo: EventClickArg) => {
     if (isLoading) return;
     clickInfo.jsEvent.stopPropagation();
@@ -192,10 +202,16 @@ export function Calendar({
               ? {
                   left: 'prev',
                   center: 'title',
-                  right: 'next'
+                  right: readOnly ? 'next' : 'next createSchedule'
                 }
               : false
           }
+          customButtons={{
+            createSchedule: {
+              text: '일정 생성',
+              click: handleCreateScheduleClick,
+            },
+          }}
           initialDate={initialDate}
           events={calendarEvents}
           editable={!readOnly}

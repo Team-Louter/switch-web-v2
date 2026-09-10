@@ -89,6 +89,33 @@ export const CalendarWrapper = styled.div`
     box-shadow: none !important;
   }
 
+  .fc .fc-createSchedule-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 16px;
+    padding: 8px 12px;
+    border-radius: ${token.shapes.xsmall};
+    background: ${token.colors.main.normal};
+    color: ${token.colors.fill.white};
+    font-size: ${token.fontSize.body.sm};
+    font-weight: ${token.fontWeight.semibold};
+  }
+
+  .fc .fc-createSchedule-button::before {
+    width: 12px;
+    height: 12px;
+    background:
+      linear-gradient(${token.colors.fill.white}, ${token.colors.fill.white}) center / 100% 2px no-repeat,
+      linear-gradient(${token.colors.fill.white}, ${token.colors.fill.white}) center / 2px 100% no-repeat;
+    content: '';
+  }
+
+  .fc .fc-createSchedule-button:hover {
+    background: ${token.colors.main.alternative};
+    color: ${token.colors.fill.white};
+  }
+
   .fc-view-harness {
     flex: 1;
     min-height: 0;
