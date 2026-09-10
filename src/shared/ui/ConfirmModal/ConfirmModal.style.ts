@@ -1,4 +1,4 @@
-import styled, { css } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
@@ -22,6 +22,27 @@ export const Actions = styled.div`
   gap: 8px;
   width: 100%;
   margin-top: 12px;
+`
+
+const spin = keyframes`
+  to {
+    transform: rotate(360deg);
+  }
+`
+
+export const LoadingSpinner = styled.span`
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 2px solid currentColor;
+  border-left-color: transparent;
+  border-radius: ${token.shapes.circle};
+  animation: ${spin} 700ms linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 export const Content = styled.div<{ $compact: boolean }>`

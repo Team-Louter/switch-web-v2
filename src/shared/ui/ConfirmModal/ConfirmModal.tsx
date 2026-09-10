@@ -56,7 +56,11 @@ export function ConfirmModal({
             disabled={isConfirming || isClosing}
             onClick={onConfirm}
           >
-            {isConfirming ? '처리 중' : confirmLabel}
+            {isConfirming ? (
+              <S.LoadingSpinner role="status" aria-label="삭제 중" />
+            ) : (
+              confirmLabel
+            )}
           </Button>
         </S.Actions>
       </S.Content>
