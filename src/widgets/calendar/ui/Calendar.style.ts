@@ -85,8 +85,8 @@ export const CalendarWrapper = styled.div`
   }
 
   .fc .fc-button:focus {
-    outline: none;
-    box-shadow: none;
+    outline: none !important;
+    box-shadow: none !important;
   }
 
   .fc-view-harness {
