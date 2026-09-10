@@ -11,16 +11,13 @@ import type { ScheduleFormValues } from '../model/types'
 export function toScheduleRequest(
   values: ScheduleFormValues,
 ): CreateScheduleRequest {
-  const userIds = values.userId === null ? [] : [values.userId]
-
   return {
     title: values.title.trim(),
     content: values.content.trim(),
     startDate: toStartDateTime(values.startDate),
     endDate: toEndDateTime(values.endDate),
     color: values.color,
-    // 담당자를 지정하지 않으면 전체 대상 일정으로 처리합니다.
-    scheduleTarget: values.userId === null ? 'ALL' : 'PERSONAL',
-    userIds,
+    scheduleTarget: values.userIds.length === 0 ? 'ALL' : 'PERSONAL',
+    userIds: values.userIds,
   }
 }

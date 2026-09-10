@@ -17,7 +17,9 @@ export function useScheduleForm(initialValues: ScheduleFormValues) {
     values.title.trim().length > 0 &&
     values.startDate.length > 0 &&
     values.endDate.length > 0 &&
-    values.startDate <= values.endDate
+    values.startDate <= values.endDate &&
+    values.content.trim().length > 0 &&
+    values.userIds.length > 0
 
   return { values, handleValueChange, isSubmittable }
 }

@@ -5,6 +5,151 @@ import * as token from '@/shared/styles/values/token'
 
 import type { DayTone } from '../lib/dayTone'
 
+/** v1 FullCalendar 레이아웃을 v2 토큰으로 유지합니다. */
+export const CalendarWrapper = styled.div`
+  ${token.flexColumn}
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 640px;
+
+  .fc {
+    ${token.flexColumn}
+    flex: 1 1 auto;
+    height: 100%;
+    border: 1px solid ${token.colors.gray.gray20};
+    border-radius: ${token.shapes.xsmall};
+    background: ${token.colors.white};
+    font-family: ${token.fontFamily.system};
+  }
+
+  .fc-header-toolbar.fc-toolbar {
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    padding: 20px;
+  }
+
+  .fc-header-toolbar .fc-toolbar-chunk {
+    display: flex;
+    align-items: center;
+  }
+
+  .fc-header-toolbar .fc-toolbar-title {
+    color: ${token.colors.gray.gray90};
+    ${token.typography('heading', 'sm', 'medium')}
+  }
+
+  .fc .fc-button {
+    border: 0;
+    background: transparent;
+    color: ${token.colors.gray.gray90};
+    box-shadow: none;
+  }
+
+  .fc .fc-button:hover,
+  .fc .fc-button:focus {
+    background: transparent;
+    color: ${token.colors.gray.gray100};
+    box-shadow: none;
+  }
+
+  .fc-scrollgrid {
+    width: 90%;
+    height: 90%;
+    margin: 0 auto;
+    overflow: hidden;
+    border: 1px solid ${token.colors.gray.gray20};
+    border-radius: ${token.shapes.xsmall};
+  }
+
+  .fc-view-harness {
+    flex: 1 1 auto;
+  }
+
+  .fc-theme-standard td,
+  .fc-theme-standard th {
+    border-color: ${token.colors.gray.gray20};
+  }
+
+  .fc .fc-col-header-cell {
+    padding: 10px 0 10px 10px;
+    border: 0;
+    text-align: left;
+  }
+
+  .fc .fc-col-header-cell-cushion {
+    color: ${token.colors.gray.gray50};
+    text-align: left;
+    ${token.typography('body', 'sm', 'semibold')}
+  }
+
+  .fc .fc-daygrid-day {
+    background: ${token.colors.white};
+  }
+
+  .fc .fc-daygrid-day-frame {
+    min-height: 100px;
+  }
+
+  .fc .fc-daygrid-day-top {
+    padding: 5px;
+  }
+
+  .fc .fc-daygrid-day-number {
+    padding: 8px;
+    color: ${token.colors.gray.gray100};
+    ${token.typography('body', 'sm', 'regular')}
+  }
+
+  .fc .fc-day-sun .fc-daygrid-day-number {
+    color: ${token.colors.danger.danger20};
+  }
+
+  .fc .fc-day-sat .fc-daygrid-day-number {
+    color: ${token.colors.info.info20};
+  }
+
+  .fc .fc-daygrid-day-events {
+    margin-top: 20px;
+  }
+
+  .fc .fc-event {
+    width: calc(100% - 8px);
+    min-height: 22px;
+    margin: 2px 4px;
+    padding: 4px 6px;
+    border: 0;
+    border-radius: 4px;
+    color: ${token.colors.gray.gray100};
+    cursor: pointer;
+    ${token.typography('body', 'sm', 'semibold')}
+  }
+
+  .fc .fc-event-main {
+    color: inherit;
+  }
+
+  .fc .fc-day-today,
+  .fc .fc-highlight {
+    background: rgba(66, 153, 225, 0.05);
+  }
+`
+
+export const EventContentWrapper = styled.div`
+  display: flex;
+  width: 100%;
+  gap: 4px;
+  align-items: center;
+  overflow: hidden;
+  pointer-events: none;
+`
+
+export const EventLabel = styled.span`
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+`
+
 const CARD_RADIUS = '24px' // 디자인 전용 값으로 shape 토큰에 대응 값이 없습니다.
 const WEEKDAY_ROW_HEIGHT = '36px'
 const DATE_ROW_HEIGHT = '37px' // 날짜 숫자 영역 높이 (아래로 일정 칩이 쌓입니다)
