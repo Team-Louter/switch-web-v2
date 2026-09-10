@@ -14,6 +14,57 @@ interface CommunityPostBlockContentProps {
   files: readonly PostFileResponse[]
 }
 
+function getYouTubeEmbedUrl(value: string): string | null {
+  try {
+    const url = new URL(value)
+    const hostname = url.hostname.toLowerCase()
+    let videoId: string | null = null
+
+    if (hostname === 'youtu.be') {
+      videoId = url.pathname.split('/')[1] ?? null
+    } else if (
+      hostname === 'youtube.com' ||
+      hostname === 'www.youtube.com' ||
+      hostname === 'm.youtube.com'
+    ) {
+      if (url.pathname === '/watch') {
+        videoId = url.searchParams.get('v')
+      } else if (
+        url.pathname.startsWith('/shorts/') ||
+        url.pathname.startsWith('/embed/') ||
+        url.pathname.startsWith('/live/')
+      ) {
+        videoId = url.pathname.split('/')[2] ?? null
+      }
+    }
+
+    return videoId && /^[A-Za-z0-9_-]{11}$/.test(videoId)
+      ? `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`
+      : null
+  } catch {
+    return null
+  }
+}
+
+function getYouTubeEmbedUrlFromBlock(block: Block): string | null {
+  if (block.type !== 'paragraph' || !Array.isArray(block.content)) return null
+
+  const [content] = block.content as readonly unknown[]
+  if (
+    block.content.length !== 1 ||
+    typeof content !== 'object' ||
+    content === null ||
+    !('type' in content) ||
+    content.type !== 'link' ||
+    !('href' in content) ||
+    typeof content.href !== 'string'
+  ) {
+    return null
+  }
+
+  return getYouTubeEmbedUrl(content.href)
+}
+
 // Keep complex blocks in the compatible renderer rather than losing formatting.
 function supportsStaticBlock(block: Block): boolean {
   if (block.children.length > 0) return false
@@ -25,6 +76,7 @@ function supportsStaticBlock(block: Block): boolean {
   if (block.type === 'heading' && props.isToggleable) return false
   if (block.type === 'image') return props.showPreview !== false
   if (!Array.isArray(block.content)) return false
+  if (getYouTubeEmbedUrlFromBlock(block)) return true
   return block.content.every((item) => item.type === 'text'
     && Object.keys(item.styles).length === 0)
 }
@@ -56,6 +108,23 @@ export function CommunityPostBlockContent({ blocks, files }: CommunityPostBlockC
   return (
     <S.Content aria-label="게시글 본문">
       {blocks.map((block) => {
+        const youtubeEmbedUrl = getYouTubeEmbedUrlFromBlock(block)
+
+        if (youtubeEmbedUrl) {
+          return (
+            <S.VideoEmbed key={block.id}>
+              <iframe
+                src={youtubeEmbedUrl}
+                title="YouTube 동영상"
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
+            </S.VideoEmbed>
+          )
+        }
+
         if (block.type === 'image') {
           const src = imageUrl(block, files)
           const width = block.props.previewWidth

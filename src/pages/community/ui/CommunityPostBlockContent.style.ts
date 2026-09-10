@@ -24,6 +24,22 @@ export const Figure = styled.figure`
   figcaption { margin-top: 8px; white-space: pre-wrap; }
 `
 
+export const VideoEmbed = styled.div`
+  position: relative;
+  width: min(100%, 720px);
+  aspect-ratio: 16 / 9;
+  margin: 8px 0;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #0e0d0c;
+
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+`
+
 export const LoadingSkeleton = styled.div`
   display: grid;
   gap: 10px;
