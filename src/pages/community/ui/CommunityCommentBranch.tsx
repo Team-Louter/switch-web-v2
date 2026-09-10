@@ -117,7 +117,9 @@ export function CommunityCommentBranch({
   const hasCommonConnector = comment.depth === FLATTENED_TREE_DEPTH
   const repliesToggleLabel = isRepliesOpen
     ? '답글 숨기기'
-    : shouldFlattenChildTree ? '답글 더보기' : `답글 ${totalReplyCount}개`
+    : comment.depth >= FLATTENED_TREE_DEPTH
+      ? '답글 더보기'
+      : `답글 ${totalReplyCount}개`
   const repliesLoadLabel = replyLoadError
     ? '답글 다시 불러오기'
     : '답글 더보기'
