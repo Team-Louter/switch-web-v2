@@ -54,6 +54,7 @@ import { CommunityCommentBranch } from './CommunityCommentBranch'
 import { CommunityPostBlockContent } from './CommunityPostBlockContent'
 import { CommunityRollingNumber } from './CommunityRollingNumber'
 import {
+  FLATTENED_TREE_DEPTH,
   REPLY_LOAD_DEPTH_INTERVAL,
   appendCommentReplies,
   appendReplyComment,
@@ -316,8 +317,9 @@ export function CommunityDetailPage() {
 
     try {
       const replyPostId = post.postId
-      const maxReplyDepth =
-        parentComment.depth + REPLY_LOAD_DEPTH_INTERVAL
+      const maxReplyDepth = parentComment.depth >= FLATTENED_TREE_DEPTH
+        ? Number.POSITIVE_INFINITY
+        : parentComment.depth + REPLY_LOAD_DEPTH_INTERVAL
       const requestedCommentIds = new Set<number>([parentCommentId])
 
       async function loadReplyBranch(
