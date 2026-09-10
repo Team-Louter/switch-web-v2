@@ -101,7 +101,7 @@ export const CategoryTab = styled.button<{ $active: boolean }>`
   min-height: 44px;
   border: 0;
   color: ${({ $active }) =>
-    $active ? token.colors.gray.gray100 : token.colors.gray.gray50};
+    $active ? token.colors.gray.gray100 : token.colors.gray.gray60};
   background: transparent;
   ${token.typography('body', 'md', 'medium')}
   line-height: 1;
@@ -134,7 +134,7 @@ export const StatusState = styled.div`
   gap: 16px;
   width: 100%;
   min-height: 240px;
-  color: ${token.colors.gray.gray50};
+  color: ${token.colors.gray.gray60};
   ${token.typography('body', 'lg', 'medium')}
 `
 
@@ -169,7 +169,7 @@ export const EmptyTitle = styled.p`
 
 export const EmptyDescription = styled.p`
   margin: 0;
-  color: ${token.colors.gray.gray40};
+  color: ${token.colors.gray.gray60};
   ${token.typography('caption', 'lg', 'regular')}
 `
 
@@ -326,7 +326,7 @@ export const PostCategory = styled.span`
   padding: 3px 10px;
   border: 1px solid ${token.colors.primary.text};
   border-radius: 999px;
-  color: ${token.colors.primary.text};
+  color: ${token.colors.primary.primary80};
   background: transparent;
   ${token.typography('caption', 'lg', 'semibold')}
   line-height: 1;
