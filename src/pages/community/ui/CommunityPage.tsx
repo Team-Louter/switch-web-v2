@@ -299,6 +299,8 @@ export function CommunityPage() {
                     <AuthorImage
                       src={authorImage}
                       alt={`${post.userName} 프로필`}
+                      loading="lazy"
+                      decoding="async"
                       onError={handleProfileImageError}
                     />
                     <AuthorName $pinned={post.pinned}>
