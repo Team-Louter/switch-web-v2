@@ -2,6 +2,17 @@ import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
+export const CalendarContainer = styled.div`
+  width: 100%;
+  height: calc(100dvh - 60px);
+  ${token.flexCenter}
+`
+
+export const CalendarContent = styled.div`
+  width: 80%;
+  height: 90%;
+`
+
 export const Container = styled.section`
   ${token.flexColumnStart}
   box-sizing: border-box;
