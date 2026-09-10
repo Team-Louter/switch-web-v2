@@ -104,7 +104,7 @@ export const CommentTreeNode = styled.div<CommentTreeNodeProps>`
       $hasNextSibling && !$isFlattened ? 'block' : 'none'};
     position: absolute;
     z-index: 1;
-    top: 32px;
+    top: 0;
     bottom: -12px;
     left: -16px;
     width: 0;
