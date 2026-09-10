@@ -15,6 +15,7 @@ import remarkGfm from 'remark-gfm'
 
 import {
   formatCommunityDate,
+  formatCommunityRelativeDate,
   getCommunityFileDownloadUrl,
   getCommentReplies,
   getCommentTotalReplyCount,
@@ -781,8 +782,11 @@ export function CommunityDetailPage() {
                           <S.PostAuthorName>{post.userName}</S.PostAuthorName>
                         </S.PostAuthor>
                         <S.MetaDot aria-hidden="true" />
-                        <S.PostDate dateTime={post.createdAt}>
-                          {formatCommunityDate(post.createdAt)}
+                        <S.PostDate
+                          dateTime={post.createdAt}
+                          title={formatCommunityDate(post.createdAt)}
+                        >
+                          {formatCommunityRelativeDate(post.createdAt)}
                         </S.PostDate>
                         {canOpenPostMenu && (
                           <S.PostMenu
