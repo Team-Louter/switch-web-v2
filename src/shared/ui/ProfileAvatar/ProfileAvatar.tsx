@@ -11,12 +11,18 @@ export function ProfileAvatar({
   imageUrl,
   size,
 }: ProfileAvatarProps) {
-  const { decorations, normalizedImageUrl } =
+  const { decorations, layout, normalizedImageUrl } =
     useProfileAvatar(imageUrl, equippedItems, size)
 
   return (
     <S.AvatarRoot className={className} $size={size}>
-      <S.ImageClip $size={size}>
+      <S.ImageClip
+        $size={size}
+        $maskUrl={layout.maskUrl}
+        $maskSize={layout.displaySize}
+        $offsetX={layout.offsetX}
+        $offsetY={layout.offsetY}
+      >
         {normalizedImageUrl && (
           <S.ProfileImage
             src={normalizedImageUrl}
@@ -33,6 +39,8 @@ export function ProfileAvatar({
           alt=""
           aria-hidden="true"
           $displaySize={decoration.displaySize}
+          $offsetX={decoration.offsetX}
+          $offsetY={decoration.offsetY}
         />
       ))}
     </S.AvatarRoot>
