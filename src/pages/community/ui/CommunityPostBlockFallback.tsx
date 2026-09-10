@@ -1,24 +1,19 @@
-import '@blocknote/core/fonts/inter.css'
-import '@blocknote/mantine/style.css'
+import '@blocknote/core/fonts/inter.css';
+import '@blocknote/mantine/style.css';
 
-import type { Block } from '@blocknote/core'
-import { BlockNoteView } from '@blocknote/mantine'
-import { useCreateBlockNote } from '@blocknote/react'
-import {
-  type MouseEvent,
-  type SyntheticEvent,
-  useEffect,
-  useRef,
-} from 'react'
+import type { Block } from '@blocknote/core';
+import { BlockNoteView } from '@blocknote/mantine';
+import { useCreateBlockNote } from '@blocknote/react';
+import { type MouseEvent, type SyntheticEvent, useEffect, useRef } from 'react';
 
 import {
   getCommunityFileDownloadUrl,
   type PostFileResponse,
-} from '@/entities/community'
+} from '@/entities/community';
 
 interface CommunityPostBlockContentProps {
-  blocks: readonly Block[]
-  files: readonly PostFileResponse[]
+  blocks: readonly Block[];
+  files: readonly PostFileResponse[];
 }
 
 function resolveMediaUrl(
@@ -26,12 +21,12 @@ function resolveMediaUrl(
   files: readonly PostFileResponse[],
 ): string | undefined {
   if (typeof mediaUrl !== 'string' || !mediaUrl.trim()) {
-    return undefined
+    return undefined;
   }
 
-  const matchingFile = files.find((file) => file.fileName === mediaUrl)
+  const matchingFile = files.find((file) => file.fileName === mediaUrl);
 
-  return getCommunityFileDownloadUrl(matchingFile?.fileUrl ?? mediaUrl)
+  return getCommunityFileDownloadUrl(matchingFile?.fileUrl ?? mediaUrl);
 }
 
 function normalizeMediaUrls(
@@ -40,16 +35,16 @@ function normalizeMediaUrls(
 ): Block[] {
   return blocks.map((block) => {
     const blockWithUrlProps = block as unknown as {
-      props: Record<string, unknown>
-      children: readonly Block[]
-    }
-    const children = normalizeMediaUrls(blockWithUrlProps.children, files)
+      props: Record<string, unknown>;
+      children: readonly Block[];
+    };
+    const children = normalizeMediaUrls(blockWithUrlProps.children, files);
     const isMediaBlock = ['audio', 'file', 'image', 'video'].includes(
       block.type,
-    )
+    );
     const mediaUrl = isMediaBlock
       ? resolveMediaUrl(blockWithUrlProps.props.url, files)
-      : undefined
+      : undefined;
 
     return {
       ...block,
@@ -57,97 +52,97 @@ function normalizeMediaUrls(
         ? { ...blockWithUrlProps.props, url: mediaUrl }
         : blockWithUrlProps.props,
       children,
-    } as unknown as Block
-  })
+    } as unknown as Block;
+  });
 }
 
 export function CommunityPostBlockFallback({
   blocks,
   files,
 }: CommunityPostBlockContentProps) {
-  const contentRef = useRef<HTMLDivElement>(null)
-  const normalizedBlocks = normalizeMediaUrls(blocks, files)
+  const contentRef = useRef<HTMLDivElement>(null);
+  const normalizedBlocks = normalizeMediaUrls(blocks, files);
   const editor = useCreateBlockNote({
     initialContent: normalizedBlocks,
     domAttributes: {
       editor: { 'aria-label': '게시글 본문' },
     },
-  })
+  });
 
   function handleFileBlockClick(event: MouseEvent<HTMLDivElement>) {
     if (!(event.target instanceof Element)) {
-      return
+      return;
     }
 
-    const fileBlock = event.target.closest<HTMLElement>('[data-file-block]')
+    const fileBlock = event.target.closest<HTMLElement>('[data-file-block]');
     const blockElement = fileBlock?.closest<HTMLElement>(
       '[data-node-type="blockContainer"][data-id]',
-    )
-    const blockId = blockElement?.dataset.id
-    const block = blockId ? editor.getBlock(blockId) : undefined
+    );
+    const blockId = blockElement?.dataset.id;
+    const block = blockId ? editor.getBlock(blockId) : undefined;
 
     if (block?.type !== 'file') {
-      return
+      return;
     }
 
-    const downloadUrl = getCommunityFileDownloadUrl(block.props.url)
+    const downloadUrl = getCommunityFileDownloadUrl(block.props.url);
 
     if (!downloadUrl) {
-      return
+      return;
     }
 
-    window.open(downloadUrl, '_blank', 'noopener,noreferrer')
+    window.open(downloadUrl, '_blank', 'noopener,noreferrer');
   }
 
   function handleMediaLoadState(event: SyntheticEvent<HTMLDivElement>) {
     if (!(event.target instanceof HTMLImageElement)) {
-      return
+      return;
     }
 
     const mediaWrapper = event.target.closest<HTMLElement>(
       '.bn-visual-media-wrapper',
-    )
+    );
 
     if (mediaWrapper) {
-      mediaWrapper.dataset.mediaLoading = 'false'
+      mediaWrapper.dataset.mediaLoading = 'false';
     }
   }
 
   useEffect(() => {
-    const content = contentRef.current
+    const content = contentRef.current;
 
     if (!content) {
-      return
+      return;
     }
 
     const syncMediaLoadingStates = () => {
-      content.querySelectorAll<HTMLImageElement>('.bn-visual-media').forEach(
-        (image) => {
+      content
+        .querySelectorAll<HTMLImageElement>('.bn-visual-media')
+        .forEach((image) => {
           const mediaWrapper = image.closest<HTMLElement>(
             '.bn-visual-media-wrapper',
-          )
+          );
 
           if (mediaWrapper) {
-            mediaWrapper.dataset.mediaLoading = String(!image.complete)
+            mediaWrapper.dataset.mediaLoading = String(!image.complete);
           }
-        },
-      )
-    }
+        });
+    };
 
-    const observer = new MutationObserver(syncMediaLoadingStates)
+    const observer = new MutationObserver(syncMediaLoadingStates);
 
-    syncMediaLoadingStates()
+    syncMediaLoadingStates();
     observer.observe(content, {
       subtree: true,
       childList: true,
       attributes: true,
       attributeFilter: ['src'],
-    })
+    });
 
     return () => {
-      observer.disconnect()
-    }
-  }, [editor])
+      observer.disconnect();
+    };
+  }, [editor]);
 
   return (
     <div
@@ -171,5 +166,5 @@ export function CommunityPostBlockFallback({
         comments={false}
       />
     </div>
-  )
+  );
 }
