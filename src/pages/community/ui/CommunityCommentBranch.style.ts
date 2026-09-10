@@ -12,14 +12,18 @@ interface CommentTextProps {
 
 interface CommentRowProps {
   $isReply: boolean
+  $isFlattened: boolean
+  $hasFlattenedChildren: boolean
 }
 
 interface CommentTreeNodeProps {
   $hasNextSibling?: boolean
+  $isFlattened: boolean
 }
 
 interface CommentChildrenProps {
   $isFlattened: boolean
+  $hasCommonConnector: boolean
 }
 
 interface RepliesCaretProps {
@@ -96,15 +100,15 @@ export const CommentTreeNode = styled.div<CommentTreeNodeProps>`
   min-width: 0;
 
   &::before {
-    display: ${({ $hasNextSibling }) =>
-      $hasNextSibling ? 'block' : 'none'};
+    display: ${({ $hasNextSibling, $isFlattened }) =>
+      $hasNextSibling && !$isFlattened ? 'block' : 'none'};
     position: absolute;
     z-index: 1;
     top: 32px;
     bottom: -12px;
     left: -16px;
-    width: 1px;
-    background: ${token.colors.gray.gray10};
+    width: 0;
+    border-left: 1px solid ${token.colors.gray.gray10};
     pointer-events: none;
     content: '';
   }
@@ -137,6 +141,7 @@ export const RepliesToggleRow = styled.div<RepliesToggleRowProps>`
 
 export const CommentChildren = styled.div<CommentChildrenProps>`
   ${token.flexColumn}
+  position: relative;
   box-sizing: border-box;
   gap: 12px;
   width: calc(100% - 20px);
@@ -150,6 +155,39 @@ export const CommentChildren = styled.div<CommentChildrenProps>`
       width: 100%;
       margin-left: 0;
       padding-left: 0;
+    `}
+
+  ${({ $hasCommonConnector }) =>
+    $hasCommonConnector &&
+    css`
+      &::before {
+        position: absolute;
+        z-index: 0;
+        top: -12px;
+        bottom: 0;
+        left: 12px;
+        width: 0;
+        border-left: 1px solid ${token.colors.gray.gray10};
+        pointer-events: none;
+        content: '';
+      }
+
+      /* 더보기의 곡선 아래에서는 공통 세로선이 이어지지 않도록 가린다. */
+      ${RepliesToggleRow}::before {
+        z-index: 2;
+      }
+
+      ${RepliesToggleRow}::after {
+        position: absolute;
+        z-index: 1;
+        top: 2px;
+        bottom: 0;
+        left: 12px;
+        width: 1px;
+        background: ${token.colors.white};
+        pointer-events: none;
+        content: '';
+      }
     `}
 
   @container community-detail (max-width: 520px) {
@@ -287,11 +325,11 @@ export const CommentRow = styled.article<CommentRowProps>`
     display: none;
     position: absolute;
     z-index: 1;
-    top: 48px;
+    top: ${({ $hasFlattenedChildren }) => $hasFlattenedChildren ? '32px' : '48px'};
     bottom: -12px;
-    left: 32px;
-    width: 1px;
-    background: ${token.colors.gray.gray10};
+    left: ${({ $hasFlattenedChildren }) => $hasFlattenedChildren ? '-16px' : '32px'};
+    width: 0;
+    border-left: 1px solid ${token.colors.gray.gray10};
     pointer-events: none;
     content: '';
   }
@@ -299,13 +337,13 @@ export const CommentRow = styled.article<CommentRowProps>`
   &:has(+ ${CommentChildren})::before,
   &:has(+ ${ReplyLoadSkeleton})::before,
   &:has(+ ${RepliesToggleRow})::before {
-    display: block;
+    display: ${({ $isFlattened }) => $isFlattened ? 'none' : 'block'};
   }
 
   &::after {
     display: ${({ $isReply }) => ($isReply ? 'block' : 'none')};
     position: absolute;
-    z-index: 1;
+    z-index: 2;
     top: 0;
     left: -16px;
     width: 16px;

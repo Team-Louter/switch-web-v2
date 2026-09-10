@@ -17,6 +17,7 @@ import { ConfirmModal } from '@/shared/ui'
 import anonymousProfileImage from '../assets/images/anonymousProfile.png'
 import kebabIcon from '../assets/svg/kebab.svg'
 import {
+  FLATTENED_TREE_DEPTH,
   type CommentTreeNode,
   type CommunityCommentDeleteHandler,
   type CommunityCommentUpdateHandler,
@@ -24,8 +25,6 @@ import {
   type CommunityReplySubmitHandler,
 } from './communityCommentTree'
 import * as S from './CommunityCommentBranch.style'
-
-const FLATTENED_TREE_DEPTH = 4
 
 interface ReplyLoadingSkeletonProps {
   isWithinReplies?: boolean
@@ -112,7 +111,9 @@ export function CommunityCommentBranch({
     hasReplies && (isExpandedByAncestor || isRepliesOpen)
   const hasCollapseControl = !isExpandedByAncestor
   const shouldFlattenChildTree =
-    comment.depth >= FLATTENED_TREE_DEPTH - 1
+    comment.depth > FLATTENED_TREE_DEPTH
+  const isFlattenedTree = comment.depth > FLATTENED_TREE_DEPTH
+  const hasCommonConnector = comment.depth === FLATTENED_TREE_DEPTH
   const repliesToggleLabel = isRepliesOpen
     ? '답글 숨기기'
     : `답글 ${totalReplyCount}개`
@@ -275,8 +276,15 @@ export function CommunityCommentBranch({
   }, [isCommentMenuOpen])
 
   return (
-    <S.CommentTreeNode $hasNextSibling={hasNextSibling}>
-      <S.CommentRow $isReply={comment.depth > 0}>
+    <S.CommentTreeNode
+      $hasNextSibling={hasNextSibling}
+      $isFlattened={isFlattenedTree}
+    >
+      <S.CommentRow
+        $isReply={comment.depth > 0}
+        $isFlattened={isFlattenedTree}
+        $hasFlattenedChildren={shouldFlattenChildTree}
+      >
         <S.CommentItem>
           <S.CommentAuthorImage
             src={
@@ -455,9 +463,9 @@ export function CommunityCommentBranch({
       </S.CommentRow>
       {requiresInitialReplyLoad &&
         (isRepliesLoading ? (
-          <ReplyLoadingSkeleton />
+          <ReplyLoadingSkeleton isWithinReplies={shouldFlattenChildTree} />
         ) : (
-          <S.RepliesToggleRow>
+          <S.RepliesToggleRow $isWithinReplies={shouldFlattenChildTree}>
             <S.RepliesToggle
               type="button"
               aria-label={repliesLoadLabel}
@@ -470,8 +478,11 @@ export function CommunityCommentBranch({
         ))}
       {hasReplies && (
         <>
-          {shouldShowReplies && (
-            <S.CommentChildren $isFlattened={shouldFlattenChildTree}>
+          {shouldShowReplies && (loadedReplyCount > 0 || hasCollapseControl) && (
+            <S.CommentChildren
+              $isFlattened={shouldFlattenChildTree}
+              $hasCommonConnector={hasCommonConnector}
+            >
               {node.children.map((child, index) => {
                 const hasFollowingItem =
                   index < node.children.length - 1 || hasCollapseControl
@@ -489,7 +500,7 @@ export function CommunityCommentBranch({
                     loadedReplyCommentIds={loadedReplyCommentIds}
                     replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
                     replyToUserName={
-                      child.comment.depth >= FLATTENED_TREE_DEPTH
+                      child.comment.depth > FLATTENED_TREE_DEPTH
                         ? comment.userName
                         : undefined
                     }
@@ -516,7 +527,7 @@ export function CommunityCommentBranch({
             </S.CommentChildren>
           )}
           {hasCollapseControl && !isRepliesOpen && !requiresInitialReplyLoad && (
-            <S.RepliesToggleRow>
+            <S.RepliesToggleRow $isWithinReplies={shouldFlattenChildTree}>
               <S.RepliesToggle
                 type="button"
                 aria-expanded={isRepliesOpen}
