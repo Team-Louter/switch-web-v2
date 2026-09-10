@@ -208,7 +208,7 @@ export function Calendar({
           eventContent={renderEventContent}
           locale="ko"
           height="100%"
-          fixedWeekCount={true}
+          fixedWeekCount={false}
           eventOrder={(a: unknown, b: unknown) => {
             const eventA = a as { start?: Date; end?: Date };
             const eventB = b as { start?: Date; end?: Date };
