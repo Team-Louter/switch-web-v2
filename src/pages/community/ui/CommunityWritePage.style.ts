@@ -5,7 +5,7 @@ import * as token from '@/shared/styles/values/token';
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
-  padding: clamp(32px, 5.1dvh, 50px) clamp(24px, 8.31%, 100px);
+  padding: clamp(32px, 5.1dvh, 50px) 0;
   container-name: community-write;
   container-type: inline-size;
   background: ${token.colors.white};
@@ -17,7 +17,7 @@ export const Content = styled.div`
   width: 100%;
   max-width: calc(1003px / 0.9);
   min-height: calc(100dvh - 100px);
-  margin: 0 auto;
+  margin: 0;
   zoom: 0.9;
 `;
 
