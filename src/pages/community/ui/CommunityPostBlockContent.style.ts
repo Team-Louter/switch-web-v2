@@ -136,7 +136,13 @@ export const PlayButton = styled.button`
 
   ${Figure} { height: 100%; padding: 0; }
   ${ImageSurface} { height: 100%; }
-  img { width: 100%; height: 100%; object-fit: cover; }
+  ${ImageSurface} img {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    object-fit: cover;
+    object-position: center;
+  }
   &:focus-visible { outline: 3px solid ${token.colors.gray.gray0}; outline-offset: -4px; }
 `
 
