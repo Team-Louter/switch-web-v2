@@ -130,7 +130,7 @@ export const CalendarWrapper = styled.div`
   }
 
   .fc .fc-createSchedule-button:hover {
-    background: ${token.colors.main.alternative};
+    background: ${token.colors.fill.charcoal};
     color: ${token.colors.fill.white};
   }
 
