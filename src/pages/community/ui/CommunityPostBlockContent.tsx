@@ -1,7 +1,9 @@
 import type { Block } from '@blocknote/core'
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 
 import { getCommunityFileDownloadUrl, type PostFileResponse } from '@/entities/community'
+
+import { getYouTubeTitle } from '@/shared/api'
 
 import * as S from './CommunityPostBlockContent.style'
 
@@ -62,15 +64,34 @@ function getLinkFromBlock(block: Block): string | null {
 
 function LinkPreview({ href }: { href: string }) {
   const [isPlaying, setIsPlaying] = useState(false)
+  const [videoTitle, setVideoTitle] = useState<string | null>(null)
   const embedUrl = getYouTubeEmbedUrl(href)
   const videoId = embedUrl ? new URL(embedUrl).pathname.split('/').pop() : null
   const hostname = new URL(href).hostname
+
+  useEffect(() => {
+    if (!videoId) return;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 8000);
+    getYouTubeTitle({ videoId, signal: controller.signal })
+      .then((title) => {
+        if (!controller.signal.aborted) setVideoTitle(title);
+      })
+      .catch(() => {
+        // 비공개·삭제된 영상이나 네트워크 오류에도 원본 링크와 재생 버튼을 유지합니다.
+      })
+      .finally(() => window.clearTimeout(timeout));
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeout);
+    };
+  }, [videoId]);
 
   return (
     <S.LinkCard>
       <S.LinkDetails href={href} target="_blank" rel="noopener noreferrer">
         <S.LinkProvider>{embedUrl ? 'YouTube' : hostname}</S.LinkProvider>
-        <S.LinkTitle>{embedUrl ? 'YouTube 동영상' : hostname}</S.LinkTitle>
+        <S.LinkTitle>{embedUrl ? videoTitle ?? 'YouTube 동영상' : hostname}</S.LinkTitle>
         <S.LinkAddress>{href}</S.LinkAddress>
       </S.LinkDetails>
       {embedUrl && (
@@ -78,7 +99,7 @@ function LinkPreview({ href }: { href: string }) {
           {isPlaying ? (
             <iframe
               src={`${embedUrl}&autoplay=1`}
-              title="YouTube 동영상"
+              title={videoTitle ?? 'YouTube 동영상'}
               allow="autoplay; encrypted-media; picture-in-picture; web-share"
               referrerPolicy="strict-origin-when-cross-origin"
               allowFullScreen
