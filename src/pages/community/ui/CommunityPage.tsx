@@ -80,7 +80,7 @@ const CATEGORY_TABS: readonly CategoryTabItem[] = [
 
 const MAX_VISIBLE_PAGE_COUNT = 5
 const SKELETON_ROW_COUNT = 16
-const POST_REFRESH_INTERVAL_MS = 30_000
+const RELATIVE_TIME_REFRESH_INTERVAL_MS = 30_000
 
 export function CommunityPage() {
   const navigate = useNavigate()
@@ -92,6 +92,7 @@ export function CommunityPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const [currentTime, setCurrentTime] = useState(globalThis.Date.now)
 
   const firstVisiblePage = Math.min(
     Math.max(currentPage - Math.floor(MAX_VISIBLE_PAGE_COUNT / 2), 0),
@@ -141,9 +142,10 @@ export function CommunityPage() {
   }, [])
 
   useEffect(() => {
-    const refreshIntervalId = window.setInterval(() => {
-      setReloadKey((currentKey) => currentKey + 1)
-    }, POST_REFRESH_INTERVAL_MS)
+    const refreshIntervalId = window.setInterval(
+      () => setCurrentTime(globalThis.Date.now()),
+      RELATIVE_TIME_REFRESH_INTERVAL_MS,
+    )
 
     return () => {
       window.clearInterval(refreshIntervalId)
@@ -298,7 +300,7 @@ export function CommunityPage() {
                     </AuthorName>
                   </Author>
                   <Date dateTime={post.createdAt}>
-                    {formatCommunityListRecentDate(post.createdAt)}
+                    {formatCommunityListRecentDate(post.createdAt, currentTime)}
                   </Date>
                   <Stats
                     aria-label={`좋아요 ${post.likeCount}, 댓글 ${post.commentCount}, 조회 ${post.viewers}`}
