@@ -200,9 +200,9 @@ export function Calendar({
           headerToolbar={
             showHeaderToolbar
               ? {
-                  left: 'prev',
-                  center: 'title',
-                  right: readOnly ? 'next' : 'next createSchedule'
+                  left: '',
+                  center: 'prev title next',
+                  right: readOnly ? '' : 'createSchedule'
                 }
               : false
           }

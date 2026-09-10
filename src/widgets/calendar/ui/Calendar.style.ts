@@ -32,6 +32,7 @@ export const CalendarWrapper = styled.div`
   }
 
   .fc-header-toolbar.fc-toolbar {
+    position: relative;
     ${token.flexCenter}
     padding: clamp(10px, 2cqw, 24px);
     flex-shrink: 0;
@@ -52,6 +53,11 @@ export const CalendarWrapper = styled.div`
     flex-grow: 0;
     display: flex;
     align-items: center;
+  }
+
+  .fc-header-toolbar .fc-toolbar-chunk:last-child {
+    position: absolute;
+    right: clamp(10px, 2cqw, 24px);
   }
 
   .fc-header-toolbar .fc-prev-button {
@@ -91,6 +97,7 @@ export const CalendarWrapper = styled.div`
 
   .fc .fc-createSchedule-button {
     display: inline-flex;
+    position: relative;
     align-items: center;
     gap: 6px;
     margin-left: 16px;
@@ -104,11 +111,22 @@ export const CalendarWrapper = styled.div`
 
   .fc .fc-createSchedule-button::before {
     width: 12px;
-    height: 12px;
-    background:
-      linear-gradient(${token.colors.fill.white}, ${token.colors.fill.white}) center / 100% 2px no-repeat,
-      linear-gradient(${token.colors.fill.white}, ${token.colors.fill.white}) center / 2px 100% no-repeat;
+    height: 2px;
+    border-radius: 999px;
+    background: ${token.colors.fill.white};
     content: '';
+  }
+
+  .fc .fc-createSchedule-button::after {
+    position: absolute;
+    top: 50%;
+    left: 17px;
+    width: 2px;
+    height: 12px;
+    border-radius: 999px;
+    background: ${token.colors.fill.white};
+    content: '';
+    transform: translateY(-50%);
   }
 
   .fc .fc-createSchedule-button:hover {
