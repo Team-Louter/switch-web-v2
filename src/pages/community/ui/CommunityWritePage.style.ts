@@ -5,15 +5,10 @@ import * as token from '@/shared/styles/values/token';
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
-  padding: clamp(32px, 5.1dvh, 50px) 0;
+  padding: clamp(32px, 5.1dvh, 50px) clamp(24px, 8.31%, 100px);
   container-name: community-write;
   container-type: inline-size;
   background: ${token.colors.white};
-
-  @media (max-width: 760px) {
-    padding-right: 18px;
-    padding-left: 18px;
-  }
 `;
 
 export const Content = styled.div`
@@ -22,7 +17,7 @@ export const Content = styled.div`
   width: 100%;
   max-width: calc(1003px / 0.9);
   min-height: calc(100dvh - 100px);
-  margin: 0;
+  margin: 0 auto;
   zoom: 0.9;
 `;
 

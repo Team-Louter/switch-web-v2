@@ -61,7 +61,7 @@ const rollingNumberDecrease = keyframes`
 export const Page = styled.section`
   box-sizing: border-box;
   min-height: 100dvh;
-  padding: clamp(32px, 5.1dvh, 50px) 0;
+  padding: clamp(32px, 5.1dvh, 50px) 24px;
   container-name: community-detail;
   container-type: inline-size;
   background: ${token.colors.white};
@@ -82,7 +82,7 @@ export const Content = styled.div`
   gap: 40px;
   width: 100%;
   max-width: calc(1003px / 0.9);
-  margin: 0;
+  margin: 0 auto;
   zoom: 0.9;
 
   @container community-detail (max-width: 700px) {
