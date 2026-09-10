@@ -110,7 +110,7 @@ function PostImage({
   const [isLoading, setIsLoading] = useState(true)
 
   return (
-    <S.Figure $isLoading={isLoading} aria-busy={isLoading}>
+    <S.Figure $isLoading={isLoading} $width={width} aria-busy={isLoading}>
       <img
         src={src}
         alt={alt}

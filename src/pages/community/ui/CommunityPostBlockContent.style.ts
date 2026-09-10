@@ -16,8 +16,13 @@ export const Content = styled.section`
   }
 `
 
-export const Figure = styled.figure<{ $isLoading?: boolean }>`
+export const Figure = styled.figure<{
+  $isLoading?: boolean
+  $width?: number
+}>`
   position: relative;
+  width: ${({ $width }) =>
+    $width === undefined ? '100%' : `min(100%, ${$width}px)`};
   min-height: ${({ $isLoading }) => ($isLoading ? '180px' : '0')};
   margin: 0;
   padding: 3px 0;
