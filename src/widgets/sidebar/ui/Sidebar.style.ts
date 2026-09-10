@@ -184,31 +184,15 @@ export const ProfileButton = styled.button`
   ${token.flexLeft}
   flex: 0 0 auto;
   width: 100%;
-  gap: clamp(8px, 1.16dvh, 10px);
-  overflow: hidden;
-  padding: clamp(10px, 1.51dvh, 13px) clamp(8px, 1.16dvh, 10px);
+  gap: 10px;
+  overflow: visible;
+  padding: 13px 10px;
   border-radius: ${token.shapes.medium};
 
   &:focus-visible {
     outline: 2px solid ${token.colors.primary.primary40};
     outline-offset: 2px;
   }
-`
-
-export const AvatarWrap = styled.div`
-  position: relative;
-  flex: 0 0 clamp(36px, 4.98dvh, 43px);
-  width: clamp(36px, 4.98dvh, 43px);
-  height: clamp(36px, 4.98dvh, 43px);
-  overflow: hidden;
-  border-radius: ${token.shapes.circle};
-
-`
-
-export const Avatar = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 `
 
 export const ProfileText = styled.div`
@@ -218,8 +202,17 @@ export const ProfileText = styled.div`
   gap: clamp(3px, 0.58dvh, 5px);
   min-width: 0;
   overflow: hidden;
-  white-space: nowrap;
+`
 
+export const ProfileTitle = styled.span`
+  max-width: 100%;
+  overflow: hidden;
+  color: #FFA20A;
+  line-height: 1;
+  text-overflow: ellipsis;
+  ${token.typography('caption', 'sm', 'medium')}
+
+  font-size: 11px;
 `
 
 export const ProfileName = styled.span`

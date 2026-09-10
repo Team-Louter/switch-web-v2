@@ -1,4 +1,4 @@
-import type { ProfileRole } from '@/entities/profile'
+import type { ProfileEquippedItems, ProfileRole } from '@/entities/profile'
 
 export type { ProfileMajor } from '@/entities/profile'
 
@@ -9,6 +9,7 @@ export type MyProfile = {
   classInfo: string
   majors: string
   email: string
+  equippedItems?: ProfileEquippedItems
   role?: ProfileRole
   imageUrl?: string
 }
