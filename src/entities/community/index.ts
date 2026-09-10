@@ -9,6 +9,7 @@ export {
 export {
   formatCommunityCount,
   formatCommunityDate,
+  formatCommunityRelativeDate,
   formatCommunityListDate,
   getCommunityFileKey,
   getCommunityFileDownloadUrl,

@@ -8,6 +8,7 @@ import {
 
 import {
   formatCommunityDate,
+  formatCommunityRelativeDate,
   resolveCommunityAssetUrl,
 } from '@/entities/community'
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
@@ -290,8 +291,11 @@ export function CommunityCommentBranch({
               <S.CommentMeta>
                 <S.CommentAuthor>{comment.userName}</S.CommentAuthor>
                 <S.CommentMetaDot aria-hidden="true" />
-                <S.CommentDate dateTime={comment.createdAt}>
-                  {formatCommunityDate(comment.createdAt)}
+                <S.CommentDate
+                  dateTime={comment.createdAt}
+                  title={formatCommunityDate(comment.createdAt)}
+                >
+                  {formatCommunityRelativeDate(comment.createdAt)}
                 </S.CommentDate>
               </S.CommentMeta>
               {canManageComment && (
