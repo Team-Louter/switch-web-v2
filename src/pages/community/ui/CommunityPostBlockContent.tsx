@@ -46,23 +46,53 @@ function getYouTubeEmbedUrl(value: string): string | null {
   }
 }
 
-function getYouTubeEmbedUrlFromBlock(block: Block): string | null {
+function getLinkFromBlock(block: Block): string | null {
   if (block.type !== 'paragraph' || !Array.isArray(block.content)) return null
-
-  const [content] = block.content as readonly unknown[]
-  if (
-    block.content.length !== 1 ||
-    typeof content !== 'object' ||
-    content === null ||
-    !('type' in content) ||
-    content.type !== 'link' ||
-    !('href' in content) ||
-    typeof content.href !== 'string'
-  ) {
+  const content = block.content.filter((item) => item.type !== 'text' || item.text.trim())
+  if (content.length !== 1) return null
+  const item = content[0]
+  const value = item.type === 'link' ? item.href : item.type === 'text' ? item.text.trim() : ''
+  try {
+    const url = new URL(value)
+    return ['https:', 'http:'].includes(url.protocol) ? url.href : null
+  } catch {
     return null
   }
+}
 
-  return getYouTubeEmbedUrl(content.href)
+function LinkPreview({ href }: { href: string }) {
+  const [isPlaying, setIsPlaying] = useState(false)
+  const embedUrl = getYouTubeEmbedUrl(href)
+  const videoId = embedUrl ? new URL(embedUrl).pathname.split('/').pop() : null
+  const hostname = new URL(href).hostname
+
+  return (
+    <S.LinkCard>
+      <S.LinkDetails href={href} target="_blank" rel="noopener noreferrer">
+        <S.LinkProvider>{embedUrl ? 'YouTube' : hostname}</S.LinkProvider>
+        <S.LinkTitle>{embedUrl ? 'YouTube 동영상' : hostname}</S.LinkTitle>
+        <S.LinkAddress>{href}</S.LinkAddress>
+      </S.LinkDetails>
+      {embedUrl && (
+        <S.VideoEmbed>
+          {isPlaying ? (
+            <iframe
+              src={`${embedUrl}&autoplay=1`}
+              title="YouTube 동영상"
+              allow="autoplay; encrypted-media; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            />
+          ) : (
+            <S.PlayButton type="button" aria-label="YouTube 동영상 재생" onClick={() => setIsPlaying(true)}>
+              <PostImage src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} alt="동영상 미리보기" fetchPriority="auto" loading="lazy" />
+              <S.PlayIcon aria-hidden="true">▶</S.PlayIcon>
+            </S.PlayButton>
+          )}
+        </S.VideoEmbed>
+      )}
+    </S.LinkCard>
+  )
 }
 
 // Keep complex blocks in the compatible renderer rather than losing formatting.
@@ -76,7 +106,7 @@ function supportsStaticBlock(block: Block): boolean {
   if (block.type === 'heading' && props.isToggleable) return false
   if (block.type === 'image') return props.showPreview !== false
   if (!Array.isArray(block.content)) return false
-  if (getYouTubeEmbedUrlFromBlock(block)) return true
+  if (getLinkFromBlock(block)) return true
   return block.content.every((item) => item.type === 'text'
     && Object.keys(item.styles).length === 0)
 }
@@ -107,59 +137,66 @@ function PostImage({
   src,
   width,
 }: PostImageProps) {
-  const [isLoading, setIsLoading] = useState(true)
+  const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>('loading')
+  const isLoading = status === 'loading'
 
   return (
-    <S.Figure $isLoading={isLoading} $width={width} aria-busy={isLoading}>
-      <img
-        src={src}
-        alt={alt}
-        width={width}
-        fetchPriority={fetchPriority}
-        loading={loading}
-        decoding="async"
-        onLoad={() => setIsLoading(false)}
-        onError={() => setIsLoading(false)}
-      />
+    <S.Figure $width={width} aria-busy={isLoading}>
+      <S.ImageSurface $isLoading={isLoading}>
+        {status === 'error' ? (
+          <S.ImageError role="status">이미지를 불러오지 못했습니다.</S.ImageError>
+        ) : (
+          <img
+            src={src}
+            alt={alt}
+            width={width}
+            fetchPriority={fetchPriority}
+            loading={loading}
+            decoding="async"
+            onLoad={() => setStatus('loaded')}
+            onError={() => setStatus('error')}
+          />
+        )}
+      </S.ImageSurface>
       {caption && <figcaption>{caption}</figcaption>}
     </S.Figure>
   )
 }
 
 export function CommunityPostBlockContent({ blocks, files }: CommunityPostBlockContentProps) {
-  if (!blocks.every(supportsStaticBlock)) {
-    return (
-      <Suspense fallback={<S.LoadingSkeleton aria-busy="true" aria-label="게시글 본문을 불러오는 중입니다.">
-        <S.SkeletonLine $width="42%" />
-        <S.SkeletonLine $width="100%" />
-        <S.SkeletonLine $width="76%" />
-      </S.LoadingSkeleton>}>
-        <BlockFallback blocks={blocks} files={files} />
-      </Suspense>
-    )
+  // 목록 등 연속된 복합 블록은 함께 렌더링해 기존 서식을 유지합니다.
+  const groups: Block[][] = []
+  for (const block of blocks) {
+    const previous = groups.at(-1)
+    if (!supportsStaticBlock(block) && previous && !supportsStaticBlock(previous[0])) {
+      previous.push(block)
+    } else {
+      groups.push([block])
+    }
   }
 
   const firstImageId = blocks.find((block) => block.type === 'image')?.id
 
   return (
     <S.Content aria-label="게시글 본문">
-      {blocks.map((block) => {
-        const youtubeEmbedUrl = getYouTubeEmbedUrlFromBlock(block)
-
-        if (youtubeEmbedUrl) {
+      {groups.map((group) => {
+        const block = group[0]
+        if (!supportsStaticBlock(block)) {
           return (
-            <S.VideoEmbed key={block.id}>
-              <iframe
-                src={youtubeEmbedUrl}
-                title="YouTube 동영상"
-                loading="lazy"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              />
-            </S.VideoEmbed>
+            <Suspense
+              key={group.map((item) => item.id).join(',')}
+              fallback={(
+                <S.LoadingSkeleton aria-busy="true" aria-label="본문을 불러오는 중">
+                  <S.SkeletonLine $width="76%" />
+                </S.LoadingSkeleton>
+              )}
+            >
+              <BlockFallback blocks={group} files={files} />
+            </Suspense>
           )
         }
+        const href = getLinkFromBlock(block)
+        if (href) return <LinkPreview key={`${block.id}:${href}`} href={href} />
 
         if (block.type === 'image') {
           const src = imageUrl(block, files)
@@ -171,7 +208,7 @@ export function CommunityPostBlockContent({ blocks, files }: CommunityPostBlockC
 
           return (
             <PostImage
-              key={block.id}
+              key={`${block.id}:${src}`}
               src={src}
               alt={block.props.name || '본문 이미지'}
               caption={block.props.caption || undefined}
