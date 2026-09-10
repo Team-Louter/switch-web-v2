@@ -9,6 +9,11 @@ export const Page = styled.section`
   container-name: community-write;
   container-type: inline-size;
   background: ${token.colors.white};
+
+  @media (max-width: 760px) {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
 `;
 
 export const Content = styled.div`
