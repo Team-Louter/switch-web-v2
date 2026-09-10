@@ -6,12 +6,15 @@ import {
   PRIMARY_SIDEBAR_MENU,
   UTILITY_SIDEBAR_MENU,
 } from '@/shared/constants/sidebar'
+import { UserName } from '@/entities/user'
+import { getNameStyleKey } from '@/shared/styles'
+import { ProfileAvatar } from '@/shared/ui'
+
+import type { ProfileAvatarEquippedItems } from '@/shared/ui'
 import type { SidebarItemId } from '@/shared/constants/sidebar'
 
 import {
   Aside,
-  Avatar,
-  AvatarWrap,
   Divider,
   Logo,
   LogoArea,
@@ -24,6 +27,7 @@ import {
   ProfileMeta,
   ProfileName,
   ProfileText,
+  ProfileTitle,
   Spacer,
   type NotificationCountAnimationDirection,
 } from './Sidebar.style'
@@ -35,6 +39,7 @@ interface SidebarProps {
   onItemSelect?: (itemId: SidebarItemId) => void
   profile?: {
     classInfo: string
+    equippedItems?: ProfileAvatarEquippedItems
     imageUrl?: string
     name: string
   } | null
@@ -51,6 +56,16 @@ export function Sidebar({
     useState<NotificationCountAnimationDirection>()
   const notificationCountLabel =
     notificationCount >= 15 ? '15+' : String(notificationCount)
+  const profileNameColor = profile?.equippedItems?.nameColor
+  const profileTitle = profile?.equippedItems?.title
+  const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName
+  const profileNameStyleKey = getNameStyleKey(
+    profileNameColor?.styleKey ??
+      profileNameColor?.valueColor ??
+      profileNameColor?.value_color ??
+      profileNameColor?.valueText ??
+      profileNameColor?.itemName,
+  )
 
   useEffect(() => {
     const previousNotificationCount = previousNotificationCountRef.current
@@ -132,11 +147,18 @@ export function Sidebar({
         aria-current={activeItemId === MY_SIDEBAR_ITEM.id ? 'page' : undefined}
         onClick={() => onItemSelect?.(MY_SIDEBAR_ITEM.id)}
       >
-        <AvatarWrap aria-hidden={!profile?.imageUrl}>
-          {profile?.imageUrl && <Avatar src={profile.imageUrl} alt="" />}
-        </AvatarWrap>
+        <ProfileAvatar
+          imageUrl={profile?.imageUrl}
+          equippedItems={profile?.equippedItems}
+          size={50}
+        />
         <ProfileText>
-          <ProfileName>{profile?.name ?? ''}</ProfileName>
+          {profileTitleText && <ProfileTitle>{profileTitleText}</ProfileTitle>}
+          <ProfileName>
+            <UserName styleKey={profileNameStyleKey}>
+              {profile?.name ?? ''}
+            </UserName>
+          </ProfileName>
           <ProfileMeta>{profile?.classInfo ?? ''}</ProfileMeta>
         </ProfileText>
       </ProfileButton>

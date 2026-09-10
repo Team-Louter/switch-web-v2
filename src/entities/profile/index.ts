@@ -8,6 +8,8 @@ export { formatProfileClassInfo } from './lib/formatProfileClassInfo'
 export { useUserStore } from './model/userStore'
 export type {
   ProfileMajor,
+  ProfileEquippedItem,
+  ProfileEquippedItems,
   ProfileResponse,
   ProfileRole,
   UpdateProfileRequest,

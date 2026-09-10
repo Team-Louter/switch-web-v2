@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { formatProfileClassInfo, useUserStore } from '@/entities/profile'
+import { mergeSyncedEquippedItems } from '@/shared/lib/profileSync'
 
 import {
   getMyComments,
@@ -111,6 +112,12 @@ const formatProfile = (profile: ProfileResponse): MyProfile => {
     majors: formatMajorText(profile.majors),
     email: profile.userEmail,
     role: profile.role,
+  }
+
+  const equippedItems = mergeSyncedEquippedItems(profile.equippedItems)
+
+  if (equippedItems) {
+    nextProfile.equippedItems = equippedItems
   }
 
   if (profile.profileImageUrl) {

@@ -30,22 +30,6 @@ export const ProfileSection = styled.section`
   gap: 40px;
 `
 
-export const ProfileImageWrap = styled.div`
-  flex: 0 0 200px;
-  width: 200px;
-  height: 200px;
-  overflow: hidden;
-  border-radius: ${token.shapes.circle};
-  background: ${token.colors.white};
-`
-
-export const ProfileImage = styled.img`
-  width: 212px;
-  height: 212px;
-  margin-left: -6px;
-  object-fit: cover;
-`
-
 export const ProfileInfo = styled.div`
   ${token.flexBetween}
   align-items: flex-start;
@@ -65,9 +49,16 @@ export const ProfileIdentity = styled.div`
   gap: 10px;
 `
 
+export const ProfileTitle = styled.span`
+  margin: 0;
+  color: ${token.colors.primary.text};
+  line-height: 1;
+  ${token.typography('body', 'lg', 'regular')}
+`
+
 export const ProfileName = styled.h1`
   margin: 0;
-  color: ${token.colors.gray.gray80};
+  color: #FFA20A;
   line-height: 1;
   ${token.typography('heading', 'lg', 'bold')}
 `

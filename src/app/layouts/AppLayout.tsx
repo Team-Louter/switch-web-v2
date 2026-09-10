@@ -5,16 +5,22 @@ import styled from 'styled-components'
 import { getUnreadNotificationCount } from '@/entities/notification'
 import { formatProfileClassInfo, useUserStore } from '@/entities/profile'
 import { SIDEBAR_MENU } from '@/shared/constants/sidebar'
+import {
+  getProfileSyncPayload,
+  mergeSyncedEquippedItems,
+  PROFILE_SYNC_EVENT_NAME,
+} from '@/shared/lib/profileSync'
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 
+import type { ProfileEquippedItems } from '@/entities/profile'
 import type { SidebarItemId } from '@/shared/constants/sidebar'
 
 const UNREAD_NOTIFICATION_COUNT_STORAGE_KEY = 'switch:unread-notification-count'
 const UNREAD_NOTIFICATION_POLLING_INTERVAL = 15_000
-
 interface SidebarProfile {
   classInfo: string
+  equippedItems?: ProfileEquippedItems
   imageUrl?: string
   name: string
 }
@@ -101,6 +107,12 @@ export function AppLayout() {
           nextProfile.imageUrl = profile.profileImageUrl
         }
 
+        const equippedItems = mergeSyncedEquippedItems(profile.equippedItems)
+
+        if (equippedItems) {
+          nextProfile.equippedItems = equippedItems
+        }
+
         if (!isCancelled) {
           setSidebarProfile(nextProfile)
         }
@@ -111,10 +123,27 @@ export function AppLayout() {
       }
     }
 
+    const handleProfileSync = (event: Event) => {
+      const payload = getProfileSyncPayload(event)
+
+      if (payload?.equippedItems) {
+        setSidebarProfile((currentProfile) =>
+          currentProfile
+            ? { ...currentProfile, equippedItems: payload.equippedItems }
+            : currentProfile,
+        )
+        return
+      }
+
+      void synchronizeProfile()
+    }
+
     void synchronizeProfile()
+    window.addEventListener(PROFILE_SYNC_EVENT_NAME, handleProfileSync)
 
     return () => {
       isCancelled = true
+      window.removeEventListener(PROFILE_SYNC_EVENT_NAME, handleProfileSync)
     }
   }, [fetchUser, location.pathname])
 

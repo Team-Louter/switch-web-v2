@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { UserName } from '@/entities/user'
+import { getNameStyleKey } from '@/shared/styles'
 import {
   clearAccessToken,
   clearPendingAccessToken,
 } from '@/shared/lib/authToken'
+import { ProfileAvatar } from '@/shared/ui'
 
 import {
   sendWithdrawalVerificationCode,
@@ -22,6 +25,12 @@ import { MyStatIcon } from './icons/MyStatIcon'
 import * as S from './MyPage.style'
 import type { WithdrawModalStep } from './components'
 
+import { useProfileCustomize } from '@/pages/store/model/useProfileCustomize'
+import { StoreProfileCustomizeModal } from '@/pages/store/ui/components/StoreProfileCustomizeModal'
+import { dispatchProfileSync } from '@/shared/lib/profileSync'
+
+import type { EquippedItemsResponse } from '@/entities/store'
+
 const WITHDRAW_CODE_TIME_LIMIT_SECONDS = 120
 const WITHDRAW_CODE_RESEND_DELAY_SECONDS = 30
 
@@ -38,6 +47,9 @@ export function MyPage() {
     useState(WITHDRAW_CODE_TIME_LIMIT_SECONDS)
   const [withdrawResendRemainingSeconds, setWithdrawResendRemainingSeconds] =
     useState(WITHDRAW_CODE_RESEND_DELAY_SECONDS)
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false)
+  const [equippedItemsOverride, setEquippedItemsOverride] =
+    useState<EquippedItemsResponse | undefined>(undefined)
   const {
     activeTabId,
     activityTabs,
@@ -48,8 +60,22 @@ export function MyPage() {
     stats,
   } = useMyPage()
 
+  const displayProfile = equippedItemsOverride
+    ? { ...profile, equippedItems: equippedItemsOverride }
+    : profile
+
   const hasPosts = posts.length > 0
   const canManageMembers = profile.role === 'LEADER'
+  const profileNameColor = displayProfile.equippedItems?.nameColor
+  const profileNameStyleKey = getNameStyleKey(
+    profileNameColor?.styleKey ??
+      profileNameColor?.valueColor ??
+      profileNameColor?.value_color ??
+      profileNameColor?.valueText ??
+      profileNameColor?.itemName,
+  )
+  const profileTitle = displayProfile.equippedItems?.title
+  const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName
   const canResendWithdrawalCode =
     withdrawStep === 'verify' && withdrawResendRemainingSeconds === 0
 
@@ -81,6 +107,21 @@ export function MyPage() {
     return () => window.clearInterval(timerId)
   }, [withdrawResendRemainingSeconds, withdrawStep])
 
+  const { onSave: onCustomizeSaveRaw, ...customize } = useProfileCustomize({
+    isOpen: isCustomizeOpen,
+    onEquippedItemsChange: (equippedItems) => {
+      setEquippedItemsOverride(equippedItems)
+      dispatchProfileSync({ equippedItems })
+    },
+  })
+  
+  const handleCustomizeSave = async () => {
+    const didSave = await onCustomizeSaveRaw()
+  
+    if (didSave) {
+      setIsCustomizeOpen(false)
+    }
+  }
   const resetWithdrawalVerificationState = () => {
     setVerificationCode('')
     setWithdrawCodeRemainingSeconds(WITHDRAW_CODE_TIME_LIMIT_SECONDS)
@@ -154,19 +195,26 @@ export function MyPage() {
     <S.Page>
       <S.Content>
         <S.ProfileSection>
-          <S.ProfileImageWrap>
-            {profile.imageUrl && <S.ProfileImage src={profile.imageUrl} alt="" />}
-          </S.ProfileImageWrap>
+          <ProfileAvatar
+          imageUrl={displayProfile.imageUrl}
+          equippedItems={displayProfile.equippedItems}
+          size={200}
+          />
 
           <S.ProfileInfo>
             <S.ProfileTextGroup>
-              <S.ProfileIdentity>
-                <S.ProfileName>{profile.name}</S.ProfileName>
-                <S.ProfileDescription>{profile.classInfo}</S.ProfileDescription>
-                {profile.majors && (
-                  <S.ProfileDescription>{profile.majors}</S.ProfileDescription>
-                )}
-              </S.ProfileIdentity>
+            <S.ProfileIdentity>
+            {profileTitleText && <S.ProfileTitle>{profileTitleText}</S.ProfileTitle>}
+            <S.ProfileName>
+              <UserName styleKey={profileNameStyleKey}>
+                {displayProfile.name}
+              </UserName>
+            </S.ProfileName>
+            <S.ProfileDescription>{displayProfile.classInfo}</S.ProfileDescription>
+            {displayProfile.majors && (
+              <S.ProfileDescription>{displayProfile.majors}</S.ProfileDescription>
+            )}
+            </S.ProfileIdentity>
               <S.ProfileEmail>{profile.email}</S.ProfileEmail>
             </S.ProfileTextGroup>
 
@@ -180,7 +228,12 @@ export function MyPage() {
                   멤버 관리
                 </S.ActionButton>
               )}
-              <S.ActionButton type="button">프로필 꾸미기</S.ActionButton>
+              <S.ActionButton
+                type="button"
+                onClick={() => setIsCustomizeOpen(true)}
+              >
+                프로필 꾸미기
+              </S.ActionButton>
               <S.ActionButton
                 type="button"
                 $variant="outline"
@@ -262,12 +315,27 @@ export function MyPage() {
           onWithdraw={handleCompleteWithdrawal}
         />
       )}
-
-      {isMemberManagementOpen && (
-        <MemberManagementModal
-          onClose={() => setIsMemberManagementOpen(false)}
-          onComplete={setMemberActionToastMessage}
-        />
+      
+      {isCustomizeOpen && (
+        <StoreProfileCustomizeModal
+        categories={customize.categories}
+        isActionPending={customize.isActionPending}
+        ownedEffects={customize.ownedEffects}
+        profile={displayProfile}
+        recommendedEffects={customize.recommendedEffects}
+        selectedCategory={customize.selectedCategory}
+        selectedEffect={customize.selectedEffect}
+        selectedEffectsByCategory={customize.selectedEffectsByCategory}
+        onCategorySelect={customize.onCategorySelect}
+        onClose={() => setIsCustomizeOpen(false)}
+        onEffectSelect={customize.onEffectSelect}
+        onGoToStore={(category) =>
+          navigate(`/store?category=${encodeURIComponent(category)}`)
+        }
+        onPurchaseOpen={() => navigate('/store')}
+        onReset={customize.onReset}
+        onSave={handleCustomizeSave}
+      />
       )}
 
       {memberActionToastMessage && (
