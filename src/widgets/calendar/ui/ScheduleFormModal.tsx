@@ -1,5 +1,6 @@
 import type { FormEvent } from 'react'
 
+import chevronDownIcon from '@/shared/assets/calendar/chevron-down.svg'
 import type { Member } from '@/shared/types/member'
 import { Button, Modal } from '@/shared/ui'
 
@@ -12,14 +13,16 @@ import {
   FieldGroup,
   FieldRow,
   FormBody,
+  MemberSelect,
   ModalFooter,
   ModalForm,
   ModalHeader,
   ModalTitle,
+  SelectField,
+  SelectIcon,
   TextArea,
   TextInput,
 } from './ScheduleModal.style'
-import { ScheduleMemberDropdown } from './ScheduleMemberDropdown'
 
 type ScheduleFormModalProps = {
   mode: 'create' | 'edit'
@@ -103,17 +106,36 @@ export function ScheduleFormModal({
               />
             </FieldRow>
 
-            <ScheduleMemberDropdown
-              members={members}
-              value={values.userIds}
-              onChange={(userIds) => handleValueChange('userIds', userIds)}
-            />
+            <SelectField>
+              <MemberSelect
+                aria-label="담당자 선택"
+                value={values.userId === null ? '' : `${values.userId}`}
+                $hasValue={values.userId !== null}
+                onChange={(event) =>
+                  handleValueChange(
+                    'userId',
+                    event.target.value === '' ? null : Number(event.target.value),
+                  )
+                }
+              >
+                <option value="">담당자 선택</option>
+                {members.map((member) => (
+                  <option key={member.userId} value={member.userId}>
+                    {member.userName}
+                  </option>
+                ))}
+              </MemberSelect>
+              <SelectIcon src={chevronDownIcon} alt="" />
+            </SelectField>
           </FieldGroup>
 
-          <ScheduleColorPicker
-            value={values.color}
-            onChange={(color) => handleValueChange('color', color)}
-          />
+          {/* 색상 선택은 디자인상 일정 추가에만 있습니다. */}
+          {mode === 'create' && (
+            <ScheduleColorPicker
+              value={values.color}
+              onChange={(color) => handleValueChange('color', color)}
+            />
+          )}
         </FormBody>
 
         <ModalFooter>
