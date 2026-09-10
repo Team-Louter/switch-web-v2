@@ -16,3 +16,5 @@ export {
   hasApiAccessToken,
   isProtectedApiEnabled,
 } from './client'
+
+export { getYouTubeTitle } from './youtubeMetadata'

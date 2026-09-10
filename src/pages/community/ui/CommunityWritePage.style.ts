@@ -1,6 +1,6 @@
-import styled, { keyframes } from 'styled-components'
+import styled, { keyframes } from 'styled-components';
 
-import * as token from '@/shared/styles/values/token'
+import * as token from '@/shared/styles/values/token';
 
 export const Page = styled.section`
   box-sizing: border-box;
@@ -9,7 +9,7 @@ export const Page = styled.section`
   container-name: community-write;
   container-type: inline-size;
   background: ${token.colors.white};
-`
+`;
 
 export const Content = styled.div`
   ${token.flexColumn}
@@ -19,13 +19,13 @@ export const Content = styled.div`
   min-height: calc(100dvh - 100px);
   margin: 0 auto;
   zoom: 0.9;
-`
+`;
 
 export const Header = styled.header`
   ${token.flexColumn}
   gap: 24px;
   width: 100%;
-`
+`;
 
 export const BackButton = styled.button`
   ${token.flexLeft}
@@ -39,33 +39,33 @@ export const BackButton = styled.button`
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1;
   cursor: pointer;
-`
+`;
 
 export const BackIcon = styled.img`
   width: 9.257px;
   height: 16px;
   transform: rotate(180deg);
-`
+`;
 
 export const WriteForm = styled.form`
   ${token.flexColumn}
   gap: 20px;
   width: 100%;
-`
+`;
 
 export const TitleRow = styled.div`
   ${token.flexBetween}
   gap: 20px;
   width: 100%;
   min-height: 39px;
-`
+`;
 
 export const Heading = styled.h1`
   margin: 0;
   color: ${token.colors.gray.gray100};
   ${token.typography('heading', 'lg', 'semibold')}
   line-height: 1.18;
-`
+`;
 
 export const Fields = styled.div`
   ${token.flexRow}
@@ -77,7 +77,7 @@ export const Fields = styled.div`
     flex-direction: column;
     height: auto;
   }
-`
+`;
 
 export const CategoryField = styled.div`
   position: relative;
@@ -88,9 +88,11 @@ export const CategoryField = styled.div`
     flex-basis: 52px;
     width: 100%;
   }
-`
+`;
 
-export const CategorySelect = styled.select`
+export const CategoryTrigger = styled.button`
+  display: flex;
+  align-items: center;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
@@ -103,24 +105,83 @@ export const CategorySelect = styled.select`
   background: #f5f5f5;
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1;
-  appearance: none;
+  text-align: left;
   cursor: pointer;
 
   &:focus-visible {
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: -2px;
   }
-`
 
-export const CategoryChevron = styled.img`
+  &:disabled {
+    cursor: default;
+  }
+`;
+
+export const CategoryChevron = styled.img<{ $open: boolean }>`
   position: absolute;
   top: 20px;
   right: 12px;
   width: 20px;
   height: 12px;
   pointer-events: none;
-  transform: rotate(180deg);
-`
+  transform: rotate(${({ $open }) => ($open ? '0deg' : '180deg')});
+  transition: transform 150ms ease;
+`;
+
+const categoryOptionsEnter = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scaleY(.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+`;
+
+export const CategoryOptions = styled.div`
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.medium};
+  background: ${token.colors.white};
+  box-shadow: 0 8px 20px rgb(0 0 0 / 12%);
+  transform-origin: top center;
+  animation: ${categoryOptionsEnter} 160ms ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`;
+
+export const CategoryOption = styled.button<{ $selected: boolean }>`
+  width: 100%;
+  min-height: 36px;
+  padding: 8px;
+  border: 0;
+  border-radius: ${token.shapes.small};
+  color: ${({ $selected }) =>
+    $selected ? token.colors.gray.gray100 : token.colors.gray.gray60};
+  background: ${({ $selected }) =>
+    $selected ? token.colors.primary.primary10 : 'transparent'};
+  ${token.typography('body', 'sm', 'medium')}
+  text-align: left;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    background: ${token.colors.gray.gray0};
+  }
+`;
 
 export const TitleInput = styled.input`
   flex: 1 1 0;
@@ -145,7 +206,7 @@ export const TitleInput = styled.input`
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: -2px;
   }
-`
+`;
 
 export const Editor = styled.section`
   ${token.flexColumn}
@@ -322,7 +383,7 @@ export const Editor = styled.section`
       padding-inline: 54px 12px;
     }
   }
-`
+`;
 
 export const BlockSideMenu = styled.div`
   display: flex;
@@ -360,12 +421,12 @@ export const BlockSideMenu = styled.div`
     max-height: 360px !important;
     overflow-y: auto;
   }
-`
+`;
 
 export const BlockDropIndicator = styled.div<{
-  $left: number
-  $top: number
-  $width: number
+  $left: number;
+  $top: number;
+  $width: number;
 }>`
   position: absolute;
   z-index: 50;
@@ -377,7 +438,7 @@ export const BlockDropIndicator = styled.div<{
   background: ${token.colors.info.info10};
   pointer-events: none;
   transform: translateY(-1px);
-`
+`;
 
 export const Toolbar = styled.div`
   ${token.flexBetween}
@@ -386,7 +447,7 @@ export const Toolbar = styled.div`
   gap: 12px;
   width: 100%;
   min-height: 24px;
-`
+`;
 
 export const AnonymousLabel = styled.label`
   ${token.flexLeft}
@@ -397,7 +458,7 @@ export const AnonymousLabel = styled.label`
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
-`
+`;
 
 export const AnonymousToggle = styled.input`
   position: relative;
@@ -437,7 +498,7 @@ export const AnonymousToggle = styled.input`
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: 2px;
   }
-`
+`;
 
 export const EditorDivider = styled.hr`
   flex: 0 0 1px;
@@ -446,7 +507,7 @@ export const EditorDivider = styled.hr`
   margin: 4px 0 -4px;
   border: 0;
   background: ${token.colors.gray.gray10};
-`
+`;
 
 const uploadSkeletonShimmer = keyframes`
   from {
@@ -456,7 +517,7 @@ const uploadSkeletonShimmer = keyframes`
   to {
     background-position: -200% 0;
   }
-`
+`;
 
 export const FileUploadSkeleton = styled.div`
   display: grid;
@@ -509,7 +570,7 @@ export const FileUploadSkeleton = styled.div`
     width: calc(100% - 66px);
     margin-left: 54px;
   }
-`
+`;
 
 export const SubmitError = styled.p`
   position: fixed;
@@ -531,7 +592,7 @@ export const SubmitError = styled.p`
     left: 24px;
     max-width: none;
   }
-`
+`;
 
 export const FileUploadStatus = styled.p`
   position: fixed;
@@ -551,4 +612,4 @@ export const FileUploadStatus = styled.p`
     bottom: 24px;
     left: 24px;
   }
-`
+`;

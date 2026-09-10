@@ -1,6 +1,7 @@
 import type { CommentResponse } from '@/entities/community'
 
 export const REPLY_LOAD_DEPTH_INTERVAL = 2
+export const FLATTENED_TREE_DEPTH = 4
 
 export interface CommentTreeNode {
   comment: CommentResponse

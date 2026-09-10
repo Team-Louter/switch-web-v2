@@ -1,30 +1,30 @@
-import styled, { css, keyframes } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components';
 
-import * as token from '@/shared/styles/values/token'
+import * as token from '@/shared/styles/values/token';
 
 interface SkeletonBlockProps {
-  $height: number
-  $width?: string
+  $height: number;
+  $width?: string;
 }
 
 interface AttachmentChevronProps {
-  $isOpen: boolean
+  $isOpen: boolean;
 }
 
 interface AttachmentPanelProps {
-  $isOpen: boolean
+  $isOpen: boolean;
 }
 
 interface PostMenuItemProps {
-  $danger?: boolean
+  $danger?: boolean;
 }
 
 interface PinnedTitleProps {
-  $isPinned: boolean
+  $isPinned: boolean;
 }
 
 const checkboxCheckmark =
-  'url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Cpath d=%22m3.25 8.25 2.75 2.75 6.75-6.75%22 fill=%22none%22 stroke=%22white%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222.25%22/%3E%3C/svg%3E")'
+  'url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Cpath d=%22m3.25 8.25 2.75 2.75 6.75-6.75%22 fill=%22none%22 stroke=%22white%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222.25%22/%3E%3C/svg%3E")';
 
 const communityDetailEnter = keyframes`
   from {
@@ -36,7 +36,7 @@ const communityDetailEnter = keyframes`
     opacity: 1;
     transform: translateY(0);
   }
-`
+`;
 
 const rollingNumberIncrease = keyframes`
   from {
@@ -46,7 +46,7 @@ const rollingNumberIncrease = keyframes`
   to {
     transform: translateY(var(--rolling-number-offset));
   }
-`
+`;
 
 const rollingNumberDecrease = keyframes`
   from {
@@ -56,7 +56,7 @@ const rollingNumberDecrease = keyframes`
   to {
     transform: translateY(0);
   }
-`
+`;
 
 export const Page = styled.section`
   box-sizing: border-box;
@@ -65,8 +65,7 @@ export const Page = styled.section`
   container-name: community-detail;
   container-type: inline-size;
   background: ${token.colors.white};
-  animation: ${communityDetailEnter} 220ms cubic-bezier(0.22, 1, 0.36, 1)
-    both;
+  animation: ${communityDetailEnter} 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
 
   @media (max-width: 760px) {
     padding-right: 18px;
@@ -76,7 +75,7 @@ export const Page = styled.section`
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
-`
+`;
 
 export const Content = styled.div`
   ${token.flexColumn}
@@ -89,7 +88,7 @@ export const Content = styled.div`
   @container community-detail (max-width: 700px) {
     gap: 28px;
   }
-`
+`;
 
 const skeletonShimmer = keyframes`
   from {
@@ -99,7 +98,7 @@ const skeletonShimmer = keyframes`
   to {
     background-position: -200% 0;
   }
-`
+`;
 
 const skeletonSurface = css`
   background: linear-gradient(
@@ -114,19 +113,19 @@ const skeletonSurface = css`
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
-`
+`;
 
 export const DetailSkeleton = styled.div`
   ${token.flexColumn}
   gap: 28px;
   width: 100%;
-`
+`;
 
 export const SkeletonGroup = styled.div`
   ${token.flexColumn}
   gap: 16px;
   width: 100%;
-`
+`;
 
 export const SkeletonMetaRow = styled.div`
   ${token.flexBetween}
@@ -138,7 +137,7 @@ export const SkeletonMetaRow = styled.div`
     align-items: flex-start;
     gap: 12px;
   }
-`
+`;
 
 export const SkeletonBlock = styled.span<SkeletonBlockProps>`
   ${skeletonSurface}
@@ -147,20 +146,20 @@ export const SkeletonBlock = styled.span<SkeletonBlockProps>`
   max-width: 100%;
   height: ${({ $height }) => $height}px;
   border-radius: ${token.shapes.small};
-`
+`;
 
 export const PageStatus = styled.div`
   ${token.flexColumnCenter}
   gap: 16px;
   width: 100%;
   min-height: 320px;
-  color: ${token.colors.gray.gray50};
+  color: ${token.colors.gray.gray70};
   ${token.typography('body', 'lg', 'medium')}
-`
+`;
 
 export const StatusMessage = styled.p`
   margin: 0;
-`
+`;
 
 export const BackButton = styled.button`
   ${token.flexLeft}
@@ -169,36 +168,36 @@ export const BackButton = styled.button`
   height: 21px;
   padding: 0;
   border: 0;
-  color: ${token.colors.gray.gray50};
+  color: ${token.colors.gray.gray70};
   background: transparent;
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1;
   cursor: pointer;
-`
+`;
 
 export const BackIcon = styled.img`
   width: 9.257px;
   height: 16px;
   transform: rotate(180deg);
-`
+`;
 
 export const Article = styled.article`
   ${token.flexColumn}
   gap: 28px;
   width: 100%;
-`
+`;
 
 export const ArticleHeading = styled.div`
   ${token.flexColumn}
   gap: 20px;
   width: 100%;
-`
+`;
 
 export const TitleBlock = styled.div`
   ${token.flexColumn}
   gap: 16px;
   width: 100%;
-`
+`;
 
 export const CategoryBadge = styled.span`
   ${token.flexCenter}
@@ -212,7 +211,7 @@ export const CategoryBadge = styled.span`
   ${token.typography('body', 'sm', 'bold')}
   line-height: 1.2;
   white-space: nowrap;
-`
+`;
 
 export const TitleRow = styled.div`
   ${token.flexBetween}
@@ -224,7 +223,7 @@ export const TitleRow = styled.div`
     align-items: flex-start;
     gap: 12px;
   }
-`
+`;
 
 export const Title = styled.h1<PinnedTitleProps>`
   ${token.flexLeft}
@@ -240,7 +239,7 @@ export const Title = styled.h1<PinnedTitleProps>`
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
-`
+`;
 
 export const PinnedTitleIcon = styled.img<PinnedTitleProps>`
   flex: 0 0 ${({ $isPinned }) => ($isPinned ? '28px' : '0')};
@@ -265,7 +264,7 @@ export const PinnedTitleIcon = styled.img<PinnedTitleProps>`
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
-`
+`;
 
 export const PostActions = styled.div`
   ${token.flexColumn}
@@ -276,19 +275,19 @@ export const PostActions = styled.div`
   @container community-detail (max-width: 700px) {
     align-items: flex-start;
   }
-`
+`;
 
 export const PostMeta = styled.div`
   ${token.flexLeft}
   flex: 0 0 auto;
   gap: 12px;
   height: 34px;
-`
+`;
 
 export const PostAuthor = styled.div`
   ${token.flexLeft}
   gap: 8px;
-`
+`;
 
 export const PostAuthorImage = styled.img`
   width: 22px;
@@ -296,33 +295,33 @@ export const PostAuthorImage = styled.img`
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.circle};
   object-fit: cover;
-`
+`;
 
 export const PostAuthorName = styled.span`
   color: ${token.colors.gray.gray80};
   ${token.typography('body', 'md', 'medium')}
   line-height: 1;
   white-space: nowrap;
-`
+`;
 
 export const MetaDot = styled.span`
   width: 4px;
   height: 4px;
   border-radius: ${token.shapes.circle};
   background: ${token.colors.gray.gray40};
-`
+`;
 
 export const PostDate = styled.time`
-  color: ${token.colors.gray.gray50};
+  color: ${token.colors.gray.gray70};
   ${token.typography('body', 'md', 'regular')}
   line-height: 1;
   white-space: nowrap;
-`
+`;
 
 export const PostMenu = styled.div`
   position: relative;
   flex: 0 0 auto;
-`
+`;
 
 export const PostMenuButton = styled.button`
   ${token.flexCenter}
@@ -348,14 +347,14 @@ export const PostMenuButton = styled.button`
     cursor: wait;
     opacity: 0.6;
   }
-`
+`;
 
 export const PostMenuIcon = styled.img`
   width: 24px;
   height: 24px;
   object-fit: contain;
   transform: rotate(90deg);
-`
+`;
 
 export const PostMenuPanel = styled.div`
   ${token.flexColumn}
@@ -370,7 +369,7 @@ export const PostMenuPanel = styled.div`
   border-radius: ${token.shapes.large};
   background: ${token.colors.white};
   box-shadow: 0 6px 18px rgb(0 0 0 / 6%);
-`
+`;
 
 export const PostMenuItem = styled.button<PostMenuItemProps>`
   width: 100%;
@@ -403,21 +402,21 @@ export const PostMenuItem = styled.button<PostMenuItemProps>`
     css`
       color: ${token.colors.danger.danger20};
     `}
-`
+`;
 
 export const PostMenuDivider = styled.span`
   width: 100%;
   height: 1px;
   margin: 4px 0;
   background: ${token.colors.gray.gray10};
-`
+`;
 
 export const PinActionError = styled.p`
   margin: 0;
   color: ${token.colors.danger.danger20};
   ${token.typography('body', 'sm', 'medium')}
   line-height: 1.4;
-`
+`;
 
 export const Divider = styled.hr`
   width: 100%;
@@ -425,7 +424,7 @@ export const Divider = styled.hr`
   margin: 0;
   border: 0;
   background: ${token.colors.gray.gray10};
-`
+`;
 
 export const BodyText = styled.div`
   margin: 0;
@@ -480,8 +479,27 @@ export const BodyText = styled.div`
 
   .community-post-blocks [data-file-block] .bn-file-block-content-wrapper,
   .community-post-blocks [data-file-block] .bn-visual-media-wrapper {
+    position: relative;
     box-sizing: border-box;
     max-width: 100% !important;
+  }
+
+  .community-post-blocks
+    [data-file-block]
+    .bn-visual-media-wrapper[data-media-loading='true'] {
+    min-height: 180px;
+  }
+
+  .community-post-blocks
+    [data-file-block]
+    .bn-visual-media-wrapper[data-media-loading='true']::after {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    border-radius: ${token.shapes.small};
+    pointer-events: none;
+    content: '';
+    ${skeletonSurface}
   }
 
   .community-post-blocks [data-file-block] .bn-visual-media {
@@ -493,9 +511,7 @@ export const BodyText = styled.div`
     object-fit: contain;
   }
 
-  .community-post-blocks
-    [data-content-type='file']
-    .bn-file-name-with-icon {
+  .community-post-blocks [data-content-type='file'] .bn-file-name-with-icon {
     cursor: pointer;
   }
 
@@ -594,8 +610,8 @@ export const BodyText = styled.div`
     padding: 2px 5px;
     border-radius: ${token.shapes.xsmall};
     background: ${token.colors.gray.gray0};
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-      monospace;
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 0.9em;
   }
 
@@ -652,13 +668,13 @@ export const BodyText = styled.div`
     border: 0;
     background: ${token.colors.gray.gray10};
   }
-`
+`;
 
 export const Engagement = styled.section`
   ${token.flexColumn}
   gap: 28px;
   width: 100%;
-`
+`;
 
 export const EngagementRow = styled.div`
   ${token.flexLeft}
@@ -666,7 +682,7 @@ export const EngagementRow = styled.div`
   flex-wrap: wrap;
   gap: 16px;
   min-height: 36px;
-`
+`;
 
 export const StatGroup = styled.div`
   ${token.flexLeft}
@@ -676,7 +692,7 @@ export const StatGroup = styled.div`
   padding: 8px 12px;
   border-radius: ${token.shapes.small};
   background: #f5f5f5;
-`
+`;
 
 export const Stat = styled.span`
   ${token.flexLeft}
@@ -685,7 +701,7 @@ export const Stat = styled.span`
   ${token.typography('body', 'md', 'semibold')}
   line-height: 1;
   white-space: nowrap;
-`
+`;
 
 export const HeartButton = styled.button`
   ${token.flexLeft}
@@ -702,7 +718,7 @@ export const HeartButton = styled.button`
     cursor: wait;
     opacity: 0.6;
   }
-`
+`;
 
 export const RollingNumber = styled.span`
   display: inline-flex;
@@ -710,49 +726,46 @@ export const RollingNumber = styled.span`
   overflow: hidden;
   font-variant-numeric: tabular-nums;
   line-height: 1;
-`
+`;
 
 export const RollingNumberCharacter = styled.span<{
-  $isAnimated: boolean
+  $isAnimated: boolean;
 }>`
   display: inline-block;
   height: 1em;
   min-width: ${({ $isAnimated }) => ($isAnimated ? '0.58em' : 'auto')};
   overflow: hidden;
   vertical-align: top;
-`
+`;
 
 export const RollingNumberTrack = styled.span<{
-  $animationDelayMs: number
-  $direction: 'increase' | 'decrease'
-  $stepCount: number
+  $animationDelayMs: number;
+  $direction: 'increase' | 'decrease';
+  $stepCount: number;
 }>`
   display: block;
-  --rolling-number-offset: ${({ $stepCount }) =>
-    `${-(($stepCount - 1))}em`};
+  --rolling-number-offset: ${({ $stepCount }) => `${-($stepCount - 1)}em`};
   animation: ${({ $direction }) =>
-      $direction === 'increase'
-        ? rollingNumberIncrease
-        : rollingNumberDecrease}
-    850ms cubic-bezier(0.22, 1, 0.36, 1) ${({ $animationDelayMs }) =>
-      $animationDelayMs}ms both;
+      $direction === 'increase' ? rollingNumberIncrease : rollingNumberDecrease}
+    850ms cubic-bezier(0.22, 1, 0.36, 1)
+    ${({ $animationDelayMs }) => $animationDelayMs}ms both;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
-`
+`;
 
 export const RollingNumberValue = styled.span`
   display: block;
   height: 1em;
   line-height: 1;
-`
+`;
 
 export const StatIcon = styled.img`
   width: 20px;
   height: 20px;
   object-fit: scale-down;
-`
+`;
 
 export const AttachmentArea = styled.div`
   ${token.flexColumn}
@@ -763,7 +776,7 @@ export const AttachmentArea = styled.div`
   gap: 0;
   min-width: 0;
   max-width: min(440px, calc(100vw - 48px));
-`
+`;
 
 export const AttachmentToggle = styled.button`
   ${token.flexLeft}
@@ -789,7 +802,7 @@ export const AttachmentToggle = styled.button`
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: 2px;
   }
-`
+`;
 
 export const AttachmentLabel = styled.span`
   ${token.flexLeft}
@@ -800,17 +813,17 @@ export const AttachmentLabel = styled.span`
   ${token.typography('body', 'md', 'medium')}
   line-height: 1;
   white-space: nowrap;
-`
+`;
 
 export const AttachmentIcon = styled.img`
   flex: 0 0 20px;
   width: 20px;
   height: 20px;
-`
+`;
 
 export const AttachmentText = styled.span`
   flex: 0 0 auto;
-`
+`;
 
 export const AttachmentSummaryFileName = styled.span`
   flex: 0 1 auto;
@@ -818,28 +831,27 @@ export const AttachmentSummaryFileName = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-`
+`;
 
 export const AttachmentDivider = styled.span`
   flex: 0 0 1px;
   width: 1px;
   height: 22px;
   background: ${token.colors.gray.gray20};
-`
+`;
 
 export const AttachmentChevron = styled.img<AttachmentChevronProps>`
   flex: 0 0 20px;
   width: 20px;
   height: 12px;
   object-fit: contain;
-  transform: ${({ $isOpen }) =>
-    $isOpen ? 'rotate(0deg)' : 'rotate(180deg)'};
+  transform: ${({ $isOpen }) => ($isOpen ? 'rotate(0deg)' : 'rotate(180deg)')};
   transition: transform 200ms ease;
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
-`
+`;
 
 export const AttachmentPanel = styled.div<AttachmentPanelProps>`
   position: absolute;
@@ -854,8 +866,7 @@ export const AttachmentPanel = styled.div<AttachmentPanelProps>`
   overflow-y: auto;
   padding: ${({ $isOpen }) => ($isOpen ? '8px' : '0 8px')};
   border: 1px solid
-    ${({ $isOpen }) =>
-      $isOpen ? token.colors.gray.gray10 : 'transparent'};
+    ${({ $isOpen }) => ($isOpen ? token.colors.gray.gray10 : 'transparent')};
   border-radius: ${token.shapes.small};
   background: ${token.colors.white};
   box-shadow: ${({ $isOpen }) =>
@@ -875,12 +886,12 @@ export const AttachmentPanel = styled.div<AttachmentPanelProps>`
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
-`
+`;
 
 export const AttachmentFileList = styled.div`
   ${token.flexColumn}
   gap: 6px;
-`
+`;
 
 export const AttachmentFileButton = styled.button`
   ${token.flexLeft}
@@ -905,13 +916,13 @@ export const AttachmentFileButton = styled.button`
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: 2px;
   }
-`
+`;
 
 export const AttachmentFileIcon = styled.img`
   flex: 0 0 18px;
   width: 18px;
   height: 18px;
-`
+`;
 
 export const AttachmentFileName = styled.span`
   flex: 1 1 auto;
@@ -919,33 +930,33 @@ export const AttachmentFileName = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-`
+`;
 
 export const Comments = styled.section`
   ${token.flexColumn}
   gap: 20px;
   width: 100%;
-`
+`;
 
 export const CommentComposer = styled.div`
   ${token.flexColumn}
   align-items: flex-end;
   gap: 12px;
   width: 100%;
-`
+`;
 
 export const CommentForm = styled.div`
   ${token.flexColumn}
   gap: 16px;
   width: 100%;
-`
+`;
 
 export const CommentHeading = styled.h2`
   margin: 0;
   color: ${token.colors.gray.gray100};
   ${token.typography('heading', 'sm', 'semibold')}
   line-height: 1.2;
-`
+`;
 
 export const CommentInputRow = styled.div`
   ${token.flexBetween}
@@ -956,7 +967,7 @@ export const CommentInputRow = styled.div`
   overflow: hidden;
   border-radius: ${token.shapes.medium};
   background: ${token.colors.gray.gray0};
-`
+`;
 
 export const CommentInput = styled.input`
   flex: 1 1 0;
@@ -969,9 +980,9 @@ export const CommentInput = styled.input`
   line-height: 1;
 
   &::placeholder {
-    color: ${token.colors.gray.gray40};
+    color: ${token.colors.gray.gray70};
   }
-`
+`;
 
 export const SendButton = styled.button`
   ${token.flexCenter}
@@ -987,12 +998,12 @@ export const SendButton = styled.button`
     cursor: not-allowed;
     opacity: 0.45;
   }
-`
+`;
 
 export const SendIcon = styled.img`
   width: 32px;
   height: 32px;
-`
+`;
 
 export const AnonymousLabel = styled.label`
   ${token.flexLeft}
@@ -1001,7 +1012,7 @@ export const AnonymousLabel = styled.label`
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1;
   cursor: pointer;
-`
+`;
 
 export const AnonymousCheckbox = styled.input`
   appearance: none;
@@ -1034,7 +1045,7 @@ export const AnonymousCheckbox = styled.input`
     cursor: not-allowed;
     opacity: 0.55;
   }
-`
+`;
 
 export const CommentList = styled.div`
   ${token.flexColumn}
@@ -1043,13 +1054,13 @@ export const CommentList = styled.div`
   width: 100%;
   padding: 0;
   overflow: visible;
-`
+`;
 
 export const CommentSkeletonList = styled.div`
   ${token.flexColumn}
   gap: 12px;
   width: 100%;
-`
+`;
 
 export const CommentSkeletonItem = styled.div`
   display: grid;
@@ -1059,26 +1070,26 @@ export const CommentSkeletonItem = styled.div`
   padding: 16px;
   border-radius: ${token.shapes.medium};
   background: ${token.colors.white};
-`
+`;
 
 export const CommentSkeletonContent = styled.div`
   ${token.flexColumn}
   gap: 10px;
   min-width: 0;
-`
+`;
 
 export const CommentSkeletonMeta = styled.div`
   ${token.flexLeft}
   gap: 8px;
   width: 100%;
-`
+`;
 
 export const CommentStatus = styled.p`
   margin: 12px 4px;
-  color: ${token.colors.gray.gray50};
+  color: ${token.colors.gray.gray70};
   ${token.typography('body', 'md', 'medium')}
   line-height: 1.4;
-`
+`;
 
 export const ActionError = styled.p`
   align-self: flex-start;
@@ -1086,4 +1097,4 @@ export const ActionError = styled.p`
   color: ${token.colors.danger.danger20};
   ${token.typography('body', 'sm', 'medium')}
   line-height: 1.4;
-`
+`;

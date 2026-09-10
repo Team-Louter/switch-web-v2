@@ -1,35 +1,99 @@
+import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
-
-import {
-  AuthPage,
-  CalendarPage,
-  CommunityDetailPage,
-  CommunityPage,
-  CommunityWritePage,
-  GoogleExtraSignupPage,
-  GoogleOAuthCallbackPage,
-  HomePage,
-  LearningPage,
-  MentoringEntryPage,
-  MentoringPage,
-  MyPage,
-  NotificationPage,
-  ProfileEditPage,
-  StorePage,
-  CodeTypingPage,
-  DailyTypingPage,
-  TypingPage,
-  WithdrawCompletePage,
-} from '@/pages'
 
 import { AppLayout } from './layouts'
 import { AppProvider } from './providers'
 import { GuestOnlyRoute, ProtectedRoute, RootRoute } from './router'
 
+const AuthPage = lazy(() =>
+  import('@/pages/auth').then(({ AuthPage: Page }) => ({ default: Page })),
+)
+const GoogleExtraSignupPage = lazy(() =>
+  import('@/pages/auth').then(({ GoogleExtraSignupPage: Page }) => ({
+    default: Page,
+  })),
+)
+const GoogleOAuthCallbackPage = lazy(() =>
+  import('@/pages/auth').then(({ GoogleOAuthCallbackPage: Page }) => ({
+    default: Page,
+  })),
+)
+const CalendarPage = lazy(() =>
+  import('@/pages/calendar').then(({ CalendarPage: Page }) => ({
+    default: Page,
+  })),
+)
+const CommunityPage = lazy(() =>
+  import('@/pages/community/ui/CommunityPage').then(({ CommunityPage: Page }) => ({
+    default: Page,
+  })),
+)
+const CommunityDetailPage = lazy(() =>
+  import('@/pages/community/ui/CommunityDetailPage').then(({ CommunityDetailPage: Page }) => ({
+    default: Page,
+  })),
+)
+const CommunityWritePage = lazy(() =>
+  import('@/pages/community/ui/CommunityWritePage').then(({ CommunityWritePage: Page }) => ({
+    default: Page,
+  })),
+)
+const HomePage = lazy(() =>
+  import('@/pages/home').then(({ HomePage: Page }) => ({ default: Page })),
+)
+const LearningPage = lazy(() =>
+  import('@/pages/study').then(({ LearningPage: Page }) => ({ default: Page })),
+)
+const MentoringEntryPage = lazy(() =>
+  import('@/pages/mentoring').then(({ MentoringEntryPage: Page }) => ({
+    default: Page,
+  })),
+)
+const MentoringPage = lazy(() =>
+  import('@/pages/mentoring').then(({ MentoringPage: Page }) => ({
+    default: Page,
+  })),
+)
+const MyPage = lazy(() =>
+  import('@/pages/my').then(({ MyPage: Page }) => ({ default: Page })),
+)
+const ProfileEditPage = lazy(() =>
+  import('@/pages/my').then(({ ProfileEditPage: Page }) => ({
+    default: Page,
+  })),
+)
+const WithdrawCompletePage = lazy(() =>
+  import('@/pages/my').then(({ WithdrawCompletePage: Page }) => ({
+    default: Page,
+  })),
+)
+const NotificationPage = lazy(() =>
+  import('@/pages/notification').then(({ NotificationPage: Page }) => ({
+    default: Page,
+  })),
+)
+const StorePage = lazy(() =>
+  import('@/pages/store').then(({ StorePage: Page }) => ({ default: Page })),
+)
+const TypingPage = lazy(() =>
+  import('@/pages/typing').then(({ TypingPage: Page }) => ({ default: Page })),
+)
+const DailyTypingPage = lazy(() =>
+  import('@/pages/typing').then(({ DailyTypingPage: Page }) => ({
+    default: Page,
+  })),
+)
+const CodeTypingPage = lazy(() =>
+  import('@/pages/typing').then(({ CodeTypingPage: Page }) => ({
+    default: Page,
+  })),
+)
+
 export function App() {
   return (
     <AppProvider>
-      <Routes>
+      <Suspense fallback={null}>
+        <Routes>
         <Route path="/" element={<RootRoute />} />
         <Route path="/extra-signup" element={<GoogleExtraSignupPage />} />
         <Route path="/oauth/callback" element={<GoogleOAuthCallbackPage />} />
@@ -72,7 +136,8 @@ export function App() {
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+        </Routes>
+      </Suspense>
     </AppProvider>
   )
 }
