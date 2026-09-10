@@ -170,16 +170,14 @@ export const CalendarWrapper = styled.div`
 
   .fc .fc-daygrid-day {
     background: ${token.colors.background.white};
-    border: 1px solid ${token.colors.line.light};
+    border: 0;
+    border-top: 1px solid ${token.colors.line.light};
+    border-left: 1px solid ${token.colors.line.light};
   }
 
-  /* 외곽 scrollgrid 테두리와 겹치지 않도록 마지막 행·열 셀의 테두리를 제거합니다. */
-  .fc .fc-daygrid-body tr > .fc-daygrid-day:last-child {
-    border-right: 0;
-  }
-
-  .fc .fc-daygrid-body tr:last-child > .fc-daygrid-day {
-    border-bottom: 0;
+  /* 첫 번째 열의 외곽선은 scrollgrid가 담당합니다. */
+  .fc .fc-daygrid-body tr > .fc-daygrid-day:first-child {
+    border-left: 0;
   }
 
   .fc .fc-daygrid-day-frame {
