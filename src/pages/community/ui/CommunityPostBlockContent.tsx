@@ -1,175 +1,82 @@
-import '@blocknote/core/fonts/inter.css'
-import '@blocknote/mantine/style.css'
-
 import type { Block } from '@blocknote/core'
-import { BlockNoteView } from '@blocknote/mantine'
-import { useCreateBlockNote } from '@blocknote/react'
-import {
-  type MouseEvent,
-  type SyntheticEvent,
-  useEffect,
-  useRef,
-} from 'react'
+import { lazy, Suspense } from 'react'
 
-import {
-  getCommunityFileDownloadUrl,
-  type PostFileResponse,
-} from '@/entities/community'
+import { getCommunityFileDownloadUrl, type PostFileResponse } from '@/entities/community'
+
+import * as S from './CommunityPostBlockContent.style'
+
+const BlockFallback = lazy(() => import('./CommunityPostBlockFallback').then(
+  ({ CommunityPostBlockFallback }) => ({ default: CommunityPostBlockFallback }),
+))
 
 interface CommunityPostBlockContentProps {
   blocks: readonly Block[]
   files: readonly PostFileResponse[]
 }
 
-function resolveMediaUrl(
-  mediaUrl: unknown,
-  files: readonly PostFileResponse[],
-): string | undefined {
-  if (typeof mediaUrl !== 'string' || !mediaUrl.trim()) {
-    return undefined
-  }
-
-  const matchingFile = files.find((file) => file.fileName === mediaUrl)
-
-  return getCommunityFileDownloadUrl(matchingFile?.fileUrl ?? mediaUrl)
+// Keep complex blocks in the compatible renderer rather than losing formatting.
+function supportsStaticBlock(block: Block): boolean {
+  if (block.children.length > 0) return false
+  if (!['paragraph', 'heading', 'image'].includes(block.type)) return false
+  const props = block.props as Record<string, unknown>
+  if (props.textColor && props.textColor !== 'default') return false
+  if (props.backgroundColor && props.backgroundColor !== 'default') return false
+  if (props.textAlignment && props.textAlignment !== 'left') return false
+  if (block.type === 'heading' && props.isToggleable) return false
+  if (block.type === 'image') return props.showPreview !== false
+  if (!Array.isArray(block.content)) return false
+  return block.content.every((item) => item.type === 'text'
+    && Object.keys(item.styles).length === 0)
 }
 
-function normalizeMediaUrls(
-  blocks: readonly Block[],
-  files: readonly PostFileResponse[],
-): Block[] {
-  return blocks.map((block) => {
-    const blockWithUrlProps = block as unknown as {
-      props: Record<string, unknown>
-      children: readonly Block[]
-    }
-    const children = normalizeMediaUrls(blockWithUrlProps.children, files)
-    const isMediaBlock = ['audio', 'file', 'image', 'video'].includes(
-      block.type,
-    )
-    const mediaUrl = isMediaBlock
-      ? resolveMediaUrl(blockWithUrlProps.props.url, files)
-      : undefined
-
-    return {
-      ...block,
-      props: mediaUrl
-        ? { ...blockWithUrlProps.props, url: mediaUrl }
-        : blockWithUrlProps.props,
-      children,
-    } as unknown as Block
-  })
+function imageUrl(block: Block, files: readonly PostFileResponse[]) {
+  if (block.type !== 'image') return undefined
+  const url = files.find((file) => file.fileName === block.props.url)?.fileUrl
+    ?? block.props.url
+  if (/^[a-z][a-z\d+.-]*:/i.test(url) && !/^https?:\/\//i.test(url)) return undefined
+  const resolved = getCommunityFileDownloadUrl(url)
+  return resolved && /^(https?:\/\/|\/(?!\/))/i.test(resolved) ? resolved : undefined
 }
 
-export function CommunityPostBlockContent({
-  blocks,
-  files,
-}: CommunityPostBlockContentProps) {
-  const contentRef = useRef<HTMLDivElement>(null)
-  const normalizedBlocks = normalizeMediaUrls(blocks, files)
-  const editor = useCreateBlockNote({
-    initialContent: normalizedBlocks,
-    domAttributes: {
-      editor: { 'aria-label': '게시글 본문' },
-    },
-  })
-
-  function handleFileBlockClick(event: MouseEvent<HTMLDivElement>) {
-    if (!(event.target instanceof Element)) {
-      return
-    }
-
-    const fileBlock = event.target.closest<HTMLElement>('[data-file-block]')
-    const blockElement = fileBlock?.closest<HTMLElement>(
-      '[data-node-type="blockContainer"][data-id]',
+export function CommunityPostBlockContent({ blocks, files }: CommunityPostBlockContentProps) {
+  if (!blocks.every(supportsStaticBlock)) {
+    return (
+      <Suspense fallback={<p role="status">본문을 불러오는 중입니다.</p>}>
+        <BlockFallback blocks={blocks} files={files} />
+      </Suspense>
     )
-    const blockId = blockElement?.dataset.id
-    const block = blockId ? editor.getBlock(blockId) : undefined
-
-    if (block?.type !== 'file') {
-      return
-    }
-
-    const downloadUrl = getCommunityFileDownloadUrl(block.props.url)
-
-    if (!downloadUrl) {
-      return
-    }
-
-    window.open(downloadUrl, '_blank', 'noopener,noreferrer')
   }
 
-  function handleMediaLoadState(event: SyntheticEvent<HTMLDivElement>) {
-    if (!(event.target instanceof HTMLImageElement)) {
-      return
-    }
-
-    const mediaWrapper = event.target.closest<HTMLElement>(
-      '.bn-visual-media-wrapper',
-    )
-
-    if (mediaWrapper) {
-      mediaWrapper.dataset.mediaLoading = 'false'
-    }
-  }
-
-  useEffect(() => {
-    const content = contentRef.current
-
-    if (!content) {
-      return
-    }
-
-    const syncMediaLoadingStates = () => {
-      content.querySelectorAll<HTMLImageElement>('.bn-visual-media').forEach(
-        (image) => {
-          const mediaWrapper = image.closest<HTMLElement>(
-            '.bn-visual-media-wrapper',
-          )
-
-          if (mediaWrapper) {
-            mediaWrapper.dataset.mediaLoading = String(!image.complete)
-          }
-        },
-      )
-    }
-
-    const observer = new MutationObserver(syncMediaLoadingStates)
-
-    syncMediaLoadingStates()
-    observer.observe(content, {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      attributeFilter: ['src'],
-    })
-
-    return () => {
-      observer.disconnect()
-    }
-  }, [editor])
+  const firstImageId = blocks.find((block) => block.type === 'image')?.id
 
   return (
-    <div
-      ref={contentRef}
-      onClick={handleFileBlockClick}
-      onLoadCapture={handleMediaLoadState}
-      onErrorCapture={handleMediaLoadState}
-    >
-      <BlockNoteView
-        className="community-post-blocks"
-        editor={editor}
-        theme="light"
-        editable={false}
-        formattingToolbar={false}
-        linkToolbar={false}
-        slashMenu={false}
-        sideMenu={false}
-        filePanel={false}
-        tableHandles={false}
-        emojiPicker={false}
-        comments={false}
-      />
-    </div>
+    <S.Content aria-label="게시글 본문">
+      {blocks.map((block) => {
+        if (block.type === 'image') {
+          const src = imageUrl(block, files)
+          const width = block.props.previewWidth
+          return (
+            <S.Figure key={block.id}>
+              {src && <img src={src} alt={block.props.name || '본문 이미지'}
+                width={Number.isFinite(width) && width > 0 ? width : undefined}
+                fetchPriority={block.id === firstImageId ? 'high' : 'auto'}
+                loading={block.id === firstImageId ? 'eager' : 'lazy'}
+                decoding="async" />}
+              {block.props.caption && <figcaption>{block.props.caption}</figcaption>}
+            </S.Figure>
+          )
+        }
+        const text = Array.isArray(block.content)
+          ? block.content.map((item) => item.type === 'text' ? item.text : '').join('')
+          : ''
+        if (block.type === 'heading') {
+          const level = block.props.level
+          const Heading = level === 1 ? 'h1' : level === 2 ? 'h2' : level === 3 ? 'h3'
+            : level === 4 ? 'h4' : level === 5 ? 'h5' : 'h6'
+          return <Heading key={block.id}>{text || <br />}</Heading>
+        }
+        return <p key={block.id}>{text || <br />}</p>
+      })}
+    </S.Content>
   )
 }
