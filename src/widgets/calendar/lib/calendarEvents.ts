@@ -38,7 +38,11 @@ export function getScheduleTarget(selectedIds: number[], members: Member[]): {
     return { scheduleTarget: 'PERSONAL', generations: [], userIds: selectedIds }
   }
 
-  return { scheduleTarget: generations.length ? 'GENERATION' : 'PERSONAL', generations, userIds }
+  if (generations.length > 0) {
+    return { scheduleTarget: 'GENERATION', generations, userIds: [] }
+  }
+
+  return { scheduleTarget: 'PERSONAL', generations: [], userIds }
 }
 
 export function formatEvents(events: ScheduleResponse[]): EventInput[] {
