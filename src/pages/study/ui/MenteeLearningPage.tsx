@@ -131,6 +131,14 @@ export function MenteeLearningPage() {
                 100,
               )
             : 0
+          const statusLabel =
+            submitRate === 100
+              ? '진행 완료'
+              : {
+                  past: '진행 완료',
+                  current: '진행중',
+                  future: '잠김',
+                }[monthState]
           const items = Array.from({ length: weekCount }, (_, index) => {
             const status = statuses[index]?.status
             const weekNumber = index + 1
@@ -175,15 +183,7 @@ export function MenteeLearningPage() {
                   <S.SubmitLabel>제출</S.SubmitLabel>
                   <S.SubmitRate>{submitRate}%</S.SubmitRate>
                   <PercentBar value={submitRate} label="과제 제출률" />
-                  <S.Status>
-                    {
-                      {
-                        past: '진행 완료',
-                        current: '진행중',
-                        future: '잠김',
-                      }[monthState]
-                    }
-                  </S.Status>
+                  <S.Status>{statusLabel}</S.Status>
                 </S.ProgressContent>
                 <S.DiaryContent>
                   <MonthlyStudyWeeks

@@ -269,6 +269,14 @@ export function MentorLearningPage() {
                 100,
               )
             : 0
+          const statusLabel =
+            submitRate === 100
+              ? '진행 완료'
+              : {
+                  past: '진행 완료',
+                  current: '진행중',
+                  future: '잠김',
+                }[monthState]
           const items = (
             state === 'future' || weekStatuses.length === 0
               ? mentees.map(({ userId, userName }) => ({
@@ -320,15 +328,7 @@ export function MentorLearningPage() {
                   <S.SubmitLabel>제출률</S.SubmitLabel>
                   <S.SubmitRate>{submitRate}%</S.SubmitRate>
                   <PercentBar value={submitRate} label="멘티 과제 제출률" />
-                  <S.Status>
-                    {
-                      {
-                        past: '진행 완료',
-                        current: '진행중',
-                        future: '잠김',
-                      }[monthState]
-                    }
-                  </S.Status>
+                  <S.Status>{statusLabel}</S.Status>
                 </S.ProgressContent>
                 <S.DiaryContent>
                   <MonthlyStudyWeeks
