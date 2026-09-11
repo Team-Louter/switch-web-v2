@@ -132,13 +132,13 @@ export function MenteeLearningPage() {
               )
             : 0
           const statusLabel =
-            submitRate === 100
-              ? '진행 완료'
-              : {
-                  past: '진행 완료',
-                  current: '진행중',
-                  future: '잠김',
-                }[monthState]
+            monthState === 'future'
+              ? '잠김'
+              : submitRate === 100
+                ? '진행 완료'
+                : monthState === 'current'
+                  ? '진행중'
+                  : '실패'
           const items = Array.from({ length: weekCount }, (_, index) => {
             const status = statuses[index]?.status
             const weekNumber = index + 1

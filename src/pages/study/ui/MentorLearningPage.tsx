@@ -27,7 +27,6 @@ import { tokens } from '@/shared/styles'
 export function MentorLearningPage() {
   const isLeader = useUserStore((state) => state.user?.role === 'LEADER')
   const weeks = useMemo(() => getWeeksForCurrentYear(), [])
-  const currentMonth = weeks.find(({ state }) => state === 'current')?.month
   const [statusesByWeek, setStatusesByWeek] = useState<
     Record<string, StudyStatus[]>
   >({})
@@ -254,12 +253,6 @@ export function MentorLearningPage() {
             (report) =>
               report.month === month && report.weekNumber === weekNumber,
           )
-          const monthState =
-            currentMonth === undefined || month === currentMonth
-              ? 'current'
-              : month < currentMonth
-                ? 'past'
-                : 'future'
           const weekStatuses = statusesByWeek[id] ?? []
           const submitRate = weekStatuses.length
             ? Math.round(
@@ -270,13 +263,13 @@ export function MentorLearningPage() {
               )
             : 0
           const statusLabel =
-            submitRate === 100
-              ? '진행 완료'
-              : {
-                  past: '진행 완료',
-                  current: '진행중',
-                  future: '잠김',
-                }[monthState]
+            state === 'future'
+              ? '잠김'
+              : submitRate === 100
+                ? '진행 완료'
+                : state === 'current'
+                  ? '진행중'
+                  : '실패'
           const items = (
             state === 'future' || weekStatuses.length === 0
               ? mentees.map(({ userId, userName }) => ({
