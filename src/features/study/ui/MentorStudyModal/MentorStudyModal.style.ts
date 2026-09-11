@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 import {
@@ -28,6 +28,41 @@ export const Content = styled.div`
   flex-direction: column;
   align-items: center;
   ${studyModalContentAnimation}
+`
+
+const loadingSpin = keyframes`
+  to {
+    transform: rotate(360deg);
+  }
+`
+
+export const LoadingState = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 220px;
+  color: ${token.colors.white};
+`
+
+export const LoadingIndicator = styled.span`
+  display: block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgb(255 255 255 / 35%);
+  border-top-color: ${token.colors.white};
+  border-radius: ${token.shapes.circle};
+  animation: ${loadingSpin} 700ms linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
+export const LoadingText = styled.p`
+  ${token.typography('body', 'md', 'medium')};
+  margin: 0;
 `
 
 export const Title = styled.h2`

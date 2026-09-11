@@ -68,17 +68,30 @@ export function MentorStudyModal({
             <S.Title id="mentor-study-modal-title">
               {month}월 {weekNumber}주차 학습일지
             </S.Title>
-            <S.Grid>
-              {studies.map((study, index) => (
-                <Modal
-                  key={study.studyId}
-                  title={study.title}
-                  author={study.authorName}
-                  summary={study.summary}
-                  onClick={() => setSelectedStudyIndex(index)}
-                />
-              ))}
-            </S.Grid>
+            {isLoading && (
+              <S.LoadingState
+                role="status"
+                aria-label="멘티 학습일지를 불러오는 중입니다."
+              >
+                <S.LoadingIndicator aria-hidden="true" />
+                <S.LoadingText>
+                  멘티 학습일지를 불러오는 중입니다.
+                </S.LoadingText>
+              </S.LoadingState>
+            )}
+            {!isLoading && (
+              <S.Grid>
+                {studies.map((study, index) => (
+                  <Modal
+                    key={study.studyId}
+                    title={study.title}
+                    author={study.authorName}
+                    summary={study.summary}
+                    onClick={() => setSelectedStudyIndex(index)}
+                  />
+                ))}
+              </S.Grid>
+            )}
             {!isLoading && studies.length === 0 && (
               <S.EmptyMessage>
                 아직 아무도 학습일지를 작성하지 않았습니다

@@ -13,6 +13,7 @@ import * as S from './WriteModal.style'
 
 interface WriteModalProps {
   isOpen: boolean
+  isLoading?: boolean
   onClose: () => void
   onCreateSuccess?: () => void | Promise<void>
   onDeleteSuccess?: () => void | Promise<void>
@@ -26,6 +27,7 @@ interface WriteModalProps {
 }
 
 function WriteModalContent({
+  isLoading = false,
   onClose,
   onCreateSuccess,
   onDeleteSuccess,
@@ -131,49 +133,61 @@ function WriteModalContent({
             <S.Author>{study?.authorName ?? authorName}</S.Author>
           )}
         </S.Header>
-        <S.Column>
-          <S.Div>
-            <S.Label>
-              제목 {!readOnly && <S.Required>*</S.Required>}
-            </S.Label>
-            <S.Input
-              type="text"
-              placeholder="제목을 입력해주세요."
-              value={displayedTitle}
-              onChange={(e) => setTitle(e.target.value)}
-              readOnly={readOnly}
-            />
-          </S.Div>
-          <S.LetterCount>{displayedTitle.length}/50</S.LetterCount>
-        </S.Column>
-        <S.Column>
-          <S.Div>
-            <S.Label>
-              개인 학습 {!readOnly && <S.Required>*</S.Required>}
-            </S.Label>
-            <S.LearningInput
-              placeholder="내용을 입력해주세요."
-              value={displayedOwnContent}
-              onChange={(e) => setOwnContent(e.target.value)}
-              readOnly={readOnly}
-            />
-          </S.Div>
-          <S.LetterCount>{displayedOwnContent.length}/1000</S.LetterCount>
-        </S.Column>
-        <S.Column>
-          <S.Div>
-            <S.Label>
-              동아리 학습 {!readOnly && <S.Required>*</S.Required>}
-            </S.Label>
-            <S.LearningInput
-              placeholder="내용을 입력해주세요."
-              value={displayedClubContent}
-              onChange={(e) => setClubContent(e.target.value)}
-              readOnly={readOnly}
-            />
-          </S.Div>
-          <S.LetterCount>{displayedClubContent.length}/1000</S.LetterCount>
-        </S.Column>
+        {isLoading ? (
+          <S.LoadingState
+            role="status"
+            aria-label="학습일지를 불러오는 중입니다."
+          >
+            <S.LoadingIndicator aria-hidden="true" />
+            <S.LoadingText>학습일지를 불러오는 중입니다.</S.LoadingText>
+          </S.LoadingState>
+        ) : (
+          <>
+            <S.Column>
+              <S.Div>
+                <S.Label>
+                  제목 {!readOnly && <S.Required>*</S.Required>}
+                </S.Label>
+                <S.Input
+                  type="text"
+                  placeholder="제목을 입력해주세요."
+                  value={displayedTitle}
+                  onChange={(e) => setTitle(e.target.value)}
+                  readOnly={readOnly}
+                />
+              </S.Div>
+              <S.LetterCount>{displayedTitle.length}/50</S.LetterCount>
+            </S.Column>
+            <S.Column>
+              <S.Div>
+                <S.Label>
+                  개인 학습 {!readOnly && <S.Required>*</S.Required>}
+                </S.Label>
+                <S.LearningInput
+                  placeholder="내용을 입력해주세요."
+                  value={displayedOwnContent}
+                  onChange={(e) => setOwnContent(e.target.value)}
+                  readOnly={readOnly}
+                />
+              </S.Div>
+              <S.LetterCount>{displayedOwnContent.length}/1000</S.LetterCount>
+            </S.Column>
+            <S.Column>
+              <S.Div>
+                <S.Label>
+                  동아리 학습 {!readOnly && <S.Required>*</S.Required>}
+                </S.Label>
+                <S.LearningInput
+                  placeholder="내용을 입력해주세요."
+                  value={displayedClubContent}
+                  onChange={(e) => setClubContent(e.target.value)}
+                  readOnly={readOnly}
+                />
+              </S.Div>
+              <S.LetterCount>{displayedClubContent.length}/1000</S.LetterCount>
+            </S.Column>
+          </>
+        )}
         <S.ButtonContainer>
           {!readOnly && study && (
             <S.DeleteButton

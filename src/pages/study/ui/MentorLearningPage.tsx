@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { PiPencilSimpleLine } from 'react-icons/pi'
 
 import {
@@ -55,6 +55,10 @@ export function MentorLearningPage() {
   const [isStudiesLoading, setIsStudiesLoading] = useState(false)
   const [totalStudies, setTotalStudies] = useState<StudyResponse[]>([])
   const [mentees, setMentees] = useState<Member[]>([])
+  const [isMenteeStudyLoading, setIsMenteeStudyLoading] = useState(false)
+  const studiesCacheRef = useRef<StudyRecord[] | null>(null)
+  const studiesRequestRef = useRef<Promise<StudyRecord[]> | null>(null)
+  const menteeStudyRequestIdRef = useRef(0)
   const isLoading =
     isMenteesLoading ||
     isStatusesLoading ||
@@ -134,6 +138,27 @@ export function MentorLearningPage() {
     study.month === month &&
     study.weekNumber === weekNumber
 
+  const loadAllStudies = () => {
+    if (studiesCacheRef.current !== null) {
+      return Promise.resolve(studiesCacheRef.current)
+    }
+
+    if (studiesRequestRef.current === null) {
+      const request = getAllStudies()
+        .then((allStudies) => {
+          studiesCacheRef.current = allStudies
+          return allStudies
+        })
+        .finally(() => {
+          studiesRequestRef.current = null
+        })
+
+      studiesRequestRef.current = request
+    }
+
+    return studiesRequestRef.current
+  }
+
   const handleOpenStudyModal = async (
     year: number,
     month: number,
@@ -145,7 +170,7 @@ export function MentorLearningPage() {
     setIsStudyModalOpen(true)
 
     try {
-      const allStudies = await getAllStudies()
+      const allStudies = await loadAllStudies()
       setStudies(
         allStudies.filter((study) =>
           isStudyInWeek(study, year, month, weekNumber),
@@ -164,33 +189,43 @@ export function MentorLearningPage() {
     month: number,
     weekNumber: number,
   ) => {
+    const requestId = menteeStudyRequestIdRef.current + 1
+    menteeStudyRequestIdRef.current = requestId
+
+    setSelectedMenteeStudy({
+      month,
+      weekNumber,
+      authorName: studyStatus.userName,
+    })
+
     if (studyStatus.status !== 'SUBMITTED') {
-      setSelectedMenteeStudy({
-        month,
-        weekNumber,
-        authorName: studyStatus.userName,
-      })
+      setIsMenteeStudyLoading(false)
       return
     }
 
+    setIsMenteeStudyLoading(true)
+
     try {
-      const allStudies = await getAllStudies()
+      const allStudies = await loadAllStudies()
       const study = allStudies.find(
         (item) =>
           item.studyId === studyStatus.studyId &&
           isStudyInWeek(item, year, month, weekNumber),
       )
 
-      if (study) {
-        setSelectedMenteeStudy({
-          month,
-          weekNumber,
-          authorName: studyStatus.userName,
-          study,
-        })
+      if (requestId !== menteeStudyRequestIdRef.current) {
+        return
       }
+
+      setSelectedMenteeStudy((previous) =>
+        previous ? { ...previous, study } : previous,
+      )
     } catch {
       // 조회 실패 시 현재 화면을 유지한다.
+    }
+
+    if (requestId === menteeStudyRequestIdRef.current) {
+      setIsMenteeStudyLoading(false)
     }
   }
 
@@ -338,7 +373,12 @@ export function MentorLearningPage() {
       />
       <WriteModal
         isOpen={selectedMenteeStudy !== undefined}
-        onClose={() => setSelectedMenteeStudy(undefined)}
+        isLoading={isMenteeStudyLoading}
+        onClose={() => {
+          menteeStudyRequestIdRef.current += 1
+          setIsMenteeStudyLoading(false)
+          setSelectedMenteeStudy(undefined)
+        }}
         month={selectedMenteeStudy?.month}
         weekNumber={selectedMenteeStudy?.weekNumber}
         study={selectedMenteeStudy?.study}

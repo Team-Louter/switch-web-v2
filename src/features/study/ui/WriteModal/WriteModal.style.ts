@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 import {
@@ -32,6 +32,41 @@ export const Modal = styled.div`
   gap: 14px;
   ${studyModalContentAnimation}
 `;
+
+const loadingSpin = keyframes`
+  to {
+    transform: rotate(360deg);
+  }
+`
+
+export const LoadingState = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: ${token.colors.gray.gray50};
+`
+
+export const LoadingIndicator = styled.span`
+  display: block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid ${token.colors.gray.gray10};
+  border-top-color: ${token.colors.primary.primary50};
+  border-radius: ${token.shapes.circle};
+  animation: ${loadingSpin} 700ms linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
+export const LoadingText = styled.p`
+  ${token.typography('body', 'sm', 'medium')};
+  margin: 0;
+`
 
 export const NavigationButton = styled.button<{
   $direction: 'previous' | 'next'
