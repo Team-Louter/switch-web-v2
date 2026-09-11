@@ -17,11 +17,17 @@ import { TypingSentenceModal, type TypingSentenceModalType } from "@/features/ty
 import {
   getPreviousResult,
   getRankingList,
-  getTotalCount,
+  type Ranking,
   type RankingList,
   type TypingProblem,
   type TypingResult,
 } from "@/entities/typing";
+
+const MEDALS: Partial<Record<Ranking['rank'], string>> = {
+  1: firstMedal,
+  2: secondMedal,
+  3: thirdMedal,
+};
 
 const formatElapsedTime = (elapsedTime: number) => {
   const minutes = Math.floor(elapsedTime / 60).toString().padStart(2, '0');
@@ -35,9 +41,11 @@ export function TypingPage() {
   const [selectedMode, setSelectedMode] = useState<string>("DAILY");
   const [sentenceModal, setSentenceModal] = useState<TypingSentenceModalType>(null);
   const [editingSentence, setEditingSentence] = useState<TypingProblem | null>(null);
-  const [totalScore, setTotalScore] = useState<number>(0);
   const [rankings, setRankings] = useState<RankingList | null>(null);
-  const getRanking = (rank: number) => rankings?.topRankings.find((ranking) => ranking.rank === rank);
+  const topFiveRankings = rankings?.topRankings.slice(0, 5) ?? [];
+  const medalRankings = topFiveRankings.filter(({ rank }) => MEDALS[rank]);
+  const remainingRankings = topFiveRankings.filter(({ rank }) => !MEDALS[rank]).slice(0, 2);
+  const emptyRankingCount = 2 - remainingRankings.length;
   const selectedModeName = TYPING_MODES.find(
     (mode) => mode.serverValue === selectedMode,
   )?.mode;
@@ -45,7 +53,10 @@ export function TypingPage() {
     resultId: 0,
     accuracy: 0,
     elapsedTime: 0,
-    averageSpeed: 0
+    averageSpeed: 0,
+    problemType: 'DAILY',
+    rank: 0,
+    totalPracticeCount: 0
   });
 
   const handleStart = () => {
@@ -78,13 +89,7 @@ export function TypingPage() {
       setPreviousResult(data);
     }
 
-    const getTotalTraining = async () => {
-      const data = await getTotalCount();
-      setTotalScore(data);
-    }
-
     void getPrevious();
-    void getTotalTraining();
   }, [])
 
   useEffect(() => {
@@ -129,34 +134,38 @@ export function TypingPage() {
             <SummaryCard
               icon={<FaRankingStar color="#29C54B" size={38} />}
               label="내 랭킹"
-              value={rankings?.myRanking?.rank ?? '-'}
+              value={previousResult.rank || '-'}
               unit="등"
             />
             <SummaryCard
               icon={<LuTimer color="#898989" size={40} />}
               label="총 훈련 횟수"
-              value={totalScore}
+              value={previousResult.totalPracticeCount}
               unit="회"
             />
           </S.SummaryContainer>
           <S.RankingContainer>
             <S.RankingTitle>{selectedModeName} 현재 순위</S.RankingTitle>
             <S.Top>
-              <TopItem medal={secondMedal} name={getRanking(2)?.userName ?? '-'} value={getRanking(2)?.averageSpeed.toString() ?? '-'}/>
-              <TopItem medal={firstMedal} name={getRanking(1)?.userName ?? '-'} value={getRanking(1)?.averageSpeed.toString() ?? '-'}/>
-              <TopItem medal={thirdMedal} name={getRanking(3)?.userName ?? '-'} value={getRanking(3)?.averageSpeed.toString() ?? '-'}/>
+              {medalRankings.map(({ userId, rank, userName, averageSpeed }) => (
+                <TopItem key={userId} medal={MEDALS[rank]!} name={userName} value={averageSpeed.toString()} />
+              ))}
             </S.Top>
             <S.RankingList>
-              <S.RankingItem>
-                <S.Rank>4</S.Rank>
-                <S.RankName>{getRanking(4)?.userName ?? '-'}</S.RankName>
-                <S.RankValue>{getRanking(4) ? `${getRanking(4)?.averageSpeed}타` : '-'}</S.RankValue>
-              </S.RankingItem>
-              <S.RankingItem style={{ width: '98%'}}>
-                <S.Rank>5</S.Rank>
-                <S.RankName>{getRanking(5)?.userName ?? '-'}</S.RankName>
-                <S.RankValue>{getRanking(5) ? `${getRanking(5)?.averageSpeed}타` : '-'}</S.RankValue>
-              </S.RankingItem>
+              {remainingRankings.map(({ userId, rank, userName, averageSpeed }) => (
+                <S.RankingItem key={userId}>
+                  <S.Rank>{rank}</S.Rank>
+                  <S.RankName>{userName}</S.RankName>
+                  <S.RankValue>{averageSpeed}타</S.RankValue>
+                </S.RankingItem>
+              ))}
+              {Array.from({ length: emptyRankingCount }, (_, index) => (
+                <S.RankingItem key={`empty-ranking-${index}`}>
+                  <S.Rank>-</S.Rank>
+                  <S.RankName>-</S.RankName>
+                  <S.RankValue>-</S.RankValue>
+                </S.RankingItem>
+              ))}
               <S.RankingItem style={{ borderColor: tokens.colors.primary.primary50}}>
                 <S.Rank>{rankings?.myRanking?.rank ?? '-'}</S.Rank>
                 <S.RankName>{rankings?.myRanking?.userName ?? '-'}</S.RankName>
