@@ -1,10 +1,5 @@
-import * as token from '@/shared/styles/values/token';
-import styled, { createGlobalStyle, css, keyframes } from 'styled-components';
-
-const eventShimmer = keyframes`
-  from { background-position: 100% 0; }
-  to { background-position: -100% 0; }
-`;
+import * as token from '../lib/calendarTokens';
+import styled, { createGlobalStyle } from 'styled-components';
 
 export const SkeletonStyle = createGlobalStyle`
   .skeleton-event {
@@ -17,34 +12,29 @@ export const SkeletonStyle = createGlobalStyle`
     50% { opacity: 0.4; }
     100% { opacity: 1; }
   }
-
-  @keyframes calendar-shimmer {
-    from { background-position: 100% 0; }
-    to { background-position: -100% 0; }
-  }
 `;
 
-export const CalendarWrapper = styled.div<{
-  $loading: boolean
-}>`
+export const CalendarWrapper = styled.div`
   width: 100%;
   height: 100%;
+  min-width: 0;
+  container-type: inline-size;
   ${token.flexColumn}
-
 
   .fc {
     font-family: ${token.fontFamily.system};
-    border: 1px solid #eeeeee;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-    background: #ffffff;
+    border: 1px solid ${token.colors.line.light};
+    border-radius: ${token.shapes.xsmall};
+    ${token.elevation('black_2')}
+    background: ${token.colors.fill.white};
     height: 100%;
     ${token.flexColumn}
   }
 
   .fc-header-toolbar.fc-toolbar {
+    position: relative;
     ${token.flexCenter}
-    padding: 20px;
+    padding: clamp(10px, 2cqw, 24px);
     flex-shrink: 0;
     margin: 0;
   }
@@ -65,6 +55,11 @@ export const CalendarWrapper = styled.div<{
     align-items: center;
   }
 
+  .fc-header-toolbar .fc-toolbar-chunk:last-child {
+    position: absolute;
+    right: clamp(10px, 2cqw, 24px);
+  }
+
   .fc-header-toolbar .fc-prev-button {
     margin-right: 15px;
   }
@@ -74,9 +69,9 @@ export const CalendarWrapper = styled.div<{
   }
 
   .fc-header-toolbar .fc-toolbar-title {
-    font-size: 1.25rem;
-    font-weight: 500;
-    color: #333333;
+    ${token.typography("heading", "sm", "medium")}
+    font-size: clamp(16px, 1.4cqw, 28px);
+    color: ${token.colors.text.normal};
     margin: 0;
     padding: 0;
   }
@@ -84,45 +79,74 @@ export const CalendarWrapper = styled.div<{
   .fc .fc-button {
     background: none;
     border: none;
-    color: #a0a0a0;
-    font-size: 1.25rem;
+    color: ${token.colors.fill.a0};
+    font-size: ${token.fontSize.heading.sm};
     padding: 0.4em 0.5em;
     box-shadow: none;
   }
 
   .fc .fc-button:hover {
     background: none;
-    color: #333333;
+    color: ${token.colors.text.normal};
   }
 
   .fc .fc-button:focus {
-    outline: none;
-    box-shadow: none;
+    outline: none !important;
+    box-shadow: none !important;
   }
 
-  .fc .fc-button:focus:not(:focus-visible) {
-    outline: none;
-    box-shadow: none;
+  .fc .fc-createSchedule-button {
+    display: inline-flex;
+    position: relative;
+    align-items: center;
+    gap: 6px;
+    margin-left: 16px;
+    padding: 8px 12px;
+    border-radius: ${token.shapes.xsmall};
+    background: ${token.colors.main.normal};
+    color: ${token.colors.fill.white};
+    font-size: ${token.fontSize.body.sm};
+    font-weight: ${token.fontWeight.semibold};
   }
 
-  .fc .fc-button:focus-visible {
-    outline: 2px solid #2ca4fb;
-    outline-offset: 2px;
+  .fc .fc-createSchedule-button::before {
+    width: 12px;
+    height: 2px;
+    border-radius: 999px;
+    background: ${token.colors.fill.white};
+    content: '';
+  }
+
+  .fc .fc-createSchedule-button::after {
+    position: absolute;
+    top: 50%;
+    left: 17px;
+    width: 2px;
+    height: 12px;
+    border-radius: 999px;
+    background: ${token.colors.fill.white};
+    content: '';
+    transform: translateY(-50%);
+  }
+
+  .fc .fc-createSchedule-button:hover {
+    background: ${token.colors.fill.charcoal};
+    color: ${token.colors.fill.white};
   }
 
   .fc-view-harness {
     flex: 1;
+    min-height: 0;
     ${token.flexCenter}
   }
 
   .fc .fc-col-header-cell {
     padding: 10px 0 10px 10px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #b8b8b8;
-    background: #ffffff;
+    ${token.typography("caption", "md", "semibold")};
+    color: ${token.colors.text.lightGray};
+    background: ${token.colors.background.white};
     border: none;
-    border-radius: 8px;
+    border-radius: ${token.shapes.xsmall};
     text-align: left;
   }
 
@@ -131,12 +155,12 @@ export const CalendarWrapper = styled.div<{
   }
 
   .fc .fc-scrollgrid {
-    border: 1px solid #eeeeee;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 1200px;
+    border: 1px solid ${token.colors.line.light};
+    border-radius: ${token.shapes.xsmall};
+    width: calc(100% - clamp(16px, 4cqw, 64px));
+    max-width: none;
     margin: 0 auto;
-    height: 90%;
+    height: calc(100% - clamp(16px, 4cqw, 64px));
   }
 
   .fc .fc-scrollgrid-section-body > td {
@@ -144,24 +168,11 @@ export const CalendarWrapper = styled.div<{
     height: 100%;
   }
 
-  /* v2 본문 폭에서 FullCalendar가 계산한 초기 inline 폭을 격자에 맞춘다. */
-  .fc .fc-col-header,
-  .fc .fc-daygrid-body,
-  .fc .fc-daygrid-body table {
-    width: 100% !important;
-  }
-
-  /* FullCalendar의 내부 계산 높이가 남는 영역을 비우지 않도록 본문 표를 채운다. */
-  .fc .fc-daygrid-body,
-  .fc .fc-daygrid-body table {
-    height: 100% !important;
-  }
-
   .fc .fc-daygrid-day {
-    background: #ffffff;
+    background: ${token.colors.background.white};
     border: 0;
-    border-top: 1px solid #eeeeee;
-    border-left: 1px solid #eeeeee;
+    border-top: 1px solid ${token.colors.line.light};
+    border-left: 1px solid ${token.colors.line.light};
   }
 
   /* 첫 번째 열의 외곽선은 scrollgrid가 담당합니다. */
@@ -180,21 +191,21 @@ export const CalendarWrapper = styled.div<{
   }
 
   .fc .fc-daygrid-day-number {
-    font-size: 0.6875rem;
-    font-weight: 400;
+    ${token.typography("caption", "sm", "regular")};
+    font-size: clamp(11px, 0.9cqw, 18px);
     padding: 8px;
-    color: #191a1a;
+    color: ${token.colors.calendar.black};
     position: absolute;
     top: 0;
     left: 0;
   }
 
   .fc .fc-day-sun .fc-daygrid-day-number {
-    color: #fc675f;
+    color: ${token.colors.calendar.red};
   }
 
   .fc .fc-day-sat .fc-daygrid-day-number {
-    color: #2ca4fb;
+    color: ${token.colors.calendar.blue};
   }
 
   .fc .fc-daygrid-day-events {
@@ -202,8 +213,8 @@ export const CalendarWrapper = styled.div<{
   }
 
   .fc .fc-event {
-    font-size: 0.75rem;
-    font-weight: 600;
+    ${token.typography("caption", "md", "semibold")};
+    font-size: clamp(11px, 0.9cqw, 18px);
     display: block;
     width: calc(100% - 8px);
     min-height: 22px;
@@ -216,15 +227,6 @@ export const CalendarWrapper = styled.div<{
     overflow: hidden;
     text-overflow: ellipsis;
     box-sizing: border-box;
-
-    ${({ $loading }) => $loading && css`
-      border: 0;
-      background: linear-gradient(90deg, #edf0f3 25%, #f7f8f9 37%, #edf0f3 63%) !important;
-      background-size: 400% 100% !important;
-      animation: ${eventShimmer} 1.2s ease-in-out infinite;
-      color: transparent !important;
-      cursor: default;
-    `}
   }
 
   .fc .fc-h-event .fc-event-main {
@@ -237,23 +239,13 @@ export const CalendarWrapper = styled.div<{
     background-color: rgb(252, 222, 25);
   }
 
-  .fc .fc-event.calendar-event-skeleton,
-  .fc .fc-event.calendar-event-skeleton:hover {
-    border: 0;
-    background: linear-gradient(90deg, #edf0f3 25%, #f7f8f9 37%, #edf0f3 63%) !important;
-    background-size: 400% 100% !important;
-    animation: ${eventShimmer} 1.2s ease-in-out infinite;
-    color: transparent !important;
-    cursor: default;
-  }
-
   .fc .club-report-selected-event {
-    box-shadow: inset 0 0 0 2px #ffd600;
+    box-shadow: inset 0 0 0 2px ${token.colors.main.alternative};
     filter: brightness(0.96);
   }
 
   .fc .fc-event-main {
-    color: #191a1a;
+    color: ${token.colors.calendar.black};
   }
 
   .fc .fc-day-today {
@@ -264,28 +256,25 @@ export const CalendarWrapper = styled.div<{
     background-color: rgba(66, 153, 225, 0.05);
   }
 
-  /* v1 메인 달력은 6번째 주를 숨기고 나머지 5개 행을 같은 높이로 유지한다. */
-  .fc .fc-daygrid-body tr:nth-child(6) {
-    display: none;
-  }
+
 
   .fc .fc-daygrid-body tr {
-    height: 20%;
+    height: auto;
   }
 
   .fc .fc-popover {
-    background: #ffffff !important;
-    border: 1px solid #eeeeee;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    background: ${token.colors.fill.white} !important;
+    border: 1px solid ${token.colors.line.light};
+    border-radius: ${token.shapes.xsmall};
+    ${token.elevation('black_2')}
   }
 
   .fc .fc-popover-body {
-    background: #ffffff !important;
+    background: ${token.colors.fill.white} !important;
   }
 
   .skeleton-event {
-    height: 18px !important;
+  height: 18px !important;
   }
 
   .fc .fc-daygrid-more-link {
@@ -303,6 +292,32 @@ export const CalendarWrapper = styled.div<{
       background-color: rgba(0, 0, 0, 0.08);
     }
   }
+
+  @container (max-width: 600px) {
+    .fc .fc-col-header-cell {
+      padding: 8px 0;
+      text-align: center;
+    }
+
+    .fc .fc-daygrid-day-number {
+      padding: 4px;
+    }
+
+    .fc .fc-event {
+      width: calc(100% - 4px);
+      margin: 2px;
+      padding: 4px 2px;
+    }
+
+    .fc .fc-event svg {
+      display: none;
+    }
+
+    .fc .fc-daygrid-more-link {
+      padding: 2px;
+      font-size: 10px;
+    }
+  }
 `;
 
 export const EventContentWrapper = styled.div`
@@ -315,16 +330,9 @@ export const EventContentWrapper = styled.div`
   pointer-events: none;
 `;
 
-
 export const EventLabel = styled.span`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   pointer-events: none;
-`;
-
-export const EventSkeleton = styled.span`
-  display: block;
-  width: 100%;
-  height: 100%;
 `;

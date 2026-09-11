@@ -11,7 +11,13 @@ export const AvatarRoot = styled.span<{ $size: number }>`
   overflow: visible;
 `
 
-export const ImageClip = styled.span<{ $size: number }>`
+export const ImageClip = styled.span<{
+  $size: number
+  $maskUrl?: string
+  $maskSize: number
+  $offsetX: number
+  $offsetY: number
+}>`
   position: absolute;
   top: 50%;
   left: 50%;
@@ -21,6 +27,10 @@ export const ImageClip = styled.span<{ $size: number }>`
   overflow: hidden;
   border-radius: ${token.shapes.circle};
   background: ${token.colors.white};
+  mask-image: ${({ $maskUrl }) => $maskUrl ? `url("${$maskUrl}")` : 'none'};
+  mask-size: ${({ $maskSize }) => $maskSize}px ${({ $maskSize }) => $maskSize}px;
+  mask-position: calc(50% + ${({ $offsetX }) => $offsetX}px) calc(50% + ${({ $offsetY }) => $offsetY}px);
+  mask-repeat: no-repeat;
   transform: translate(-50%, -50%);
 `
 
@@ -35,11 +45,15 @@ export const ProfileImage = styled.img<{ $imageScale: number }>`
   transform: translate(-50%, -50%);
 `
 
-export const DecorationImage = styled.img<{ $displaySize: number }>`
+export const DecorationImage = styled.img<{
+  $displaySize: number
+  $offsetX: number
+  $offsetY: number
+}>`
   position: absolute;
   z-index: 1;
-  top: 50%;
-  left: 50%;
+  top: calc(50% + ${({ $offsetY }) => $offsetY}px);
+  left: calc(50% + ${({ $offsetX }) => $offsetX}px);
   display: block;
   width: ${({ $displaySize }) => $displaySize}px;
   height: ${({ $displaySize }) => $displaySize}px;
