@@ -57,6 +57,7 @@ import {
   appendCommentReplies,
   appendReplyComment,
   buildCommentTree,
+  decrementAncestorReplyCounts,
   type CommunityCommentDeleteHandler,
   type CommunityCommentUpdateHandler,
   type CommunityReplyLoadHandler,
@@ -427,17 +428,28 @@ export function CommunityDetailPage() {
           (currentComment) => currentComment.commentId === commentId,
         );
         const deletedComment = currentComments[commentIndex];
-        const hasChildComments =
+        const hasLoadedChildComments =
           deletedComment !== undefined &&
           currentComments[commentIndex + 1]?.depth > deletedComment.depth;
+        const hasLoadedReplyBranch =
+          deletedComment !== undefined &&
+          loadedReplyCommentIds.has(deletedComment.commentId);
+        const hasChildComments =
+          deletedComment !== undefined &&
+          (hasLoadedChildComments ||
+            (!hasLoadedReplyBranch && deletedComment.replyCount > 0));
+        const commentsWithUpdatedReplyCounts = decrementAncestorReplyCounts(
+          currentComments,
+          commentId,
+        );
 
         if (!hasChildComments) {
-          return currentComments.filter(
+          return commentsWithUpdatedReplyCounts.filter(
             (currentComment) => currentComment.commentId !== commentId,
           );
         }
 
-        return currentComments.map((currentComment) =>
+        return commentsWithUpdatedReplyCounts.map((currentComment) =>
           currentComment.commentId === commentId
             ? {
                 ...currentComment,
