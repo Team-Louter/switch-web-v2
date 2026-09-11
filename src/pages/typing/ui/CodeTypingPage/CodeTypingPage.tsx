@@ -30,11 +30,12 @@ interface CodeEditorProps {
   language: string
   modelPath: string
   editable?: boolean
+  disabled?: boolean
   onChange?: (value: string) => void
   onComplete?: () => void
 }
 
-function CodeEditor({ title, lines, language, modelPath, editable, onChange, onComplete }: CodeEditorProps) {
+function CodeEditor({ title, lines, language, modelPath, editable, disabled, onChange, onComplete }: CodeEditorProps) {
   const errorDecorations = useRef<monaco.editor.IEditorDecorationsCollection | null>(null)
 
   const handleMount: OnMount = editor => {
@@ -75,6 +76,9 @@ function CodeEditor({ title, lines, language, modelPath, editable, onChange, onC
 
     updateErrorDecorations()
     editor.onDidChangeModelContent(updateErrorDecorations)
+    editor.onDidChangeCursorSelection(event => {
+      if (!event.selection.isEmpty()) editor.setPosition(event.selection.getPosition())
+    })
     editor.focus()
     editor.onKeyDown(event => {
       if ((event.keyCode !== monaco.KeyCode.Enter && event.keyCode !== monaco.KeyCode.Space) || model.getValue().length !== lines.join('\n').length) return
@@ -96,7 +100,7 @@ function CodeEditor({ title, lines, language, modelPath, editable, onChange, onC
           defaultLanguage={language}
           defaultValue={editable ? '' : lines.join('\n')}
           path={modelPath}
-          onMount={editable ? handleMount : undefined}
+          onMount={handleMount}
           theme="typing-vs-dark"
           options={{
             ariaLabel: `${title} 에디터`,
@@ -121,7 +125,7 @@ function CodeEditor({ title, lines, language, modelPath, editable, onChange, onC
             padding: { top: 9, bottom: 9 },
             parameterHints: { enabled: false },
             quickSuggestions: false,
-            readOnly: !editable,
+            readOnly: !editable || disabled,
             renderLineHighlight: editable ? 'line' : 'none',
             scrollBeyondLastLine: false,
             suggestOnTriggerCharacters: false,
@@ -146,6 +150,7 @@ export function CodeTypingPage() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [typedCode, setTypedCode] = useState('')
   const [isComplete, setIsComplete] = useState(false)
+  const [isTypingEnabled, setIsTypingEnabled] = useState(false)
   const [errorCount, setErrorCount] = useState(0)
   const roundIdRef = useRef<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
@@ -173,6 +178,7 @@ export function CodeTypingPage() {
 
   const handleCountdownComplete = useCallback(() => {
     startTimeRef.current = performance.now()
+    setIsTypingEnabled(true)
   }, [])
 
   useEffect(() => {
@@ -232,7 +238,7 @@ export function CodeTypingPage() {
   return (
     <S.Page>
       <TypingCountdown onComplete={handleCountdownComplete} />
-      <S.PracticeFrame>
+      <S.PracticeFrame onCopy={event => event.preventDefault()}>
         <TypingPracticeHeader category={languageName} time={formattedTime} typingSpeed={`${typingSpeed}타`} accuracy={`${accuracy}%`} />
         <S.Workspace>
           <S.Monitor>
@@ -251,6 +257,7 @@ export function CodeTypingPage() {
                 language={editorLanguage}
                 modelPath={`file:///typing-input-${currentProblem?.problemId ?? 0}.${modelExtension}`}
                 editable
+                disabled={!isTypingEnabled}
                 onChange={setTypedCode}
                 onComplete={handleComplete}
               />

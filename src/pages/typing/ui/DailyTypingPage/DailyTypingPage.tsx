@@ -17,10 +17,12 @@ export function DailyTypingPage() {
   const [typedSentence, setTypedSentence] = useState('')
   const [previousTypedSentence, setPreviousTypedSentence] = useState('')
   const [isComplete, setIsComplete] = useState(false)
+  const [isTypingEnabled, setIsTypingEnabled] = useState(false)
   const [errorCount, setErrorCount] = useState(0)
   const [firstPlaceName, setFirstPlaceName] = useState('-')
   const roundIdRef = useRef<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
+  const typingInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -53,7 +55,12 @@ export function DailyTypingPage() {
 
   const handleCountdownComplete = useCallback(() => {
     startTimeRef.current = performance.now()
+    setIsTypingEnabled(true)
   }, [])
+
+  useEffect(() => {
+    if (isTypingEnabled) typingInputRef.current?.focus()
+  }, [isTypingEnabled])
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -108,7 +115,7 @@ export function DailyTypingPage() {
   return (
     <S.Page>
       <TypingCountdown onComplete={handleCountdownComplete} />
-      <S.PracticeFrame>
+      <S.PracticeFrame onCopy={event => event.preventDefault()}>
         <TypingPracticeHeader category="일상 영어" time={formattedTime} typingSpeed={`${typingSpeed}타`} accuracy={`${accuracy}%`} />
 
         <S.Workspace>
@@ -136,8 +143,10 @@ export function DailyTypingPage() {
                     ))}
                   </S.TypedCharacters>
                   <S.TypingInput
+                    ref={typingInputRef}
                     aria-label="문장 입력"
                     autoFocus
+                    disabled={!isTypingEnabled}
                     maxLength={currentSentence.length}
                     value={typedSentence}
                     onChange={event => setTypedSentence(event.target.value)}

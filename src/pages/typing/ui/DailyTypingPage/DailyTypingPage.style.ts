@@ -18,6 +18,11 @@ export const PracticeFrame = styled.section`
   padding: clamp(30px, 3.5vh, 34px) clamp(34px, 4.85vw, 70px) 60px;
   border: 1px solid ${token.colors.gray.gray10};
   background: ${token.colors.white};
+  user-select: none;
+
+  * {
+    user-select: none;
+  }
 `
 
 export const Workspace = styled.div`
@@ -89,6 +94,7 @@ export const TypedLine = styled.input`
 
 export const TypingInputWrapper = styled.div`
   position: relative;
+  max-width: 100%;
   min-height: 1.35em;
 `
 
@@ -111,6 +117,7 @@ export const TypedCharacter = styled.span<{ $error: boolean }>`
 export const TypingInput = styled.input`
   position: relative;
   width: 100%;
+  max-width: 100%;
   min-height: 1.35em;
   border: 0;
   outline: none;
