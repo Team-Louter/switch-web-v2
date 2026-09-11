@@ -31,6 +31,13 @@ export function getScheduleTarget(selectedIds: number[], members: Member[]): {
     const member = members.find((item) => item.userId === id)
     return member?.generation === undefined || !generations.includes(member.generation)
   })
+
+  // API는 하나의 대상 타입만 받으므로 기수 전체와 개별 멤버를 함께 선택하면
+  // 선택된 멤버 전체를 PERSONAL 대상으로 전송해 일부 담당자가 누락되지 않게 합니다.
+  if (generations.length > 0 && userIds.length > 0) {
+    return { scheduleTarget: 'PERSONAL', generations: [], userIds: selectedIds }
+  }
+
   return { scheduleTarget: generations.length ? 'GENERATION' : 'PERSONAL', generations, userIds }
 }
 
