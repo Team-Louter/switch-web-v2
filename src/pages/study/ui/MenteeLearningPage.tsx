@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import {
   MonthlyStudyWeeks,
@@ -52,6 +52,7 @@ export function MenteeLearningPage() {
     month: number
     weekNumber: number
   } | null>(null)
+  const currentPeriodRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let isCancelled = false
@@ -79,6 +80,15 @@ export function MenteeLearningPage() {
       isCancelled = true
     }
   }, [currentMonth, currentYear, months])
+
+  useLayoutEffect(() => {
+    if (isLoading) return
+
+    currentPeriodRef.current?.scrollIntoView({
+      behavior: 'auto',
+      block: 'start',
+    })
+  }, [isLoading])
 
   const refreshMonthStatuses = async (month: number) => {
     try {
@@ -151,7 +161,11 @@ export function MenteeLearningPage() {
             }
 
           return (
-            <S.Column key={month} $state={monthState}>
+            <S.Column
+              ref={month === currentMonth ? currentPeriodRef : undefined}
+              key={month}
+              $state={monthState}
+            >
               <S.MonthRow style={{ justifyContent: 'flex-start', gap: 10 }}>
                 <S.Month>{month}월</S.Month>
                 {monthState === 'current' && <S.Now>Now</S.Now>}

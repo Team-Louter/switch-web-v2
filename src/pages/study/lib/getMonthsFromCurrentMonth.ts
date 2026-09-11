@@ -12,12 +12,7 @@ export function getCurrentMonth(): number {
 }
 
 export function getMonthsFromCurrentMonth(): number[] {
-  const currentMonth = getCurrentMonth()
-
-  return Array.from(
-    { length: 12 },
-    (_, index) => ((currentMonth - 1 + index) % 12) + 1,
-  )
+  return Array.from({ length: 12 }, (_, index) => index + 1)
 }
 
 export function getMonthState(

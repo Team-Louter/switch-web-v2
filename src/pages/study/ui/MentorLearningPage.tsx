@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { PiPencilSimpleLine } from 'react-icons/pi'
 
 import {
@@ -59,10 +59,20 @@ export function MentorLearningPage() {
   const studiesCacheRef = useRef<StudyRecord[] | null>(null)
   const studiesRequestRef = useRef<Promise<StudyRecord[]> | null>(null)
   const menteeStudyRequestIdRef = useRef(0)
+  const currentPeriodRef = useRef<HTMLDivElement>(null)
   const isLoading =
     isMenteesLoading ||
     isStatusesLoading ||
     (isLeader && isTotalStudiesLoading)
+
+  useLayoutEffect(() => {
+    if (isLoading) return
+
+    currentPeriodRef.current?.scrollIntoView({
+      behavior: 'auto',
+      block: 'start',
+    })
+  }, [isLoading])
 
   useEffect(() => {
     let isCancelled = false
@@ -278,7 +288,11 @@ export function MentorLearningPage() {
           ).sort((a, b) => a.id - b.id)
 
           return (
-            <S.Column key={id} $state={state}>
+            <S.Column
+              ref={state === 'current' ? currentPeriodRef : undefined}
+              key={id}
+              $state={state}
+            >
               <S.MonthRow>
                 <S.MonthHeading>
                   <S.Month>
