@@ -429,7 +429,8 @@ export function CommunityDetailPage() {
         const deletedComment = currentComments[commentIndex];
         const hasChildComments =
           deletedComment !== undefined &&
-          currentComments[commentIndex + 1]?.depth > deletedComment.depth;
+          (deletedComment.replyCount > 0 ||
+            currentComments[commentIndex + 1]?.depth > deletedComment.depth);
 
         if (!hasChildComments) {
           return currentComments.filter(
