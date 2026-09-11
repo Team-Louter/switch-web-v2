@@ -8,10 +8,9 @@ type PeriodState = 'past' | 'current' | 'future'
 export const PageContainer = styled.section`
   width: 100%;
   height: 100vh;
-  padding: clamp(20px, 2vw, 30px);
+  padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px) 0 0;
   overflow: hidden;
   background: ${token.colors.white};
-  padding-bottom: 0;
 `
 
 export const ScrollArea = styled.div`
