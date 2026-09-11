@@ -1,4 +1,6 @@
 import { getDecorationLayout } from './decorationLayout'
+import chickFrame from '../assets/chick-frame.webp'
+import chickFrameSmall from '../assets/chick-frame-small.webp'
 
 import type {
   ProfileAvatarDecorationItem,
@@ -49,12 +51,20 @@ export function useProfileAvatar(
     getDecorationImageUrl(borderItem),
   )
   const layout = getDecorationLayout(borderImageUrl, profileSize)
+  // 동일한 180프레임 애니메이션의 압축본으로 대용량 APNG 다운로드를 방지한다.
+  const decorationSrc = /\/chick-frame2\.(?:png|apng)(?:[?#]|$)/i.test(
+    borderImageUrl ?? '',
+  )
+    ? profileSize <= 50
+      ? chickFrameSmall
+      : chickFrame
+    : borderImageUrl
 
   const decorations = borderImageUrl
     ? [
         {
           ...layout,
-          src: borderImageUrl,
+          src: decorationSrc,
         },
       ]
     : []
