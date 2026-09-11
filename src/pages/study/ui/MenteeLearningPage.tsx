@@ -26,6 +26,8 @@ import { LearningSkeleton } from './LearningSkeleton'
 import * as S from './LearningPage.style'
 
 const STATUS_REQUEST_CONCURRENCY = 3
+const HISTORY_BATCH_SIZE = 4
+const HISTORY_SCROLL_THRESHOLD = 8
 
 export function MenteeLearningPage() {
   const user = useUserStore((state) => state.user)
@@ -46,6 +48,7 @@ export function MenteeLearningPage() {
   >({})
   const [loadedMonths, setLoadedMonths] = useState<Record<string, true>>({})
   const [isInitialStatusLoading, setIsInitialStatusLoading] = useState(true)
+  const [loadedHistoryCount, setLoadedHistoryCount] = useState(0)
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false)
   const [modalStudy, setModalStudy] = useState<StudyRecord>()
   const [selectedWeeks, setSelectedWeeks] = useState<
@@ -56,16 +59,41 @@ export function MenteeLearningPage() {
     weekNumber: number
   } | null>(null)
   const currentPeriodRef = useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const historyPlaceholderRef = useRef<HTMLDivElement>(null)
+  const initialScrollTopRef = useRef<number | null>(null)
+  const currentPeriodTopBeforeLoadRef = useRef<number | null>(null)
+  const historyBatchLoadingRef = useRef(false)
+  const requestedHistoryMonthsRef = useRef(new Set<number>())
+  const isMountedRef = useRef(true)
+  const historyMonths = useMemo(
+    () => months.filter((month) => month < currentMonth),
+    [months, currentMonth],
+  )
+  const loadedHistoryMonths = useMemo(
+    () =>
+      loadedHistoryCount > 0
+        ? historyMonths.slice(-loadedHistoryCount)
+        : [],
+    [historyMonths, loadedHistoryCount],
+  )
+  const remainingHistoryCount = historyMonths.length - loadedHistoryCount
+  const visibleMonths = useMemo(
+    () => [
+      ...loadedHistoryMonths,
+      ...months.filter((month) => month >= currentMonth),
+    ],
+    [loadedHistoryMonths, months, currentMonth],
+  )
 
   useEffect(() => {
     let isCancelled = false
-    const availableMonths = months.filter((month) => month <= currentMonth)
 
-    const loadMonthStatuses = async (month: number) => {
-      const key = `${currentYear}-${month}`
+    const loadCurrentStatus = async () => {
+      const key = `${currentYear}-${currentMonth}`
 
       try {
-        const statuses = await getMyStatus(currentYear, month)
+        const statuses = await getMyStatus(currentYear, currentMonth)
 
         if (!isCancelled) {
           setStatusesByMonth((previous) => ({
@@ -74,49 +102,100 @@ export function MenteeLearningPage() {
           }))
         }
       } catch {
-        // 개별 월 조회 실패가 다른 월의 표시를 막지 않게 한다.
+        // 현재 월 조회 실패가 화면 전체 표시를 막지 않게 한다.
       } finally {
         if (!isCancelled) {
           setLoadedMonths((previous) => ({ ...previous, [key]: true }))
+          setIsInitialStatusLoading(false)
         }
       }
     }
 
-    const loadStatuses = async () => {
-      await loadMonthStatuses(currentMonth)
-
-      if (isCancelled) return
-
-      setIsInitialStatusLoading(false)
-
-      const remainingMonths = availableMonths
-        .filter((month) => month !== currentMonth)
-        .sort(
-          (a, b) =>
-            Math.abs(a - currentMonth) - Math.abs(b - currentMonth),
-        )
-
-      await loadWithConcurrency(
-        remainingMonths,
-        loadMonthStatuses,
-        STATUS_REQUEST_CONCURRENCY,
-      )
-    }
-
-    void loadStatuses()
+    void loadCurrentStatus()
 
     return () => {
       isCancelled = true
     }
   }, [currentMonth, currentYear, months])
 
+  useEffect(() => {
+    isMountedRef.current = true
+
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
+  useLayoutEffect(() => {
+    const scrollArea = scrollAreaRef.current
+    const currentPeriod = currentPeriodRef.current
+    const currentPeriodTopBeforeLoad = currentPeriodTopBeforeLoadRef.current
+
+    if (
+      scrollArea &&
+      currentPeriod &&
+      currentPeriodTopBeforeLoad !== null
+    ) {
+      scrollArea.scrollTop +=
+        currentPeriod.getBoundingClientRect().top -
+        currentPeriodTopBeforeLoad
+    }
+
+    currentPeriodTopBeforeLoadRef.current = null
+    historyBatchLoadingRef.current = false
+  }, [loadedHistoryCount])
+
+  useEffect(() => {
+    const monthsToLoad = loadedHistoryMonths.filter(
+      (month) => !requestedHistoryMonthsRef.current.has(month),
+    )
+
+    if (monthsToLoad.length === 0) return
+
+    monthsToLoad.forEach((month) => {
+      requestedHistoryMonthsRef.current.add(month)
+    })
+
+    const loadHistoryStatus = async (month: number) => {
+      const key = `${currentYear}-${month}`
+
+      try {
+        const statuses = await getMyStatus(currentYear, month)
+
+        if (isMountedRef.current) {
+          setStatusesByMonth((previous) => ({
+            ...previous,
+            [key]: statuses,
+          }))
+        }
+      } catch {
+        // 개별 월 조회 실패가 다른 월의 표시를 막지 않게 한다.
+      } finally {
+        if (isMountedRef.current) {
+          setLoadedMonths((previous) => ({ ...previous, [key]: true }))
+        }
+      }
+    }
+
+    void loadWithConcurrency(
+      monthsToLoad,
+      loadHistoryStatus,
+      STATUS_REQUEST_CONCURRENCY,
+    )
+  }, [currentYear, loadedHistoryMonths])
+
   useLayoutEffect(() => {
     if (isInitialStatusLoading) return
 
-    currentPeriodRef.current?.scrollIntoView({
-      behavior: 'auto',
-      block: 'start',
-    })
+    const scrollArea = scrollAreaRef.current
+    const currentPeriod = currentPeriodRef.current
+
+    if (!scrollArea || !currentPeriod) return
+
+    scrollArea.scrollTop +=
+      currentPeriod.getBoundingClientRect().top -
+      scrollArea.getBoundingClientRect().top
+    initialScrollTopRef.current = scrollArea.scrollTop
   }, [isInitialStatusLoading])
 
   const refreshMonthStatuses = async (month: number) => {
@@ -137,13 +216,67 @@ export function MenteeLearningPage() {
     }
   }
 
+  const handleHistoryScroll = () => {
+    const scrollArea = scrollAreaRef.current
+    const historyPlaceholder = historyPlaceholderRef.current
+    const initialScrollTop = initialScrollTopRef.current
+
+    if (
+      !scrollArea ||
+      !historyPlaceholder ||
+      initialScrollTop === null ||
+      remainingHistoryCount === 0 ||
+      historyBatchLoadingRef.current ||
+      scrollArea.scrollTop >= initialScrollTop - HISTORY_SCROLL_THRESHOLD
+    ) {
+      return
+    }
+
+    const rootRect = scrollArea.getBoundingClientRect()
+    const historyPlaceholderBottom =
+      historyPlaceholder.getBoundingClientRect().bottom -
+      rootRect.top +
+      scrollArea.scrollTop
+
+    if (
+      scrollArea.scrollTop >
+      historyPlaceholderBottom + HISTORY_SCROLL_THRESHOLD
+    ) {
+      return
+    }
+
+    currentPeriodTopBeforeLoadRef.current =
+      currentPeriodRef.current?.getBoundingClientRect().top ?? null
+    historyBatchLoadingRef.current = true
+    setLoadedHistoryCount((currentCount) =>
+      Math.min(currentCount + HISTORY_BATCH_SIZE, historyMonths.length),
+    )
+  }
+
   return (
     <S.PageContainer>
-      <S.ScrollArea aria-busy={isInitialStatusLoading}>
+      <S.ScrollArea
+        ref={scrollAreaRef}
+        aria-busy={isInitialStatusLoading}
+        onScroll={handleHistoryScroll}
+      >
         {isInitialStatusLoading && (
           <LearningSkeleton count={months.length} variant="mentee" />
         )}
-        {!isInitialStatusLoading && months.map((month) => {
+        {!isInitialStatusLoading && remainingHistoryCount > 0 && (
+          <S.HistoryPlaceholder
+            ref={historyPlaceholderRef}
+            $periodCount={remainingHistoryCount}
+          >
+            <S.HistorySkeletonContent>
+              <LearningSkeleton
+                count={Math.min(remainingHistoryCount, HISTORY_BATCH_SIZE)}
+                variant="mentee"
+              />
+            </S.HistorySkeletonContent>
+          </S.HistoryPlaceholder>
+        )}
+        {!isInitialStatusLoading && visibleMonths.map((month) => {
           const monthState = getMonthState(month, currentMonth)
           const weekCount = getMonthWeekCount(currentYear, month)
           const monthKey = `${currentYear}-${month}`

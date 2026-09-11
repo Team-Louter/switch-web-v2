@@ -5,6 +5,9 @@ import DecoSvg from '../assets/deco1.svg?react'
 
 type PeriodState = 'past' | 'current' | 'future'
 
+const PERIOD_HEIGHT = 198
+const PERIOD_GAP = 28
+
 export const PageContainer = styled.section`
   width: 100%;
   height: 100vh;
@@ -60,6 +63,22 @@ export const SkeletonList = styled.div`
   flex-direction: column;
   gap: 28px;
   width: 100%;
+`
+
+export const HistoryPlaceholder = styled.div<{ $periodCount: number }>`
+  position: relative;
+  width: 100%;
+  height: ${({ $periodCount }) =>
+    `${$periodCount * PERIOD_HEIGHT + Math.max($periodCount - 1, 0) * PERIOD_GAP}px`};
+  flex: 0 0 auto;
+  pointer-events: none;
+`
+
+export const HistorySkeletonContent = styled.div`
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
 `
 
 export const SkeletonColumn = styled.div`

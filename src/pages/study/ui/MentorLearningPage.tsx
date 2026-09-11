@@ -27,6 +27,8 @@ import { LearningSkeleton } from './LearningSkeleton'
 import * as S from './LearningPage.style'
 
 const STATUS_REQUEST_CONCURRENCY = 4
+const HISTORY_BATCH_SIZE = 4
+const HISTORY_SCROLL_THRESHOLD = 8
 
 export function MentorLearningPage() {
   const isLeader = useUserStore((state) => state.user?.role === 'LEADER')
@@ -36,6 +38,7 @@ export function MentorLearningPage() {
   >({})
   const [loadedWeekIds, setLoadedWeekIds] = useState<Record<string, true>>({})
   const [isInitialStatusLoading, setIsInitialStatusLoading] = useState(true)
+  const [loadedHistoryCount, setLoadedHistoryCount] = useState(0)
   const [isStudyModalOpen, setIsStudyModalOpen] = useState(false)
   const [selectedMenteeStudy, setSelectedMenteeStudy] = useState<{
     month: number
@@ -62,6 +65,32 @@ export function MentorLearningPage() {
   const studiesRequestRef = useRef<Promise<StudyRecord[]> | null>(null)
   const menteeStudyRequestIdRef = useRef(0)
   const currentPeriodRef = useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const historyPlaceholderRef = useRef<HTMLDivElement>(null)
+  const initialScrollTopRef = useRef<number | null>(null)
+  const currentPeriodTopBeforeLoadRef = useRef<number | null>(null)
+  const historyBatchLoadingRef = useRef(false)
+  const requestedHistoryIdsRef = useRef(new Set<string>())
+  const isMountedRef = useRef(true)
+  const historyWeeks = useMemo(
+    () => weeks.filter(({ state }) => state === 'past'),
+    [weeks],
+  )
+  const loadedHistoryWeeks = useMemo(
+    () =>
+      loadedHistoryCount > 0
+        ? historyWeeks.slice(-loadedHistoryCount)
+        : [],
+    [historyWeeks, loadedHistoryCount],
+  )
+  const remainingHistoryCount = historyWeeks.length - loadedHistoryCount
+  const visibleWeeks = useMemo(
+    () => [
+      ...loadedHistoryWeeks,
+      ...weeks.filter(({ state }) => state !== 'past'),
+    ],
+    [loadedHistoryWeeks, weeks],
+  )
   const sortedMentees = useMemo(
     () => [...mentees].sort((a, b) => a.userId - b.userId),
     [mentees],
@@ -81,11 +110,43 @@ export function MentorLearningPage() {
   useLayoutEffect(() => {
     if (isLoading) return
 
-    currentPeriodRef.current?.scrollIntoView({
-      behavior: 'auto',
-      block: 'start',
-    })
+    const scrollArea = scrollAreaRef.current
+    const currentPeriod = currentPeriodRef.current
+
+    if (!scrollArea || !currentPeriod) return
+
+    scrollArea.scrollTop +=
+      currentPeriod.getBoundingClientRect().top -
+      scrollArea.getBoundingClientRect().top
+    initialScrollTopRef.current = scrollArea.scrollTop
   }, [isLoading])
+
+  useEffect(() => {
+    isMountedRef.current = true
+
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
+  useLayoutEffect(() => {
+    const scrollArea = scrollAreaRef.current
+    const currentPeriod = currentPeriodRef.current
+    const currentPeriodTopBeforeLoad = currentPeriodTopBeforeLoadRef.current
+
+    if (
+      scrollArea &&
+      currentPeriod &&
+      currentPeriodTopBeforeLoad !== null
+    ) {
+      scrollArea.scrollTop +=
+        currentPeriod.getBoundingClientRect().top -
+        currentPeriodTopBeforeLoad
+    }
+
+    currentPeriodTopBeforeLoadRef.current = null
+    historyBatchLoadingRef.current = false
+  }, [loadedHistoryCount])
 
   useEffect(() => {
     let isCancelled = false
@@ -107,7 +168,6 @@ export function MentorLearningPage() {
 
   useEffect(() => {
     let isCancelled = false
-    const availableWeeks = weeks.filter(({ state }) => state !== 'future')
     const currentWeek = weeks.find(({ state }) => state === 'current')
 
     if (!currentWeek) {
@@ -116,7 +176,52 @@ export function MentorLearningPage() {
       }
     }
 
-    const loadWeekStatus = async ({
+    const loadCurrentStatus = async () => {
+      try {
+        const statuses = await getWeekStatus(
+          currentWeek.year,
+          currentWeek.month,
+          currentWeek.weekNumber,
+        )
+
+        if (!isCancelled) {
+          setStatusesByWeek((previous) => ({
+            ...previous,
+            [currentWeek.id]: statuses,
+          }))
+        }
+      } catch {
+        // 현재 주차 조회 실패가 화면 전체 표시를 막지 않게 한다.
+      } finally {
+        if (!isCancelled) {
+          setLoadedWeekIds((previous) => ({
+            ...previous,
+            [currentWeek.id]: true,
+          }))
+          setIsInitialStatusLoading(false)
+        }
+      }
+    }
+
+    void loadCurrentStatus()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [weeks])
+
+  useEffect(() => {
+    const weeksToLoad = loadedHistoryWeeks.filter(
+      ({ id }) => !requestedHistoryIdsRef.current.has(id),
+    )
+
+    if (weeksToLoad.length === 0) return
+
+    weeksToLoad.forEach(({ id }) => {
+      requestedHistoryIdsRef.current.add(id)
+    })
+
+    const loadHistoryStatus = async ({
       id,
       year,
       month,
@@ -125,7 +230,7 @@ export function MentorLearningPage() {
       try {
         const statuses = await getWeekStatus(year, month, weekNumber)
 
-        if (!isCancelled) {
+        if (isMountedRef.current) {
           setStatusesByWeek((previous) => ({
             ...previous,
             [id]: statuses,
@@ -134,41 +239,18 @@ export function MentorLearningPage() {
       } catch {
         // 개별 주차 조회 실패가 다른 주차의 표시를 막지 않게 한다.
       } finally {
-        if (!isCancelled) {
+        if (isMountedRef.current) {
           setLoadedWeekIds((previous) => ({ ...previous, [id]: true }))
         }
       }
     }
 
-    const loadStatuses = async () => {
-      await loadWeekStatus(currentWeek)
-
-      if (isCancelled) return
-
-      setIsInitialStatusLoading(false)
-
-      const currentIndex = weeks.findIndex(({ id }) => id === currentWeek.id)
-      const remainingWeeks = availableWeeks
-        .filter(({ id }) => id !== currentWeek.id)
-        .sort(
-          (a, b) =>
-            Math.abs(weeks.indexOf(a) - currentIndex) -
-            Math.abs(weeks.indexOf(b) - currentIndex),
-        )
-
-      await loadWithConcurrency(
-        remainingWeeks,
-        loadWeekStatus,
-        STATUS_REQUEST_CONCURRENCY,
-      )
-    }
-
-    void loadStatuses()
-
-    return () => {
-      isCancelled = true
-    }
-  }, [weeks])
+    void loadWithConcurrency(
+      weeksToLoad,
+      loadHistoryStatus,
+      STATUS_REQUEST_CONCURRENCY,
+    )
+  }, [loadedHistoryWeeks])
 
   useEffect(() => {
     if (!isLeader) return
@@ -287,9 +369,50 @@ export function MentorLearningPage() {
     }
   }
 
+  const handleHistoryScroll = () => {
+    const scrollArea = scrollAreaRef.current
+    const historyPlaceholder = historyPlaceholderRef.current
+    const initialScrollTop = initialScrollTopRef.current
+
+    if (
+      !scrollArea ||
+      !historyPlaceholder ||
+      initialScrollTop === null ||
+      remainingHistoryCount === 0 ||
+      historyBatchLoadingRef.current ||
+      scrollArea.scrollTop >= initialScrollTop - HISTORY_SCROLL_THRESHOLD
+    ) {
+      return
+    }
+
+    const rootRect = scrollArea.getBoundingClientRect()
+    const historyPlaceholderBottom =
+      historyPlaceholder.getBoundingClientRect().bottom -
+      rootRect.top +
+      scrollArea.scrollTop
+
+    if (
+      scrollArea.scrollTop >
+      historyPlaceholderBottom + HISTORY_SCROLL_THRESHOLD
+    ) {
+      return
+    }
+
+    currentPeriodTopBeforeLoadRef.current =
+      currentPeriodRef.current?.getBoundingClientRect().top ?? null
+    historyBatchLoadingRef.current = true
+    setLoadedHistoryCount((currentCount) =>
+      Math.min(currentCount + HISTORY_BATCH_SIZE, historyWeeks.length),
+    )
+  }
+
   return (
     <S.PageContainer>
-      <S.ScrollArea aria-busy={isLoading}>
+      <S.ScrollArea
+        ref={scrollAreaRef}
+        aria-busy={isLoading}
+        onScroll={handleHistoryScroll}
+      >
         {isLoading && (
           <LearningSkeleton
             count={weeks.length}
@@ -297,7 +420,21 @@ export function MentorLearningPage() {
             showHeaderAction={isLeader}
           />
         )}
-        {!isLoading && weeks.map(({ id, year, month, weekNumber, state }) => {
+        {!isLoading && remainingHistoryCount > 0 && (
+          <S.HistoryPlaceholder
+            ref={historyPlaceholderRef}
+            $periodCount={remainingHistoryCount}
+          >
+            <S.HistorySkeletonContent>
+              <LearningSkeleton
+                count={Math.min(remainingHistoryCount, HISTORY_BATCH_SIZE)}
+                variant="mentor"
+                showHeaderAction={isLeader}
+              />
+            </S.HistorySkeletonContent>
+          </S.HistoryPlaceholder>
+        )}
+        {!isLoading && visibleWeeks.map(({ id, year, month, weekNumber, state }) => {
           const totalStudy = totalStudiesByWeek.get(`${month}-${weekNumber}`)
           const isWeekStatusLoaded =
             state === 'future' || loadedWeekIds[id] === true
