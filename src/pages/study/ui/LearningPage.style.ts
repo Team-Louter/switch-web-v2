@@ -219,6 +219,9 @@ export const Column = styled.div<{ $state: PeriodState }>`
   ${token.flexColumn};
   width: 100%;
   flex: 0 0 auto;
+  /* Keep the history in the scroll flow while deferring off-screen layout and paint. */
+  content-visibility: auto;
+  contain-intrinsic-size: 0 200px;
   opacity: ${({ $state }) => ($state === 'future' ? 0.35 : 1)};
   transition: opacity 200ms ease;
 `;

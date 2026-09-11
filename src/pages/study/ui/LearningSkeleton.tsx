@@ -9,6 +9,7 @@ interface LearningSkeletonProps {
 }
 
 const SKELETON_WEEK_COUNT = 6
+const INITIAL_SKELETON_COUNT = 4
 
 export function LearningSkeleton({
   count,
@@ -16,13 +17,14 @@ export function LearningSkeleton({
   showHeaderAction = false,
 }: LearningSkeletonProps) {
   const isMentor = variant === 'mentor'
+  const renderedCount = Math.min(count, INITIAL_SKELETON_COUNT)
 
   return (
     <S.SkeletonList
       role="status"
       aria-label="학습관리 내용을 불러오는 중입니다."
     >
-      {Array.from({ length: count }, (_, index) => (
+      {Array.from({ length: renderedCount }, (_, index) => (
         <S.SkeletonColumn key={index} aria-hidden="true">
           <S.SkeletonMonthRow>
             <S.SkeletonMonth $isMentor={isMentor} />
