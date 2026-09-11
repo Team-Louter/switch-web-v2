@@ -1,6 +1,10 @@
 import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
+import {
+  studyModalBackdropAnimation,
+  studyModalContentAnimation,
+} from '../studyModalAnimation.style'
 
 export const Backdrop = styled.div`
   position: fixed;
@@ -13,6 +17,8 @@ export const Backdrop = styled.div`
   @media (max-width: 720px) {
     padding: 40px 20px;
   }
+
+  ${studyModalBackdropAnimation}
 `
 
 export const Content = styled.div`
@@ -21,6 +27,7 @@ export const Content = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  ${studyModalContentAnimation}
 `
 
 export const Title = styled.h2`

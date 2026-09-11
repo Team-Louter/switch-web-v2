@@ -20,6 +20,7 @@ import { PercentBar } from '@/features/study'
 
 import decoImg2 from '../assets/spring.svg'
 import { getWeeksForCurrentYear } from '../lib/getWeeksForCurrentYear'
+import { LearningSkeleton } from './LearningSkeleton'
 import * as S from './LearningPage.style'
 import { tokens } from '@/shared/styles'
 
@@ -30,6 +31,9 @@ export function MentorLearningPage() {
   const [statusesByWeek, setStatusesByWeek] = useState<
     Record<string, StudyStatus[]>
   >({})
+  const [isMenteesLoading, setIsMenteesLoading] = useState(true)
+  const [isStatusesLoading, setIsStatusesLoading] = useState(true)
+  const [isTotalStudiesLoading, setIsTotalStudiesLoading] = useState(true)
   const [isStudyModalOpen, setIsStudyModalOpen] = useState(false)
   const [selectedMenteeStudy, setSelectedMenteeStudy] = useState<{
     month: number
@@ -51,6 +55,10 @@ export function MentorLearningPage() {
   const [isStudiesLoading, setIsStudiesLoading] = useState(false)
   const [totalStudies, setTotalStudies] = useState<StudyResponse[]>([])
   const [mentees, setMentees] = useState<Member[]>([])
+  const isLoading =
+    isMenteesLoading ||
+    isStatusesLoading ||
+    (isLeader && isTotalStudiesLoading)
 
   useEffect(() => {
     let isCancelled = false
@@ -62,6 +70,11 @@ export function MentorLearningPage() {
         }
       })
       .catch(() => {})
+      .finally(() => {
+        if (!isCancelled) {
+          setIsMenteesLoading(false)
+        }
+      })
 
     return () => {
       isCancelled = true
@@ -81,6 +94,11 @@ export function MentorLearningPage() {
         if (!isCancelled) setStatusesByWeek(Object.fromEntries(weekStatuses))
       })
       .catch(() => {})
+      .finally(() => {
+        if (!isCancelled) {
+          setIsStatusesLoading(false)
+        }
+      })
 
     return () => {
       isCancelled = true
@@ -95,6 +113,11 @@ export function MentorLearningPage() {
         if (!isCancelled) setTotalStudies(reports)
       })
       .catch(() => {})
+      .finally(() => {
+        if (!isCancelled) {
+          setIsTotalStudiesLoading(false)
+        }
+      })
 
     return () => {
       isCancelled = true
@@ -173,8 +196,15 @@ export function MentorLearningPage() {
 
   return (
     <S.PageContainer>
-      <S.ScrollArea>
-        {weeks.map(({ id, year, month, weekNumber, state }) => {
+      <S.ScrollArea aria-busy={isLoading}>
+        {isLoading && (
+          <LearningSkeleton
+            count={weeks.length}
+            variant="mentor"
+            showHeaderAction={isLeader}
+          />
+        )}
+        {!isLoading && weeks.map(({ id, year, month, weekNumber, state }) => {
           const totalStudy = totalStudies.find(
             (report) =>
               report.month === month && report.weekNumber === weekNumber,
@@ -191,7 +221,7 @@ export function MentorLearningPage() {
                 (weekStatuses.filter(({ status }) => status === 'SUBMITTED')
                   .length /
                   weekStatuses.length) *
-                  100,
+                100,
               )
             : 0
           const items = (

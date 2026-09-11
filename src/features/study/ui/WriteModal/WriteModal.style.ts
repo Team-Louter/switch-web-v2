@@ -1,6 +1,10 @@
 import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
+import {
+  studyModalBackdropAnimation,
+  studyModalContentAnimation,
+} from '../studyModalAnimation.style'
 
 export const Backdrop = styled.div`
   position: fixed;
@@ -10,6 +14,7 @@ export const Backdrop = styled.div`
   align-items: center;
   justify-content: center;
   background-color: rgb(14 13 12 / 70%);
+  ${studyModalBackdropAnimation}
 `;
 
 export const Modal = styled.div`
@@ -25,6 +30,7 @@ export const Modal = styled.div`
   display: flex;
   flex-direction: column;
   gap: 14px;
+  ${studyModalContentAnimation}
 `;
 
 export const NavigationButton = styled.button<{

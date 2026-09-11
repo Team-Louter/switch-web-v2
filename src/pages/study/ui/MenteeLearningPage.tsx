@@ -22,6 +22,7 @@ import {
   getMonthsFromCurrentMonth,
   getMonthState,
 } from '../lib/getMonthsFromCurrentMonth'
+import { LearningSkeleton } from './LearningSkeleton'
 import * as S from './LearningPage.style'
 
 export function MenteeLearningPage() {
@@ -41,6 +42,7 @@ export function MenteeLearningPage() {
   const [statusesByMonth, setStatusesByMonth] = useState<
     Record<string, StudyStatus[]>
   >({})
+  const [isLoading, setIsLoading] = useState(true)
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false)
   const [modalStudy, setModalStudy] = useState<StudyRecord>()
   const [selectedWeeks, setSelectedWeeks] = useState<
@@ -67,6 +69,11 @@ export function MenteeLearningPage() {
         }
       })
       .catch(() => {})
+      .finally(() => {
+        if (!isCancelled) {
+          setIsLoading(false)
+        }
+      })
 
     return () => {
       isCancelled = true
@@ -93,8 +100,11 @@ export function MenteeLearningPage() {
 
   return (
     <S.PageContainer>
-      <S.ScrollArea>
-        {months.map((month) => {
+      <S.ScrollArea aria-busy={isLoading}>
+        {isLoading && (
+          <LearningSkeleton count={months.length} variant="mentee" />
+        )}
+        {!isLoading && months.map((month) => {
           const monthState = getMonthState(month, currentMonth)
           const weekCount = getMonthWeekCount(currentYear, month)
           const statuses = (
@@ -108,7 +118,7 @@ export function MenteeLearningPage() {
                 (statuses.filter(({ status }) => status === 'SUBMITTED')
                   .length /
                   weekCount) *
-                  100,
+                100,
               )
             : 0
           const items = Array.from({ length: weekCount }, (_, index) => {
