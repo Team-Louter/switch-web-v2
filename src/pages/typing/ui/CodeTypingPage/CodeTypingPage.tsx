@@ -33,9 +33,20 @@ interface CodeEditorProps {
   disabled?: boolean
   onChange?: (value: string) => void
   onComplete?: () => void
+  onReady?: (editor: monaco.editor.IStandaloneCodeEditor) => void
 }
 
-function CodeEditor({ title, lines, language, modelPath, editable, disabled, onChange, onComplete }: CodeEditorProps) {
+function CodeEditor({
+  title,
+  lines,
+  language,
+  modelPath,
+  editable,
+  disabled,
+  onChange,
+  onComplete,
+  onReady,
+}: CodeEditorProps) {
   const errorDecorations = useRef<monaco.editor.IEditorDecorationsCollection | null>(null)
 
   const handleMount: OnMount = editor => {
@@ -79,7 +90,8 @@ function CodeEditor({ title, lines, language, modelPath, editable, disabled, onC
     editor.onDidChangeCursorSelection(event => {
       if (!event.selection.isEmpty()) editor.setPosition(event.selection.getPosition())
     })
-    editor.focus()
+    onReady?.(editor)
+    if (editable) editor.focus()
     editor.onKeyDown(event => {
       if ((event.keyCode !== monaco.KeyCode.Enter && event.keyCode !== monaco.KeyCode.Space) || model.getValue().length !== lines.join('\n').length) return
 
@@ -154,6 +166,7 @@ export function CodeTypingPage() {
   const [errorCount, setErrorCount] = useState(0)
   const roundIdRef = useRef<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
+  const inputEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
 
   useEffect(() => {
     if (!language || !(language in LANGUAGE_NAMES)) return
@@ -180,6 +193,10 @@ export function CodeTypingPage() {
     startTimeRef.current = performance.now()
     setIsTypingEnabled(true)
   }, [])
+
+  useEffect(() => {
+    if (isTypingEnabled) inputEditorRef.current?.focus()
+  }, [isTypingEnabled])
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -260,6 +277,7 @@ export function CodeTypingPage() {
                 disabled={!isTypingEnabled}
                 onChange={setTypedCode}
                 onComplete={handleComplete}
+                onReady={editor => { inputEditorRef.current = editor }}
               />
             </S.Screen>
             <S.MonitorNeck aria-hidden="true" />
