@@ -88,7 +88,13 @@ function CodeEditor({
     updateErrorDecorations()
     editor.onDidChangeModelContent(updateErrorDecorations)
     editor.onDidChangeCursorSelection(event => {
-      if (!event.selection.isEmpty()) editor.setPosition(event.selection.getPosition())
+      if (!editable || (event.source !== 'mouse' && event.source !== 'keyboard')) return
+
+      const endPosition = model.getPositionAt(model.getValueLength())
+
+      if (!event.selection.isEmpty() || !event.selection.getPosition().equals(endPosition)) {
+        editor.setPosition(endPosition)
+      }
     })
     onReady?.(editor)
     if (editable) editor.focus()

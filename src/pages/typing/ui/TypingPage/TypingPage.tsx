@@ -28,6 +28,8 @@ const MEDALS: Partial<Record<Ranking['rank'], string>> = {
   2: secondMedal,
   3: thirdMedal,
 };
+const PODIUM_RANKS = [2, 1, 3] as const;
+const LIST_RANKS = [4, 5] as const;
 
 const formatElapsedTime = (elapsedTime: number) => {
   const minutes = Math.floor(elapsedTime / 60).toString().padStart(2, '0');
@@ -42,10 +44,7 @@ export function TypingPage() {
   const [sentenceModal, setSentenceModal] = useState<TypingSentenceModalType>(null);
   const [editingSentence, setEditingSentence] = useState<TypingProblem | null>(null);
   const [rankings, setRankings] = useState<RankingList | null>(null);
-  const topFiveRankings = rankings?.topRankings.slice(0, 5) ?? [];
-  const medalRankings = topFiveRankings.filter(({ rank }) => MEDALS[rank]);
-  const remainingRankings = topFiveRankings.filter(({ rank }) => !MEDALS[rank]).slice(0, 2);
-  const emptyRankingCount = 2 - remainingRankings.length;
+  const getRanking = (rank: number) => rankings?.topRankings.find((ranking) => ranking.rank === rank);
   const selectedModeName = TYPING_MODES.find(
     (mode) => mode.serverValue === selectedMode,
   )?.mode;
@@ -147,25 +146,31 @@ export function TypingPage() {
           <S.RankingContainer>
             <S.RankingTitle>{selectedModeName} 현재 순위</S.RankingTitle>
             <S.Top>
-              {medalRankings.map(({ userId, rank, userName, averageSpeed }) => (
-                <TopItem key={userId} medal={MEDALS[rank]!} name={userName} value={averageSpeed.toString()} />
-              ))}
+              {PODIUM_RANKS.map((rank) => {
+                const ranking = getRanking(rank);
+
+                return (
+                  <TopItem
+                    key={rank}
+                    medal={MEDALS[rank]!}
+                    name={ranking?.userName ?? '-'}
+                    value={ranking?.averageSpeed.toString() ?? '-'}
+                  />
+                );
+              })}
             </S.Top>
             <S.RankingList>
-              {remainingRankings.map(({ userId, rank, userName, averageSpeed }) => (
-                <S.RankingItem key={userId}>
-                  <S.Rank>{rank}</S.Rank>
-                  <S.RankName>{userName}</S.RankName>
-                  <S.RankValue>{averageSpeed}타</S.RankValue>
-                </S.RankingItem>
-              ))}
-              {Array.from({ length: emptyRankingCount }, (_, index) => (
-                <S.RankingItem key={`empty-ranking-${index}`}>
-                  <S.Rank>-</S.Rank>
-                  <S.RankName>-</S.RankName>
-                  <S.RankValue>-</S.RankValue>
-                </S.RankingItem>
-              ))}
+              {LIST_RANKS.map((rank) => {
+                const ranking = getRanking(rank);
+
+                return (
+                  <S.RankingItem key={rank}>
+                    <S.Rank>{rank}</S.Rank>
+                    <S.RankName>{ranking?.userName ?? '-'}</S.RankName>
+                    <S.RankValue>{ranking ? `${ranking.averageSpeed}타` : '-'}</S.RankValue>
+                  </S.RankingItem>
+                );
+              })}
               <S.RankingItem style={{ borderColor: tokens.colors.primary.primary50}}>
                 <S.Rank>{rankings?.myRanking?.rank ?? '-'}</S.Rank>
                 <S.RankName>{rankings?.myRanking?.userName ?? '-'}</S.RankName>
