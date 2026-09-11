@@ -5,6 +5,7 @@ import {
   MentorStudyModal,
   MentorTotalStudyModal,
   MonthlyStudyWeeks,
+  PercentBar,
   WriteModal,
 } from '@/features/study'
 import {
@@ -16,13 +17,16 @@ import type { StudyRecord, StudyResponse, StudyStatus } from '@/entities/study'
 import { getMember } from '@/entities/member/api/getMember'
 import type { Member } from '@/entities/member/model/types'
 import { useUserStore } from '@/entities/profile'
-import { PercentBar } from '@/features/study'
+import { tokens } from '@/shared/styles'
 
 import decoImg2 from '../assets/spring.svg'
 import { getWeeksForCurrentYear } from '../lib/getWeeksForCurrentYear'
+import type { StudyWeek } from '../lib/getWeeksForCurrentYear'
+import { loadWithConcurrency } from '../lib/loadWithConcurrency'
 import { LearningSkeleton } from './LearningSkeleton'
 import * as S from './LearningPage.style'
-import { tokens } from '@/shared/styles'
+
+const STATUS_REQUEST_CONCURRENCY = 4
 
 export function MentorLearningPage() {
   const isLeader = useUserStore((state) => state.user?.role === 'LEADER')
@@ -30,9 +34,8 @@ export function MentorLearningPage() {
   const [statusesByWeek, setStatusesByWeek] = useState<
     Record<string, StudyStatus[]>
   >({})
-  const [isMenteesLoading, setIsMenteesLoading] = useState(true)
-  const [isStatusesLoading, setIsStatusesLoading] = useState(true)
-  const [isTotalStudiesLoading, setIsTotalStudiesLoading] = useState(true)
+  const [loadedWeekIds, setLoadedWeekIds] = useState<Record<string, true>>({})
+  const [isInitialStatusLoading, setIsInitialStatusLoading] = useState(true)
   const [isStudyModalOpen, setIsStudyModalOpen] = useState(false)
   const [selectedMenteeStudy, setSelectedMenteeStudy] = useState<{
     month: number
@@ -59,10 +62,21 @@ export function MentorLearningPage() {
   const studiesRequestRef = useRef<Promise<StudyRecord[]> | null>(null)
   const menteeStudyRequestIdRef = useRef(0)
   const currentPeriodRef = useRef<HTMLDivElement>(null)
-  const isLoading =
-    isMenteesLoading ||
-    isStatusesLoading ||
-    (isLeader && isTotalStudiesLoading)
+  const sortedMentees = useMemo(
+    () => [...mentees].sort((a, b) => a.userId - b.userId),
+    [mentees],
+  )
+  const totalStudiesByWeek = useMemo(
+    () =>
+      new Map(
+        totalStudies.map((report) => [
+          `${report.month}-${report.weekNumber}`,
+          report,
+        ]),
+      ),
+    [totalStudies],
+  )
+  const isLoading = isInitialStatusLoading
 
   useLayoutEffect(() => {
     if (isLoading) return
@@ -79,15 +93,12 @@ export function MentorLearningPage() {
     getMember()
       .then((members) => {
         if (!isCancelled) {
-          setMentees(members.filter(({ role }) => role === 'MENTEE'))
+          setMentees(
+            members.filter(({ role }) => role === 'MENTEE'),
+          )
         }
       })
       .catch(() => {})
-      .finally(() => {
-        if (!isCancelled) {
-          setIsMenteesLoading(false)
-        }
-      })
 
     return () => {
       isCancelled = true
@@ -97,21 +108,62 @@ export function MentorLearningPage() {
   useEffect(() => {
     let isCancelled = false
     const availableWeeks = weeks.filter(({ state }) => state !== 'future')
+    const currentWeek = weeks.find(({ state }) => state === 'current')
 
-    Promise.all(
-      availableWeeks.map(async ({ id, year, month, weekNumber }) =>
-        [id, await getWeekStatus(year, month, weekNumber)] as const,
-      ),
-    )
-      .then((weekStatuses) => {
-        if (!isCancelled) setStatusesByWeek(Object.fromEntries(weekStatuses))
-      })
-      .catch(() => {})
-      .finally(() => {
+    if (!currentWeek) {
+      return () => {
+        isCancelled = true
+      }
+    }
+
+    const loadWeekStatus = async ({
+      id,
+      year,
+      month,
+      weekNumber,
+    }: StudyWeek) => {
+      try {
+        const statuses = await getWeekStatus(year, month, weekNumber)
+
         if (!isCancelled) {
-          setIsStatusesLoading(false)
+          setStatusesByWeek((previous) => ({
+            ...previous,
+            [id]: statuses,
+          }))
         }
-      })
+      } catch {
+        // 개별 주차 조회 실패가 다른 주차의 표시를 막지 않게 한다.
+      } finally {
+        if (!isCancelled) {
+          setLoadedWeekIds((previous) => ({ ...previous, [id]: true }))
+        }
+      }
+    }
+
+    const loadStatuses = async () => {
+      await loadWeekStatus(currentWeek)
+
+      if (isCancelled) return
+
+      setIsInitialStatusLoading(false)
+
+      const currentIndex = weeks.findIndex(({ id }) => id === currentWeek.id)
+      const remainingWeeks = availableWeeks
+        .filter(({ id }) => id !== currentWeek.id)
+        .sort(
+          (a, b) =>
+            Math.abs(weeks.indexOf(a) - currentIndex) -
+            Math.abs(weeks.indexOf(b) - currentIndex),
+        )
+
+      await loadWithConcurrency(
+        remainingWeeks,
+        loadWeekStatus,
+        STATUS_REQUEST_CONCURRENCY,
+      )
+    }
+
+    void loadStatuses()
 
     return () => {
       isCancelled = true
@@ -119,6 +171,8 @@ export function MentorLearningPage() {
   }, [weeks])
 
   useEffect(() => {
+    if (!isLeader) return
+
     let isCancelled = false
 
     getAllTotalStudies()
@@ -126,16 +180,11 @@ export function MentorLearningPage() {
         if (!isCancelled) setTotalStudies(reports)
       })
       .catch(() => {})
-      .finally(() => {
-        if (!isCancelled) {
-          setIsTotalStudiesLoading(false)
-        }
-      })
 
     return () => {
       isCancelled = true
     }
-  }, [])
+  }, [isLeader])
 
   const isStudyInWeek = (
     study: StudyRecord,
@@ -249,12 +298,11 @@ export function MentorLearningPage() {
           />
         )}
         {!isLoading && weeks.map(({ id, year, month, weekNumber, state }) => {
-          const totalStudy = totalStudies.find(
-            (report) =>
-              report.month === month && report.weekNumber === weekNumber,
-          )
+          const totalStudy = totalStudiesByWeek.get(`${month}-${weekNumber}`)
+          const isWeekStatusLoaded =
+            state === 'future' || loadedWeekIds[id] === true
           const weekStatuses = statusesByWeek[id] ?? []
-          const submitRate = weekStatuses.length
+          const submitRate = isWeekStatusLoaded && weekStatuses.length
             ? Math.round(
                 (weekStatuses.filter(({ status }) => status === 'SUBMITTED')
                   .length /
@@ -265,28 +313,32 @@ export function MentorLearningPage() {
           const statusLabel =
             state === 'future'
               ? '잠김'
-              : submitRate === 100
-                ? '진행 완료'
-                : state === 'current'
-                  ? '진행중'
-                  : '실패'
-          const items = (
-            state === 'future' || weekStatuses.length === 0
-              ? mentees.map(({ userId, userName }) => ({
-                  id: userId,
-                  label: userName,
-                  status: 'locked' as const,
-                }))
-              : weekStatuses.map(({ userId, userName, status }) => ({
-                  id: userId,
-                  label: userName,
-                  status: {
-                    SUBMITTED: 'submitted',
-                    PENDING: 'due',
-                    OVERDUE: 'overdue',
-                  }[status] as 'submitted' | 'due' | 'overdue',
-                }))
-          ).sort((a, b) => a.id - b.id)
+              : !isWeekStatusLoaded
+                ? '불러오는 중'
+                : submitRate === 100
+                  ? '진행 완료'
+                  : state === 'current'
+                    ? '진행중'
+                    : '실패'
+          const items = !isWeekStatusLoaded
+            ? []
+            : (
+                state === 'future' || weekStatuses.length === 0
+                  ? sortedMentees.map(({ userId, userName }) => ({
+                      id: userId,
+                      label: userName,
+                      status: 'locked' as const,
+                    }))
+                  : weekStatuses.map(({ userId, userName, status }) => ({
+                      id: userId,
+                      label: userName,
+                      status: {
+                        SUBMITTED: 'submitted',
+                        PENDING: 'due',
+                        OVERDUE: 'overdue',
+                      }[status] as 'submitted' | 'due' | 'overdue',
+                    }))
+              ).sort((a, b) => a.id - b.id)
 
           return (
             <S.Column
@@ -319,7 +371,9 @@ export function MentorLearningPage() {
               <S.Card $state={state}>
                 <S.ProgressContent>
                   <S.SubmitLabel>제출률</S.SubmitLabel>
-                  <S.SubmitRate>{submitRate}%</S.SubmitRate>
+                  <S.SubmitRate>
+                    {isWeekStatusLoaded ? `${submitRate}%` : '—'}
+                  </S.SubmitRate>
                   <PercentBar value={submitRate} label="멘티 과제 제출률" />
                   <S.Status>{statusLabel}</S.Status>
                 </S.ProgressContent>
@@ -399,10 +453,8 @@ export function MentorLearningPage() {
           year={selectedTotalStudyWeek.year}
           month={selectedTotalStudyWeek.month}
           weekNumber={selectedTotalStudyWeek.weekNumber}
-          totalStudy={totalStudies.find(
-            (report) =>
-              report.month === selectedTotalStudyWeek.month &&
-              report.weekNumber === selectedTotalStudyWeek.weekNumber,
+          totalStudy={totalStudiesByWeek.get(
+            `${selectedTotalStudyWeek.month}-${selectedTotalStudyWeek.weekNumber}`,
           )}
           onGenerated={(totalStudy) => {
             setTotalStudies((current) => [

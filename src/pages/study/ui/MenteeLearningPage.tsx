@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import {
   MonthlyStudyWeeks,
+  PercentBar,
   WriteModal,
 } from '@/features/study'
 import type { WeekStatus } from '@/features/study'
@@ -14,16 +15,17 @@ import {
   getMonthWeekNumber,
 } from '@/shared/lib/studyWeek'
 import { tokens } from '@/shared/styles'
-import { PercentBar } from '@/features/study'
 
 import decoImg2 from '../assets/spring.svg'
 import {
-  getCurrentMonth,
   getMonthsFromCurrentMonth,
   getMonthState,
 } from '../lib/getMonthsFromCurrentMonth'
+import { loadWithConcurrency } from '../lib/loadWithConcurrency'
 import { LearningSkeleton } from './LearningSkeleton'
 import * as S from './LearningPage.style'
+
+const STATUS_REQUEST_CONCURRENCY = 3
 
 export function MenteeLearningPage() {
   const user = useUserStore((state) => state.user)
@@ -31,7 +33,7 @@ export function MenteeLearningPage() {
     ? `${user.grade}${user.classRoom}${String(user.number).padStart(2, '0')}`
     : ''
   const currentDate = useMemo(() => getCurrentKoreaDate(), [])
-  const currentMonth = getCurrentMonth()
+  const currentMonth = currentDate.month
   const months = useMemo(() => getMonthsFromCurrentMonth(), [])
   const currentYear = currentDate.year
   const currentWeekNumber = getMonthWeekNumber(
@@ -42,7 +44,8 @@ export function MenteeLearningPage() {
   const [statusesByMonth, setStatusesByMonth] = useState<
     Record<string, StudyStatus[]>
   >({})
-  const [isLoading, setIsLoading] = useState(true)
+  const [loadedMonths, setLoadedMonths] = useState<Record<string, true>>({})
+  const [isInitialStatusLoading, setIsInitialStatusLoading] = useState(true)
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false)
   const [modalStudy, setModalStudy] = useState<StudyRecord>()
   const [selectedWeeks, setSelectedWeeks] = useState<
@@ -56,25 +59,51 @@ export function MenteeLearningPage() {
 
   useEffect(() => {
     let isCancelled = false
+    const availableMonths = months.filter((month) => month <= currentMonth)
 
-    Promise.all(
-      months.map(async (month) => {
+    const loadMonthStatuses = async (month: number) => {
+      const key = `${currentYear}-${month}`
+
+      try {
         const statuses = await getMyStatus(currentYear, month)
 
-        return [`${currentYear}-${month}`, statuses] as const
-      }),
-    )
-      .then((monthStatuses) => {
         if (!isCancelled) {
-          setStatusesByMonth(Object.fromEntries(monthStatuses))
+          setStatusesByMonth((previous) => ({
+            ...previous,
+            [key]: statuses,
+          }))
         }
-      })
-      .catch(() => {})
-      .finally(() => {
+      } catch {
+        // 개별 월 조회 실패가 다른 월의 표시를 막지 않게 한다.
+      } finally {
         if (!isCancelled) {
-          setIsLoading(false)
+          setLoadedMonths((previous) => ({ ...previous, [key]: true }))
         }
-      })
+      }
+    }
+
+    const loadStatuses = async () => {
+      await loadMonthStatuses(currentMonth)
+
+      if (isCancelled) return
+
+      setIsInitialStatusLoading(false)
+
+      const remainingMonths = availableMonths
+        .filter((month) => month !== currentMonth)
+        .sort(
+          (a, b) =>
+            Math.abs(a - currentMonth) - Math.abs(b - currentMonth),
+        )
+
+      await loadWithConcurrency(
+        remainingMonths,
+        loadMonthStatuses,
+        STATUS_REQUEST_CONCURRENCY,
+      )
+    }
+
+    void loadStatuses()
 
     return () => {
       isCancelled = true
@@ -82,13 +111,13 @@ export function MenteeLearningPage() {
   }, [currentMonth, currentYear, months])
 
   useLayoutEffect(() => {
-    if (isLoading) return
+    if (isInitialStatusLoading) return
 
     currentPeriodRef.current?.scrollIntoView({
       behavior: 'auto',
       block: 'start',
     })
-  }, [isLoading])
+  }, [isInitialStatusLoading])
 
   const refreshMonthStatuses = async (month: number) => {
     try {
@@ -110,20 +139,20 @@ export function MenteeLearningPage() {
 
   return (
     <S.PageContainer>
-      <S.ScrollArea aria-busy={isLoading}>
-        {isLoading && (
+      <S.ScrollArea aria-busy={isInitialStatusLoading}>
+        {isInitialStatusLoading && (
           <LearningSkeleton count={months.length} variant="mentee" />
         )}
-        {!isLoading && months.map((month) => {
+        {!isInitialStatusLoading && months.map((month) => {
           const monthState = getMonthState(month, currentMonth)
           const weekCount = getMonthWeekCount(currentYear, month)
-          const statuses = (
-            statusesByMonth[`${currentYear}-${month}`] ?? []
-          ).slice(
-            0,
-            weekCount,
-          )
-          const submitRate = statuses.length
+          const monthKey = `${currentYear}-${month}`
+          const isMonthStatusLoaded =
+            monthState === 'future' || loadedMonths[monthKey] === true
+          const statuses = isMonthStatusLoaded
+            ? (statusesByMonth[monthKey] ?? []).slice(0, weekCount)
+            : []
+          const submitRate = isMonthStatusLoaded && statuses.length
             ? Math.round(
                 (statuses.filter(({ status }) => status === 'SUBMITTED')
                   .length /
@@ -134,39 +163,45 @@ export function MenteeLearningPage() {
           const statusLabel =
             monthState === 'future'
               ? '잠김'
-              : submitRate === 100
-                ? '진행 완료'
-                : monthState === 'current'
-                  ? '진행중'
-                  : '실패'
-          const items = Array.from({ length: weekCount }, (_, index) => {
-            const status = statuses[index]?.status
-            const weekNumber = index + 1
-            const isFutureWeek =
-              monthState === 'future' ||
-              (monthState === 'current' && weekNumber > currentWeekNumber)
+              : !isMonthStatusLoaded
+                ? '불러오는 중'
+                : submitRate === 100
+                  ? '진행 완료'
+                  : monthState === 'current'
+                    ? '진행중'
+                    : '실패'
+          const items = isMonthStatusLoaded
+            ? Array.from({ length: weekCount }, (_, index) => {
+                const status = statuses[index]?.status
+                const weekNumber = index + 1
+                const isFutureWeek =
+                  monthState === 'future' ||
+                  (monthState === 'current' && weekNumber > currentWeekNumber)
 
-            return {
-              id: `${currentYear}-${month}-${weekNumber}`,
-              label: `${weekNumber}주차`,
-              status:
-                isFutureWeek || status === undefined
-                  ? ('locked' as const)
-                  : ({
-                      SUBMITTED: 'submitted',
-                      PENDING: 'due',
-                      OVERDUE: 'overdue',
-                    }[status] as 'submitted' | 'due' | 'overdue'),
-            }
-          })
+                return {
+                  id: `${currentYear}-${month}-${weekNumber}`,
+                  label: `${weekNumber}주차`,
+                  status:
+                    isFutureWeek || status === undefined
+                      ? ('locked' as const)
+                      : ({
+                          SUBMITTED: 'submitted',
+                          PENDING: 'due',
+                          OVERDUE: 'overdue',
+                        }[status] as 'submitted' | 'due' | 'overdue'),
+                }
+              })
+            : []
           const defaultWeekNumber =
             monthState === 'current' ? currentWeekNumber : 1
           const selectedWeek =
             selectedWeeks[month] ??
-            {
-              weekNumber: defaultWeekNumber,
-              status: items[defaultWeekNumber - 1].status,
-            }
+            (items[defaultWeekNumber - 1]
+              ? {
+                  weekNumber: defaultWeekNumber,
+                  status: items[defaultWeekNumber - 1].status,
+                }
+              : undefined)
 
           return (
             <S.Column
@@ -181,7 +216,9 @@ export function MenteeLearningPage() {
               <S.Card $state={monthState}>
                 <S.ProgressContent>
                   <S.SubmitLabel>제출</S.SubmitLabel>
-                  <S.SubmitRate>{submitRate}%</S.SubmitRate>
+                  <S.SubmitRate>
+                    {isMonthStatusLoaded ? `${submitRate}%` : '—'}
+                  </S.SubmitRate>
                   <PercentBar value={submitRate} label="과제 제출률" />
                   <S.Status>{statusLabel}</S.Status>
                 </S.ProgressContent>
