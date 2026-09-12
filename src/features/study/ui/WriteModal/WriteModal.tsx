@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { PiCaretLeft, PiCaretRight } from 'react-icons/pi'
 
 import {
@@ -11,6 +11,26 @@ import { createStudy, modifyStudy } from '../../api/createStudy'
 import { deleteStudy } from '../../api/deleteStudy'
 import deleteIcon from '../../assets/delete-2-line.svg'
 import * as S from './WriteModal.style'
+
+const SUBMIT_SUCCESS_DURATION = 900
+const SUCCESS_PARTICLES = [
+  { color: 'primary', x: -148, y: -102, rotation: -35, delay: 0 },
+  { color: 'danger', x: -102, y: -140, rotation: 35, delay: 30 },
+  { color: 'success', x: -42, y: -154, rotation: -5, delay: 70 },
+  { color: 'info', x: 24, y: -152, rotation: 28, delay: 45 },
+  { color: 'primary', x: 88, y: -130, rotation: -42, delay: 15 },
+  { color: 'danger', x: 142, y: -88, rotation: 30, delay: 55 },
+  { color: 'success', x: -164, y: -30, rotation: 42, delay: 85 },
+  { color: 'info', x: -118, y: -12, rotation: -30, delay: 110 },
+  { color: 'primary', x: 116, y: -8, rotation: 40, delay: 35 },
+  { color: 'danger', x: 160, y: -36, rotation: -35, delay: 95 },
+  { color: 'success', x: -145, y: 58, rotation: -28, delay: 20 },
+  { color: 'info', x: -82, y: 94, rotation: 35, delay: 75 },
+  { color: 'primary', x: -18, y: 110, rotation: -40, delay: 40 },
+  { color: 'danger', x: 48, y: 96, rotation: 25, delay: 100 },
+  { color: 'success', x: 112, y: 64, rotation: -30, delay: 60 },
+  { color: 'info', x: 170, y: 30, rotation: 42, delay: 10 },
+] as const
 
 interface WriteModalProps {
   isOpen: boolean
@@ -49,6 +69,29 @@ function WriteModalContent({
   const [ownContent, setOwnContent] = useState(study?.ownContent ?? '')
   const [clubContent, setClubContent] = useState(study?.clubContent ?? '')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitSuccessVisible, setIsSubmitSuccessVisible] = useState(false)
+  const submitSuccessTimeoutRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (submitSuccessTimeoutRef.current !== null) {
+        window.clearTimeout(submitSuccessTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  const showSubmitSuccess = (onSuccess?: () => void | Promise<void>) => {
+    if (submitSuccessTimeoutRef.current !== null) {
+      window.clearTimeout(submitSuccessTimeoutRef.current)
+    }
+
+    setIsSubmitSuccessVisible(true)
+    submitSuccessTimeoutRef.current = window.setTimeout(() => {
+      onClose()
+      void onSuccess?.()
+      submitSuccessTimeoutRef.current = null
+    }, SUBMIT_SUCCESS_DURATION)
+  }
 
   const handleSubmit = async () => {
     const data = {
@@ -65,13 +108,12 @@ function WriteModalContent({
 
       if (study) {
         await modifyStudy(study.studyId, data)
-        onClose()
+        showSubmitSuccess()
         return
       }
 
       await createStudy(data)
-      onClose()
-      void onCreateSuccess?.()
+      showSubmitSuccess(onCreateSuccess)
     } catch {
       // 실패 시 모달을 유지해 사용자가 다시 시도할 수 있게 한다.
     } finally {
@@ -206,19 +248,41 @@ function WriteModalContent({
           {!readOnly && (
             <S.SubmitButton
               type="button"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isSubmitSuccessVisible}
               onClick={handleSubmit}
             >
               {study ? '저장' : '제출'}
             </S.SubmitButton>
           )}
         </S.ButtonContainer>
+        {isSubmitSuccessVisible && (
+          <S.SuccessEffect role="status" aria-live="polite">
+            <S.SuccessParticles aria-hidden="true">
+              {SUCCESS_PARTICLES.map((particle, index) => (
+                <S.SuccessParticle
+                  key={`${particle.color}-${index}`}
+                  $color={particle.color}
+                  $x={particle.x}
+                  $y={particle.y}
+                  $rotation={particle.rotation}
+                  $delay={particle.delay}
+                />
+              ))}
+            </S.SuccessParticles>
+            <S.SuccessContent>
+              <S.SuccessMark aria-hidden="true">✓</S.SuccessMark>
+              <S.SuccessMessage>
+                학습일지 {study ? '저장' : '제출'} 완료!
+              </S.SuccessMessage>
+            </S.SuccessContent>
+          </S.SuccessEffect>
+        )}
       </S.Modal>
       {!readOnly && study && (
         <S.DeleteAction
           type="button"
           aria-label="학습일지 삭제"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isSubmitSuccessVisible}
           onClick={handleDelete}
         >
           <img src={deleteIcon} alt="" />

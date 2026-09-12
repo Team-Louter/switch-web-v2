@@ -8,6 +8,12 @@ import {
 
 // Figma의 삭제 액션 기본 색상을 유지해 다른 주요 액션과 시각적 우선순위를 구분합니다.
 const DELETE_BACKGROUND = '#F48771'
+const SUCCESS_PARTICLE_COLORS = {
+  primary: token.colors.primary.primary50,
+  danger: token.colors.danger.danger10,
+  success: token.colors.success.success10,
+  info: token.colors.info.info10,
+} as const
 
 export const Backdrop = styled.div`
   position: fixed;
@@ -324,3 +330,131 @@ export const DeleteAction = styled.button`
     opacity: 0.5;
   }
 `;
+
+const successEffectEnter = keyframes`
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+`
+
+const successMarkEnter = keyframes`
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-12deg);
+  }
+
+  65% {
+    transform: scale(1.12) rotate(3deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+`
+
+const successParticleBurst = keyframes`
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(
+      calc(-50% + var(--success-particle-x)),
+      calc(-50% + var(--success-particle-y))
+    ) scale(1) rotate(var(--success-particle-rotation));
+  }
+`
+
+export const SuccessEffect = styled.div`
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: ${token.shapes.large};
+  background-color: rgb(255 255 255 / 96%);
+  animation: ${successEffectEnter} 180ms ease-out both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
+export const SuccessParticles = styled.div`
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+`
+
+export const SuccessParticle = styled.span<{
+  $color: keyof typeof SUCCESS_PARTICLE_COLORS
+  $x: number
+  $y: number
+  $rotation: number
+  $delay: number
+}>`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 14px;
+  border-radius: 2px;
+  background-color: ${({ $color }) => SUCCESS_PARTICLE_COLORS[$color]};
+  opacity: 0;
+  --success-particle-x: ${({ $x }) => `${$x}px`};
+  --success-particle-y: ${({ $y }) => `${$y}px`};
+  --success-particle-rotation: ${({ $rotation }) => `${$rotation}deg`};
+  animation: ${successParticleBurst} 820ms cubic-bezier(0.22, 0.61, 0.36, 1)
+    ${({ $delay }) => `${$delay}ms`} both;
+
+  @media (prefers-reduced-motion: reduce) {
+    display: none;
+  }
+`
+
+export const SuccessContent = styled.div`
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+`
+
+export const SuccessMark = styled.span`
+  display: flex;
+  width: 64px;
+  height: 64px;
+  align-items: center;
+  justify-content: center;
+  border-radius: ${token.shapes.circle};
+  background-color: ${token.colors.success.success10};
+  ${token.typography('heading', 'lg', 'semibold')};
+  line-height: 1;
+  color: ${token.colors.white};
+  animation: ${successMarkEnter} 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
+export const SuccessMessage = styled.p`
+  ${token.typography('body', 'md', 'semibold')};
+  margin: 0;
+  line-height: normal;
+  color: ${token.colors.gray.gray80};
+`
