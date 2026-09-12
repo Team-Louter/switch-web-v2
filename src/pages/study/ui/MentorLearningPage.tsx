@@ -60,6 +60,7 @@ export function MentorLearningPage() {
   const [isStudiesLoading, setIsStudiesLoading] = useState(false)
   const [totalStudies, setTotalStudies] = useState<StudyResponse[]>([])
   const [mentees, setMentees] = useState<Member[]>([])
+  const [isMenteesLoading, setIsMenteesLoading] = useState(true)
   const [isMenteeStudyLoading, setIsMenteeStudyLoading] = useState(false)
   const studiesCacheRef = useRef<StudyRecord[] | null>(null)
   const studiesRequestRef = useRef<Promise<StudyRecord[]> | null>(null)
@@ -160,6 +161,9 @@ export function MentorLearningPage() {
         }
       })
       .catch(() => {})
+      .finally(() => {
+        if (!isCancelled) setIsMenteesLoading(false)
+      })
 
     return () => {
       isCancelled = true
@@ -435,8 +439,12 @@ export function MentorLearningPage() {
           </S.HistoryPlaceholder>
         )}
         {!isLoading && visibleWeeks.map(({ id, year, month, weekNumber, state }) => {
+          const weekStatuses = statusesByWeek[id] ?? []
           const isWeekStatusLoaded =
-            state === 'future' || loadedWeekIds[id] === true
+            state === 'future'
+              ? !isMenteesLoading
+              : loadedWeekIds[id] === true &&
+                (weekStatuses.length > 0 || !isMenteesLoading)
 
           if (!isWeekStatusLoaded) {
             return (
@@ -451,7 +459,6 @@ export function MentorLearningPage() {
           }
 
           const totalStudy = totalStudiesByWeek.get(`${month}-${weekNumber}`)
-          const weekStatuses = statusesByWeek[id] ?? []
           const submitRate = isWeekStatusLoaded && weekStatuses.length
             ? Math.round(
                 (weekStatuses.filter(({ status }) => status === 'SUBMITTED')
