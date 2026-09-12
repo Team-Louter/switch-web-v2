@@ -1,4 +1,4 @@
-import styled, { keyframes } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 import {
@@ -59,39 +59,106 @@ export const Modal = styled.div<{ $readOnly: boolean }>`
   }
 `;
 
-const loadingSpin = keyframes`
+const loadingSkeletonShimmer = keyframes`
+  from {
+    background-position: 200% 0;
+  }
+
   to {
-    transform: rotate(360deg);
+    background-position: -200% 0;
   }
 `
 
-export const LoadingState = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  color: ${token.colors.gray.gray50};
-`
-
-export const LoadingIndicator = styled.span`
-  display: block;
-  width: 28px;
-  height: 28px;
-  border: 3px solid ${token.colors.gray.gray10};
-  border-top-color: ${token.colors.primary.primary50};
-  border-radius: ${token.shapes.circle};
-  animation: ${loadingSpin} 700ms linear infinite;
+const loadingSkeletonSurface = css`
+  border-radius: ${token.shapes.xsmall};
+  background: linear-gradient(
+    90deg,
+    ${token.colors.gray.gray0} 25%,
+    ${token.colors.gray.gray10} 50%,
+    ${token.colors.gray.gray0} 75%
+  );
+  background-size: 200% 100%;
+  animation: ${loadingSkeletonShimmer} 1.4s ease-in-out infinite;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
 `
 
+export const LoadingState = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+  width: 100%;
+  color: ${token.colors.gray.gray50};
+`
+
+export const LoadingSkeleton = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+`
+
+export const LoadingSkeletonColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+`
+
+export const LoadingSkeletonField = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+`
+
+export const LoadingSkeletonLabel = styled.span`
+  ${loadingSkeletonSurface};
+  display: block;
+  width: 80px;
+  height: 20px;
+  flex: 0 0 auto;
+`
+
+export const LoadingSkeletonBox = styled.span<{ $multiline?: boolean }>`
+  ${loadingSkeletonSurface};
+  display: block;
+  width: 380px;
+  height: ${({ $multiline }) => ($multiline ? '120px' : '35px')};
+
+  @media (max-width: 640px) {
+    width: 100%;
+  }
+`
+
+export const LoadingSkeletonCount = styled.span`
+  ${loadingSkeletonSurface};
+  display: block;
+  width: 42px;
+  height: 12px;
+  align-self: flex-end;
+  margin-top: 4px;
+`
+
+export const LoadingSkeletonDivider = styled.div`
+  width: 100%;
+  height: 2px;
+  flex: 0 0 auto;
+  background-color: ${token.colors.gray.gray0};
+`
+
 export const LoadingText = styled.p`
   ${token.typography('body', 'sm', 'medium')};
   margin: 0;
+  align-self: center;
 `
 
 export const NavigationButton = styled.button<{

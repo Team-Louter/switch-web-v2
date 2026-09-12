@@ -6,6 +6,7 @@ import {
   useState,
 } from 'react'
 import { flushSync } from 'react-dom'
+import { toast } from 'react-toastify'
 
 import {
   MonthlyStudyWeeks,
@@ -57,6 +58,7 @@ export function MenteeLearningPage() {
   const [isInitialStatusLoading, setIsInitialStatusLoading] = useState(true)
   const [loadedHistoryCount, setLoadedHistoryCount] = useState(0)
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false)
+  const [isModalStudyLoading, setIsModalStudyLoading] = useState(false)
   const [modalStudy, setModalStudy] = useState<StudyRecord>()
   const [selectedWeeks, setSelectedWeeks] = useState<
     Record<number, { weekNumber: number; status: WeekStatus }>
@@ -70,6 +72,7 @@ export function MenteeLearningPage() {
   const currentPeriodTopBeforeLoadRef = useRef<number | null>(null)
   const historyBatchLoadingRef = useRef(false)
   const requestedHistoryMonthsRef = useRef(new Set<number>())
+  const modalStudyRequestIdRef = useRef(0)
   const isMountedRef = useRef(true)
   const historyMonths = useMemo(
     () => months.filter((month) => month < currentMonth),
@@ -291,6 +294,12 @@ export function MenteeLearningPage() {
     return () => scrollArea.removeEventListener('wheel', handleHistoryWheel)
   })
 
+  const handleWriteModalClose = () => {
+    modalStudyRequestIdRef.current += 1
+    setIsWriteModalOpen(false)
+    setIsModalStudyLoading(false)
+  }
+
   return (
     <S.PageContainer>
       <S.ScrollArea
@@ -436,26 +445,52 @@ export function MenteeLearningPage() {
                       onClick={async () => {
                         if (!selectedWeek) return
 
+                        const requestId = modalStudyRequestIdRef.current + 1
+                        modalStudyRequestIdRef.current = requestId
                         setModalWeek({
                           month,
                           weekNumber: selectedWeek.weekNumber,
                         })
                         setModalStudy(undefined)
+                        const isEditMode = selectedWeek.status === 'submitted'
+                        setIsModalStudyLoading(isEditMode)
+                        setIsWriteModalOpen(true)
 
-                        if (selectedWeek.status === 'submitted') {
-                          try {
-                            const study = await getStudy(
-                              currentYear,
-                              month,
-                              selectedWeek.weekNumber,
-                            )
-                            setModalStudy(study)
-                          } catch {
+                        if (!isEditMode) return
+
+                        try {
+                          const study = await getStudy(
+                            currentYear,
+                            month,
+                            selectedWeek.weekNumber,
+                          )
+
+                          if (
+                            !isMountedRef.current ||
+                            requestId !== modalStudyRequestIdRef.current
+                          ) {
                             return
                           }
-                        }
 
-                        setIsWriteModalOpen(true)
+                          setModalStudy(study)
+                        } catch {
+                          if (
+                            !isMountedRef.current ||
+                            requestId !== modalStudyRequestIdRef.current
+                          ) {
+                            return
+                          }
+
+                          setIsWriteModalOpen(false)
+                          toast.error('학습일지를 불러오지 못했습니다.')
+                        } finally {
+                          if (
+                            isMountedRef.current &&
+                            requestId === modalStudyRequestIdRef.current
+                          ) {
+                            setIsModalStudyLoading(false)
+                          }
+                        }
                       }}
                     >
                       {selectedWeek?.status === 'submitted'
@@ -471,8 +506,10 @@ export function MenteeLearningPage() {
         })}
       </S.ScrollArea>
       <WriteModal
+        key={modalStudy?.studyId ?? 'study-loading'}
         isOpen={isWriteModalOpen}
-        onClose={() => setIsWriteModalOpen(false)}
+        isLoading={isModalStudyLoading}
+        onClose={handleWriteModalClose}
         onCreateSuccess={() => {
           if (!modalWeek) return
           return refreshMonthStatuses(modalWeek.month)

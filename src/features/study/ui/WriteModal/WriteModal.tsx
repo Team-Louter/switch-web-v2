@@ -183,7 +183,30 @@ function WriteModalContent({
             role="status"
             aria-label="학습일지를 불러오는 중입니다."
           >
-            <S.LoadingIndicator aria-hidden="true" />
+            <S.LoadingSkeleton aria-hidden="true">
+              <S.LoadingSkeletonColumn>
+                <S.LoadingSkeletonField>
+                  <S.LoadingSkeletonLabel />
+                  <S.LoadingSkeletonBox />
+                </S.LoadingSkeletonField>
+                <S.LoadingSkeletonCount />
+              </S.LoadingSkeletonColumn>
+              <S.LoadingSkeletonDivider />
+              <S.LoadingSkeletonColumn>
+                <S.LoadingSkeletonField>
+                  <S.LoadingSkeletonLabel />
+                  <S.LoadingSkeletonBox $multiline />
+                </S.LoadingSkeletonField>
+                <S.LoadingSkeletonCount />
+              </S.LoadingSkeletonColumn>
+              <S.LoadingSkeletonColumn>
+                <S.LoadingSkeletonField>
+                  <S.LoadingSkeletonLabel />
+                  <S.LoadingSkeletonBox $multiline />
+                </S.LoadingSkeletonField>
+                <S.LoadingSkeletonCount />
+              </S.LoadingSkeletonColumn>
+            </S.LoadingSkeleton>
             <S.LoadingText>학습일지를 불러오는 중입니다.</S.LoadingText>
           </S.LoadingState>
         ) : (
@@ -250,14 +273,18 @@ function WriteModalContent({
           {!readOnly && (
             <S.SubmitButton
               type="button"
-              disabled={isSubmitting || isSubmitSuccessVisible}
-              aria-busy={isSubmitting}
+              disabled={isSubmitting || isSubmitSuccessVisible || isLoading}
+              aria-busy={isSubmitting || isLoading}
               onClick={handleSubmit}
             >
               <S.SubmitButtonContent>
-                {isSubmitting && <S.SubmitLoadingSpinner aria-hidden="true" />}
+                {(isSubmitting || isLoading) && (
+                  <S.SubmitLoadingSpinner aria-hidden="true" />
+                )}
                 <span>
-                  {isSubmitting
+                  {isLoading
+                    ? '불러오는 중...'
+                    : isSubmitting
                     ? study
                       ? '저장 중...'
                       : '제출 중...'
