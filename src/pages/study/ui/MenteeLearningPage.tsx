@@ -1,4 +1,11 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
+import { flushSync } from 'react-dom'
 
 import {
   MonthlyStudyWeeks,
@@ -27,7 +34,7 @@ import * as S from './LearningPage.style'
 
 const STATUS_REQUEST_CONCURRENCY = 3
 const HISTORY_BATCH_SIZE = 4
-const HISTORY_SCROLL_THRESHOLD = 8
+const HISTORY_SCROLL_THRESHOLD = 240
 
 export function MenteeLearningPage() {
   const user = useUserStore((state) => state.user)
@@ -60,8 +67,6 @@ export function MenteeLearningPage() {
   } | null>(null)
   const currentPeriodRef = useRef<HTMLDivElement>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
-  const historyPlaceholderRef = useRef<HTMLDivElement>(null)
-  const initialScrollTopRef = useRef<number | null>(null)
   const currentPeriodTopBeforeLoadRef = useRef<number | null>(null)
   const historyBatchLoadingRef = useRef(false)
   const requestedHistoryMonthsRef = useRef(new Set<number>())
@@ -195,7 +200,6 @@ export function MenteeLearningPage() {
     scrollArea.scrollTop +=
       currentPeriod.getBoundingClientRect().top -
       scrollArea.getBoundingClientRect().top
-    initialScrollTopRef.current = scrollArea.scrollTop
   }, [isInitialStatusLoading])
 
   const refreshMonthStatuses = async (month: number) => {
@@ -216,31 +220,11 @@ export function MenteeLearningPage() {
     }
   }
 
-  const handleHistoryScroll = () => {
-    const scrollArea = scrollAreaRef.current
-    const historyPlaceholder = historyPlaceholderRef.current
-    const initialScrollTop = initialScrollTopRef.current
-
+  const loadPreviousHistory = () => {
     if (
-      !scrollArea ||
-      !historyPlaceholder ||
-      initialScrollTop === null ||
+      isInitialStatusLoading ||
       remainingHistoryCount === 0 ||
-      historyBatchLoadingRef.current ||
-      scrollArea.scrollTop >= initialScrollTop - HISTORY_SCROLL_THRESHOLD
-    ) {
-      return
-    }
-
-    const rootRect = scrollArea.getBoundingClientRect()
-    const historyPlaceholderBottom =
-      historyPlaceholder.getBoundingClientRect().bottom -
-      rootRect.top +
-      scrollArea.scrollTop
-
-    if (
-      scrollArea.scrollTop >
-      historyPlaceholderBottom + HISTORY_SCROLL_THRESHOLD
+      historyBatchLoadingRef.current
     ) {
       return
     }
@@ -253,9 +237,64 @@ export function MenteeLearningPage() {
     )
   }
 
+  const handleHistoryScroll = () => {
+    const scrollArea = scrollAreaRef.current
+
+    if (
+      loadedHistoryCount === 0 ||
+      !scrollArea ||
+      scrollArea.scrollTop > HISTORY_SCROLL_THRESHOLD
+    ) {
+      return
+    }
+
+    loadPreviousHistory()
+  }
+
+  const handleHistoryWheel = (event: WheelEvent) => {
+    const scrollArea = scrollAreaRef.current
+
+    if (
+      event.deltaY >= 0 ||
+      isInitialStatusLoading ||
+      remainingHistoryCount === 0 ||
+      historyBatchLoadingRef.current ||
+      !scrollArea ||
+      scrollArea.scrollTop > HISTORY_SCROLL_THRESHOLD
+    ) {
+      return
+    }
+
+    // 최상단에서 소실되는 휠 이동량을 배치 추가와 위치 보정 이후에 적용한다.
+    event.preventDefault()
+    const delta = event.deltaY * (
+      event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? scrollArea.clientHeight : 1
+    )
+    flushSync(() => {
+      loadPreviousHistory()
+    })
+    // 큰 휠 입력은 완만하게 연결하고, 트랙패드의 작은 연속 입력은 즉시 따라간다.
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches
+    scrollArea.scrollBy({
+      top: delta,
+      behavior: !prefersReducedMotion && Math.abs(delta) >= 40 ? 'smooth' : 'instant',
+    })
+  }
+
+  useEffect(() => {
+    const scrollArea = scrollAreaRef.current
+    if (!scrollArea) return
+
+    scrollArea.addEventListener('wheel', handleHistoryWheel, { passive: false })
+    return () => scrollArea.removeEventListener('wheel', handleHistoryWheel)
+  })
+
   return (
     <S.PageContainer>
       <S.ScrollArea
+        $loaded={!isInitialStatusLoading}
         ref={scrollAreaRef}
         aria-busy={isInitialStatusLoading}
         onScroll={handleHistoryScroll}
@@ -263,20 +302,7 @@ export function MenteeLearningPage() {
         {isInitialStatusLoading && (
           <LearningSkeleton count={months.length} variant="mentee" />
         )}
-        {!isInitialStatusLoading && remainingHistoryCount > 0 && (
-          <S.HistoryPlaceholder
-            ref={historyPlaceholderRef}
-            $periodCount={remainingHistoryCount}
-          >
-            <S.HistorySkeletonContent>
-              <LearningSkeleton
-                count={Math.min(remainingHistoryCount, HISTORY_BATCH_SIZE)}
-                variant="mentee"
-              />
-            </S.HistorySkeletonContent>
-          </S.HistoryPlaceholder>
-        )}
-        {!isInitialStatusLoading && visibleMonths.map((month, index) => {
+        {!isInitialStatusLoading && visibleMonths.map((month) => {
           const monthState = getMonthState(month, currentMonth)
           const weekCount = getMonthWeekCount(currentYear, month)
           const monthKey = `${currentYear}-${month}`
@@ -350,7 +376,6 @@ export function MenteeLearningPage() {
 
           return (
             <S.Column
-              $animationDelay={Math.min(index, 5) * 45}
               ref={month === currentMonth ? currentPeriodRef : undefined}
               key={month}
               $state={monthState}
