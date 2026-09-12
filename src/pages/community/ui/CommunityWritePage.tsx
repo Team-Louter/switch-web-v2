@@ -688,19 +688,22 @@ export function CommunityWritePage() {
     if (isEditorDisabled || isUploadingFile) return;
 
     const currentBlock = editor.getTextCursorPosition().block;
-    const [imageBlock] = editor.insertBlocks(
-      [{
-        type: 'image',
-        props: {
-          url: gif.url,
-          name: gif.contentDescription || gif.title || 'GIF',
+    const [, paragraphBlock] = editor.insertBlocks(
+      [
+        {
+          type: 'image',
+          props: {
+            url: gif.url,
+            name: gif.contentDescription || gif.title || 'GIF',
+          },
         },
-      }],
+        { type: 'paragraph' },
+      ],
       currentBlock,
       'after',
     );
 
-    editor.setTextCursorPosition(imageBlock, 'end');
+    editor.setTextCursorPosition(paragraphBlock, 'start');
     setIsGifPickerOpen(false);
     editor.focus();
   };
@@ -717,7 +720,7 @@ export function CommunityWritePage() {
     try {
       const uploadedImage = await handleEditorFileUpload(file);
       const currentBlock = editor.getTextCursorPosition().block;
-      const [imageBlock] = editor.insertBlocks(
+      const [, paragraphBlock] = editor.insertBlocks(
         [
           {
             type: 'image',
@@ -726,12 +729,13 @@ export function CommunityWritePage() {
               name: uploadedImage.name,
             },
           },
+          { type: 'paragraph' },
         ],
         currentBlock,
         'after',
       );
 
-      editor.setTextCursorPosition(imageBlock, 'end');
+      editor.setTextCursorPosition(paragraphBlock, 'start');
     } catch {
       // 이미지 업로드 실패 메시지는 handleImageUpload에서 표시합니다.
     }
