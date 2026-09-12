@@ -5,30 +5,66 @@ import DecoSvg from '../assets/deco1.svg?react'
 
 type PeriodState = 'past' | 'current' | 'future'
 
-const PERIOD_HEIGHT = 198
-const PERIOD_GAP = 28
-
 export const PageContainer = styled.section`
   width: 100%;
   height: 100vh;
-  padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px)
-    clamp(20px, 2vw, 30px) 0;
+  padding: clamp(20px, 2vw, 30px) 0;
   overflow: hidden;
   background: ${token.colors.white};
 `
 
-export const ScrollArea = styled.div`
+const learningContentReveal = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`
+
+export const ScrollArea = styled.div<{ $loaded: boolean }>`
   display: flex;
   flex-direction: column;
   gap: 28px;
   width: 100%;
   height: 100%;
   min-height: 0;
+  padding-right: clamp(20px, 2vw, 30px);
   overflow-y: auto;
-  scrollbar-width: none;
+  /* 배치 추가 위치는 useLayoutEffect에서 보정하므로 브라우저의 중복 보정을 막는다. */
+  overflow-anchor: none;
+  scrollbar-color: ${token.colors.gray.gray30} transparent;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  animation: ${({ $loaded }) =>
+    $loaded &&
+    css`${learningContentReveal} 420ms cubic-bezier(0.22, 1, 0.36, 1) both`};
 
   &::-webkit-scrollbar {
-    display: none;
+    width: 14px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: ${token.shapes.circle};
+    background: ${token.colors.gray.gray30};
+    background-clip: padding-box;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: ${token.colors.gray.gray40};
+    background-clip: padding-box;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
   }
 `
 
@@ -39,40 +75,6 @@ const skeletonShimmer = keyframes`
 
   to {
     background-position: -200% 0;
-  }
-`
-
-const skeletonColumnEnter = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`
-
-const periodEnter = keyframes`
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: var(--period-opacity);
-  }
-`
-
-const periodCardEnter = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 `
 
@@ -99,33 +101,10 @@ export const SkeletonList = styled.div`
   width: 100%;
 `
 
-export const HistoryPlaceholder = styled.div<{ $periodCount: number }>`
-  position: relative;
-  width: 100%;
-  height: ${({ $periodCount }) =>
-    `${$periodCount * PERIOD_HEIGHT + Math.max($periodCount - 1, 0) * PERIOD_GAP}px`};
-  flex: 0 0 auto;
-  pointer-events: none;
-`
-
-export const HistorySkeletonContent = styled.div`
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-`
-
-export const SkeletonColumn = styled.div<{ $index: number }>`
+export const SkeletonColumn = styled.div`
   ${token.flexColumn};
   width: 100%;
   flex: 0 0 auto;
-  animation: ${skeletonColumnEnter} 320ms cubic-bezier(0.22, 1, 0.36, 1)
-    both;
-  animation-delay: ${({ $index }) => `${Math.min($index, 3) * 45}ms`};
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
 `
 
 export const SkeletonMonthRow = styled.div`
@@ -275,25 +254,15 @@ export const SkeletonWriteButton = styled.span`
   border-radius: ${token.shapes.xsmall};
 `
 
-export const Column = styled.div<{
-  $state: PeriodState
-  $animationDelay?: number
-}>`
+export const Column = styled.div<{ $state: PeriodState }>`
   ${token.flexColumn};
   width: 100%;
   flex: 0 0 auto;
-  --period-opacity: ${({ $state }) => ($state === 'future' ? 0.35 : 1)};
   /* Keep the history in the scroll flow while deferring off-screen layout and paint. */
   content-visibility: auto;
   contain-intrinsic-size: 0 200px;
-  opacity: var(--period-opacity);
-  animation: ${periodEnter} 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: ${({ $animationDelay = 0 }) => `${$animationDelay}ms`};
+  opacity: ${({ $state }) => ($state === 'future' ? 0.35 : 1)};
   transition: opacity 200ms ease;
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
 `;
 
 export const ProgressContent = styled.div`
@@ -372,11 +341,6 @@ export const Card = styled.div<{ $state: PeriodState }>`
   flex-direction: row;
   gap: 30px;
   position: relative;
-  animation: ${periodCardEnter} 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
 `;
 
 export const SubmitLabel = styled.span`
