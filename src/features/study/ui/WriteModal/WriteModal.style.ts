@@ -6,9 +6,8 @@ import {
   studyModalContentAnimation,
 } from '../studyModalAnimation.style'
 
-// 삭제 액션은 호버 시에도 같은 계열 안에서 자연스럽게 어두워지도록 별도 색상을 사용합니다.
+// Figma의 삭제 액션 기본 색상을 유지해 다른 주요 액션과 시각적 우선순위를 구분합니다.
 const DELETE_BACKGROUND = '#F48771'
-const DELETE_HOVER_BACKGROUND = '#F8A08D'
 
 export const Backdrop = styled.div`
   position: fixed;
@@ -313,10 +312,6 @@ export const DeleteAction = styled.button`
     height: 16px;
     flex: 0 0 16px;
     object-fit: contain;
-  }
-
-  &:hover {
-    background-color: ${DELETE_HOVER_BACKGROUND};
   }
 
   &:focus-visible {
