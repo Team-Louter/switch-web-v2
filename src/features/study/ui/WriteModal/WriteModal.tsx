@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { PiCaretLeft, PiCaretRight, PiTrash } from 'react-icons/pi'
+import { PiCaretLeft, PiCaretRight } from 'react-icons/pi'
 
 import {
   getCurrentKoreaDate,
@@ -9,6 +9,7 @@ import type { StudyRecord } from '@/entities/study'
 
 import { createStudy, modifyStudy } from '../../api/createStudy'
 import { deleteStudy } from '../../api/deleteStudy'
+import deleteIcon from '../../assets/delete-2-line.svg'
 import * as S from './WriteModal.style'
 
 interface WriteModalProps {
@@ -106,7 +107,7 @@ function WriteModalContent({
 
   return (
     <S.Backdrop>
-      <S.Modal>
+      <S.Modal $readOnly={readOnly}>
         {readOnly && onPrevious && (
           <S.NavigationButton
             type="button"
@@ -142,64 +143,63 @@ function WriteModalContent({
             <S.LoadingText>학습일지를 불러오는 중입니다.</S.LoadingText>
           </S.LoadingState>
         ) : (
-          <>
+          <S.Form>
             <S.Column>
               <S.Div>
-                <S.Label>
+                <S.Label htmlFor="study-title">
                   제목 {!readOnly && <S.Required>*</S.Required>}
                 </S.Label>
                 <S.Input
+                  id="study-title"
                   type="text"
                   placeholder="제목을 입력해주세요."
                   value={displayedTitle}
                   onChange={(e) => setTitle(e.target.value)}
                   readOnly={readOnly}
+                  maxLength={50}
+                  $readOnly={readOnly}
                 />
               </S.Div>
               <S.LetterCount>{displayedTitle.length}/50</S.LetterCount>
             </S.Column>
+            {!readOnly && <S.FormDivider />}
             <S.Column>
               <S.Div>
-                <S.Label>
+                <S.Label htmlFor="study-own-content">
                   개인 학습 {!readOnly && <S.Required>*</S.Required>}
                 </S.Label>
                 <S.LearningInput
+                  id="study-own-content"
                   placeholder="내용을 입력해주세요."
                   value={displayedOwnContent}
                   onChange={(e) => setOwnContent(e.target.value)}
                   readOnly={readOnly}
+                  maxLength={1000}
+                  $readOnly={readOnly}
                 />
               </S.Div>
               <S.LetterCount>{displayedOwnContent.length}/1000</S.LetterCount>
             </S.Column>
             <S.Column>
               <S.Div>
-                <S.Label>
+                <S.Label htmlFor="study-club-content">
                   동아리 학습 {!readOnly && <S.Required>*</S.Required>}
                 </S.Label>
                 <S.LearningInput
+                  id="study-club-content"
                   placeholder="내용을 입력해주세요."
                   value={displayedClubContent}
                   onChange={(e) => setClubContent(e.target.value)}
                   readOnly={readOnly}
+                  maxLength={1000}
+                  $readOnly={readOnly}
                 />
               </S.Div>
               <S.LetterCount>{displayedClubContent.length}/1000</S.LetterCount>
             </S.Column>
-          </>
+          </S.Form>
         )}
-        <S.ButtonContainer>
-          {!readOnly && study && (
-            <S.DeleteButton
-              type="button"
-              aria-label="학습일지 삭제"
-              title="삭제"
-              disabled={isSubmitting}
-              onClick={handleDelete}
-            >
-              <PiTrash aria-hidden="true" />
-            </S.DeleteButton>
-          )}
+        <S.ButtonContainer $readOnly={readOnly}>
           <S.CancelButton type="button" onClick={onClose}>
             {readOnly ? '닫기' : '취소'}
           </S.CancelButton>
@@ -209,11 +209,22 @@ function WriteModalContent({
               disabled={isSubmitting}
               onClick={handleSubmit}
             >
-              제출
+              {study ? '저장' : '제출'}
             </S.SubmitButton>
           )}
         </S.ButtonContainer>
       </S.Modal>
+      {!readOnly && study && (
+        <S.DeleteAction
+          type="button"
+          aria-label="학습일지 삭제"
+          disabled={isSubmitting}
+          onClick={handleDelete}
+        >
+          <img src={deleteIcon} alt="" />
+          학습일지 삭제하기
+        </S.DeleteAction>
+      )}
     </S.Backdrop>
   )
 }
