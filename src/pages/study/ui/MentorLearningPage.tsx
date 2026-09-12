@@ -438,7 +438,7 @@ export function MentorLearningPage() {
             </S.HistorySkeletonContent>
           </S.HistoryPlaceholder>
         )}
-        {!isLoading && visibleWeeks.map(({ id, year, month, weekNumber, state }) => {
+        {!isLoading && visibleWeeks.map(({ id, year, month, weekNumber, state }, index) => {
           const weekStatuses = statusesByWeek[id] ?? []
           const isWeekStatusLoaded =
             state === 'future'
@@ -499,6 +499,7 @@ export function MentorLearningPage() {
 
           return (
             <S.Column
+              $animationDelay={Math.min(index, 5) * 45}
               ref={state === 'current' ? currentPeriodRef : undefined}
               key={id}
               $state={state}

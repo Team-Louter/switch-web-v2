@@ -27,7 +27,7 @@ export function LearningSkeleton({
       aria-label="학습관리 내용을 불러오는 중입니다."
     >
       {Array.from({ length: renderedCount }, (_, index) => (
-        <S.SkeletonColumn key={index} aria-hidden="true">
+        <S.SkeletonColumn $index={index} key={index} aria-hidden="true">
           <S.SkeletonMonthRow>
             <S.SkeletonMonth $isMentor={isMentor} />
             {index === 0 && showNow && <S.SkeletonNow />}

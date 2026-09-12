@@ -42,6 +42,40 @@ const skeletonShimmer = keyframes`
   }
 `
 
+const skeletonColumnEnter = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`
+
+const periodEnter = keyframes`
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: var(--period-opacity);
+  }
+`
+
+const periodCardEnter = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`
+
 const skeletonSurface = css`
   border-radius: ${token.shapes.xsmall};
   background: linear-gradient(
@@ -81,10 +115,17 @@ export const HistorySkeletonContent = styled.div`
   left: 0;
 `
 
-export const SkeletonColumn = styled.div`
+export const SkeletonColumn = styled.div<{ $index: number }>`
   ${token.flexColumn};
   width: 100%;
   flex: 0 0 auto;
+  animation: ${skeletonColumnEnter} 320ms cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+  animation-delay: ${({ $index }) => `${Math.min($index, 3) * 45}ms`};
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 export const SkeletonMonthRow = styled.div`
@@ -234,15 +275,25 @@ export const SkeletonWriteButton = styled.span`
   border-radius: ${token.shapes.xsmall};
 `
 
-export const Column = styled.div<{ $state: PeriodState }>`
+export const Column = styled.div<{
+  $state: PeriodState
+  $animationDelay?: number
+}>`
   ${token.flexColumn};
   width: 100%;
   flex: 0 0 auto;
+  --period-opacity: ${({ $state }) => ($state === 'future' ? 0.35 : 1)};
   /* Keep the history in the scroll flow while deferring off-screen layout and paint. */
   content-visibility: auto;
   contain-intrinsic-size: 0 200px;
-  opacity: ${({ $state }) => ($state === 'future' ? 0.35 : 1)};
+  opacity: var(--period-opacity);
+  animation: ${periodEnter} 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: ${({ $animationDelay = 0 }) => `${$animationDelay}ms`};
   transition: opacity 200ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `;
 
 export const ProgressContent = styled.div`
@@ -321,6 +372,11 @@ export const Card = styled.div<{ $state: PeriodState }>`
   flex-direction: row;
   gap: 30px;
   position: relative;
+  animation: ${periodCardEnter} 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `;
 
 export const SubmitLabel = styled.span`

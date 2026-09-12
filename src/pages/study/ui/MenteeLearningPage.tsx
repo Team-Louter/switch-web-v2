@@ -276,7 +276,7 @@ export function MenteeLearningPage() {
             </S.HistorySkeletonContent>
           </S.HistoryPlaceholder>
         )}
-        {!isInitialStatusLoading && visibleMonths.map((month) => {
+        {!isInitialStatusLoading && visibleMonths.map((month, index) => {
           const monthState = getMonthState(month, currentMonth)
           const weekCount = getMonthWeekCount(currentYear, month)
           const monthKey = `${currentYear}-${month}`
@@ -350,6 +350,7 @@ export function MenteeLearningPage() {
 
           return (
             <S.Column
+              $animationDelay={Math.min(index, 5) * 45}
               ref={month === currentMonth ? currentPeriodRef : undefined}
               key={month}
               $state={monthState}
