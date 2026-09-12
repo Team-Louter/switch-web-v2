@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { PiCaretLeft, PiCaretRight } from 'react-icons/pi'
+import { toast } from 'react-toastify'
 
 import {
   getCurrentKoreaDate,
@@ -127,6 +128,7 @@ function WriteModalContent({
     try {
       setIsSubmitting(true)
       await deleteStudy(study.studyId)
+      toast.success('학습일지가 삭제되었습니다.')
       onClose()
       void onDeleteSuccess?.()
     } catch {
