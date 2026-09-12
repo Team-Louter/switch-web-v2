@@ -27,7 +27,7 @@ function LearningRouteSkeleton({
 }: LearningRouteSkeletonProps) {
   return (
     <S.PageContainer>
-      <S.ScrollArea aria-busy="true">
+      <S.ScrollArea $loaded={false} aria-busy="true">
         <LearningSkeleton
           count={4}
           variant={isMentor ? 'mentor' : 'mentee'}
