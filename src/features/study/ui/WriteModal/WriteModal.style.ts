@@ -282,8 +282,11 @@ export const CancelButton = styled.button`
 `;
 
 export const SubmitButton = styled.button`
+  display: flex;
   width: 100px;
   height: 36px;
+  align-items: center;
+  justify-content: center;
   padding: 0;
   border-radius: ${token.shapes.xsmall};
   border: none;
@@ -296,7 +299,40 @@ export const SubmitButton = styled.button`
   &:hover {
     background-color: ${token.colors.primary.primary60};
   }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.75;
+  }
 `;
+
+export const SubmitButtonContent = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+`
+
+const submitLoadingSpin = keyframes`
+  to {
+    transform: rotate(360deg);
+  }
+`
+
+export const SubmitLoadingSpinner = styled.span`
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  border: 2px solid rgb(55 54 47 / 25%);
+  border-top-color: ${token.colors.gray.gray80};
+  border-radius: ${token.shapes.circle};
+  animation: ${submitLoadingSpin} 700ms linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
 
 export const DeleteAction = styled.button`
   display: flex;

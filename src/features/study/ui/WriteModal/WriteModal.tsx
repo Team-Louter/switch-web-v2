@@ -251,9 +251,21 @@ function WriteModalContent({
             <S.SubmitButton
               type="button"
               disabled={isSubmitting || isSubmitSuccessVisible}
+              aria-busy={isSubmitting}
               onClick={handleSubmit}
             >
-              {study ? '저장' : '제출'}
+              <S.SubmitButtonContent>
+                {isSubmitting && <S.SubmitLoadingSpinner aria-hidden="true" />}
+                <span>
+                  {isSubmitting
+                    ? study
+                      ? '저장 중...'
+                      : '제출 중...'
+                    : study
+                      ? '저장'
+                      : '제출'}
+                </span>
+              </S.SubmitButtonContent>
             </S.SubmitButton>
           )}
         </S.ButtonContainer>
