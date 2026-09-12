@@ -5,6 +5,7 @@ type LearningSkeletonVariant = 'mentee' | 'mentor'
 interface LearningSkeletonProps {
   count: number
   variant: LearningSkeletonVariant
+  showNow?: boolean
   showHeaderAction?: boolean
 }
 
@@ -14,6 +15,7 @@ const INITIAL_SKELETON_COUNT = 4
 export function LearningSkeleton({
   count,
   variant,
+  showNow = true,
   showHeaderAction = false,
 }: LearningSkeletonProps) {
   const isMentor = variant === 'mentor'
@@ -28,7 +30,7 @@ export function LearningSkeleton({
         <S.SkeletonColumn key={index} aria-hidden="true">
           <S.SkeletonMonthRow>
             <S.SkeletonMonth $isMentor={isMentor} />
-            {index === 0 && <S.SkeletonNow />}
+            {index === 0 && showNow && <S.SkeletonNow />}
             {isMentor && showHeaderAction && <S.SkeletonHeaderAction />}
           </S.SkeletonMonthRow>
           <S.SkeletonCard>

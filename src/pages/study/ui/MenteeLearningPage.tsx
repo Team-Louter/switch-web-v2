@@ -282,6 +282,18 @@ export function MenteeLearningPage() {
           const monthKey = `${currentYear}-${month}`
           const isMonthStatusLoaded =
             monthState === 'future' || loadedMonths[monthKey] === true
+
+          if (!isMonthStatusLoaded) {
+            return (
+              <LearningSkeleton
+                key={month}
+                count={1}
+                variant="mentee"
+                showNow={false}
+              />
+            )
+          }
+
           const statuses = isMonthStatusLoaded
             ? (statusesByMonth[monthKey] ?? []).slice(0, weekCount)
             : []

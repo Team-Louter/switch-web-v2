@@ -435,9 +435,22 @@ export function MentorLearningPage() {
           </S.HistoryPlaceholder>
         )}
         {!isLoading && visibleWeeks.map(({ id, year, month, weekNumber, state }) => {
-          const totalStudy = totalStudiesByWeek.get(`${month}-${weekNumber}`)
           const isWeekStatusLoaded =
             state === 'future' || loadedWeekIds[id] === true
+
+          if (!isWeekStatusLoaded) {
+            return (
+              <LearningSkeleton
+                key={id}
+                count={1}
+                variant="mentor"
+                showNow={false}
+                showHeaderAction={isLeader}
+              />
+            )
+          }
+
+          const totalStudy = totalStudiesByWeek.get(`${month}-${weekNumber}`)
           const weekStatuses = statusesByWeek[id] ?? []
           const submitRate = isWeekStatusLoaded && weekStatuses.length
             ? Math.round(
