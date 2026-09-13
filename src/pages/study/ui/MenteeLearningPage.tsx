@@ -58,7 +58,6 @@ export function MenteeLearningPage() {
   const [isInitialStatusLoading, setIsInitialStatusLoading] = useState(true)
   const [loadedHistoryCount, setLoadedHistoryCount] = useState(0)
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false)
-  const [isModalStudyLoading, setIsModalStudyLoading] = useState(false)
   const [modalStudy, setModalStudy] = useState<StudyRecord>()
   const [selectedWeeks, setSelectedWeeks] = useState<
     Record<number, { weekNumber: number; status: WeekStatus }>
@@ -297,7 +296,6 @@ export function MenteeLearningPage() {
   const handleWriteModalClose = () => {
     modalStudyRequestIdRef.current += 1
     setIsWriteModalOpen(false)
-    setIsModalStudyLoading(false)
   }
 
   return (
@@ -453,10 +451,11 @@ export function MenteeLearningPage() {
                         })
                         setModalStudy(undefined)
                         const isEditMode = selectedWeek.status === 'submitted'
-                        setIsModalStudyLoading(isEditMode)
-                        setIsWriteModalOpen(true)
 
-                        if (!isEditMode) return
+                        if (!isEditMode) {
+                          setIsWriteModalOpen(true)
+                          return
+                        }
 
                         try {
                           const study = await getStudy(
@@ -473,6 +472,7 @@ export function MenteeLearningPage() {
                           }
 
                           setModalStudy(study)
+                          setIsWriteModalOpen(true)
                         } catch {
                           if (
                             !isMountedRef.current ||
@@ -483,13 +483,6 @@ export function MenteeLearningPage() {
 
                           setIsWriteModalOpen(false)
                           toast.error('학습일지를 불러오지 못했습니다.')
-                        } finally {
-                          if (
-                            isMountedRef.current &&
-                            requestId === modalStudyRequestIdRef.current
-                          ) {
-                            setIsModalStudyLoading(false)
-                          }
                         }
                       }}
                     >
@@ -507,7 +500,6 @@ export function MenteeLearningPage() {
       </S.ScrollArea>
       <WriteModal
         isOpen={isWriteModalOpen}
-        isLoading={isModalStudyLoading}
         onClose={handleWriteModalClose}
         onCreateSuccess={() => {
           if (!modalWeek) return
