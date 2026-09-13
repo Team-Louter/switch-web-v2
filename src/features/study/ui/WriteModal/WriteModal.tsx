@@ -187,27 +187,26 @@ function WriteModalContent({
               <S.LoadingSkeletonColumn>
                 <S.LoadingSkeletonField>
                   <S.LoadingSkeletonLabel />
-                  <S.LoadingSkeletonBox />
+                  <S.LoadingSkeletonBox $readOnly={readOnly} />
                 </S.LoadingSkeletonField>
                 <S.LoadingSkeletonCount />
               </S.LoadingSkeletonColumn>
-              <S.LoadingSkeletonDivider />
+              {!readOnly && <S.LoadingSkeletonDivider />}
               <S.LoadingSkeletonColumn>
                 <S.LoadingSkeletonField>
                   <S.LoadingSkeletonLabel />
-                  <S.LoadingSkeletonBox $multiline />
+                  <S.LoadingSkeletonBox $multiline $readOnly={readOnly} />
                 </S.LoadingSkeletonField>
                 <S.LoadingSkeletonCount />
               </S.LoadingSkeletonColumn>
               <S.LoadingSkeletonColumn>
                 <S.LoadingSkeletonField>
                   <S.LoadingSkeletonLabel />
-                  <S.LoadingSkeletonBox $multiline />
+                  <S.LoadingSkeletonBox $multiline $readOnly={readOnly} />
                 </S.LoadingSkeletonField>
                 <S.LoadingSkeletonCount />
               </S.LoadingSkeletonColumn>
             </S.LoadingSkeleton>
-            <S.LoadingText>학습일지를 불러오는 중입니다.</S.LoadingText>
           </S.LoadingState>
         ) : (
           <S.Form>

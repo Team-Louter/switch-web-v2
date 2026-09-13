@@ -128,11 +128,18 @@ export const LoadingSkeletonLabel = styled.span`
   flex: 0 0 auto;
 `
 
-export const LoadingSkeletonBox = styled.span<{ $multiline?: boolean }>`
+export const LoadingSkeletonBox = styled.span<{
+  $multiline?: boolean
+  $readOnly: boolean
+}>`
   ${loadingSkeletonSurface};
   display: block;
-  width: 380px;
-  height: ${({ $multiline }) => ($multiline ? '120px' : '35px')};
+  width: ${({ $readOnly }) => ($readOnly ? '70%' : '380px')};
+  height: ${({ $multiline, $readOnly }) => {
+    if (!$multiline) return $readOnly ? '40px' : '35px'
+
+    return $readOnly ? 'calc(var(--modal-height) * 0.3)' : '120px'
+  }};
 
   @media (max-width: 640px) {
     width: 100%;
@@ -145,7 +152,6 @@ export const LoadingSkeletonCount = styled.span`
   width: 42px;
   height: 12px;
   align-self: flex-end;
-  margin-top: 4px;
 `
 
 export const LoadingSkeletonDivider = styled.div`
@@ -153,12 +159,6 @@ export const LoadingSkeletonDivider = styled.div`
   height: 2px;
   flex: 0 0 auto;
   background-color: ${token.colors.gray.gray0};
-`
-
-export const LoadingText = styled.p`
-  ${token.typography('body', 'sm', 'medium')};
-  margin: 0;
-  align-self: center;
 `
 
 export const NavigationButton = styled.button<{
