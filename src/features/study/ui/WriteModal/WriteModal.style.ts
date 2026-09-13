@@ -391,6 +391,10 @@ export const Input = styled.input`
     outline: none;
   }
 
+  &:read-only:focus {
+    border-color: ${token.colors.gray.gray10};
+  }
+
   &:read-only {
     cursor: default;
   }
@@ -427,6 +431,10 @@ export const LearningInput = styled.textarea<{
   &:focus {
     border-color: ${token.colors.primary.primary50};
     outline: none;
+  }
+
+  &:read-only:focus {
+    border-color: ${token.colors.gray.gray10};
   }
 
   &:read-only {
