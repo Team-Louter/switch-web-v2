@@ -85,7 +85,6 @@ export function MentorLearningPage() {
   const [mentees, setMentees] = useState<Member[]>([])
   const [isMenteesLoading, setIsMenteesLoading] = useState(true)
   const [isMenteeStudyLoading, setIsMenteeStudyLoading] = useState(false)
-  const studiesCacheRef = useRef<StudyRecord[] | null>(null)
   const studiesRequestRef = useRef<Promise<StudyRecord[]> | null>(null)
   const menteeStudyRequestIdRef = useRef(0)
   const currentPeriodRef = useRef<HTMLDivElement>(null)
@@ -337,24 +336,16 @@ export function MentorLearningPage() {
     study.weekNumber === weekNumber
 
   const loadAllStudies = () => {
-    if (studiesCacheRef.current !== null) {
-      return Promise.resolve(studiesCacheRef.current)
+    if (studiesRequestRef.current !== null) {
+      return studiesRequestRef.current
     }
 
-    if (studiesRequestRef.current === null) {
-      const request = getAllStudies()
-        .then((allStudies) => {
-          studiesCacheRef.current = allStudies
-          return allStudies
-        })
-        .finally(() => {
-          studiesRequestRef.current = null
-        })
+    const request = getAllStudies().finally(() => {
+      studiesRequestRef.current = null
+    })
 
-      studiesRequestRef.current = request
-    }
-
-    return studiesRequestRef.current
+    studiesRequestRef.current = request
+    return request
   }
 
   const handleOpenStudyModal = async (
