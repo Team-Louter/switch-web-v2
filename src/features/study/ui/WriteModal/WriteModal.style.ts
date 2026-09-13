@@ -31,24 +31,21 @@ export const Backdrop = styled.div`
   ${studyModalBackdropAnimation}
 `;
 
-export const Modal = styled.div<{ $readOnly: boolean }>`
-  --modal-height: 650px;
-
+export const Modal = styled.div`
   position: relative;
   box-sizing: border-box;
-  width: ${({ $readOnly }) => ($readOnly ? '50%' : '594px')};
+  width: 594px;
   max-width: 100%;
   max-height: calc(100vh - 40px);
-  height: ${({ $readOnly }) =>
-    $readOnly ? 'var(--modal-height)' : 'auto'};
-  overflow-y: auto;
+  height: auto;
+  overflow: visible;
   border-radius: ${token.shapes.large};
   background-color: ${token.colors.white};
   box-shadow: 4px 4px 20px rgb(0 0 0 / 2%);
-  padding: ${({ $readOnly }) => ($readOnly ? '30px' : '40px')};
+  padding: 40px;
   display: flex;
   flex-direction: column;
-  gap: ${({ $readOnly }) => ($readOnly ? '14px' : '40px')};
+  gap: 40px;
   ${studyModalContentAnimation}
 
   @media (max-width: 720px) {
@@ -131,14 +128,17 @@ export const LoadingSkeletonLabel = styled.span`
 export const LoadingSkeletonBox = styled.span<{
   $multiline?: boolean
   $readOnly: boolean
+  $aiSummary?: boolean
 }>`
   ${loadingSkeletonSurface};
   display: block;
-  width: ${({ $readOnly }) => ($readOnly ? '70%' : '380px')};
-  height: ${({ $multiline, $readOnly }) => {
-    if (!$multiline) return $readOnly ? '40px' : '35px'
+  width: 380px;
+  height: ${({ $multiline, $readOnly, $aiSummary }) => {
+    if (!$multiline) return '35px'
 
-    return $readOnly ? 'calc(var(--modal-height) * 0.3)' : '120px'
+    if (!$readOnly) return '120px'
+
+    return $aiSummary ? '252px' : '120px'
   }};
 
   @media (max-width: 640px) {
@@ -195,7 +195,16 @@ export const NavigationButton = styled.button<{
 export const Header = styled.div`
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+`;
+
+export const HeaderContent = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
 `;
 
 export const Title = styled.h2`
@@ -208,6 +217,39 @@ export const Title = styled.h2`
 export const Author = styled.span`
   ${token.typography('caption', 'sm', 'medium')};
   color: ${token.colors.gray.gray40};
+`;
+
+export const AiSummaryToggle = styled.button<{ $enabled: boolean }>`
+  display: flex;
+  width: 80px;
+  height: 32px;
+  flex: 0 0 80px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+  border: 1px solid
+    ${({ $enabled }) =>
+      $enabled ? token.colors.gray.gray80 : token.colors.gray.gray30};
+  border-radius: ${token.shapes.xsmall};
+  background-color: ${token.colors.white};
+  ${token.typography('caption', 'lg', 'medium')};
+  line-height: normal;
+  color: ${({ $enabled }) =>
+    $enabled ? token.colors.gray.gray80 : token.colors.gray.gray30};
+  cursor: pointer;
+
+  img {
+    width: 13px;
+    height: 14px;
+    flex: 0 0 13px;
+    object-fit: contain;
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
 `;
 
 export const Form = styled.div`
@@ -255,9 +297,9 @@ export const Column = styled.div`
   width: 100%;
 `;
 
-export const Input = styled.input<{ $readOnly: boolean }>`
-  width: ${({ $readOnly }) => ($readOnly ? '70%' : '380px')};
-  height: ${({ $readOnly }) => ($readOnly ? '40px' : '35px')};
+export const Input = styled.input`
+  width: 380px;
+  height: 35px;
   box-sizing: border-box;
   border-radius: ${token.shapes.xsmall};
   border: 1px solid ${token.colors.gray.gray10};
@@ -284,10 +326,16 @@ export const Input = styled.input<{ $readOnly: boolean }>`
   }
 `;
 
-export const LearningInput = styled.textarea<{ $readOnly: boolean }>`
-  width: ${({ $readOnly }) => ($readOnly ? '70%' : '380px')};
-  height: ${({ $readOnly }) =>
-    $readOnly ? 'calc(var(--modal-height) * 0.3)' : '120px'};
+export const LearningInput = styled.textarea<{
+  $readOnly: boolean
+  $aiSummary?: boolean
+}>`
+  width: 380px;
+  height: ${({ $readOnly, $aiSummary }) => {
+    if (!$readOnly) return '120px'
+
+    return $aiSummary ? '252px' : '120px'
+  }};
   box-sizing: border-box;
   padding: 10px;
   resize: none;

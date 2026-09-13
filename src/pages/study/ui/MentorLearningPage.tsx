@@ -53,6 +53,13 @@ export function MentorLearningPage() {
     authorName: string
     study?: StudyRecord
   }>()
+  const [selectedMenteeNavigation, setSelectedMenteeNavigation] = useState<{
+    year: number
+    month: number
+    weekNumber: number
+    statuses: StudyStatus[]
+    index: number
+  }>()
   const [isTotalStudyModalOpen, setIsTotalStudyModalOpen] = useState(false)
   const [selectedTotalStudyWeek, setSelectedTotalStudyWeek] = useState<{
     year: number
@@ -377,6 +384,23 @@ export function MentorLearningPage() {
     }
   }
 
+  const handleNavigateMenteeStudy = (direction: -1 | 1) => {
+    const navigation = selectedMenteeNavigation
+    if (!navigation) return
+
+    const nextIndex = navigation.index + direction
+    const nextStatus = navigation.statuses[nextIndex]
+    if (!nextStatus) return
+
+    setSelectedMenteeNavigation({ ...navigation, index: nextIndex })
+    void handleOpenMenteeStudy(
+      nextStatus,
+      navigation.year,
+      navigation.month,
+      navigation.weekNumber,
+    )
+  }
+
   const loadPreviousHistory = () => {
     if (
       isLoading ||
@@ -563,11 +587,23 @@ export function MentorLearningPage() {
                   <MonthlyStudyWeeks
                     items={items}
                     onItemClick={(item) => {
-                      const studyStatus = weekStatuses.find(
+                      const sortedWeekStatuses = [...weekStatuses].sort(
+                        (a, b) => a.userId - b.userId,
+                      )
+                      const selectedIndex = sortedWeekStatuses.findIndex(
                         ({ userId }) => userId === item.id,
                       )
 
-                      if (!studyStatus) return
+                      const studyStatus = sortedWeekStatuses[selectedIndex]
+                      if (!studyStatus || selectedIndex < 0) return
+
+                      setSelectedMenteeNavigation({
+                        year,
+                        month,
+                        weekNumber,
+                        statuses: sortedWeekStatuses,
+                        index: selectedIndex,
+                      })
 
                       void handleOpenMenteeStudy(
                         studyStatus,
@@ -620,6 +656,7 @@ export function MentorLearningPage() {
         onClose={() => {
           menteeStudyRequestIdRef.current += 1
           setIsMenteeStudyLoading(false)
+          setSelectedMenteeNavigation(undefined)
           setSelectedMenteeStudy(undefined)
         }}
         month={selectedMenteeStudy?.month}
@@ -627,6 +664,18 @@ export function MentorLearningPage() {
         study={selectedMenteeStudy?.study}
         authorName={selectedMenteeStudy?.authorName}
         readOnly
+        onPrevious={
+          selectedMenteeNavigation && selectedMenteeNavigation.index > 0
+            ? () => handleNavigateMenteeStudy(-1)
+            : undefined
+        }
+        onNext={
+          selectedMenteeNavigation &&
+          selectedMenteeNavigation.index <
+            selectedMenteeNavigation.statuses.length - 1
+            ? () => handleNavigateMenteeStudy(1)
+            : undefined
+        }
       />
       {isTotalStudyModalOpen && selectedTotalStudyWeek !== null && (
         <MentorTotalStudyModal

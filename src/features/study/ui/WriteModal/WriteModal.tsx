@@ -11,6 +11,8 @@ import type { StudyRecord } from '@/entities/study'
 import { createStudy, modifyStudy } from '../../api/createStudy'
 import { deleteStudy } from '../../api/deleteStudy'
 import deleteIcon from '../../assets/delete-2-line.svg'
+import aiSummaryOffIcon from '../../assets/Group2.svg'
+import aiSummaryOnIcon from '../../assets/Group.svg'
 import * as S from './WriteModal.style'
 
 const SUBMIT_SUCCESS_DURATION = 900
@@ -71,6 +73,7 @@ function WriteModalContent({
   const [clubContent, setClubContent] = useState(study?.clubContent ?? '')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitSuccessVisible, setIsSubmitSuccessVisible] = useState(false)
+  const [isAiSummaryEnabled, setIsAiSummaryEnabled] = useState(true)
   const submitSuccessTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -143,7 +146,9 @@ function WriteModalContent({
     ? (study?.title ?? emptyStudyMessage)
     : title
   const displayedOwnContent = readOnly
-    ? (study?.ownContent ?? emptyStudyMessage)
+    ? isAiSummaryEnabled
+      ? (study?.summary || emptyStudyMessage)
+      : (study?.ownContent ?? emptyStudyMessage)
     : ownContent
   const displayedClubContent = readOnly
     ? (study?.clubContent ?? emptyStudyMessage)
@@ -151,7 +156,7 @@ function WriteModalContent({
 
   return (
     <S.Backdrop>
-      <S.Modal $readOnly={readOnly}>
+      <S.Modal>
         {readOnly && onPrevious && (
           <S.NavigationButton
             type="button"
@@ -173,9 +178,28 @@ function WriteModalContent({
           </S.NavigationButton>
         )}
         <S.Header>
-          <S.Title>{month}월 {weekNumber}주차 학습일지</S.Title>
-          {readOnly && (study?.authorName || authorName) && (
-            <S.Author>{study?.authorName ?? authorName}</S.Author>
+          <S.HeaderContent>
+            <S.Title>{month}월 {weekNumber}주차 학습일지</S.Title>
+            {readOnly && (study?.authorName || authorName) && (
+              <S.Author>{study?.authorName ?? authorName}</S.Author>
+            )}
+          </S.HeaderContent>
+          {readOnly && (
+            <S.AiSummaryToggle
+              type="button"
+              $enabled={isAiSummaryEnabled}
+              aria-label="AI 요약글 표시"
+              aria-pressed={isAiSummaryEnabled}
+              onClick={() => setIsAiSummaryEnabled((enabled) => !enabled)}
+            >
+              <img
+                src={
+                  isAiSummaryEnabled ? aiSummaryOnIcon : aiSummaryOffIcon
+                }
+                alt=""
+              />
+              AI 요약
+            </S.AiSummaryToggle>
           )}
         </S.Header>
         {isLoading ? (
@@ -189,23 +213,33 @@ function WriteModalContent({
                   <S.LoadingSkeletonLabel />
                   <S.LoadingSkeletonBox $readOnly={readOnly} />
                 </S.LoadingSkeletonField>
-                <S.LoadingSkeletonCount />
+                {!readOnly && <S.LoadingSkeletonCount />}
               </S.LoadingSkeletonColumn>
-              {!readOnly && <S.LoadingSkeletonDivider />}
+              <S.LoadingSkeletonDivider />
               <S.LoadingSkeletonColumn>
                 <S.LoadingSkeletonField>
                   <S.LoadingSkeletonLabel />
-                  <S.LoadingSkeletonBox $multiline $readOnly={readOnly} />
+                  <S.LoadingSkeletonBox
+                    $multiline
+                    $readOnly={readOnly}
+                    $aiSummary={readOnly && isAiSummaryEnabled}
+                  />
                 </S.LoadingSkeletonField>
-                <S.LoadingSkeletonCount />
+                {!readOnly && <S.LoadingSkeletonCount />}
               </S.LoadingSkeletonColumn>
-              <S.LoadingSkeletonColumn>
-                <S.LoadingSkeletonField>
-                  <S.LoadingSkeletonLabel />
-                  <S.LoadingSkeletonBox $multiline $readOnly={readOnly} />
-                </S.LoadingSkeletonField>
-                <S.LoadingSkeletonCount />
-              </S.LoadingSkeletonColumn>
+              {(!readOnly || !isAiSummaryEnabled) && (
+                <S.LoadingSkeletonColumn>
+                  <S.LoadingSkeletonField>
+                    <S.LoadingSkeletonLabel />
+                    <S.LoadingSkeletonBox
+                      $multiline
+                      $readOnly={readOnly}
+                      $aiSummary={false}
+                    />
+                  </S.LoadingSkeletonField>
+                  {!readOnly && <S.LoadingSkeletonCount />}
+                </S.LoadingSkeletonColumn>
+              )}
             </S.LoadingSkeleton>
           </S.LoadingState>
         ) : (
@@ -223,12 +257,13 @@ function WriteModalContent({
                   onChange={(e) => setTitle(e.target.value)}
                   readOnly={readOnly}
                   maxLength={50}
-                  $readOnly={readOnly}
                 />
               </S.Div>
-              <S.LetterCount>{displayedTitle.length}/50</S.LetterCount>
+              {!readOnly && (
+                <S.LetterCount>{displayedTitle.length}/50</S.LetterCount>
+              )}
             </S.Column>
-            {!readOnly && <S.FormDivider />}
+            <S.FormDivider />
             <S.Column>
               <S.Div>
                 <S.Label htmlFor="study-own-content">
@@ -242,27 +277,37 @@ function WriteModalContent({
                   readOnly={readOnly}
                   maxLength={1000}
                   $readOnly={readOnly}
+                  $aiSummary={readOnly && isAiSummaryEnabled}
                 />
               </S.Div>
-              <S.LetterCount>{displayedOwnContent.length}/1000</S.LetterCount>
+              {!readOnly && (
+                <S.LetterCount>{displayedOwnContent.length}/1000</S.LetterCount>
+              )}
             </S.Column>
-            <S.Column>
-              <S.Div>
-                <S.Label htmlFor="study-club-content">
-                  동아리 학습 {!readOnly && <S.Required>*</S.Required>}
-                </S.Label>
-                <S.LearningInput
-                  id="study-club-content"
-                  placeholder="내용을 입력해주세요."
-                  value={displayedClubContent}
-                  onChange={(e) => setClubContent(e.target.value)}
-                  readOnly={readOnly}
-                  maxLength={1000}
-                  $readOnly={readOnly}
-                />
-              </S.Div>
-              <S.LetterCount>{displayedClubContent.length}/1000</S.LetterCount>
-            </S.Column>
+            {(!readOnly || !isAiSummaryEnabled) && (
+              <S.Column>
+                <S.Div>
+                  <S.Label htmlFor="study-club-content">
+                    동아리 학습 {!readOnly && <S.Required>*</S.Required>}
+                  </S.Label>
+                  <S.LearningInput
+                    id="study-club-content"
+                    placeholder="내용을 입력해주세요."
+                    value={displayedClubContent}
+                    onChange={(e) => setClubContent(e.target.value)}
+                    readOnly={readOnly}
+                    maxLength={1000}
+                    $readOnly={readOnly}
+                    $aiSummary={false}
+                  />
+                </S.Div>
+                {!readOnly && (
+                  <S.LetterCount>
+                    {displayedClubContent.length}/1000
+                  </S.LetterCount>
+                )}
+              </S.Column>
+            )}
           </S.Form>
         )}
         <S.ButtonContainer $readOnly={readOnly}>
