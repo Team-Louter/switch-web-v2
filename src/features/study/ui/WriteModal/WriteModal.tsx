@@ -304,7 +304,8 @@ function WriteModalContent({
               <S.Column>
                 <S.Div>
                   <S.Label htmlFor="study-own-content">
-                    개인 학습 {!readOnly && <S.Required>*</S.Required>}
+                    {readOnly && isAiSummaryEnabled ? '학습 내용' : '개인 학습'}{' '}
+                    {!readOnly && <S.Required>*</S.Required>}
                   </S.Label>
                   <S.LearningInput
                     id="study-own-content"
