@@ -371,6 +371,31 @@ export const Column = styled.div`
   width: 100%;
 `;
 
+export const ClubContent = styled.div<{ $visible: boolean }>`
+  display: grid;
+  grid-template-rows: ${({ $visible }) => ($visible ? '1fr' : '0fr')};
+  min-height: 0;
+  margin-top: ${({ $visible }) => ($visible ? '0' : '-12px')};
+  overflow: hidden;
+  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
+  transform: translateY(${({ $visible }) => ($visible ? '0' : '-8px')});
+  pointer-events: ${({ $visible }) => ($visible ? 'auto' : 'none')};
+  transition:
+    grid-template-rows 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    margin-top 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease-out,
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+`;
+
+export const ClubColumn = styled(Column)`
+  min-height: 0;
+  overflow: hidden;
+`;
+
 export const Input = styled.input`
   width: 380px;
   height: 35px;
@@ -443,6 +468,12 @@ export const LearningInput = styled.textarea<{
 
   @media (max-width: 640px) {
     width: 100%;
+  }
+
+  transition: height 260ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
   }
 `;
 

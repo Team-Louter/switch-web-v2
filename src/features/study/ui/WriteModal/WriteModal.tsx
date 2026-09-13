@@ -169,6 +169,7 @@ function WriteModalContent({
     : clubContent
   const displayedAuthorName = authorName ?? study?.authorName
   const isEmptyReadOnlyStudy = readOnly && !study && !isLoading
+  const showClubContent = !readOnly || !isAiSummaryEnabled
   const contentKey = `${month}-${weekNumber}-${displayedAuthorName ?? 'unknown'}`
 
   return (
@@ -322,8 +323,11 @@ function WriteModalContent({
                   </S.LetterCount>
                 )}
               </S.Column>
-              {(!readOnly || !isAiSummaryEnabled) && (
-                <S.Column>
+              <S.ClubContent
+                $visible={showClubContent}
+                aria-hidden={!showClubContent}
+              >
+                <S.ClubColumn>
                   <S.Div>
                     <S.Label htmlFor="study-club-content">
                       동아리 학습 {!readOnly && <S.Required>*</S.Required>}
@@ -334,6 +338,7 @@ function WriteModalContent({
                       value={displayedClubContent}
                       onChange={(e) => setClubContent(e.target.value)}
                       readOnly={readOnly}
+                      tabIndex={showClubContent ? 0 : -1}
                       maxLength={1000}
                       $readOnly={readOnly}
                       $aiSummary={false}
@@ -344,8 +349,8 @@ function WriteModalContent({
                       {displayedClubContent.length}/1000
                     </S.LetterCount>
                   )}
-                </S.Column>
-              )}
+                </S.ClubColumn>
+              </S.ClubContent>
             </S.Form>
           )}
           <S.ButtonContainer $readOnly={readOnly}>
