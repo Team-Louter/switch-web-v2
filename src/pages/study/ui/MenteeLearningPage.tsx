@@ -506,7 +506,6 @@ export function MenteeLearningPage() {
         })}
       </S.ScrollArea>
       <WriteModal
-        key={modalStudy?.studyId ?? 'study-loading'}
         isOpen={isWriteModalOpen}
         isLoading={isModalStudyLoading}
         onClose={handleWriteModalClose}

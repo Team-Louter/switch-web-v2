@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { PiCaretLeft, PiCaretRight } from 'react-icons/pi'
 import { toast } from 'react-toastify'
 
@@ -77,6 +77,17 @@ function WriteModalContent({
   const [isSubmitSuccessVisible, setIsSubmitSuccessVisible] = useState(false)
   const [isAiSummaryEnabled, setIsAiSummaryEnabled] = useState(true)
   const submitSuccessTimeoutRef = useRef<number | null>(null)
+
+  useLayoutEffect(() => {
+    if (!study) return
+
+    // 모달 외곽을 재마운트하지 않고 API 응답 직후 폼 값을 동기화한다.
+    // 이 동기화는 로딩 완료 전환보다 먼저 반영되어야 하므로 layout effect를 사용한다.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTitle(study.title)
+    setOwnContent(study.ownContent)
+    setClubContent(study.clubContent)
+  }, [study])
 
   useEffect(() => {
     return () => {
