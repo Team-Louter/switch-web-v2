@@ -86,6 +86,18 @@ function WriteModalContent({
     }
   }, [])
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [onClose])
+
   const showSubmitSuccess = (onSuccess?: () => void | Promise<void>) => {
     if (submitSuccessTimeoutRef.current !== null) {
       window.clearTimeout(submitSuccessTimeoutRef.current)
