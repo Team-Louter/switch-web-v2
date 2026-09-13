@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { PiCaretLeft, PiCaretRight } from 'react-icons/pi'
+import { PiCaretLeft, PiCaretRight, PiNotebook } from 'react-icons/pi'
 import { toast } from 'react-toastify'
 
 import {
@@ -48,6 +48,7 @@ interface WriteModalProps {
   readOnly?: boolean
   onPrevious?: () => void
   onNext?: () => void
+  navigationDirection?: 'previous' | 'next'
 }
 
 function WriteModalContent({
@@ -62,6 +63,7 @@ function WriteModalContent({
   readOnly = false,
   onPrevious,
   onNext,
+  navigationDirection,
 }: WriteModalProps) {
   const currentDate = getCurrentKoreaDate()
   const month = providedMonth ?? currentDate.month
@@ -154,6 +156,8 @@ function WriteModalContent({
     ? (study?.clubContent ?? emptyStudyMessage)
     : clubContent
   const displayedAuthorName = authorName ?? study?.authorName
+  const isEmptyReadOnlyStudy = readOnly && !study && !isLoading
+  const contentKey = `${month}-${weekNumber}-${displayedAuthorName ?? 'unknown'}`
 
   return (
     <S.Backdrop>
@@ -178,191 +182,209 @@ function WriteModalContent({
             <PiCaretRight aria-hidden="true" />
           </S.NavigationButton>
         )}
-        <S.Header>
-          <S.HeaderContent>
-            <S.Title>{month}월 {weekNumber}주차 학습일지</S.Title>
-            {readOnly && displayedAuthorName && (
-              <S.Author>{displayedAuthorName}</S.Author>
+        <S.ModalContent
+          key={contentKey}
+          $direction={navigationDirection}
+          aria-live="polite"
+        >
+          <S.Header>
+            <S.HeaderContent>
+              <S.Title>{month}월 {weekNumber}주차 학습일지</S.Title>
+              {readOnly && displayedAuthorName && (
+                <S.Author>{displayedAuthorName}</S.Author>
+              )}
+            </S.HeaderContent>
+            {readOnly && !isEmptyReadOnlyStudy && (
+              <S.AiSummaryToggle
+                type="button"
+                $enabled={isAiSummaryEnabled}
+                aria-label="AI 요약글 표시"
+                aria-pressed={isAiSummaryEnabled}
+                onClick={() => setIsAiSummaryEnabled((enabled) => !enabled)}
+              >
+                <img
+                  src={
+                    isAiSummaryEnabled ? aiSummaryOnIcon : aiSummaryOffIcon
+                  }
+                  alt=""
+                />
+                AI 요약
+              </S.AiSummaryToggle>
             )}
-          </S.HeaderContent>
-          {readOnly && (
-            <S.AiSummaryToggle
-              type="button"
-              $enabled={isAiSummaryEnabled}
-              aria-label="AI 요약글 표시"
-              aria-pressed={isAiSummaryEnabled}
-              onClick={() => setIsAiSummaryEnabled((enabled) => !enabled)}
+          </S.Header>
+          {isLoading ? (
+            <S.LoadingState
+              role="status"
+              aria-label="학습일지를 불러오는 중입니다."
             >
-              <img
-                src={
-                  isAiSummaryEnabled ? aiSummaryOnIcon : aiSummaryOffIcon
-                }
-                alt=""
-              />
-              AI 요약
-            </S.AiSummaryToggle>
-          )}
-        </S.Header>
-        {isLoading ? (
-          <S.LoadingState
-            role="status"
-            aria-label="학습일지를 불러오는 중입니다."
-          >
-            <S.LoadingSkeleton aria-hidden="true">
-              <S.LoadingSkeletonColumn>
-                <S.LoadingSkeletonField>
-                  <S.LoadingSkeletonLabel />
-                  <S.LoadingSkeletonBox $readOnly={readOnly} />
-                </S.LoadingSkeletonField>
-                {!readOnly && <S.LoadingSkeletonCount />}
-              </S.LoadingSkeletonColumn>
-              <S.LoadingSkeletonDivider />
-              <S.LoadingSkeletonColumn>
-                <S.LoadingSkeletonField>
-                  <S.LoadingSkeletonLabel />
-                  <S.LoadingSkeletonBox
-                    $multiline
-                    $readOnly={readOnly}
-                    $aiSummary={readOnly && isAiSummaryEnabled}
-                  />
-                </S.LoadingSkeletonField>
-                {!readOnly && <S.LoadingSkeletonCount />}
-              </S.LoadingSkeletonColumn>
-              {(!readOnly || !isAiSummaryEnabled) && (
+              <S.LoadingSkeleton aria-hidden="true">
+                <S.LoadingSkeletonColumn>
+                  <S.LoadingSkeletonField>
+                    <S.LoadingSkeletonLabel />
+                    <S.LoadingSkeletonBox $readOnly={readOnly} />
+                  </S.LoadingSkeletonField>
+                  {!readOnly && <S.LoadingSkeletonCount />}
+                </S.LoadingSkeletonColumn>
+                <S.LoadingSkeletonDivider />
                 <S.LoadingSkeletonColumn>
                   <S.LoadingSkeletonField>
                     <S.LoadingSkeletonLabel />
                     <S.LoadingSkeletonBox
                       $multiline
                       $readOnly={readOnly}
-                      $aiSummary={false}
+                      $aiSummary={readOnly && isAiSummaryEnabled}
                     />
                   </S.LoadingSkeletonField>
                   {!readOnly && <S.LoadingSkeletonCount />}
                 </S.LoadingSkeletonColumn>
-              )}
-            </S.LoadingSkeleton>
-          </S.LoadingState>
-        ) : (
-          <S.Form>
-            <S.Column>
-              <S.Div>
-                <S.Label htmlFor="study-title">
-                  제목 {!readOnly && <S.Required>*</S.Required>}
-                </S.Label>
-                <S.Input
-                  id="study-title"
-                  type="text"
-                  placeholder="제목을 입력해주세요."
-                  value={displayedTitle}
-                  onChange={(e) => setTitle(e.target.value)}
-                  readOnly={readOnly}
-                  maxLength={50}
-                />
-              </S.Div>
-              {!readOnly && (
-                <S.LetterCount>{displayedTitle.length}/50</S.LetterCount>
-              )}
-            </S.Column>
-            <S.FormDivider />
-            <S.Column>
-              <S.Div>
-                <S.Label htmlFor="study-own-content">
-                  개인 학습 {!readOnly && <S.Required>*</S.Required>}
-                </S.Label>
-                <S.LearningInput
-                  id="study-own-content"
-                  placeholder="내용을 입력해주세요."
-                  value={displayedOwnContent}
-                  onChange={(e) => setOwnContent(e.target.value)}
-                  readOnly={readOnly}
-                  maxLength={1000}
-                  $readOnly={readOnly}
-                  $aiSummary={readOnly && isAiSummaryEnabled}
-                />
-              </S.Div>
-              {!readOnly && (
-                <S.LetterCount>{displayedOwnContent.length}/1000</S.LetterCount>
-              )}
-            </S.Column>
-            {(!readOnly || !isAiSummaryEnabled) && (
+                {(!readOnly || !isAiSummaryEnabled) && (
+                  <S.LoadingSkeletonColumn>
+                    <S.LoadingSkeletonField>
+                      <S.LoadingSkeletonLabel />
+                      <S.LoadingSkeletonBox
+                        $multiline
+                        $readOnly={readOnly}
+                        $aiSummary={false}
+                      />
+                    </S.LoadingSkeletonField>
+                    {!readOnly && <S.LoadingSkeletonCount />}
+                  </S.LoadingSkeletonColumn>
+                )}
+              </S.LoadingSkeleton>
+            </S.LoadingState>
+          ) : isEmptyReadOnlyStudy ? (
+            <S.EmptyState role="status">
+              <S.EmptyStateIcon aria-hidden="true">
+                <PiNotebook />
+              </S.EmptyStateIcon>
+              <S.EmptyStateTitle>{emptyStudyMessage}</S.EmptyStateTitle>
+              <S.EmptyStateDescription>
+                작성된 학습일지가 등록되면 이곳에서 확인할 수 있어요.
+              </S.EmptyStateDescription>
+            </S.EmptyState>
+          ) : (
+            <S.Form>
               <S.Column>
                 <S.Div>
-                  <S.Label htmlFor="study-club-content">
-                    동아리 학습 {!readOnly && <S.Required>*</S.Required>}
+                  <S.Label htmlFor="study-title">
+                    제목 {!readOnly && <S.Required>*</S.Required>}
+                  </S.Label>
+                  <S.Input
+                    id="study-title"
+                    type="text"
+                    placeholder="제목을 입력해주세요."
+                    value={displayedTitle}
+                    onChange={(e) => setTitle(e.target.value)}
+                    readOnly={readOnly}
+                    maxLength={50}
+                  />
+                </S.Div>
+                {!readOnly && (
+                  <S.LetterCount>{displayedTitle.length}/50</S.LetterCount>
+                )}
+              </S.Column>
+              <S.FormDivider />
+              <S.Column>
+                <S.Div>
+                  <S.Label htmlFor="study-own-content">
+                    개인 학습 {!readOnly && <S.Required>*</S.Required>}
                   </S.Label>
                   <S.LearningInput
-                    id="study-club-content"
+                    id="study-own-content"
                     placeholder="내용을 입력해주세요."
-                    value={displayedClubContent}
-                    onChange={(e) => setClubContent(e.target.value)}
+                    value={displayedOwnContent}
+                    onChange={(e) => setOwnContent(e.target.value)}
                     readOnly={readOnly}
                     maxLength={1000}
                     $readOnly={readOnly}
-                    $aiSummary={false}
+                    $aiSummary={readOnly && isAiSummaryEnabled}
                   />
                 </S.Div>
                 {!readOnly && (
                   <S.LetterCount>
-                    {displayedClubContent.length}/1000
+                    {displayedOwnContent.length}/1000
                   </S.LetterCount>
                 )}
               </S.Column>
-            )}
-          </S.Form>
-        )}
-        <S.ButtonContainer $readOnly={readOnly}>
-          <S.CancelButton type="button" onClick={onClose}>
-            {readOnly ? '닫기' : '취소'}
-          </S.CancelButton>
-          {!readOnly && (
-            <S.SubmitButton
-              type="button"
-              disabled={isSubmitting || isSubmitSuccessVisible || isLoading}
-              aria-busy={isSubmitting || isLoading}
-              onClick={handleSubmit}
-            >
-              <S.SubmitButtonContent>
-                {(isSubmitting || isLoading) && (
-                  <S.SubmitLoadingSpinner aria-hidden="true" />
-                )}
-                <span>
-                  {isLoading
-                    ? '불러오는 중...'
-                    : isSubmitting
-                    ? study
-                      ? '저장 중...'
-                      : '제출 중...'
-                    : study
-                      ? '저장'
-                      : '제출'}
-                </span>
-              </S.SubmitButtonContent>
-            </S.SubmitButton>
+              {(!readOnly || !isAiSummaryEnabled) && (
+                <S.Column>
+                  <S.Div>
+                    <S.Label htmlFor="study-club-content">
+                      동아리 학습 {!readOnly && <S.Required>*</S.Required>}
+                    </S.Label>
+                    <S.LearningInput
+                      id="study-club-content"
+                      placeholder="내용을 입력해주세요."
+                      value={displayedClubContent}
+                      onChange={(e) => setClubContent(e.target.value)}
+                      readOnly={readOnly}
+                      maxLength={1000}
+                      $readOnly={readOnly}
+                      $aiSummary={false}
+                    />
+                  </S.Div>
+                  {!readOnly && (
+                    <S.LetterCount>
+                      {displayedClubContent.length}/1000
+                    </S.LetterCount>
+                  )}
+                </S.Column>
+              )}
+            </S.Form>
           )}
-        </S.ButtonContainer>
-        {isSubmitSuccessVisible && (
-          <S.SuccessEffect role="status" aria-live="polite">
-            <S.SuccessParticles aria-hidden="true">
-              {SUCCESS_PARTICLES.map((particle, index) => (
-                <S.SuccessParticle
-                  key={`${particle.color}-${index}`}
-                  $color={particle.color}
-                  $x={particle.x}
-                  $y={particle.y}
-                  $rotation={particle.rotation}
-                  $delay={particle.delay}
-                />
-              ))}
-            </S.SuccessParticles>
-            <S.SuccessContent>
-              <S.SuccessMark aria-hidden="true">✓</S.SuccessMark>
-              <S.SuccessMessage>
-                학습일지 {study ? '저장' : '제출'} 완료!
-              </S.SuccessMessage>
-            </S.SuccessContent>
-          </S.SuccessEffect>
-        )}
+          <S.ButtonContainer $readOnly={readOnly}>
+            <S.CancelButton type="button" onClick={onClose}>
+              {readOnly ? '닫기' : '취소'}
+            </S.CancelButton>
+            {!readOnly && (
+              <S.SubmitButton
+                type="button"
+                disabled={isSubmitting || isSubmitSuccessVisible || isLoading}
+                aria-busy={isSubmitting || isLoading}
+                onClick={handleSubmit}
+              >
+                <S.SubmitButtonContent>
+                  {(isSubmitting || isLoading) && (
+                    <S.SubmitLoadingSpinner aria-hidden="true" />
+                  )}
+                  <span>
+                    {isLoading
+                      ? '불러오는 중...'
+                      : isSubmitting
+                      ? study
+                        ? '저장 중...'
+                        : '제출 중...'
+                      : study
+                        ? '저장'
+                        : '제출'}
+                  </span>
+                </S.SubmitButtonContent>
+              </S.SubmitButton>
+            )}
+          </S.ButtonContainer>
+          {isSubmitSuccessVisible && (
+            <S.SuccessEffect role="status" aria-live="polite">
+              <S.SuccessParticles aria-hidden="true">
+                {SUCCESS_PARTICLES.map((particle, index) => (
+                  <S.SuccessParticle
+                    key={`${particle.color}-${index}`}
+                    $color={particle.color}
+                    $x={particle.x}
+                    $y={particle.y}
+                    $rotation={particle.rotation}
+                    $delay={particle.delay}
+                  />
+                ))}
+              </S.SuccessParticles>
+              <S.SuccessContent>
+                <S.SuccessMark aria-hidden="true">✓</S.SuccessMark>
+                <S.SuccessMessage>
+                  학습일지 {study ? '저장' : '제출'} 완료!
+                </S.SuccessMessage>
+              </S.SuccessContent>
+            </S.SuccessEffect>
+          )}
+        </S.ModalContent>
       </S.Modal>
       {!readOnly && study && (
         <S.DeleteAction

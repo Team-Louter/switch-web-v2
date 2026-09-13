@@ -56,6 +56,40 @@ export const Modal = styled.div`
   }
 `;
 
+const studyModalNavigationEnter = keyframes`
+  from {
+    opacity: 0;
+    transform: translateX(var(--study-modal-navigation-offset)) scale(0.99);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+`
+
+export const ModalContent = styled.div<{
+  $direction?: 'previous' | 'next'
+}>`
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+
+  ${({ $direction }) =>
+    $direction &&
+    css`
+      --study-modal-navigation-offset:
+        ${$direction === 'previous' ? '-24px' : '24px'};
+      animation: ${studyModalNavigationEnter} 260ms
+        cubic-bezier(0.22, 1, 0.36, 1) both;
+
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
+    `}
+`;
+
 const loadingSkeletonShimmer = keyframes`
   from {
     background-position: 200% 0;
@@ -257,6 +291,54 @@ export const Form = styled.div`
   flex-direction: column;
   gap: 12px;
   width: 100%;
+`;
+
+export const EmptyState = styled.div`
+  display: flex;
+  min-height: 252px;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 32px 24px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.xsmall};
+  background-color: ${token.colors.gray.gray0};
+  text-align: center;
+`;
+
+export const EmptyStateIcon = styled.span`
+  display: flex;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  border-radius: ${token.shapes.circle};
+  background-color: ${token.colors.white};
+  color: ${token.colors.gray.gray50};
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+`;
+
+export const EmptyStateTitle = styled.p`
+  ${token.typography('body', 'md', 'semibold')};
+  margin: 0;
+  line-height: normal;
+  color: ${token.colors.gray.gray70};
+`;
+
+export const EmptyStateDescription = styled.p`
+  ${token.typography('caption', 'lg', 'medium')};
+  max-width: 280px;
+  margin: 0;
+  line-height: 1.5;
+  color: ${token.colors.gray.gray40};
 `;
 
 export const FormDivider = styled.div`

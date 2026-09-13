@@ -26,6 +26,9 @@ export function MentorStudyModal({
   const [selectedStudyIndex, setSelectedStudyIndex] = useState<
     number | null
   >(null)
+  const [navigationDirection, setNavigationDirection] = useState<
+    'previous' | 'next' | undefined
+  >()
   const selectedStudy =
     selectedStudyIndex === null ? undefined : studies[selectedStudyIndex]
 
@@ -35,6 +38,7 @@ export function MentorStudyModal({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setSelectedStudyIndex(null)
+        setNavigationDirection(undefined)
         onClose()
       }
     }
@@ -58,7 +62,10 @@ export function MentorStudyModal({
           onMouseDown={(event) => {
             const target = event.target as HTMLElement
 
-            if (!target.closest('[data-study-modal-card]')) onClose()
+            if (!target.closest('[data-study-modal-card]')) {
+              setNavigationDirection(undefined)
+              onClose()
+            }
           }}
           role="dialog"
           aria-modal="true"
@@ -87,7 +94,10 @@ export function MentorStudyModal({
                     title={study.title}
                     author={study.authorName}
                     summary={study.summary}
-                    onClick={() => setSelectedStudyIndex(index)}
+                    onClick={() => {
+                      setNavigationDirection(undefined)
+                      setSelectedStudyIndex(index)
+                    }}
                   />
                 ))}
               </S.Grid>
@@ -104,19 +114,27 @@ export function MentorStudyModal({
         isOpen={selectedStudyIndex !== null}
         onClose={() => {
           setSelectedStudyIndex(null)
+          setNavigationDirection(undefined)
           onClose()
         }}
         study={selectedStudy}
         readOnly
+        navigationDirection={navigationDirection}
         onPrevious={
           selectedStudyIndex !== null && selectedStudyIndex > 0
-            ? () => setSelectedStudyIndex(selectedStudyIndex - 1)
+            ? () => {
+                setNavigationDirection('previous')
+                setSelectedStudyIndex(selectedStudyIndex - 1)
+              }
             : undefined
         }
         onNext={
           selectedStudyIndex !== null &&
           selectedStudyIndex < studies.length - 1
-            ? () => setSelectedStudyIndex(selectedStudyIndex + 1)
+            ? () => {
+                setNavigationDirection('next')
+                setSelectedStudyIndex(selectedStudyIndex + 1)
+              }
             : undefined
         }
       />

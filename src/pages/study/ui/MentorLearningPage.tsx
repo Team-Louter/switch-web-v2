@@ -66,6 +66,9 @@ export function MentorLearningPage() {
     statuses: StudyStatus[]
     index: number
   }>()
+  const [menteeNavigationDirection, setMenteeNavigationDirection] = useState<
+    'previous' | 'next' | undefined
+  >()
   const [isTotalStudyModalOpen, setIsTotalStudyModalOpen] = useState(false)
   const [selectedTotalStudyWeek, setSelectedTotalStudyWeek] = useState<{
     year: number
@@ -435,6 +438,7 @@ export function MentorLearningPage() {
     const nextStatus = navigation.statuses[nextIndex]
     if (!nextStatus) return
 
+    setMenteeNavigationDirection(direction === -1 ? 'previous' : 'next')
     setSelectedMenteeNavigation({ ...navigation, index: nextIndex })
     void handleOpenMenteeStudy(
       nextStatus,
@@ -647,6 +651,7 @@ export function MentorLearningPage() {
                         statuses: sortedWeekStatuses,
                         index: selectedIndex,
                       })
+                      setMenteeNavigationDirection(undefined)
 
                       void handleOpenMenteeStudy(
                         studyStatus,
@@ -700,6 +705,7 @@ export function MentorLearningPage() {
           menteeStudyRequestIdRef.current += 1
           setIsMenteeStudyLoading(false)
           setSelectedMenteeNavigation(undefined)
+          setMenteeNavigationDirection(undefined)
           setSelectedMenteeStudy(undefined)
         }}
         month={selectedMenteeStudy?.month}
@@ -707,6 +713,7 @@ export function MentorLearningPage() {
         study={selectedMenteeStudy?.study}
         authorName={selectedMenteeStudy?.authorName}
         readOnly
+        navigationDirection={menteeNavigationDirection}
         onPrevious={
           selectedMenteeNavigation && selectedMenteeNavigation.index > 0
             ? () => handleNavigateMenteeStudy(-1)
