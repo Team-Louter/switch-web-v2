@@ -153,6 +153,7 @@ function WriteModalContent({
   const displayedClubContent = readOnly
     ? (study?.clubContent ?? emptyStudyMessage)
     : clubContent
+  const displayedAuthorName = authorName ?? study?.authorName
 
   return (
     <S.Backdrop>
@@ -180,8 +181,8 @@ function WriteModalContent({
         <S.Header>
           <S.HeaderContent>
             <S.Title>{month}월 {weekNumber}주차 학습일지</S.Title>
-            {readOnly && (study?.authorName || authorName) && (
-              <S.Author>{study?.authorName ?? authorName}</S.Author>
+            {readOnly && displayedAuthorName && (
+              <S.Author>{displayedAuthorName}</S.Author>
             )}
           </S.HeaderContent>
           {readOnly && (

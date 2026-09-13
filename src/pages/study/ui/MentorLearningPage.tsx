@@ -37,6 +37,12 @@ const STATUS_REQUEST_CONCURRENCY = 4
 const HISTORY_BATCH_SIZE = 4
 const HISTORY_SCROLL_THRESHOLD = 240
 
+function formatMenteeDisplayName(
+  member: Pick<Member, 'studentId' | 'userName'>,
+) {
+  return `${member.studentId} ${member.userName}`
+}
+
 export function MentorLearningPage() {
   const isLeader = useUserStore((state) => state.user?.role === 'LEADER')
   const weeks = useMemo(() => getWeeksForCurrentYear(), [])
@@ -108,6 +114,35 @@ export function MentorLearningPage() {
     () => [...mentees].sort((a, b) => a.userId - b.userId),
     [mentees],
   )
+  const menteeDisplayNameById = useMemo(
+    () =>
+      new Map(
+        mentees.map((member) => [
+          member.userId,
+          formatMenteeDisplayName(member),
+        ]),
+      ),
+    [mentees],
+  )
+  const menteeDisplayNameByName = useMemo(
+    () =>
+      new Map(
+        mentees.map((member) => [
+          member.userName,
+          formatMenteeDisplayName(member),
+        ]),
+      ),
+    [mentees],
+  )
+  const displayStudies = useMemo(
+    () =>
+      studies.map((study) => ({
+        ...study,
+        authorName:
+          menteeDisplayNameByName.get(study.authorName) ?? study.authorName,
+      })),
+    [menteeDisplayNameByName, studies],
+  )
   const totalStudiesByWeek = useMemo(
     () =>
       new Map(
@@ -119,6 +154,11 @@ export function MentorLearningPage() {
     [totalStudies],
   )
   const isLoading = isInitialStatusLoading
+
+  const getMenteeDisplayName = (userId: number, fallbackName: string) =>
+    menteeDisplayNameById.get(userId) ??
+    menteeDisplayNameByName.get(fallbackName) ??
+    fallbackName
 
   useLayoutEffect(() => {
     if (isLoading) return
@@ -350,7 +390,10 @@ export function MentorLearningPage() {
     setSelectedMenteeStudy({
       month,
       weekNumber,
-      authorName: studyStatus.userName,
+      authorName: getMenteeDisplayName(
+        studyStatus.userId,
+        studyStatus.userName,
+      ),
     })
 
     if (studyStatus.status !== 'SUBMITTED') {
@@ -647,7 +690,7 @@ export function MentorLearningPage() {
         onClose={() => setIsStudyModalOpen(false)}
         month={selectedWeek?.month}
         weekNumber={selectedWeek?.weekNumber}
-        studies={studies}
+        studies={displayStudies}
         isLoading={isStudiesLoading}
       />
       <WriteModal
