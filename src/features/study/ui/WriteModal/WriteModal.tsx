@@ -172,7 +172,11 @@ function WriteModalContent({
   const contentKey = `${month}-${weekNumber}-${displayedAuthorName ?? 'unknown'}`
 
   return (
-    <S.Backdrop>
+    <S.Backdrop
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose()
+      }}
+    >
       <S.Modal>
         {readOnly && onPrevious && (
           <S.NavigationButton
