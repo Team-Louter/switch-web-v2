@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { PiCaretLeft, PiCaretRight, PiNotebook } from 'react-icons/pi'
+import { PiCaretLeft, PiCaretRight } from 'react-icons/pi'
 import { toast } from 'react-toastify'
 
 import {
@@ -214,6 +214,7 @@ function WriteModalContent({
           </S.Header>
           {isLoading ? (
             <S.LoadingState
+              $readOnly={readOnly}
               role="status"
               aria-label="학습일지를 불러오는 중입니다."
             >
@@ -254,16 +255,15 @@ function WriteModalContent({
             </S.LoadingState>
           ) : isEmptyReadOnlyStudy ? (
             <S.EmptyState role="status">
-              <S.EmptyStateIcon aria-hidden="true">
-                <PiNotebook />
-              </S.EmptyStateIcon>
-              <S.EmptyStateTitle>{emptyStudyMessage}</S.EmptyStateTitle>
+              <S.EmptyStateTitle>
+                아직 학습일지를 작성하지 않았습니다
+              </S.EmptyStateTitle>
               <S.EmptyStateDescription>
                 작성된 학습일지가 등록되면 이곳에서 확인할 수 있어요.
               </S.EmptyStateDescription>
             </S.EmptyState>
           ) : (
-            <S.Form>
+            <S.Form $readOnly={readOnly}>
               <S.Column>
                 <S.Div>
                   <S.Label htmlFor="study-title">

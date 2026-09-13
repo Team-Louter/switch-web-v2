@@ -8,6 +8,7 @@ import {
 
 // Figma의 삭제 액션 기본 색상을 유지해 다른 주요 액션과 시각적 우선순위를 구분합니다.
 const DELETE_BACKGROUND = '#F48771'
+const READ_ONLY_BODY_HEIGHT = '313px'
 const SUCCESS_PARTICLE_COLORS = {
   primary: token.colors.primary.primary50,
   danger: token.colors.danger.danger10,
@@ -116,12 +117,15 @@ const loadingSkeletonSurface = css`
   }
 `
 
-export const LoadingState = styled.div`
+export const LoadingState = styled.div<{ $readOnly?: boolean }>`
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 16px;
   width: 100%;
+  height: ${({ $readOnly }) =>
+    $readOnly ? READ_ONLY_BODY_HEIGHT : 'auto'};
+  box-sizing: border-box;
   color: ${token.colors.gray.gray50};
 `
 
@@ -286,59 +290,47 @@ export const AiSummaryToggle = styled.button<{ $enabled: boolean }>`
   }
 `;
 
-export const Form = styled.div`
+export const Form = styled.div<{ $readOnly?: boolean }>`
   display: flex;
   flex-direction: column;
   gap: 12px;
+  height: ${({ $readOnly }) =>
+    $readOnly ? READ_ONLY_BODY_HEIGHT : 'auto'};
   width: 100%;
 `;
 
 export const EmptyState = styled.div`
   display: flex;
-  min-height: 252px;
+  height: ${READ_ONLY_BODY_HEIGHT};
   box-sizing: border-box;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 10px;
   width: 100%;
-  padding: 32px 24px;
+  padding: 24px;
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.xsmall};
-  background-color: ${token.colors.gray.gray0};
-  text-align: center;
-`;
-
-export const EmptyStateIcon = styled.span`
-  display: flex;
-  width: 48px;
-  height: 48px;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 4px;
-  border-radius: ${token.shapes.circle};
   background-color: ${token.colors.white};
-  color: ${token.colors.gray.gray50};
-
-  svg {
-    width: 24px;
-    height: 24px;
-  }
+  text-align: center;
 `;
 
 export const EmptyStateTitle = styled.p`
   ${token.typography('body', 'md', 'semibold')};
   margin: 0;
   line-height: normal;
-  color: ${token.colors.gray.gray70};
+  color: #181f29;
 `;
 
 export const EmptyStateDescription = styled.p`
   ${token.typography('caption', 'lg', 'medium')};
-  max-width: 280px;
+  max-width: 100%;
+  overflow: hidden;
   margin: 0;
   line-height: 1.5;
   color: ${token.colors.gray.gray40};
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 export const FormDivider = styled.div`
