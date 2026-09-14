@@ -156,6 +156,9 @@ function MemberRow({ member }: MemberRowProps) {
   )
   const profileTitle = member.equippedItems?.title
   const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName
+  const profileTitleStyleKey = getNameStyleKey(
+    profileTitle?.valueColor ?? profileTitle?.value_color,
+  )
 
   return (
     <S.MemberRow>
@@ -181,9 +184,17 @@ function MemberRow({ member }: MemberRowProps) {
         <S.Generation>
           Louter {member.generation}기
           {profileTitleText && (
-            <S.GenerationSeparator aria-hidden="true">·</S.GenerationSeparator>
+            <>
+              <S.GenerationSeparator aria-hidden="true">·</S.GenerationSeparator>
+              <S.GenerationTitle>
+                {profileTitleStyleKey ? (
+                  <UserName styleKey={profileTitleStyleKey}>{profileTitleText}</UserName>
+                ) : (
+                  profileTitleText
+                )}
+              </S.GenerationTitle>
+            </>
           )}
-          {profileTitleText}
         </S.Generation>
       </S.MemberInfo>
     </S.MemberRow>

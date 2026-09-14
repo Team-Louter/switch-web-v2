@@ -137,6 +137,11 @@ export const GenerationSeparator = styled.span`
   color: #c2c8cf;
 `
 
+export const GenerationTitle = styled.span`
+  color: #ffa20a;
+  font-weight: 600;
+`
+
 const SkeletonSurface = styled.div`
   background: linear-gradient(90deg, #edf0f3 25%, #f7f8f9 37%, #edf0f3 63%);
   background-size: 400% 100%;
