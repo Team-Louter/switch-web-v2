@@ -82,6 +82,14 @@ function getNotificationTargetPath(notification: Notification): string | null {
   const target = notification.target
 
   if (
+    target?.type === 'SCHEDULE' &&
+    Number.isSafeInteger(target.id) &&
+    target.id > 0
+  ) {
+    return `/home?scheduleId=${target.id}`
+  }
+
+  if (
     target?.type !== 'COMMENT' ||
     target.parentId === null ||
     !Number.isSafeInteger(target.parentId)
