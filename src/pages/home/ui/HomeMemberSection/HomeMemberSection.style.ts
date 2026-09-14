@@ -83,8 +83,15 @@ export const MemberRow = styled.article`
 
 export const MemberProfileAvatar = styled(ProfileAvatar)<{ $hasBorder: boolean }>`
   ${({ $hasBorder }) => !$hasBorder && css`
-    border: 1px solid #d6d6d6;
-    border-radius: 50%;
+    &::after {
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      border: 1px solid #d6d6d6;
+      border-radius: 50%;
+      content: '';
+      pointer-events: none;
+    }
   `}
 `
 
