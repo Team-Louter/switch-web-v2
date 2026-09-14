@@ -60,6 +60,11 @@ export function HomeCalendar({
     return () => window.removeEventListener('resize', close)
   }, [])
 
+  const handleSelectedClose = useCallback(() => {
+    setSelected(null)
+    onScheduleDetailClose?.()
+  }, [onScheduleDetailClose])
+
   const selectSchedule = useCallback((schedule: Schedule, element: HTMLElement) => {
     const rect = element.getBoundingClientRect()
 
@@ -189,6 +194,12 @@ export function HomeCalendar({
         eventClick={({ event, el }) => {
           const schedule = schedules.find((item) => String(item.scheduleId) === event.id)
           if (!schedule) return
+
+          if (selected?.schedule.scheduleId === schedule.scheduleId) {
+            handleSelectedClose()
+            return
+          }
+
           autoOpenedScheduleIdRef.current = schedule.scheduleId
           selectSchedule(schedule, el)
         }}
@@ -198,10 +209,7 @@ export function HomeCalendar({
         <ScheduleDetailPopover
           key={`${selected.schedule.scheduleId}-${selected.x}-${selected.y}`}
           {...selected}
-          onClose={() => {
-            setSelected(null)
-            onScheduleDetailClose?.()
-          }}
+          onClose={handleSelectedClose}
         />
       )}
     </S.CalendarWrapper>

@@ -17,6 +17,13 @@ export function ScheduleDetailPopover({ schedule, x, y, onClose }: ScheduleDetai
 
   useEffect(() => {
     const outside = (event: MouseEvent) => {
+      if (
+        event.target instanceof Element &&
+        event.target.closest('.fc-event')
+      ) {
+        return
+      }
+
       if (event.target instanceof Node && !card.current?.contains(event.target)) onClose()
     }
     const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose() }
