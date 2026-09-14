@@ -5,7 +5,6 @@ import { getMember } from '@/entities/member'
 import type { Member } from '@/entities/member'
 import { UserName } from '@/entities/user'
 import { getNameStyleKey } from '@/shared/styles'
-import { ProfileAvatar } from '@/shared/ui'
 import * as S from './HomeMemberSection.style'
 
 const ALL_GENERATIONS = '전체'
@@ -163,8 +162,9 @@ function MemberRow({ member }: MemberRowProps) {
   return (
     <S.MemberRow>
       {member.profileImageUrl ? (
-        <ProfileAvatar
+        <S.MemberProfileAvatar
           alt={`${member.userName} 프로필`}
+          $hasBorder={Boolean(member.equippedItems?.border)}
           equippedItems={member.equippedItems}
           imageUrl={member.profileImageUrl}
           size={96}

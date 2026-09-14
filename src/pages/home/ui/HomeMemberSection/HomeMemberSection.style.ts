@@ -1,5 +1,7 @@
 import styled, { css, keyframes } from 'styled-components'
 
+import { ProfileAvatar } from '@/shared/ui'
+
 const shimmer = keyframes`
   from { background-position: 100% 0; }
   to { background-position: -100% 0; }
@@ -77,6 +79,13 @@ export const MemberRow = styled.article`
   min-height: 128px;
   padding: 16px 0;
   border-bottom: 2px solid #eee;
+`
+
+export const MemberProfileAvatar = styled(ProfileAvatar)<{ $hasBorder: boolean }>`
+  ${({ $hasBorder }) => !$hasBorder && css`
+    border: 1px solid #d6d6d6;
+    border-radius: 50%;
+  `}
 `
 
 export const MemberAvatarFallback = styled.div`
