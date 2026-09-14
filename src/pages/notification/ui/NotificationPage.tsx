@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type SetStateAction,
+} from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 
 import {
@@ -58,7 +64,7 @@ import {
 } from './NotificationPage.style'
 
 interface NotificationOutletContext {
-  setNotificationCount: (count: number) => void
+  setNotificationCount: (count: SetStateAction<number>) => void
 }
 
 const NOTIFICATION_TYPE_ICONS: Partial<Record<NotificationType, string>> = {
@@ -154,10 +160,11 @@ export function NotificationPage() {
             ),
           )
 
-          const nextUnreadCount = Math.max(0, unreadNotificationCount - 1)
+          const decrementUnreadCount = (currentCount: number) =>
+            Math.max(0, currentCount - 1)
 
-          setUnreadNotificationCount(nextUnreadCount)
-          setNotificationCount(nextUnreadCount)
+          setUnreadNotificationCount(decrementUnreadCount)
+          setNotificationCount(decrementUnreadCount)
         } catch {
           setActionError('알림을 읽음 처리하지 못했습니다.')
         }
@@ -165,7 +172,7 @@ export function NotificationPage() {
 
       navigate(targetPath, { viewTransition: true })
     },
-    [navigate, setNotificationCount, unreadNotificationCount],
+    [navigate, setNotificationCount],
   )
 
   const loadNotifications = useCallback(async () => {
@@ -374,13 +381,11 @@ export function NotificationPage() {
         ),
       )
 
-      const nextUnreadCount = Math.max(
-        0,
-        unreadNotificationCount + (nextIsRead ? -1 : 1),
-      )
+      const updateUnreadCount = (currentCount: number) =>
+        Math.max(0, currentCount + (nextIsRead ? -1 : 1))
 
-      setUnreadNotificationCount(nextUnreadCount)
-      setNotificationCount(nextUnreadCount)
+      setUnreadNotificationCount(updateUnreadCount)
+      setNotificationCount(updateUnreadCount)
     } catch {
       setActionError(
         nextIsRead
@@ -434,10 +439,11 @@ export function NotificationPage() {
       })
 
       if (selectedNotification && !selectedNotification.isRead) {
-        const nextUnreadCount = Math.max(0, unreadNotificationCount - 1)
+        const decrementUnreadCount = (currentCount: number) =>
+          Math.max(0, currentCount - 1)
 
-        setUnreadNotificationCount(nextUnreadCount)
-        setNotificationCount(nextUnreadCount)
+        setUnreadNotificationCount(decrementUnreadCount)
+        setNotificationCount(decrementUnreadCount)
       }
 
       setPendingDeleteId(null)
