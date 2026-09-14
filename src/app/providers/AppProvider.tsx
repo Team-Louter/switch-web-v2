@@ -1,5 +1,7 @@
 import type { PropsWithChildren } from 'react'
 import { useEffect } from 'react'
+import { Bounce, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 import { GlobalStyle } from '@/shared/styles'
 
@@ -21,6 +23,19 @@ export function AppProvider({ children }: PropsWithChildren) {
   return (
     <>
       <GlobalStyle />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Bounce}
+      />
       {children}
     </>
   )

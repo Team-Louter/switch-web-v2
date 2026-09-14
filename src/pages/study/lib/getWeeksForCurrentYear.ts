@@ -48,13 +48,5 @@ export function getWeeksForCurrentYear(): StudyWeek[] {
       },
     ),
   )
-  const currentWeekIndex = weeks.findIndex(
-    ({ month, weekNumber }) =>
-      month === currentDate.month && weekNumber === currentWeekNumber,
-  )
-
-  return [
-    ...weeks.slice(currentWeekIndex),
-    ...weeks.slice(0, currentWeekIndex),
-  ]
+  return weeks
 }

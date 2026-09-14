@@ -1,0 +1,60 @@
+import * as S from './LearningPage.style'
+
+type LearningSkeletonVariant = 'mentee' | 'mentor'
+
+interface LearningSkeletonProps {
+  count: number
+  variant: LearningSkeletonVariant
+  showNow?: boolean
+  showHeaderAction?: boolean
+}
+
+const SKELETON_WEEK_COUNT = 6
+const INITIAL_SKELETON_COUNT = 4
+
+export function LearningSkeleton({
+  count,
+  variant,
+  showNow = true,
+  showHeaderAction = false,
+}: LearningSkeletonProps) {
+  const isMentor = variant === 'mentor'
+  const renderedCount = Math.min(count, INITIAL_SKELETON_COUNT)
+
+  return (
+    <S.SkeletonList
+      role="status"
+      aria-label="학습관리 내용을 불러오는 중입니다."
+    >
+      {Array.from({ length: renderedCount }, (_, index) => (
+        <S.SkeletonColumn key={index} aria-hidden="true">
+          <S.SkeletonMonthRow>
+            <S.SkeletonMonth $isMentor={isMentor} />
+            {index === 0 && showNow && <S.SkeletonNow />}
+            {isMentor && showHeaderAction && <S.SkeletonHeaderAction />}
+          </S.SkeletonMonthRow>
+          <S.SkeletonCard>
+            <S.SkeletonProgressContent>
+              <S.SkeletonProgressLabel />
+              <S.SkeletonProgressRate />
+              <S.SkeletonProgressBar />
+              <S.SkeletonStatus />
+            </S.SkeletonProgressContent>
+            <S.SkeletonDiaryContent>
+              <S.SkeletonWeekGrid>
+                {Array.from({ length: SKELETON_WEEK_COUNT }, (_, weekIndex) => (
+                  <S.SkeletonWeek key={weekIndex} />
+                ))}
+              </S.SkeletonWeekGrid>
+              <S.SkeletonButtonContent $isMentor={isMentor}>
+                <S.SkeletonName />
+                <S.SkeletonWeekTitle $isMentor={isMentor} />
+                <S.SkeletonWriteButton />
+              </S.SkeletonButtonContent>
+            </S.SkeletonDiaryContent>
+          </S.SkeletonCard>
+        </S.SkeletonColumn>
+      ))}
+    </S.SkeletonList>
+  )
+}
