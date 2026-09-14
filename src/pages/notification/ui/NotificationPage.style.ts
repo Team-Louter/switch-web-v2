@@ -85,10 +85,32 @@ export const SettingsIcon = styled.img`
   object-fit: contain;
 `
 
-export const NotificationList = styled.div`
+const notificationListReveal = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`
+
+export const NotificationList = styled.div<{ $loaded: boolean }>`
   ${token.flexColumnStart}
   width: 100%;
   gap: 14px;
+
+  ${({ $loaded }) =>
+    $loaded &&
+    css`
+      animation: ${notificationListReveal} 360ms ease-out both;
+    `}
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 const newNotificationEntrance = keyframes`

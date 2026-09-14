@@ -577,7 +577,11 @@ export function NotificationPage() {
           </HeaderActions>
         </Header>
 
-        <NotificationList aria-busy={isLoading} aria-live="polite">
+        <NotificationList
+          $loaded={!isLoading && !loadError}
+          aria-busy={isLoading}
+          aria-live="polite"
+        >
           {actionError && <ActionError role="alert">{actionError}</ActionError>}
 
           {isLoading ? (
