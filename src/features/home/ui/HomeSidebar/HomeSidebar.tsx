@@ -9,7 +9,6 @@ import { getRankingList } from '@/entities/typing';
 import type { Ranking, TypingProblemType } from '@/entities/typing';
 import { mergeSyncedEquippedItems } from '@/shared/lib/profileSync';
 import { getNameStyleKey } from '@/shared/styles';
-import { ProfileAvatar } from '@/shared/ui';
 import medal1stIcon from '../../assets/medal-1st.svg';
 import medal2ndIcon from '../../assets/medal-2nd.svg';
 import heartFilledIcon from '../../assets/heart-filled.svg';
@@ -29,6 +28,14 @@ export function HomeSidebar() {
       profileNameColor?.valueText ??
       profileNameColor?.itemName,
   );
+  const profileBorder = equippedItems?.border;
+  const profileBorderImageUrl = profileBorder?.valueImageUrl ??
+    profileBorder?.imageUrl ??
+    profileBorder?.itemImageUrl ??
+    profileBorder?.originalImageUrl ??
+    profileBorder?.previewImageUrl ??
+    profileBorder?.thumbnailUrl;
+  const hasCustomBorder = Boolean(profileBorderImageUrl?.trim());
   const profileTitle = equippedItems?.title;
   const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName;
   const [recent, setRecent] = useState<RecentHomePost | null>(null);
@@ -103,8 +110,9 @@ export function HomeSidebar() {
       <S.ProfileCard>
         <S.ProfileHeader>
           {user ? <S.Identity>
-            {user.profileImageUrl ? <ProfileAvatar
+            {user.profileImageUrl ? <S.SidebarProfileAvatar
               alt={`${user.userName} 프로필`}
+              $hasBorder={hasCustomBorder}
               equippedItems={equippedItems}
               imageUrl={user.profileImageUrl}
               size={60}

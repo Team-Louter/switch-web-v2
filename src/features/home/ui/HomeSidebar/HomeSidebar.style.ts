@@ -1,4 +1,6 @@
-import styled, { keyframes } from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
+
+import { ProfileAvatar } from '@/shared/ui';
 
 const shimmer = keyframes`
   from { background-position: 100% 0; }
@@ -56,6 +58,19 @@ export const Identity = styled.div`
   display: flex;
   align-items: center;
   gap: 15px;
+`;
+export const SidebarProfileAvatar = styled(ProfileAvatar)<{ $hasBorder: boolean }>`
+  ${({ $hasBorder }) => !$hasBorder && css`
+    &::after {
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      border: 1px solid #d6d6d6;
+      border-radius: 50%;
+      content: '';
+      pointer-events: none;
+    }
+  `}
 `;
 export const AvatarFallback = styled.div`
   display: grid;
