@@ -304,7 +304,7 @@ export const StatusText = styled.p<{ $status: StoreEffectStatus }>`
 
 export const PriceRow = styled.div`
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: flex-start;
   position: absolute;
   inset: 0;

@@ -1,5 +1,5 @@
 import * as S from '../StorePage.style'
-import { PointIcon } from '../icons'
+import { StoreCardPointIcon } from '../icons'
 
 import type { StoreEffect } from '../../types'
 
@@ -80,7 +80,7 @@ export function StoreEffectCard({
         <S.CardActionArea>
           {isRecommended ? (
             <S.PriceRow>
-              <PointIcon size={17} />
+              <StoreCardPointIcon />
               {effect.price}
             </S.PriceRow>
           ) : (
@@ -94,7 +94,7 @@ export function StoreEffectCard({
             onClick={handleActionClick}
             type="button"
           >
-            {isRecommended && <PointIcon size={17} />}
+            {isRecommended && <StoreCardPointIcon color="#665400" />}
             {isRecommended
               ? `${effect.price}에 구매하기`
               : isEquipped
