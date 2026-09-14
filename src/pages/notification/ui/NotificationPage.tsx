@@ -128,16 +128,36 @@ export function NotificationPage() {
   const hasUnreadNotification = unreadNotificationCount > 0
 
   const handleNotificationClick = useCallback(
-    (notification: Notification) => {
+    async (notification: Notification) => {
       const targetPath = getNotificationTargetPath(notification)
 
       if (!targetPath) {
         return
       }
 
+      if (!notification.isRead) {
+        try {
+          await readNotification(notification.id)
+          setNotifications((currentNotifications) =>
+            currentNotifications.map((currentNotification) =>
+              currentNotification.id === notification.id
+                ? { ...currentNotification, isRead: true }
+                : currentNotification,
+            ),
+          )
+
+          const nextUnreadCount = Math.max(0, unreadNotificationCount - 1)
+
+          setUnreadNotificationCount(nextUnreadCount)
+          setNotificationCount(nextUnreadCount)
+        } catch {
+          setActionError('알림을 읽음 처리하지 못했습니다.')
+        }
+      }
+
       navigate(targetPath, { viewTransition: true })
     },
-    [navigate],
+    [navigate, setNotificationCount, unreadNotificationCount],
   )
 
   const loadNotifications = useCallback(async () => {
