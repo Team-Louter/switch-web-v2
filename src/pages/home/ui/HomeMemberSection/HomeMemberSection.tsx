@@ -3,6 +3,9 @@ import { FaGithub, FaLinkedin } from 'react-icons/fa'
 
 import { getMember } from '@/entities/member'
 import type { Member } from '@/entities/member'
+import { UserName } from '@/entities/user'
+import { getNameStyleKey } from '@/shared/styles'
+import { ProfileAvatar } from '@/shared/ui'
 import * as S from './HomeMemberSection.style'
 
 const ALL_GENERATIONS = '전체'
@@ -144,17 +147,31 @@ function MemberRow({ member }: MemberRowProps) {
   const majorText = member.majors.length > 0
     ? `${member.majors.join(' & ')} Developer`
     : 'Developer'
+  const profileNameColor = member.equippedItems?.nameColor
+  const profileNameStyleKey = getNameStyleKey(
+    profileNameColor?.valueColor ??
+      profileNameColor?.value_color ??
+      profileNameColor?.valueText ??
+      profileNameColor?.itemName,
+  )
 
   return (
     <S.MemberRow>
       {member.profileImageUrl ? (
-        <S.MemberImage src={member.profileImageUrl} alt={`${member.userName} 프로필`} />
+        <ProfileAvatar
+          alt={`${member.userName} 프로필`}
+          equippedItems={member.equippedItems}
+          imageUrl={member.profileImageUrl}
+          size={96}
+        />
       ) : (
         <S.MemberAvatarFallback aria-label={`${member.userName} 프로필`}>{member.userName.slice(0, 1)}</S.MemberAvatarFallback>
       )}
       <S.MemberInfo>
         <S.RoleBadge $leader={member.role === 'LEADER'}>{member.generation}기 {roleLabel}</S.RoleBadge>
-        <S.MemberName>{member.userName} ({majorText})</S.MemberName>
+        <S.MemberName>
+          <UserName styleKey={profileNameStyleKey}>{member.userName}</UserName> ({majorText})
+        </S.MemberName>
         <S.SocialLinks>
           {member.githubUrl && <a href={member.githubUrl} target="_blank" rel="noopener noreferrer" aria-label={`${member.userName} GitHub`}><FaGithub /></a>}
           {member.linkedinUrl && <a href={member.linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label={`${member.userName} LinkedIn`}><FaLinkedin /></a>}

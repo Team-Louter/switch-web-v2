@@ -79,15 +79,6 @@ export const MemberRow = styled.article`
   border-bottom: 2px solid #eee;
 `
 
-export const MemberImage = styled.img`
-  width: 96px;
-  height: 96px;
-  flex: 0 0 auto;
-  border: 1px solid #d6d6d6;
-  border-radius: 50%;
-  object-fit: cover;
-`
-
 export const MemberAvatarFallback = styled.div`
   display: grid;
   width: 96px;

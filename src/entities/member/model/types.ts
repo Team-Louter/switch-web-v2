@@ -1,3 +1,5 @@
+import type { ProfileAvatarEquippedItems } from '@/shared/ui'
+
 export type MemberRole = 'LEADER' | 'MENTOR' | 'MENTEE' | 'STUDENT'
 export type AdminMemberRole = MemberRole
 
@@ -21,6 +23,7 @@ export interface Member {
   classRoom: number
   number: number
   userEmail: string
+  equippedItems?: ProfileAvatarEquippedItems
 }
 
 export type AdminMemberResponse = {
