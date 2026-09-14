@@ -92,6 +92,68 @@ function getTargetCommentId(hash: string): number | null {
   return Number.isSafeInteger(commentId) ? commentId : null;
 }
 
+async function findTargetCommentPath(
+  postId: number,
+  parentCommentId: number,
+  targetCommentId: number,
+  depth: number,
+  visitedCommentIds: Set<number>,
+): Promise<CommentResponse[] | null> {
+  if (visitedCommentIds.has(parentCommentId)) {
+    return null;
+  }
+
+  visitedCommentIds.add(parentCommentId);
+
+  let replies: CommentResponse[];
+
+  try {
+    replies = await getCommentReplies(postId, parentCommentId);
+  } catch {
+    return null;
+  }
+
+  for (const reply of replies) {
+    const replyWithDepth = { ...reply, depth };
+
+    if (reply.commentId === targetCommentId) {
+      return [replyWithDepth];
+    }
+
+    const targetPath = await findTargetCommentPath(
+      postId,
+      reply.commentId,
+      targetCommentId,
+      depth + 1,
+      visitedCommentIds,
+    );
+
+    if (targetPath) {
+      return [replyWithDepth, ...targetPath];
+    }
+  }
+
+  return null;
+}
+
+function appendTargetCommentPath(
+  comments: CommentResponse[],
+  rootCommentId: number,
+  targetCommentPath: CommentResponse[],
+): CommentResponse[] {
+  let nextComments = comments;
+  let parentCommentId = rootCommentId;
+
+  for (const comment of targetCommentPath) {
+    nextComments = appendCommentReplies(nextComments, parentCommentId, [
+      comment,
+    ]);
+    parentCommentId = comment.commentId;
+  }
+
+  return nextComments;
+}
+
 async function withTotalReplyCount(
   postId: number,
   comment: CommentResponse,
@@ -156,6 +218,7 @@ export function CommunityDetailPage() {
   const isHeartMutatingRef = useRef(false);
   const postStatsRefreshVersionRef = useRef(0);
   const commentDeleteCloseTimerRef = useRef<number | null>(null);
+  const targetCommentSearchKeyRef = useRef<string | null>(null);
 
   const canManagePost = currentMemberId === post?.userId;
   const canOpenPostMenu = canManagePostPin || canManagePost;
@@ -826,6 +889,86 @@ export function CommunityDetailPage() {
       isCancelled = true;
     };
   }, [postId, reloadKey, commentReloadKey]);
+
+  useEffect(() => {
+    if (
+      isCommentsLoading ||
+      targetCommentId === null ||
+      !Number.isSafeInteger(postId) ||
+      postId <= 0 ||
+      comments.some((comment) => comment.commentId === targetCommentId)
+    ) {
+      return;
+    }
+
+    const targetId = targetCommentId;
+    const searchKey = `${postId}:${targetId}:${commentReloadKey}`;
+
+    if (targetCommentSearchKeyRef.current === searchKey) {
+      return;
+    }
+
+    targetCommentSearchKeyRef.current = searchKey;
+    let isCancelled = false;
+
+    async function loadTargetCommentPath() {
+      const rootComments = comments.filter((comment) => comment.depth === 0);
+
+      for (const rootComment of rootComments) {
+        const targetCommentPath = await findTargetCommentPath(
+          postId,
+          rootComment.commentId,
+          targetId,
+          1,
+          new Set(),
+        );
+
+        if (isCancelled) {
+          return;
+        }
+
+        if (!targetCommentPath) {
+          continue;
+        }
+
+        setComments((currentComments) =>
+          appendTargetCommentPath(
+            currentComments,
+            rootComment.commentId,
+            targetCommentPath,
+          ),
+        );
+        setLoadedReplyCommentIds((currentIds) => {
+          const nextIds = new Set(currentIds);
+          const loadedCommentIds = [
+            rootComment.commentId,
+            ...targetCommentPath
+              .slice(0, -1)
+              .map((comment) => comment.commentId),
+          ];
+
+          for (const commentId of loadedCommentIds) {
+            nextIds.add(commentId);
+          }
+
+          return nextIds;
+        });
+        return;
+      }
+    }
+
+    void loadTargetCommentPath();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    comments,
+    commentReloadKey,
+    isCommentsLoading,
+    postId,
+    targetCommentId,
+  ]);
 
   useEffect(() => {
     if (isCommentsLoading || targetCommentId === null) {

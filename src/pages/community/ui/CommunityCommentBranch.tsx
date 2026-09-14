@@ -64,13 +64,14 @@ function ReplyLoadingSkeleton({
   );
 }
 
-function hasTargetComment(
+function hasTargetDescendant(
   node: CommentTreeNode,
   targetCommentId: number,
 ): boolean {
-  return (
-    node.comment.commentId === targetCommentId ||
-    node.children.some((child) => hasTargetComment(child, targetCommentId))
+  return node.children.some(
+    (child) =>
+      child.comment.commentId === targetCommentId ||
+      hasTargetDescendant(child, targetCommentId),
   );
 }
 
@@ -107,7 +108,9 @@ export function CommunityCommentBranch({
   const [editedCommentContent, setEditedCommentContent] = useState('');
   const [isCommentMutating, setIsCommentMutating] = useState(false);
   const commentMenuRef = useRef<HTMLDivElement>(null);
-  const targetAutoLoadIdRef = useRef<number | null>(null);
+  const [dismissedTargetCommentId, setDismissedTargetCommentId] = useState<
+    number | null
+  >(null);
 
   const loadedReplyCount = node.children.length;
   const totalReplyCount = Math.max(0, comment.replyCount);
@@ -122,14 +125,17 @@ export function CommunityCommentBranch({
     loadedReplyCount === 0;
   const hasCollapseControl =
     !isExpandedByAncestor || comment.depth === FLATTENED_TREE_DEPTH;
+  const shouldExpandToTarget =
+    targetCommentId !== null &&
+    targetCommentId !== dismissedTargetCommentId &&
+    hasTargetDescendant(node, targetCommentId);
+  const isRepliesVisible = isRepliesOpen || shouldExpandToTarget;
   const shouldShowReplies =
-    hasReplies && (!hasCollapseControl || isRepliesOpen);
-  const containsTargetComment =
-    targetCommentId !== null && hasTargetComment(node, targetCommentId);
+    hasReplies && (!hasCollapseControl || isRepliesVisible);
   const shouldFlattenChildTree = comment.depth > FLATTENED_TREE_DEPTH;
   const isFlattenedTree = comment.depth > FLATTENED_TREE_DEPTH;
   const hasCommonConnector = comment.depth === FLATTENED_TREE_DEPTH;
-  const repliesToggleLabel = isRepliesOpen
+  const repliesToggleLabel = isRepliesVisible
     ? '답글 숨기기'
     : comment.depth >= FLATTENED_TREE_DEPTH
       ? '답글 더보기'
@@ -259,31 +265,6 @@ export function CommunityCommentBranch({
       event.currentTarget.querySelector<HTMLButtonElement>('button')?.focus();
     }
   };
-
-  useEffect(() => {
-    if (targetCommentId === null) {
-      targetAutoLoadIdRef.current = null;
-      return;
-    }
-
-    if (
-      targetAutoLoadIdRef.current === targetCommentId ||
-      containsTargetComment ||
-      !requiresInitialReplyLoad ||
-      isRepliesLoading
-    ) {
-      return;
-    }
-
-    targetAutoLoadIdRef.current = targetCommentId;
-    void handleRepliesLoad();
-  }, [
-    containsTargetComment,
-    handleRepliesLoad,
-    isRepliesLoading,
-    requiresInitialReplyLoad,
-    targetCommentId,
-  ]);
 
   useEffect(() => {
     if (!isCommentMenuOpen) {
@@ -546,12 +527,23 @@ export function CommunityCommentBranch({
                   <S.RepliesToggleRow $isWithinReplies>
                     <S.RepliesToggle
                       type="button"
-                      aria-expanded={isRepliesOpen}
-                      onClick={() => setIsRepliesOpen((isOpen) => !isOpen)}
+                      aria-expanded={isRepliesVisible}
+                      onClick={() => {
+                        if (
+                          shouldExpandToTarget &&
+                          targetCommentId !== null
+                        ) {
+                          setDismissedTargetCommentId(targetCommentId);
+                          setIsRepliesOpen(false);
+                          return;
+                        }
+
+                        setIsRepliesOpen((isOpen) => !isOpen);
+                      }}
                     >
                       {repliesToggleLabel}
                       <S.RepliesCaret
-                        $isOpen={isRepliesOpen}
+                        $isOpen={isRepliesVisible}
                         aria-hidden="true"
                       />
                     </S.RepliesToggle>
@@ -560,7 +552,7 @@ export function CommunityCommentBranch({
               </S.CommentChildren>
             )}
           {hasCollapseControl &&
-            !isRepliesOpen &&
+            !isRepliesVisible &&
             !requiresInitialReplyLoad && (
               <S.RepliesToggleRow $isWithinReplies={shouldFlattenChildTree}>
                 <S.RepliesToggle
