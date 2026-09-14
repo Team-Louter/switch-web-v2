@@ -84,8 +84,8 @@ export const SettingsTitle = styled.h2`
 
 export const CloseButton = styled.button`
   ${token.flexCenter}
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border-radius: ${token.shapes.xsmall};
 
   &:focus-visible {
@@ -95,8 +95,9 @@ export const CloseButton = styled.button`
 `
 
 export const CloseIcon = styled.img`
-  width: 16px;
-  height: 16px;
+  display: block;
+  width: 14px;
+  height: 14px;
 `
 
 export const SettingsGroup = styled.div`
