@@ -117,6 +117,7 @@ export function NotificationPage() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const loadMoreTriggerRef = useRef<HTMLDivElement>(null)
   const notificationIdsRef = useRef<Set<number>>(new Set())
+  const readingNotificationIdsRef = useRef<Set<number>>(new Set())
   const hasLoadedNotificationsRef = useRef(false)
   const [newNotificationIds, setNewNotificationIds] = useState<Set<number>>(
     new Set(),
@@ -149,7 +150,13 @@ export function NotificationPage() {
         return
       }
 
-      if (!notification.isRead) {
+      const isReadRequestInFlight = readingNotificationIdsRef.current.has(
+        notification.id,
+      )
+
+      if (!notification.isRead && !isReadRequestInFlight) {
+        readingNotificationIdsRef.current.add(notification.id)
+
         try {
           await readNotification(notification.id)
           setNotifications((currentNotifications) =>
@@ -167,6 +174,8 @@ export function NotificationPage() {
           setNotificationCount(decrementUnreadCount)
         } catch {
           setActionError('알림을 읽음 처리하지 못했습니다.')
+        } finally {
+          readingNotificationIdsRef.current.delete(notification.id)
         }
       }
 
