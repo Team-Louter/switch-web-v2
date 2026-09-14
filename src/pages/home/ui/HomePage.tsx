@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { getAllSchedules } from '@/entities/schedule'
@@ -26,6 +26,10 @@ export function HomePage() {
   const [schedules, setSchedules] = useState<Schedule[]>([])
   const [loading, setLoading] = useState(true)
   const selectedScheduleId = parseScheduleId(searchParams.get('scheduleId'))
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
   const handleScheduleDetailClose = useCallback(() => {
     if (!searchParams.has('scheduleId')) {
