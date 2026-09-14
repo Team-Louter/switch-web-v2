@@ -317,7 +317,7 @@ export function CommunityCommentBranch({
         $isFlattened={isFlattenedTree}
         $hasFlattenedChildren={shouldFlattenChildTree}
       >
-        <S.CommentItem>
+        <S.CommentItem $isTarget={comment.commentId === targetCommentId}>
           <S.CommentAuthorImage
             src={
               resolveCommunityAssetUrl(comment.userProfileImageUrl) ??

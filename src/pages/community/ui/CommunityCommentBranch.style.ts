@@ -10,6 +10,10 @@ interface CommentTextProps {
   $isDeleted: boolean;
 }
 
+interface CommentItemProps {
+  $isTarget: boolean;
+}
+
 interface CommentRowProps {
   $isReply: boolean;
   $isFlattened: boolean;
@@ -73,6 +77,23 @@ const anonymousReplyComposerAvatarEnter = keyframes`
   to {
     opacity: 1;
     transform: scale(1) rotate(0);
+  }
+`;
+
+const targetCommentHighlight = keyframes`
+  0% {
+    background: ${token.colors.primary.primary20};
+    box-shadow: 0 0 0 4px ${token.colors.primary.primary40};
+  }
+
+  55% {
+    background: ${token.colors.primary.primary10};
+    box-shadow: 0 0 0 3px ${token.colors.primary.primary30};
+  }
+
+  100% {
+    background: ${token.colors.white};
+    box-shadow: 0 0 0 0 transparent;
   }
 `;
 
@@ -358,7 +379,7 @@ export const CommentRow = styled.article<CommentRowProps>`
   }
 `;
 
-export const CommentItem = styled.div`
+export const CommentItem = styled.div<CommentItemProps>`
   ${token.flexLeft}
   flex: 1 1 0;
   gap: 12px;
@@ -371,6 +392,16 @@ export const CommentItem = styled.div`
   border: 0;
   border-radius: ${token.shapes.medium};
   background: ${token.colors.white};
+
+  ${({ $isTarget }) =>
+    $isTarget &&
+    css`
+      animation: ${targetCommentHighlight} 1.2s ease-out both;
+
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
+    `}
 
   @container community-detail (max-width: 430px) {
     gap: 8px;
