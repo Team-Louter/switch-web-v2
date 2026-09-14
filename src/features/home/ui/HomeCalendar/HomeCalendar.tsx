@@ -68,7 +68,11 @@ export function HomeCalendar({
   const selectSchedule = useCallback((schedule: Schedule, element: HTMLElement) => {
     const rect = element.getBoundingClientRect()
 
-    setSelected({ schedule, x: rect.right + 10, y: rect.top })
+    setSelected({
+      schedule,
+      x: rect.right + 10 + window.scrollX,
+      y: rect.top + window.scrollY,
+    })
   }, [])
 
   const openRequestedSchedule = useCallback(
@@ -93,10 +97,16 @@ export function HomeCalendar({
     const rect = calendarContainerRef.current?.getBoundingClientRect()
 
     if (!rect) {
-      return { x: window.innerWidth - 416, y: 8 }
+      return {
+        x: window.scrollX + window.innerWidth - 416,
+        y: window.scrollY + 8,
+      }
     }
 
-    return { x: rect.right - 410, y: rect.top + 20 }
+    return {
+      x: rect.right - 410 + window.scrollX,
+      y: rect.top + 20 + window.scrollY,
+    }
   }, [])
 
   const handleEventDidMount = useCallback(
