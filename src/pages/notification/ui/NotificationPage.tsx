@@ -24,7 +24,6 @@ import {
 
 import notificationAvatar from '../assets/images/notification-avatar.png'
 import notificationCommentIcon from '../assets/svg/notification-comment.svg'
-import notificationModalCloseIcon from '../assets/svg/notification-modal-close.svg'
 import notificationMoreIcon from '../assets/svg/notification-more.svg'
 import notificationSettingsIcon from '../assets/svg/notification-settings.svg'
 import { NotificationReadAllIcon } from './icons/NotificationReadAllIcon'
@@ -619,7 +618,6 @@ export function NotificationPage() {
               </SettingsButton>
               {isSettingsOpen && (
                 <NotificationSettingsModal
-                  closeIconUrl={notificationModalCloseIcon}
                   settings={notificationSettings}
                   errorMessage={settingsError ?? undefined}
                   isUpdating={isSettingsLoading || isSettingsUpdating}

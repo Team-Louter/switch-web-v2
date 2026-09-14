@@ -114,24 +114,6 @@ export const SettingsTitle = styled.h2`
   ${token.typography('body', 'md', 'semibold')}
 `
 
-export const CloseButton = styled.button`
-  ${token.flexCenter}
-  width: 16px;
-  height: 16px;
-  border-radius: ${token.shapes.xsmall};
-
-  &:focus-visible {
-    outline: 2px solid ${token.colors.primary.primary40};
-    outline-offset: 3px;
-  }
-`
-
-export const CloseIcon = styled.img`
-  display: block;
-  width: 14px;
-  height: 14px;
-`
-
 export const SettingsGroup = styled.div`
   ${token.flexColumnStart}
   width: 100%;

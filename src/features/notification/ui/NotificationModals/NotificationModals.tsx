@@ -98,7 +98,6 @@ export function DeleteNotificationModal({
 }
 
 interface NotificationSettingsModalProps {
-  closeIconUrl: string
   settings: NotificationSettings
   errorMessage?: string
   isUpdating?: boolean
@@ -107,14 +106,12 @@ interface NotificationSettingsModalProps {
 }
 
 export function NotificationSettingsModal({
-  closeIconUrl,
   settings,
   errorMessage,
   isUpdating = false,
   onClose,
   onToggle,
 }: NotificationSettingsModalProps) {
-  const closeButtonRef = useRef<HTMLButtonElement>(null)
   const settingsPopoverRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -140,7 +137,7 @@ export function NotificationSettingsModal({
 
     window.addEventListener('keydown', handleKeyDown)
     document.addEventListener('pointerdown', handlePointerDown)
-    closeButtonRef.current?.focus()
+    settingsPopoverRef.current?.focus()
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
@@ -155,18 +152,11 @@ export function NotificationSettingsModal({
       role="dialog"
       aria-label="알림 설정"
       aria-busy={isUpdating}
+      tabIndex={-1}
     >
       <S.SettingsContent>
         <S.SettingsHeader>
           <S.SettingsTitle>알림 설정</S.SettingsTitle>
-          <S.CloseButton
-            ref={closeButtonRef}
-            type="button"
-            aria-label="알림 설정 닫기"
-            onClick={onClose}
-          >
-            <S.CloseIcon src={closeIconUrl} alt="" />
-          </S.CloseButton>
         </S.SettingsHeader>
 
         {NOTIFICATION_SETTING_GROUPS.map((group, groupIndex) => (
