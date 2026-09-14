@@ -80,22 +80,22 @@ export const MemberRow = styled.article`
 `
 
 export const MemberImage = styled.img`
-  width: 144px;
+  width: 96px;
   height: 96px;
   flex: 0 0 auto;
   border: 1px solid #d6d6d6;
-  border-radius: 10px;
+  border-radius: 50%;
   object-fit: cover;
 `
 
 export const MemberAvatarFallback = styled.div`
   display: grid;
-  width: 144px;
+  width: 96px;
   height: 96px;
   flex: 0 0 auto;
   place-items: center;
   border: 1px solid #d6d6d6;
-  border-radius: 10px;
+  border-radius: 50%;
   background: #f3f4f6;
   color: #8b95a1;
   font-size: 2rem;
@@ -156,10 +156,10 @@ export const MemberSkeletonRow = styled.article`
 `
 
 export const MemberImageSkeleton = styled(SkeletonSurface)`
-  width: 144px;
+  width: 96px;
   height: 96px;
   flex: 0 0 auto;
-  border-radius: 10px;
+  border-radius: 50%;
 `
 
 export const MemberSkeletonInfo = styled.div`
