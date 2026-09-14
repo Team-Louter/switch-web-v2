@@ -96,12 +96,12 @@ export const ProfileClassSkeleton = styled(SkeletonSurface)`
 `;
 export const ProfileTitle = styled.p`
   max-width: 100%;
-  margin: 0 0 4px;
+  margin: 0;
   overflow: hidden;
   color: #ffa20a;
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.1;
   text-overflow: ellipsis;
   white-space: nowrap;
 `;
