@@ -29,6 +29,8 @@ export function HomeSidebar() {
       profileNameColor?.valueText ??
       profileNameColor?.itemName,
   );
+  const profileTitle = equippedItems?.title;
+  const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName;
   const [recent, setRecent] = useState<RecentHomePost | null>(null);
   const [popular, setPopular] = useState<Post[]>([]);
   const [rankings, setRankings] = useState<Ranking[]>([]);
@@ -108,6 +110,7 @@ export function HomeSidebar() {
               size={60}
             /> : <S.AvatarFallback>{user.userName.slice(0, 1)}</S.AvatarFallback>}
             <div>
+              {profileTitleText && <S.ProfileTitle>{profileTitleText}</S.ProfileTitle>}
               <S.Name><UserName styleKey={profileNameStyleKey}>{user.userName}</UserName></S.Name>
               <S.ClassInfo>{formatProfileClassInfo(user)}</S.ClassInfo>
             </div>

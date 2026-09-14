@@ -94,7 +94,19 @@ export const ProfileClassSkeleton = styled(SkeletonSurface)`
   height: 14px;
   border-radius: 4px;
 `;
+export const ProfileTitle = styled.p`
+  max-width: 100%;
+  margin: 0 0 4px;
+  overflow: hidden;
+  color: #ffa20a;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
 export const Name = styled.h3`
+  margin: 0;
   font-size: 20px;
   font-weight: 700;
   color: #333;
