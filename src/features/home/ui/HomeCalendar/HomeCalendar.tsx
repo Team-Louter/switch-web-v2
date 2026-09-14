@@ -38,7 +38,7 @@ export function HomeCalendar({
   const calendarContainerRef = useRef<HTMLDivElement>(null)
   const eventElementsRef = useRef<Map<string, HTMLElement>>(new Map())
   const autoOpenedScheduleIdRef = useRef<number | null>(null)
-  const hasInitializedCalendarRef = useRef(false)
+  const calendarStartDateRef = useRef<string | null>(null)
   const [selected, setSelected] = useState<SelectedSchedule | null>(null)
   const [visibleDate, setVisibleDate] = useState(() => new Date())
   const events = loading
@@ -169,11 +169,16 @@ export function HomeCalendar({
   ])
 
   function handleDatesSet({ view }: DatesSetArg) {
-    if (hasInitializedCalendarRef.current) {
+    const calendarStartDate = view.currentStart.toISOString()
+    const hasChangedCalendarMonth =
+      calendarStartDateRef.current !== null &&
+      calendarStartDateRef.current !== calendarStartDate
+
+    if (hasChangedCalendarMonth) {
       handleSelectedClose()
     }
 
-    hasInitializedCalendarRef.current = true
+    calendarStartDateRef.current = calendarStartDate
     setVisibleDate(view.currentStart)
   }
 
