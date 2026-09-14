@@ -39,6 +39,11 @@ export const HeaderActions = styled.div`
   gap: 16px;
 `
 
+export const SettingsAnchor = styled.div`
+  position: relative;
+  flex: 0 0 20px;
+`
+
 export const ReadAllButton = styled.button`
   ${token.flexLeft}
   gap: 4px;
@@ -79,10 +84,16 @@ export const SettingsButton = styled.button`
   }
 `
 
-export const SettingsIcon = styled.img`
+export const SettingsIcon = styled.img<{ $isOpen: boolean }>`
   width: 20px;
   height: 20px;
   object-fit: contain;
+  transform: ${({ $isOpen }) => ($isOpen ? 'rotate(180deg)' : 'rotate(0deg)')};
+  transition: transform 240ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 `
 
 const notificationListReveal = keyframes`

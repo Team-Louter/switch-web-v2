@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
@@ -69,6 +69,38 @@ export const SettingsContent = styled.div`
   gap: 16px;
   width: 100%;
   overflow-y: auto;
+`
+
+const settingsPopoverEnter = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+`
+
+export const SettingsPopover = styled.div`
+  position: absolute;
+  z-index: 200;
+  top: calc(100% + 10px);
+  right: 0;
+  box-sizing: border-box;
+  width: min(300px, calc(100vw - 40px));
+  padding: 20px;
+  border: 1px solid ${token.colors.gray.gray0};
+  border-radius: 20px;
+  background: ${token.colors.white};
+  box-shadow: 0 4px 20px rgb(0 0 0 / 6%);
+  transform-origin: top right;
+  animation: ${settingsPopoverEnter} 180ms ease both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 export const SettingsHeader = styled.header`

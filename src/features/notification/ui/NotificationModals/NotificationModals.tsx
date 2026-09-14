@@ -1,8 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { MouseEvent } from 'react'
 
-import { Modal } from '@/shared/ui'
-
 import type {
   NotificationSettingKey,
   NotificationSettings,
@@ -117,6 +115,7 @@ export function NotificationSettingsModal({
   onToggle,
 }: NotificationSettingsModalProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const settingsPopoverRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const previouslyFocusedElement = document.activeElement as HTMLElement | null
@@ -127,23 +126,37 @@ export function NotificationSettingsModal({
       }
     }
 
+    function handlePointerDown(event: PointerEvent) {
+      const settingsAnchor = settingsPopoverRef.current?.parentElement
+
+      if (
+        event.target instanceof Node &&
+        !settingsPopoverRef.current?.contains(event.target) &&
+        !settingsAnchor?.contains(event.target)
+      ) {
+        onClose()
+      }
+    }
+
     window.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('pointerdown', handlePointerDown)
     closeButtonRef.current?.focus()
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('pointerdown', handlePointerDown)
       previouslyFocusedElement?.focus()
     }
   }, [onClose])
 
   return (
-    <Modal
-      label="알림 설정"
-      width={300}
-      placement="bottom-right"
-      onClose={onClose}
+    <S.SettingsPopover
+      ref={settingsPopoverRef}
+      role="dialog"
+      aria-label="알림 설정"
+      aria-busy={isUpdating}
     >
-      <S.SettingsContent aria-busy={isUpdating}>
+      <S.SettingsContent>
         <S.SettingsHeader>
           <S.SettingsTitle>알림 설정</S.SettingsTitle>
           <S.CloseButton
@@ -185,6 +198,6 @@ export function NotificationSettingsModal({
           <S.SettingsError role="alert">{errorMessage}</S.SettingsError>
         )}
       </S.SettingsContent>
-    </Modal>
+    </S.SettingsPopover>
   )
 }

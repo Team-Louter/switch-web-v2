@@ -41,6 +41,7 @@ import {
   ReadAllButton,
   ReadAllIcon,
   RetryButton,
+  SettingsAnchor,
   SettingsButton,
   SettingsIcon,
   SkeletonAvatar,
@@ -421,7 +422,12 @@ export function NotificationPage() {
     }
   }
 
-  const handleSettingsOpen = () => {
+  const handleSettingsToggle = () => {
+    if (isSettingsOpen) {
+      setIsSettingsOpen(false)
+      return
+    }
+
     setIsSettingsOpen(true)
     setOpenMenuId(null)
 
@@ -597,15 +603,31 @@ export function NotificationPage() {
               <ReadAllIcon as={NotificationReadAllIcon} />
               모두 읽음
             </ReadAllButton>
-            <SettingsButton
-              type="button"
-              aria-label="알림 설정"
-              aria-haspopup="dialog"
-              aria-expanded={isSettingsOpen}
-              onClick={handleSettingsOpen}
-            >
-              <SettingsIcon src={notificationSettingsIcon} alt="" />
-            </SettingsButton>
+            <SettingsAnchor>
+              <SettingsButton
+                type="button"
+                aria-label="알림 설정"
+                aria-haspopup="dialog"
+                aria-expanded={isSettingsOpen}
+                onClick={handleSettingsToggle}
+              >
+                <SettingsIcon
+                  $isOpen={isSettingsOpen}
+                  src={notificationSettingsIcon}
+                  alt=""
+                />
+              </SettingsButton>
+              {isSettingsOpen && (
+                <NotificationSettingsModal
+                  closeIconUrl={notificationModalCloseIcon}
+                  settings={notificationSettings}
+                  errorMessage={settingsError ?? undefined}
+                  isUpdating={isSettingsLoading || isSettingsUpdating}
+                  onClose={handleSettingsClose}
+                  onToggle={handleSettingToggle}
+                />
+              )}
+            </SettingsAnchor>
           </HeaderActions>
         </Header>
 
@@ -708,16 +730,6 @@ export function NotificationPage() {
         />
       )}
 
-      {isSettingsOpen && (
-        <NotificationSettingsModal
-          closeIconUrl={notificationModalCloseIcon}
-          settings={notificationSettings}
-          errorMessage={settingsError ?? undefined}
-          isUpdating={isSettingsLoading || isSettingsUpdating}
-          onClose={handleSettingsClose}
-          onToggle={handleSettingToggle}
-        />
-      )}
     </Page>
   )
 }
