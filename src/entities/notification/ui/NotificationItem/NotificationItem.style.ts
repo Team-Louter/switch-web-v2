@@ -1,14 +1,29 @@
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
-export const Item = styled.article`
+export const Item = styled.article<{ $isClickable: boolean }>`
   ${token.flexBetween}
   position: relative;
   align-items: flex-start;
   width: 100%;
   padding: 14px 0;
   border-radius: ${token.shapes.medium};
+
+  ${({ $isClickable }) =>
+    $isClickable &&
+    css`
+      cursor: pointer;
+
+      &:hover {
+        background: ${token.colors.gray.gray0};
+      }
+
+      &:focus-visible {
+        outline: 2px solid ${token.colors.primary.primary40};
+        outline-offset: 3px;
+      }
+    `}
 
   @media (max-width: 760px) {
     gap: 12px;

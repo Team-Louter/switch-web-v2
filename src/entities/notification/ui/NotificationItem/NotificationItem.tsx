@@ -1,5 +1,9 @@
 import { useEffect, useRef } from 'react'
-import type { SyntheticEvent } from 'react'
+import type {
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+  SyntheticEvent,
+} from 'react'
 
 import type { Notification } from '../../model/types'
 import {
@@ -28,7 +32,9 @@ interface NotificationItemProps {
   typeIconUrl?: string
   moreIconUrl: string
   fallbackActorImageUrl?: string
+  isClickable: boolean
   isMenuOpen: boolean
+  onNotificationClick: (notification: Notification) => void
   onMenuToggle: (notificationId: number) => void
   onReadToggle: (notificationId: number) => void
   onDelete: (notificationId: number) => void
@@ -39,7 +45,9 @@ export function NotificationItem({
   typeIconUrl,
   moreIconUrl,
   fallbackActorImageUrl,
+  isClickable,
   isMenuOpen,
+  onNotificationClick,
   onMenuToggle,
   onReadToggle,
   onDelete,
@@ -68,6 +76,30 @@ export function NotificationItem({
 
   const handleDelete = () => {
     onDelete(id)
+  }
+
+  const handleItemClick = (event: ReactMouseEvent<HTMLElement>) => {
+    if (
+      !isClickable ||
+      (event.target instanceof Element && event.target.closest('button'))
+    ) {
+      return
+    }
+
+    onNotificationClick(notification)
+  }
+
+  const handleItemKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
+    if (
+      !isClickable ||
+      event.target !== event.currentTarget ||
+      (event.key !== 'Enter' && event.key !== ' ')
+    ) {
+      return
+    }
+
+    event.preventDefault()
+    onNotificationClick(notification)
   }
 
   const handleAvatarError = (event: SyntheticEvent<HTMLImageElement>) => {
@@ -114,7 +146,14 @@ export function NotificationItem({
   }, [id, isMenuOpen, onMenuToggle])
 
   return (
-    <Item data-notification-type={type}>
+    <Item
+      $isClickable={isClickable}
+      data-notification-type={type}
+      role={isClickable ? 'button' : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onClick={handleItemClick}
+      onKeyDown={handleItemKeyDown}
+    >
       <Main>
         {avatarImageUrl && (
           <AvatarWrap>
@@ -157,6 +196,7 @@ export function NotificationItem({
           ref={menuRef}
           id={`notification-menu-${id}`}
           role="menu"
+          onClick={(event) => event.stopPropagation()}
         >
           <MenuActionButton
             type="button"

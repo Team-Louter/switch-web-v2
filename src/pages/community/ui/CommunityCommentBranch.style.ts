@@ -319,6 +319,7 @@ export const CommentRow = styled.article<CommentRowProps>`
   width: 100%;
   min-height: 0;
   min-width: 0;
+  scroll-margin-top: 24px;
 
   &::before {
     display: none;

@@ -8,7 +8,7 @@ import {
 } from 'react';
 import { isAxiosError } from 'axios';
 import ReactMarkdown from 'react-markdown';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import remarkGfm from 'remark-gfm';
@@ -80,6 +80,18 @@ const markdownSanitizeSchema = {
 const COMMENT_SKELETON_ITEMS = [0, 1, 2];
 const FLOATING_CONFIRM_ANIMATION_MS = 180;
 
+function getTargetCommentId(hash: string): number | null {
+  const match = /^#comment-(\d+)$/.exec(hash);
+
+  if (!match) {
+    return null;
+  }
+
+  const commentId = Number(match[1]);
+
+  return Number.isSafeInteger(commentId) ? commentId : null;
+}
+
 async function withTotalReplyCount(
   postId: number,
   comment: CommentResponse,
@@ -102,6 +114,7 @@ async function withTotalReplyCount(
 }
 
 export function CommunityDetailPage() {
+  const { hash } = useLocation();
   const navigate = useNavigate();
   const { postId: postIdParam } = useParams();
   const postId = Number(postIdParam);
@@ -174,6 +187,7 @@ export function CommunityDetailPage() {
     [serializedPostContent],
   );
   const commentTree = useMemo(() => buildCommentTree(comments), [comments]);
+  const targetCommentId = getTargetCommentId(hash);
 
   const handleBackToList = () => {
     navigate('/community');
@@ -813,6 +827,16 @@ export function CommunityDetailPage() {
     };
   }, [postId, reloadKey, commentReloadKey]);
 
+  useEffect(() => {
+    if (isCommentsLoading || targetCommentId === null) {
+      return;
+    }
+
+    document
+      .getElementById(`comment-${targetCommentId}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [commentTree, isCommentsLoading, targetCommentId]);
+
   return (
     <S.Page>
       <S.Content>
@@ -1170,6 +1194,7 @@ export function CommunityDetailPage() {
                   <CommunityCommentBranch
                     key={node.comment.commentId}
                     node={node}
+                    targetCommentId={targetCommentId}
                     onProfileImageError={handleProfileImageError}
                     onReplySubmit={handleReplySubmit}
                     onRepliesLoad={handleRepliesLoad}

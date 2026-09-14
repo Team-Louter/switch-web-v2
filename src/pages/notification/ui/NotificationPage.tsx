@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 
 import {
   getNotificationSettings,
@@ -78,7 +78,26 @@ const INITIAL_NOTIFICATION_SETTINGS: NotificationSettings = {
   emailEnabled: true,
 }
 
+function getNotificationTargetPath(notification: Notification): string | null {
+  const target = notification.target
+
+  if (
+    target?.type !== 'COMMENT' ||
+    target.parentId === null ||
+    !Number.isSafeInteger(target.parentId)
+  ) {
+    return null
+  }
+
+  const commentHash = Number.isSafeInteger(target.id)
+    ? `#comment-${target.id}`
+    : ''
+
+  return `/community/${target.parentId}${commentHash}`
+}
+
 export function NotificationPage() {
+  const navigate = useNavigate()
   const { setNotificationCount } =
     useOutletContext<NotificationOutletContext>()
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -107,6 +126,19 @@ export function NotificationPage() {
   const [settingsError, setSettingsError] = useState<string | null>(null)
 
   const hasUnreadNotification = unreadNotificationCount > 0
+
+  const handleNotificationClick = useCallback(
+    (notification: Notification) => {
+      const targetPath = getNotificationTargetPath(notification)
+
+      if (!targetPath) {
+        return
+      }
+
+      navigate(targetPath, { viewTransition: true })
+    },
+    [navigate],
+  )
 
   const loadNotifications = useCallback(async () => {
     setIsLoading(true)
@@ -625,7 +657,9 @@ export function NotificationPage() {
                     typeIconUrl={NOTIFICATION_TYPE_ICONS[notification.type]}
                     moreIconUrl={notificationMoreIcon}
                     fallbackActorImageUrl={notificationAvatar}
+                    isClickable={getNotificationTargetPath(notification) !== null}
                     isMenuOpen={openMenuId === notification.id}
+                    onNotificationClick={handleNotificationClick}
                     onMenuToggle={handleMenuToggle}
                     onReadToggle={handleReadToggle}
                     onDelete={handleDeleteRequest}

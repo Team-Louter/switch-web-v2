@@ -1,6 +1,7 @@
 import {
   type KeyboardEvent,
   type SyntheticEvent,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -30,6 +31,7 @@ interface ReplyLoadingSkeletonProps {
 
 interface CommunityCommentBranchProps {
   node: CommentTreeNode;
+  targetCommentId: number | null;
   onProfileImageError: (event: SyntheticEvent<HTMLImageElement>) => void;
   onReplySubmit: CommunityReplySubmitHandler;
   onRepliesLoad: CommunityReplyLoadHandler;
@@ -62,8 +64,19 @@ function ReplyLoadingSkeleton({
   );
 }
 
+function hasTargetComment(
+  node: CommentTreeNode,
+  targetCommentId: number,
+): boolean {
+  return (
+    node.comment.commentId === targetCommentId ||
+    node.children.some((child) => hasTargetComment(child, targetCommentId))
+  );
+}
+
 export function CommunityCommentBranch({
   node,
+  targetCommentId,
   onProfileImageError,
   onReplySubmit,
   onRepliesLoad,
@@ -94,6 +107,7 @@ export function CommunityCommentBranch({
   const [editedCommentContent, setEditedCommentContent] = useState('');
   const [isCommentMutating, setIsCommentMutating] = useState(false);
   const commentMenuRef = useRef<HTMLDivElement>(null);
+  const targetAutoLoadIdRef = useRef<number | null>(null);
 
   const loadedReplyCount = node.children.length;
   const totalReplyCount = Math.max(0, comment.replyCount);
@@ -110,6 +124,8 @@ export function CommunityCommentBranch({
     !isExpandedByAncestor || comment.depth === FLATTENED_TREE_DEPTH;
   const shouldShowReplies =
     hasReplies && (!hasCollapseControl || isRepliesOpen);
+  const containsTargetComment =
+    targetCommentId !== null && hasTargetComment(node, targetCommentId);
   const shouldFlattenChildTree = comment.depth > FLATTENED_TREE_DEPTH;
   const isFlattenedTree = comment.depth > FLATTENED_TREE_DEPTH;
   const hasCommonConnector = comment.depth === FLATTENED_TREE_DEPTH;
@@ -162,7 +178,7 @@ export function CommunityCommentBranch({
     setIsReplySubmitting(false);
   };
 
-  const handleRepliesLoad = async () => {
+  const handleRepliesLoad = useCallback(async () => {
     if (isRepliesLoading) {
       return;
     }
@@ -178,7 +194,7 @@ export function CommunityCommentBranch({
       setIsRepliesOpen(true);
     }
     setIsRepliesLoading(false);
-  };
+  }, [comment.commentId, isRepliesLoading, onRepliesLoad]);
 
   const handleReplyKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
@@ -245,6 +261,31 @@ export function CommunityCommentBranch({
   };
 
   useEffect(() => {
+    if (targetCommentId === null) {
+      targetAutoLoadIdRef.current = null;
+      return;
+    }
+
+    if (
+      targetAutoLoadIdRef.current === targetCommentId ||
+      containsTargetComment ||
+      !requiresInitialReplyLoad ||
+      isRepliesLoading
+    ) {
+      return;
+    }
+
+    targetAutoLoadIdRef.current = targetCommentId;
+    void handleRepliesLoad();
+  }, [
+    containsTargetComment,
+    handleRepliesLoad,
+    isRepliesLoading,
+    requiresInitialReplyLoad,
+    targetCommentId,
+  ]);
+
+  useEffect(() => {
     if (!isCommentMenuOpen) {
       return;
     }
@@ -271,6 +312,7 @@ export function CommunityCommentBranch({
       $isFlattened={isFlattenedTree}
     >
       <S.CommentRow
+        id={`comment-${comment.commentId}`}
         $isReply={comment.depth > 0}
         $isFlattened={isFlattenedTree}
         $hasFlattenedChildren={shouldFlattenChildTree}
@@ -480,6 +522,7 @@ export function CommunityCommentBranch({
                     <CommunityCommentBranch
                       key={child.comment.commentId}
                       node={child}
+                      targetCommentId={targetCommentId}
                       onProfileImageError={onProfileImageError}
                       onReplySubmit={onReplySubmit}
                       onRepliesLoad={onRepliesLoad}
