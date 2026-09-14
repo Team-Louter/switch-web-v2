@@ -57,13 +57,6 @@ export const Identity = styled.div`
   align-items: center;
   gap: 15px;
 `;
-export const Avatar = styled.img`
-  width: 60px;
-  height: 60px;
-  border: 1px solid #e2e4e1;
-  border-radius: 50%;
-  object-fit: cover;
-`;
 export const AvatarFallback = styled.div`
   display: grid;
   width: 60px;
