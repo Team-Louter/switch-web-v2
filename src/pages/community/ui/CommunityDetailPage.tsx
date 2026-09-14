@@ -79,6 +79,7 @@ const markdownSanitizeSchema = {
 
 const COMMENT_SKELETON_ITEMS = [0, 1, 2];
 const FLOATING_CONFIRM_ANIMATION_MS = 180;
+const TARGET_COMMENT_SEARCH_CONCURRENCY = 4;
 
 function getTargetCommentId(hash: string): number | null {
   const match = /^#comment-(\d+)$/.exec(hash);
@@ -92,44 +93,81 @@ function getTargetCommentId(hash: string): number | null {
   return Number.isSafeInteger(commentId) ? commentId : null;
 }
 
+interface TargetCommentSearchNode {
+  parentCommentId: number;
+  rootCommentId: number;
+  path: CommentResponse[];
+}
+
+interface TargetCommentSearchResult {
+  rootCommentId: number;
+  commentPath: CommentResponse[];
+}
+
 async function findTargetCommentPath(
   postId: number,
-  parentCommentId: number,
+  rootComments: CommentResponse[],
   targetCommentId: number,
-  depth: number,
-  visitedCommentIds: Set<number>,
-): Promise<CommentResponse[] | null> {
-  if (visitedCommentIds.has(parentCommentId)) {
-    return null;
-  }
+): Promise<TargetCommentSearchResult | null> {
+  const pendingNodes: TargetCommentSearchNode[] = rootComments
+    .filter((comment) => comment.replyCount > 0)
+    .map((comment) => ({
+      parentCommentId: comment.commentId,
+      rootCommentId: comment.commentId,
+      path: [],
+    }));
+  const scheduledCommentIds = new Set(
+    pendingNodes.map((node) => node.parentCommentId),
+  );
 
-  visitedCommentIds.add(parentCommentId);
-
-  let replies: CommentResponse[];
-
-  try {
-    replies = await getCommentReplies(postId, parentCommentId);
-  } catch {
-    return null;
-  }
-
-  for (const reply of replies) {
-    const replyWithDepth = { ...reply, depth };
-
-    if (reply.commentId === targetCommentId) {
-      return [replyWithDepth];
-    }
-
-    const targetPath = await findTargetCommentPath(
-      postId,
-      reply.commentId,
-      targetCommentId,
-      depth + 1,
-      visitedCommentIds,
+  while (pendingNodes.length > 0) {
+    const currentNodes = pendingNodes.splice(
+      0,
+      TARGET_COMMENT_SEARCH_CONCURRENCY,
+    );
+    const responses = await Promise.all(
+      currentNodes.map(async (node) => {
+        try {
+          return {
+            node,
+            replies: await getCommentReplies(postId, node.parentCommentId),
+          };
+        } catch {
+          return null;
+        }
+      }),
     );
 
-    if (targetPath) {
-      return [replyWithDepth, ...targetPath];
+    for (const response of responses) {
+      if (!response) {
+        continue;
+      }
+
+      const depth = response.node.path.length + 1;
+
+      for (const reply of response.replies) {
+        const replyWithDepth = { ...reply, depth };
+        const commentPath = [...response.node.path, replyWithDepth];
+
+        if (reply.commentId === targetCommentId) {
+          return {
+            rootCommentId: response.node.rootCommentId,
+            commentPath,
+          };
+        }
+
+        if (
+          reply.replyCount > 0 &&
+          !scheduledCommentIds.has(reply.commentId)
+        ) {
+          scheduledCommentIds.add(reply.commentId);
+          pendingNodes.push({
+            parentCommentId: reply.commentId,
+            rootCommentId: response.node.rootCommentId,
+            path: commentPath,
+          });
+        }
+      }
     }
   }
 
@@ -908,59 +946,54 @@ export function CommunityDetailPage() {
       return;
     }
 
-    targetCommentSearchKeyRef.current = searchKey;
     let isCancelled = false;
 
     async function loadTargetCommentPath() {
       const rootComments = comments.filter((comment) => comment.depth === 0);
 
-      for (const rootComment of rootComments) {
-        const targetCommentPath = await findTargetCommentPath(
-          postId,
-          rootComment.commentId,
-          targetId,
-          1,
-          new Set(),
-        );
+      const targetCommentResult = await findTargetCommentPath(
+        postId,
+        rootComments,
+        targetId,
+      );
 
-        if (isCancelled) {
-          return;
-        }
-
-        if (!targetCommentPath) {
-          continue;
-        }
-
-        setComments((currentComments) =>
-          appendTargetCommentPath(
-            currentComments,
-            rootComment.commentId,
-            targetCommentPath,
-          ),
-        );
-        setLoadedReplyCommentIds((currentIds) => {
-          const nextIds = new Set(currentIds);
-          const loadedCommentIds = [
-            rootComment.commentId,
-            ...targetCommentPath
-              .slice(0, -1)
-              .map((comment) => comment.commentId),
-          ];
-
-          for (const commentId of loadedCommentIds) {
-            nextIds.add(commentId);
-          }
-
-          return nextIds;
-        });
+      if (isCancelled || !targetCommentResult) {
         return;
       }
+
+      targetCommentSearchKeyRef.current = searchKey;
+      setComments((currentComments) =>
+        appendTargetCommentPath(
+          currentComments,
+          targetCommentResult.rootCommentId,
+          targetCommentResult.commentPath,
+        ),
+      );
+      setLoadedReplyCommentIds((currentIds) => {
+        const nextIds = new Set(currentIds);
+        const loadedCommentIds = [
+          targetCommentResult.rootCommentId,
+          ...targetCommentResult.commentPath
+            .slice(0, -1)
+            .map((comment) => comment.commentId),
+        ];
+
+        for (const commentId of loadedCommentIds) {
+          nextIds.add(commentId);
+        }
+
+        return nextIds;
+      });
     }
 
     void loadTargetCommentPath();
 
     return () => {
       isCancelled = true;
+
+      if (targetCommentSearchKeyRef.current === searchKey) {
+        targetCommentSearchKeyRef.current = null;
+      }
     };
   }, [
     comments,

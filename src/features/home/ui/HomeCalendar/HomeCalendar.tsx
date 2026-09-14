@@ -38,6 +38,7 @@ export function HomeCalendar({
   const calendarContainerRef = useRef<HTMLDivElement>(null)
   const eventElementsRef = useRef<Map<string, HTMLElement>>(new Map())
   const autoOpenedScheduleIdRef = useRef<number | null>(null)
+  const hasInitializedCalendarRef = useRef(false)
   const [selected, setSelected] = useState<SelectedSchedule | null>(null)
   const [visibleDate, setVisibleDate] = useState(() => new Date())
   const events = loading
@@ -54,16 +55,15 @@ export function HomeCalendar({
       }
     })
 
-  useEffect(() => {
-    const close = () => setSelected(null)
-    window.addEventListener('resize', close)
-    return () => window.removeEventListener('resize', close)
-  }, [])
-
   const handleSelectedClose = useCallback(() => {
     setSelected(null)
     onScheduleDetailClose?.()
   }, [onScheduleDetailClose])
+
+  useEffect(() => {
+    window.addEventListener('resize', handleSelectedClose)
+    return () => window.removeEventListener('resize', handleSelectedClose)
+  }, [handleSelectedClose])
 
   const selectSchedule = useCallback((schedule: Schedule, element: HTMLElement) => {
     const rect = element.getBoundingClientRect()
@@ -169,7 +169,11 @@ export function HomeCalendar({
   ])
 
   function handleDatesSet({ view }: DatesSetArg) {
-    setSelected(null)
+    if (hasInitializedCalendarRef.current) {
+      handleSelectedClose()
+    }
+
+    hasInitializedCalendarRef.current = true
     setVisibleDate(view.currentStart)
   }
 
