@@ -154,6 +154,8 @@ function MemberRow({ member }: MemberRowProps) {
       profileNameColor?.valueText ??
       profileNameColor?.itemName,
   )
+  const profileTitle = member.equippedItems?.title
+  const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName
 
   return (
     <S.MemberRow>
@@ -176,7 +178,13 @@ function MemberRow({ member }: MemberRowProps) {
           {member.githubUrl && <a href={member.githubUrl} target="_blank" rel="noopener noreferrer" aria-label={`${member.userName} GitHub`}><FaGithub /></a>}
           {member.linkedinUrl && <a href={member.linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label={`${member.userName} LinkedIn`}><FaLinkedin /></a>}
         </S.SocialLinks>
-        <S.Generation>Louter {member.generation}기</S.Generation>
+        <S.Generation>
+          Louter {member.generation}기
+          {profileTitleText && (
+            <S.GenerationSeparator aria-hidden="true">·</S.GenerationSeparator>
+          )}
+          {profileTitleText}
+        </S.Generation>
       </S.MemberInfo>
     </S.MemberRow>
   )
