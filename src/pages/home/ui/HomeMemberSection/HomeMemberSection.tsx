@@ -126,7 +126,7 @@ export function HomeMemberSection() {
           </S.FilterButton>
         ))}
       </S.FilterList>
-      <S.MemberList $loaded={shouldLoad && !isLoading}>
+      <S.MemberList key={selectedGeneration} $loaded={shouldLoad && !isLoading}>
         {isLoading
           ? Array.from({ length: 5 }, (_, index) => <MemberSkeleton key={index} />)
           : shouldLoad && renderedMembers.map((member) => <MemberRow key={member.userId} member={member} />)}
