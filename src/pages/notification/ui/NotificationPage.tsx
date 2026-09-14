@@ -26,8 +26,8 @@ import notificationAvatar from '../assets/images/notification-avatar.png'
 import notificationCommentIcon from '../assets/svg/notification-comment.svg'
 import notificationModalCloseIcon from '../assets/svg/notification-modal-close.svg'
 import notificationMoreIcon from '../assets/svg/notification-more.svg'
-import notificationReadAllIcon from '../assets/svg/notification-read-all.svg'
 import notificationSettingsIcon from '../assets/svg/notification-settings.svg'
+import { NotificationReadAllIcon } from './icons/NotificationReadAllIcon'
 import {
   ActionError,
   Content,
@@ -594,7 +594,7 @@ export function NotificationPage() {
               }
               onClick={handleReadAll}
             >
-              <ReadAllIcon src={notificationReadAllIcon} alt="" />
+              <ReadAllIcon as={NotificationReadAllIcon} />
               모두 읽음
             </ReadAllButton>
             <SettingsButton

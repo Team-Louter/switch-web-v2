@@ -57,10 +57,10 @@ export const ReadAllButton = styled.button`
   }
 `
 
-export const ReadAllIcon = styled.img`
+export const ReadAllIcon = styled.svg`
   width: 18px;
   height: 18px;
-  object-fit: contain;
+  flex: 0 0 18px;
 `
 
 export const SettingsButton = styled.button`
