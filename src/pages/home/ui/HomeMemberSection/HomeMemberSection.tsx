@@ -148,7 +148,8 @@ function MemberRow({ member }: MemberRowProps) {
     : 'Developer'
   const profileNameColor = member.equippedItems?.nameColor
   const profileNameStyleKey = getNameStyleKey(
-    profileNameColor?.valueColor ??
+    profileNameColor?.styleKey ??
+      profileNameColor?.valueColor ??
       profileNameColor?.value_color ??
       profileNameColor?.valueText ??
       profileNameColor?.itemName,
