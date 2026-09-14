@@ -174,13 +174,11 @@ export function MenteeLearningPage() {
             ...previous,
             [key]: statuses,
           }))
-        }
-      } catch {
-        // 개별 월 조회 실패가 다른 월의 표시를 막지 않게 한다.
-      } finally {
-        if (isMountedRef.current) {
           setLoadedMonths((previous) => ({ ...previous, [key]: true }))
         }
+      } catch {
+        requestedHistoryMonthsRef.current.delete(month)
+        // 개별 월 조회 실패가 다른 월의 표시를 막지 않게 한다.
       }
     }
 

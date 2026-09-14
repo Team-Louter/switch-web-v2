@@ -292,13 +292,11 @@ export function MentorLearningPage() {
             ...previous,
             [id]: statuses,
           }))
-        }
-      } catch {
-        // 개별 주차 조회 실패가 다른 주차의 표시를 막지 않게 한다.
-      } finally {
-        if (isMountedRef.current) {
           setLoadedWeekIds((previous) => ({ ...previous, [id]: true }))
         }
+      } catch {
+        requestedHistoryIdsRef.current.delete(id)
+        // 개별 주차 조회 실패가 다른 주차의 표시를 막지 않게 한다.
       }
     }
 
