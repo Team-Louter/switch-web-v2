@@ -55,7 +55,7 @@ export function Sidebar({
   const [notificationCountDirection, setNotificationCountDirection] =
     useState<NotificationCountAnimationDirection>()
   const notificationCountLabel =
-    notificationCount >= 15 ? '15+' : String(notificationCount)
+    notificationCount >= 10 ? '10+' : String(notificationCount)
   const profileNameColor = profile?.equippedItems?.nameColor
   const profileTitle = profile?.equippedItems?.title
   const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName

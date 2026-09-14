@@ -4,19 +4,19 @@ import * as token from '@/shared/styles/values/token'
 
 export const Page = styled.main`
   ${token.flexColumn}
-  align-items: center;
+  align-items: flex-start;
+  justify-content: flex-start;
+  box-sizing: border-box;
   min-height: 100dvh;
-  padding: 40px 24px;
-
-  @media (max-width: 760px) {
-    padding: 28px 18px;
-  }
+  padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px)
+    clamp(20px, 2vw, 30px) 0;
+  background: ${token.colors.white};
 `
 
 export const Content = styled.div`
   ${token.flexColumnStart}
-  width: min(100%, 1000px);
-  gap: 32px;
+  width: 100%;
+  gap: 28px;
 
   @media (max-width: 760px) {
     gap: 24px;
@@ -39,6 +39,11 @@ export const HeaderActions = styled.div`
   gap: 16px;
 `
 
+export const SettingsAnchor = styled.div`
+  position: relative;
+  flex: 0 0 20px;
+`
+
 export const ReadAllButton = styled.button`
   ${token.flexLeft}
   gap: 4px;
@@ -57,10 +62,10 @@ export const ReadAllButton = styled.button`
   }
 `
 
-export const ReadAllIcon = styled.img`
+export const ReadAllIcon = styled.svg`
   width: 18px;
   height: 18px;
-  object-fit: contain;
+  flex: 0 0 18px;
 `
 
 export const SettingsButton = styled.button`
@@ -79,16 +84,44 @@ export const SettingsButton = styled.button`
   }
 `
 
-export const SettingsIcon = styled.img`
+export const SettingsIcon = styled.img<{ $isOpen: boolean }>`
   width: 20px;
   height: 20px;
   object-fit: contain;
+  transform: ${({ $isOpen }) => ($isOpen ? 'rotate(180deg)' : 'rotate(0deg)')};
+  transition: transform 240ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 `
 
-export const NotificationList = styled.div`
+const notificationListReveal = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`
+
+export const NotificationList = styled.div<{ $loaded: boolean }>`
   ${token.flexColumnStart}
   width: 100%;
   gap: 14px;
+
+  ${({ $loaded }) =>
+    $loaded &&
+    css`
+      animation: ${notificationListReveal} 360ms ease-out both;
+    `}
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 const newNotificationEntrance = keyframes`
@@ -159,8 +192,9 @@ export const InfiniteScrollTrigger = styled.div`
 export const SkeletonItem = styled.div`
   ${token.flexBetween}
   align-items: flex-start;
+  box-sizing: border-box;
   width: 100%;
-  padding: 14px 0;
+  padding: 14px 10px;
 `
 
 export const SkeletonMain = styled.div`

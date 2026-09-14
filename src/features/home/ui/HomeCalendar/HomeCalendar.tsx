@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import type { DatesSetArg } from '@fullcalendar/core'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { DatesSetArg, EventMountArg } from '@fullcalendar/core'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import koLocale from '@fullcalendar/core/locales/ko'
@@ -14,6 +14,14 @@ import { ScheduleDetailPopover } from './ScheduleDetailPopover'
 interface HomeCalendarProps {
   schedules: Schedule[]
   loading: boolean
+  selectedScheduleId?: number | null
+  onScheduleDetailClose?: () => void
+}
+
+interface SelectedSchedule {
+  schedule: Schedule
+  x: number
+  y: number
 }
 
 const COLORS: Record<ScheduleColor, string> = {
@@ -21,8 +29,17 @@ const COLORS: Record<ScheduleColor, string> = {
   LIGHTGREEN: 'lightgreen', LIGHTBLUE: 'lightblue',
 }
 
-export function HomeCalendar({ schedules, loading }: HomeCalendarProps) {
-  const [selected, setSelected] = useState<{ schedule: Schedule; x: number; y: number } | null>(null)
+export function HomeCalendar({
+  schedules,
+  loading,
+  selectedScheduleId = null,
+  onScheduleDetailClose,
+}: HomeCalendarProps) {
+  const calendarContainerRef = useRef<HTMLDivElement>(null)
+  const eventElementsRef = useRef<Map<string, HTMLElement>>(new Map())
+  const autoOpenedScheduleIdRef = useRef<number | null>(null)
+  const calendarStartDateRef = useRef<string | null>(null)
+  const [selected, setSelected] = useState<SelectedSchedule | null>(null)
   const [visibleDate, setVisibleDate] = useState(() => new Date())
   const events = loading
     ? getLoadingEvents(visibleDate)
@@ -38,19 +55,140 @@ export function HomeCalendar({ schedules, loading }: HomeCalendarProps) {
       }
     })
 
+  const handleSelectedClose = useCallback(() => {
+    setSelected(null)
+    onScheduleDetailClose?.()
+  }, [onScheduleDetailClose])
+
   useEffect(() => {
-    const close = () => setSelected(null)
-    window.addEventListener('resize', close)
-    return () => window.removeEventListener('resize', close)
+    window.addEventListener('resize', handleSelectedClose)
+    return () => window.removeEventListener('resize', handleSelectedClose)
+  }, [handleSelectedClose])
+
+  const selectSchedule = useCallback((schedule: Schedule, element: HTMLElement) => {
+    const rect = element.getBoundingClientRect()
+
+    setSelected({
+      schedule,
+      x: rect.right + 10 + window.scrollX,
+      y: rect.top + window.scrollY,
+    })
   }, [])
 
+  const openRequestedSchedule = useCallback(
+    (scheduleId: number, element: HTMLElement) => {
+      if (autoOpenedScheduleIdRef.current === scheduleId) {
+        return
+      }
+
+      const schedule = schedules.find((item) => item.scheduleId === scheduleId)
+
+      if (!schedule) {
+        return
+      }
+
+      autoOpenedScheduleIdRef.current = scheduleId
+      selectSchedule(schedule, element)
+    },
+    [schedules, selectSchedule],
+  )
+
+  const getFallbackPopoverPosition = useCallback(() => {
+    const rect = calendarContainerRef.current?.getBoundingClientRect()
+
+    if (!rect) {
+      return {
+        x: window.scrollX + window.innerWidth - 416,
+        y: window.scrollY + 8,
+      }
+    }
+
+    return {
+      x: rect.right - 410 + window.scrollX,
+      y: rect.top + 20 + window.scrollY,
+    }
+  }, [])
+
+  const handleEventDidMount = useCallback(
+    ({ event, el }: EventMountArg) => {
+      eventElementsRef.current.set(event.id, el)
+
+      if (
+        !loading &&
+        selectedScheduleId !== null &&
+        event.id === String(selectedScheduleId)
+      ) {
+        openRequestedSchedule(selectedScheduleId, el)
+      }
+    },
+    [loading, openRequestedSchedule, selectedScheduleId],
+  )
+
+  const handleEventWillUnmount = useCallback(({ event }: EventMountArg) => {
+    eventElementsRef.current.delete(event.id)
+  }, [])
+
+  useEffect(() => {
+    if (loading || selectedScheduleId === null) {
+      if (selectedScheduleId === null) {
+        autoOpenedScheduleIdRef.current = null
+      }
+
+      return
+    }
+
+    const schedule = schedules.find((item) => item.scheduleId === selectedScheduleId)
+
+    if (!schedule || autoOpenedScheduleIdRef.current === selectedScheduleId) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      const eventElement = eventElementsRef.current.get(String(selectedScheduleId))
+
+      if (eventElement) {
+        openRequestedSchedule(selectedScheduleId, eventElement)
+        return
+      }
+
+      // 현재 월에 없거나 더보기 영역에 숨겨진 일정도 알림에서 바로 확인할 수 있도록
+      // 홈 캘린더를 기준으로 상세 팝오버를 엽니다.
+      autoOpenedScheduleIdRef.current = selectedScheduleId
+      const position = getFallbackPopoverPosition()
+
+      setSelected({ schedule, ...position })
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [
+    getFallbackPopoverPosition,
+    loading,
+    openRequestedSchedule,
+    schedules,
+    selectedScheduleId,
+  ])
+
   function handleDatesSet({ view }: DatesSetArg) {
-    setSelected(null)
+    const calendarStartDate = view.currentStart.toISOString()
+    const hasChangedCalendarMonth =
+      calendarStartDateRef.current !== null &&
+      calendarStartDateRef.current !== calendarStartDate
+
+    if (hasChangedCalendarMonth) {
+      handleSelectedClose()
+    }
+
+    calendarStartDateRef.current = calendarStartDate
     setVisibleDate(view.currentStart)
   }
 
   return (
-    <S.CalendarWrapper $loading={loading} aria-label="월간 일정" aria-busy={loading}>
+    <S.CalendarWrapper
+      ref={calendarContainerRef}
+      $loading={loading}
+      aria-label="월간 일정"
+      aria-busy={loading}
+    >
       <FullCalendar
         plugins={[dayGridPlugin]}
         locale={koLocale}
@@ -64,6 +202,8 @@ export function HomeCalendar({ schedules, loading }: HomeCalendarProps) {
         height="100%"
         eventOrder="-duration,start"
         datesSet={handleDatesSet}
+        eventDidMount={handleEventDidMount}
+        eventWillUnmount={handleEventWillUnmount}
         eventContent={({ event }) => loading
           ? <S.EventSkeleton aria-label="일정 불러오는 중" />
           : <S.EventContentWrapper>
@@ -73,12 +213,24 @@ export function HomeCalendar({ schedules, loading }: HomeCalendarProps) {
         eventClick={({ event, el }) => {
           const schedule = schedules.find((item) => String(item.scheduleId) === event.id)
           if (!schedule) return
-          const rect = el.getBoundingClientRect()
-          setSelected({ schedule, x: rect.right + 10, y: rect.top })
+
+          if (selected?.schedule.scheduleId === schedule.scheduleId) {
+            handleSelectedClose()
+            return
+          }
+
+          autoOpenedScheduleIdRef.current = schedule.scheduleId
+          selectSchedule(schedule, el)
         }}
         moreLinkClick="popover"
       />
-      {selected && <ScheduleDetailPopover key={`${selected.schedule.scheduleId}-${selected.x}-${selected.y}`} {...selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <ScheduleDetailPopover
+          key={`${selected.schedule.scheduleId}-${selected.x}-${selected.y}`}
+          {...selected}
+          onClose={handleSelectedClose}
+        />
+      )}
     </S.CalendarWrapper>
   )
 }
