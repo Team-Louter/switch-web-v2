@@ -95,8 +95,8 @@ export const CloseButton = styled.button`
 `
 
 export const CloseIcon = styled.img`
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
 `
 
 export const SettingsGroup = styled.div`
