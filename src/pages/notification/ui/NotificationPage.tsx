@@ -371,12 +371,21 @@ export function NotificationPage() {
 
     const nextIsRead = !selectedNotification.isRead
 
+    if (
+      nextIsRead &&
+      readingNotificationIdsRef.current.has(notificationId)
+    ) {
+      setOpenMenuId(null)
+      return
+    }
+
     setIsNotificationMutating(true)
     setActionError(null)
     setOpenMenuId(null)
 
     try {
       if (nextIsRead) {
+        readingNotificationIdsRef.current.add(notificationId)
         await readNotification(notificationId)
       } else {
         await unreadNotification(notificationId)
@@ -402,6 +411,9 @@ export function NotificationPage() {
           : '알림을 읽지 않음 처리하지 못했습니다.',
       )
     } finally {
+      if (nextIsRead) {
+        readingNotificationIdsRef.current.delete(notificationId)
+      }
       setIsNotificationMutating(false)
     }
   }
