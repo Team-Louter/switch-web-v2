@@ -153,6 +153,14 @@ function MemberRow({ member }: MemberRowProps) {
       profileNameColor?.valueText ??
       profileNameColor?.itemName,
   )
+  const profileBorder = member.equippedItems?.border
+  const profileBorderImageUrl = profileBorder?.valueImageUrl ??
+    profileBorder?.imageUrl ??
+    profileBorder?.itemImageUrl ??
+    profileBorder?.originalImageUrl ??
+    profileBorder?.previewImageUrl ??
+    profileBorder?.thumbnailUrl
+  const hasCustomBorder = Boolean(profileBorderImageUrl?.trim())
   const profileTitle = member.equippedItems?.title
   const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName
   const profileTitleStyleKey = getNameStyleKey(
@@ -164,7 +172,7 @@ function MemberRow({ member }: MemberRowProps) {
       {member.profileImageUrl ? (
         <S.MemberProfileAvatar
           alt={`${member.userName} 프로필`}
-          $hasBorder={Boolean(member.equippedItems?.border)}
+          $hasBorder={hasCustomBorder}
           equippedItems={member.equippedItems}
           imageUrl={member.profileImageUrl}
           size={96}
