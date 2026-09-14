@@ -125,12 +125,16 @@ export function NotificationSettingsModal({
 
     function handlePointerDown(event: PointerEvent) {
       const settingsAnchor = settingsPopoverRef.current?.parentElement
-
-      if (
+      const isToggleButton =
+        event.target instanceof Element &&
+        event.target.closest('button[role="switch"]') !== null
+      const isInsidePopover =
         event.target instanceof Node &&
-        !settingsPopoverRef.current?.contains(event.target) &&
-        !settingsAnchor?.contains(event.target)
-      ) {
+        settingsPopoverRef.current?.contains(event.target)
+      const isInsideSettingsAnchor =
+        event.target instanceof Node && settingsAnchor?.contains(event.target)
+
+      if (!isToggleButton && (!isInsideSettingsAnchor || isInsidePopover)) {
         onClose()
       }
     }
