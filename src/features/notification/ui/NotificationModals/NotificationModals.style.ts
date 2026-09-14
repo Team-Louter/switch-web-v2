@@ -63,15 +63,12 @@ export const DeleteActionButton = styled.button<{ $danger?: boolean }>`
   }
 `
 
-export const SettingsDialog = styled.div`
+export const SettingsContent = styled.div`
   ${token.flexColumnStart}
-  width: min(424px, 100%);
-  max-height: calc(100dvh - 48px);
-  gap: 40px;
-  padding: 30px;
+  max-height: calc(100dvh - 40px);
+  gap: 16px;
+  width: 100%;
   overflow-y: auto;
-  border-radius: ${token.shapes.large};
-  background: ${token.colors.white};
 `
 
 export const SettingsHeader = styled.header`
@@ -80,9 +77,9 @@ export const SettingsHeader = styled.header`
 `
 
 export const SettingsTitle = styled.h2`
-  color: ${token.colors.gray.gray80};
+  color: ${token.colors.gray.gray100};
   line-height: normal;
-  ${token.typography('heading', 'md', 'medium')}
+  ${token.typography('body', 'md', 'semibold')}
 `
 
 export const CloseButton = styled.button`
@@ -105,19 +102,25 @@ export const CloseIcon = styled.img`
 export const SettingsGroup = styled.div`
   ${token.flexColumnStart}
   width: 100%;
-  gap: 20px;
+  gap: 12px;
+
+  & + & {
+    padding-top: 16px;
+    border-top: 1px solid ${token.colors.gray.gray0};
+  }
 `
 
 export const SettingRow = styled.div`
   ${token.flexBetween}
+  gap: 16px;
   width: 100%;
-  min-height: 25px;
+  min-height: 24px;
 `
 
 export const SettingLabel = styled.span`
-  color: ${token.colors.primary.primary90};
+  color: ${token.colors.gray.gray100};
   line-height: normal;
-  ${token.typography('body', 'lg', 'medium')}
+  ${token.typography('body', 'sm', 'semibold')}
 `
 
 export const SettingsError = styled.p`
@@ -129,9 +132,9 @@ export const SettingsError = styled.p`
 
 export const ToggleButton = styled.button<{ $enabled: boolean }>`
   position: relative;
-  flex: 0 0 48px;
-  width: 48px;
-  height: 25px;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 24px;
   border-radius: ${token.shapes.circle};
   background: ${({ $enabled }) =>
     $enabled ? token.colors.primary.primary50 : token.colors.gray.gray20};
@@ -155,9 +158,9 @@ export const ToggleButton = styled.button<{ $enabled: boolean }>`
 export const ToggleThumb = styled.span<{ $enabled: boolean }>`
   position: absolute;
   top: 2px;
-  left: ${({ $enabled }) => ($enabled ? '25px' : '2px')};
-  width: 21px;
-  height: 21px;
+  left: ${({ $enabled }) => ($enabled ? '22px' : '2px')};
+  width: 20px;
+  height: 20px;
   border-radius: ${token.shapes.circle};
   background: ${token.colors.white};
   transition: left 160ms ease;

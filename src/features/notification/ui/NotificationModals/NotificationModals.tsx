@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react'
 import type { MouseEvent } from 'react'
 
+import { Modal } from '@/shared/ui'
+
 import type {
   NotificationSettingKey,
   NotificationSettings,
@@ -116,14 +118,8 @@ export function NotificationSettingsModal({
 }: NotificationSettingsModalProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null)
 
-  function handleOverlayClick(event: MouseEvent<HTMLDivElement>) {
-    if (event.target === event.currentTarget) {
-      onClose()
-    }
-  }
-
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow
+    const previouslyFocusedElement = document.activeElement as HTMLElement | null
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -131,28 +127,25 @@ export function NotificationSettingsModal({
       }
     }
 
-    document.body.style.overflow = 'hidden'
     window.addEventListener('keydown', handleKeyDown)
     closeButtonRef.current?.focus()
 
     return () => {
-      document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', handleKeyDown)
+      previouslyFocusedElement?.focus()
     }
   }, [onClose])
 
   return (
-    <S.Overlay onClick={handleOverlayClick}>
-      <S.SettingsDialog
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="notification-settings-title"
-        aria-busy={isUpdating}
-      >
+    <Modal
+      label="알림 설정"
+      width={300}
+      placement="bottom-right"
+      onClose={onClose}
+    >
+      <S.SettingsContent aria-busy={isUpdating}>
         <S.SettingsHeader>
-          <S.SettingsTitle id="notification-settings-title">
-            알림 설정
-          </S.SettingsTitle>
+          <S.SettingsTitle>알림 설정</S.SettingsTitle>
           <S.CloseButton
             ref={closeButtonRef}
             type="button"
@@ -191,7 +184,7 @@ export function NotificationSettingsModal({
         {errorMessage && (
           <S.SettingsError role="alert">{errorMessage}</S.SettingsError>
         )}
-      </S.SettingsDialog>
-    </S.Overlay>
+      </S.SettingsContent>
+    </Modal>
   )
 }
