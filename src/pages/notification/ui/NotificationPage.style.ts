@@ -4,19 +4,19 @@ import * as token from '@/shared/styles/values/token'
 
 export const Page = styled.main`
   ${token.flexColumn}
-  align-items: center;
+  align-items: flex-start;
+  justify-content: flex-start;
+  box-sizing: border-box;
   min-height: 100dvh;
-  padding: 40px 24px;
-
-  @media (max-width: 760px) {
-    padding: 28px 18px;
-  }
+  padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px)
+    clamp(20px, 2vw, 30px) 0;
+  background: ${token.colors.white};
 `
 
 export const Content = styled.div`
   ${token.flexColumnStart}
-  width: min(100%, 1000px);
-  gap: 32px;
+  width: 100%;
+  gap: 28px;
 
   @media (max-width: 760px) {
     gap: 24px;
