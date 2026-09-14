@@ -6,9 +6,11 @@ export const Item = styled.article<{ $isClickable: boolean }>`
   ${token.flexBetween}
   position: relative;
   align-items: flex-start;
+  box-sizing: border-box;
   width: 100%;
-  padding: 14px 0;
+  padding: 14px 10px;
   border-radius: ${token.shapes.medium};
+  transition: background-color 120ms ease;
 
   ${({ $isClickable }) =>
     $isClickable &&
@@ -165,7 +167,7 @@ export const ContextMenu = styled.div`
   position: absolute;
   z-index: 10;
   top: 40px;
-  right: 0;
+  right: 10px;
   width: 181px;
   padding: 8px;
   overflow: hidden;

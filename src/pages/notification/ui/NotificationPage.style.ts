@@ -192,8 +192,9 @@ export const InfiniteScrollTrigger = styled.div`
 export const SkeletonItem = styled.div`
   ${token.flexBetween}
   align-items: flex-start;
+  box-sizing: border-box;
   width: 100%;
-  padding: 14px 0;
+  padding: 14px 10px;
 `
 
 export const SkeletonMain = styled.div`
