@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type SetStateAction,
+} from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
@@ -83,14 +89,25 @@ export function AppLayout() {
     }
   }
 
-  const updateNotificationCount = useCallback((count: number) => {
-    const normalizedCount = Number.isFinite(count)
-      ? Math.max(0, Math.floor(count))
-      : 0
+  const updateNotificationCount = useCallback(
+    (nextCount: SetStateAction<number>) => {
+      setNotificationCount((currentCount) => {
+        const resolvedCount =
+          typeof nextCount === 'function'
+            ? nextCount(currentCount)
+            : nextCount
 
-    setNotificationCount(normalizedCount)
-    saveUnreadNotificationCount(normalizedCount)
-  }, [])
+        return Number.isFinite(resolvedCount)
+          ? Math.max(0, Math.floor(resolvedCount))
+          : 0
+      })
+    },
+    [],
+  )
+
+  useEffect(() => {
+    saveUnreadNotificationCount(notificationCount)
+  }, [notificationCount])
 
   useEffect(() => {
     let isCancelled = false

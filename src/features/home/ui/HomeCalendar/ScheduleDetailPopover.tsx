@@ -12,11 +12,18 @@ interface ScheduleDetailPopoverProps {
 
 export function ScheduleDetailPopover({ schedule, x, y, onClose }: ScheduleDetailPopoverProps) {
   const card = useRef<HTMLDivElement>(null)
-  const [position, setPosition] = useState({ x: Math.max(8, Math.min(x, window.innerWidth - 416)), y: Math.max(8, Math.min(y, window.innerHeight - 300)) })
+  const [position, setPosition] = useState(() => clampPosition(x, y))
   const drag = useRef<{ x: number; y: number } | null>(null)
 
   useEffect(() => {
     const outside = (event: MouseEvent) => {
+      if (
+        event.target instanceof Element &&
+        event.target.closest('.fc-event')
+      ) {
+        return
+      }
+
       if (event.target instanceof Node && !card.current?.contains(event.target)) onClose()
     }
     const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose() }
@@ -32,10 +39,20 @@ export function ScheduleDetailPopover({ schedule, x, y, onClose }: ScheduleDetai
     <Card ref={card} role="dialog" aria-label="일정 상세" style={{ left: position.x, top: position.y }}
       onPointerDown={(event) => {
         if (event.target instanceof HTMLButtonElement) return
-        drag.current = { x: event.clientX - position.x, y: event.clientY - position.y }
+        drag.current = {
+          x: event.clientX + window.scrollX - position.x,
+          y: event.clientY + window.scrollY - position.y,
+        }
         event.currentTarget.setPointerCapture(event.pointerId)
       }}
-      onPointerMove={(event) => { if (drag.current) setPosition({ x: event.clientX - drag.current.x, y: event.clientY - drag.current.y }) }}
+      onPointerMove={(event) => {
+        if (drag.current) {
+          setPosition({
+            x: event.clientX + window.scrollX - drag.current.x,
+            y: event.clientY + window.scrollY - drag.current.y,
+          })
+        }
+      }}
       onPointerUp={() => { drag.current = null }}
       onPointerCancel={() => { drag.current = null }}>
       <Row><Label>제목</Label><Value>{schedule.title}</Value></Row>
@@ -47,7 +64,7 @@ export function ScheduleDetailPopover({ schedule, x, y, onClose }: ScheduleDetai
 }
 
 const Card = styled.div`
-  position: fixed;
+  position: absolute;
   background: white;
   border-radius: 8px;
   padding: 24px;
@@ -62,6 +79,18 @@ const Card = styled.div`
 const Row = styled.div`display: flex; margin-bottom: 10px; &:last-child { margin-bottom: 0; }`
 const Label = styled.div`font-size: .8125rem; font-weight: 600; color: #333; min-width: 100px; flex-shrink: 0;`
 const Value = styled.div`font-size: .8125rem; font-weight: 500; color: #2a2b2b; line-height: 1.5; flex: 1; white-space: pre-wrap; overflow-wrap: anywhere;`
+
+function clampPosition(x: number, y: number) {
+  const minX = window.scrollX + 8
+  const minY = window.scrollY + 8
+  const maxX = window.scrollX + window.innerWidth - 416
+  const maxY = window.scrollY + window.innerHeight - 300
+
+  return {
+    x: Math.max(minX, Math.min(x, maxX)),
+    y: Math.max(minY, Math.min(y, maxY)),
+  }
+}
 
 function formatAssignees(schedule: Schedule) {
   const names = schedule.users.map((user) => user.userName)
