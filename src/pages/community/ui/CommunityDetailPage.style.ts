@@ -1066,15 +1066,35 @@ export const CommentSkeletonItem = styled.div`
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr);
   gap: 12px;
+  box-sizing: border-box;
   width: 100%;
   padding: 16px;
   border-radius: ${token.shapes.medium};
   background: ${token.colors.white};
+
+  @container community-detail (max-width: 430px) {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 8px;
+    padding: 12px;
+  }
+`;
+
+export const CommentSkeletonAvatar = styled(SkeletonBlock)`
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: ${token.shapes.circle};
+
+  @container community-detail (max-width: 430px) {
+    flex-basis: 28px;
+    width: 28px;
+    height: 28px;
+  }
 `;
 
 export const CommentSkeletonContent = styled.div`
   ${token.flexColumn}
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
 `;
 
@@ -1082,6 +1102,13 @@ export const CommentSkeletonMeta = styled.div`
   ${token.flexLeft}
   gap: 8px;
   width: 100%;
+  min-height: 32px;
+`;
+
+export const CommentSkeletonAction = styled(SkeletonBlock)`
+  width: 72px;
+  height: 14px;
+  margin: 4px 0;
 `;
 
 export const CommentStatus = styled.p`

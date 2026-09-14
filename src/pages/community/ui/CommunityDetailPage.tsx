@@ -1308,7 +1308,7 @@ export function CommunityDetailPage() {
                   >
                     {COMMENT_SKELETON_ITEMS.map((item) => (
                       <S.CommentSkeletonItem key={item} aria-hidden="true">
-                        <S.SkeletonBlock $width="32px" $height={32} />
+                        <S.CommentSkeletonAvatar $height={32} />
                         <S.CommentSkeletonContent>
                           <S.CommentSkeletonMeta>
                             <S.SkeletonBlock $width="112px" $height={16} />
@@ -1316,6 +1316,7 @@ export function CommunityDetailPage() {
                           </S.CommentSkeletonMeta>
                           <S.SkeletonBlock $width="68%" $height={18} />
                           <S.SkeletonBlock $width="44%" $height={18} />
+                          <S.CommentSkeletonAction $height={14} />
                         </S.CommentSkeletonContent>
                       </S.CommentSkeletonItem>
                     ))}
