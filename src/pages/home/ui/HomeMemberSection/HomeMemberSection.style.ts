@@ -1,5 +1,7 @@
 import styled, { css, keyframes } from 'styled-components'
 
+import { ProfileAvatar } from '@/shared/ui'
+
 const shimmer = keyframes`
   from { background-position: 100% 0; }
   to { background-position: -100% 0; }
@@ -79,23 +81,28 @@ export const MemberRow = styled.article`
   border-bottom: 2px solid #eee;
 `
 
-export const MemberImage = styled.img`
-  width: 144px;
-  height: 96px;
-  flex: 0 0 auto;
-  border: 1px solid #d6d6d6;
-  border-radius: 10px;
-  object-fit: cover;
+export const MemberProfileAvatar = styled(ProfileAvatar)<{ $hasBorder: boolean }>`
+  ${({ $hasBorder }) => !$hasBorder && css`
+    &::after {
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      border: 1px solid #d6d6d6;
+      border-radius: 50%;
+      content: '';
+      pointer-events: none;
+    }
+  `}
 `
 
 export const MemberAvatarFallback = styled.div`
   display: grid;
-  width: 144px;
+  width: 96px;
   height: 96px;
   flex: 0 0 auto;
   place-items: center;
   border: 1px solid #d6d6d6;
-  border-radius: 10px;
+  border-radius: 50%;
   background: #f3f4f6;
   color: #8b95a1;
   font-size: 2rem;
@@ -141,6 +148,16 @@ export const Generation = styled.span`
   font-weight: 500;
 `
 
+export const GenerationSeparator = styled.span`
+  margin: 0 6px;
+  color: #c2c8cf;
+`
+
+export const GenerationTitle = styled.span`
+  color: #ffa20a;
+  font-weight: 600;
+`
+
 const SkeletonSurface = styled.div`
   background: linear-gradient(90deg, #edf0f3 25%, #f7f8f9 37%, #edf0f3 63%);
   background-size: 400% 100%;
@@ -156,10 +173,10 @@ export const MemberSkeletonRow = styled.article`
 `
 
 export const MemberImageSkeleton = styled(SkeletonSurface)`
-  width: 144px;
+  width: 96px;
   height: 96px;
   flex: 0 0 auto;
-  border-radius: 10px;
+  border-radius: 50%;
 `
 
 export const MemberSkeletonInfo = styled.div`

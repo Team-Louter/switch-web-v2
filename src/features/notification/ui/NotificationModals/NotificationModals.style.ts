@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
@@ -63,15 +63,44 @@ export const DeleteActionButton = styled.button<{ $danger?: boolean }>`
   }
 `
 
-export const SettingsDialog = styled.div`
+export const SettingsContent = styled.div`
   ${token.flexColumnStart}
-  width: min(424px, 100%);
-  max-height: calc(100dvh - 48px);
-  gap: 40px;
-  padding: 30px;
+  max-height: calc(100dvh - 40px);
+  gap: 16px;
+  width: 100%;
   overflow-y: auto;
-  border-radius: ${token.shapes.large};
+`
+
+const settingsPopoverEnter = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+`
+
+export const SettingsPopover = styled.div`
+  position: absolute;
+  z-index: 200;
+  top: calc(100% + 10px);
+  right: 0;
+  box-sizing: border-box;
+  width: min(300px, calc(100vw - 40px));
+  padding: 20px;
+  border: 1px solid ${token.colors.gray.gray0};
+  border-radius: 20px;
   background: ${token.colors.white};
+  box-shadow: 0 4px 20px rgb(0 0 0 / 6%);
+  transform-origin: top right;
+  animation: ${settingsPopoverEnter} 180ms ease both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 export const SettingsHeader = styled.header`
@@ -80,44 +109,33 @@ export const SettingsHeader = styled.header`
 `
 
 export const SettingsTitle = styled.h2`
-  color: ${token.colors.gray.gray80};
+  color: ${token.colors.gray.gray100};
   line-height: normal;
-  ${token.typography('heading', 'md', 'medium')}
-`
-
-export const CloseButton = styled.button`
-  ${token.flexCenter}
-  width: 20px;
-  height: 20px;
-  border-radius: ${token.shapes.xsmall};
-
-  &:focus-visible {
-    outline: 2px solid ${token.colors.primary.primary40};
-    outline-offset: 3px;
-  }
-`
-
-export const CloseIcon = styled.img`
-  width: 20px;
-  height: 20px;
+  ${token.typography('body', 'md', 'semibold')}
 `
 
 export const SettingsGroup = styled.div`
   ${token.flexColumnStart}
   width: 100%;
-  gap: 20px;
+  gap: 12px;
+
+  & + & {
+    padding-top: 16px;
+    border-top: 1px solid ${token.colors.gray.gray0};
+  }
 `
 
 export const SettingRow = styled.div`
   ${token.flexBetween}
+  gap: 16px;
   width: 100%;
-  min-height: 25px;
+  min-height: 24px;
 `
 
 export const SettingLabel = styled.span`
-  color: ${token.colors.primary.primary90};
+  color: ${token.colors.gray.gray100};
   line-height: normal;
-  ${token.typography('body', 'lg', 'medium')}
+  ${token.typography('body', 'sm', 'semibold')}
 `
 
 export const SettingsError = styled.p`
@@ -129,9 +147,9 @@ export const SettingsError = styled.p`
 
 export const ToggleButton = styled.button<{ $enabled: boolean }>`
   position: relative;
-  flex: 0 0 48px;
-  width: 48px;
-  height: 25px;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 24px;
   border-radius: ${token.shapes.circle};
   background: ${({ $enabled }) =>
     $enabled ? token.colors.primary.primary50 : token.colors.gray.gray20};
@@ -155,9 +173,9 @@ export const ToggleButton = styled.button<{ $enabled: boolean }>`
 export const ToggleThumb = styled.span<{ $enabled: boolean }>`
   position: absolute;
   top: 2px;
-  left: ${({ $enabled }) => ($enabled ? '25px' : '2px')};
-  width: 21px;
-  height: 21px;
+  left: ${({ $enabled }) => ($enabled ? '22px' : '2px')};
+  width: 20px;
+  height: 20px;
   border-radius: ${token.shapes.circle};
   background: ${token.colors.white};
   transition: left 160ms ease;

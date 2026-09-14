@@ -1,14 +1,31 @@
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
-export const Item = styled.article`
+export const Item = styled.article<{ $isClickable: boolean }>`
   ${token.flexBetween}
   position: relative;
   align-items: flex-start;
+  box-sizing: border-box;
   width: 100%;
-  padding: 14px 0;
+  padding: 14px 10px;
   border-radius: ${token.shapes.medium};
+  transition: background-color 120ms ease;
+
+  ${({ $isClickable }) =>
+    $isClickable &&
+    css`
+      cursor: pointer;
+
+      &:hover {
+        background: ${token.colors.gray.gray0};
+      }
+
+      &:focus-visible {
+        outline: 2px solid ${token.colors.primary.primary40};
+        outline-offset: 3px;
+      }
+    `}
 
   @media (max-width: 760px) {
     gap: 12px;
@@ -126,21 +143,44 @@ export const OccurredAt = styled.time`
 
 export const MoreButton = styled.button`
   ${token.flexCenter}
+  position: relative;
   width: 14px;
   height: 15px;
   border-radius: ${token.shapes.xsmall};
 
-  &:hover {
+  &::before {
+    position: absolute;
+    inset: -8px;
+    z-index: 0;
+    border-radius: ${token.shapes.small};
+    content: '';
+  }
+
+  &:hover::before,
+  &:active::before {
     background: ${token.colors.gray.gray0};
   }
 
   &:focus-visible {
+    outline: none;
+  }
+
+  &:focus-visible::before {
     outline: 2px solid ${token.colors.primary.primary40};
     outline-offset: 3px;
   }
 `
 
+export const MoreButtonWrap = styled.div`
+  position: relative;
+  flex: 0 0 14px;
+  width: 14px;
+  height: 15px;
+`
+
 export const MoreIcon = styled.img`
+  position: relative;
+  z-index: 1;
   width: 3.5px;
   height: 15px;
 `
@@ -149,7 +189,7 @@ export const ContextMenu = styled.div`
   ${token.flexColumnStart}
   position: absolute;
   z-index: 10;
-  top: 40px;
+  top: calc(100% + 8px);
   right: 0;
   width: 181px;
   padding: 8px;
@@ -158,6 +198,11 @@ export const ContextMenu = styled.div`
   border-radius: ${token.shapes.xsmall};
   background: ${token.colors.white};
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+
+  &[data-placement='top'] {
+    top: auto;
+    bottom: calc(100% + 8px);
+  }
 `
 
 export const MenuActionButton = styled.button`

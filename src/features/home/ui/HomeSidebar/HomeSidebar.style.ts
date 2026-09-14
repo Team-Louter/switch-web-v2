@@ -1,4 +1,6 @@
-import styled, { keyframes } from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
+
+import { ProfileAvatar } from '@/shared/ui';
 
 const shimmer = keyframes`
   from { background-position: 100% 0; }
@@ -57,12 +59,18 @@ export const Identity = styled.div`
   align-items: center;
   gap: 15px;
 `;
-export const Avatar = styled.img`
-  width: 60px;
-  height: 60px;
-  border: 1px solid #e2e4e1;
-  border-radius: 50%;
-  object-fit: cover;
+export const SidebarProfileAvatar = styled(ProfileAvatar)<{ $hasBorder: boolean }>`
+  ${({ $hasBorder }) => !$hasBorder && css`
+    &::after {
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      border: 1px solid #d6d6d6;
+      border-radius: 50%;
+      content: '';
+      pointer-events: none;
+    }
+  `}
 `;
 export const AvatarFallback = styled.div`
   display: grid;
@@ -101,7 +109,19 @@ export const ProfileClassSkeleton = styled(SkeletonSurface)`
   height: 14px;
   border-radius: 4px;
 `;
+export const ProfileTitle = styled.p`
+  max-width: 100%;
+  margin: 0;
+  overflow: hidden;
+  color: #ffa20a;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
 export const Name = styled.h3`
+  margin: 0;
   font-size: 20px;
   font-weight: 700;
   color: #333;

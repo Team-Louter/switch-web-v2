@@ -1,6 +1,7 @@
 import {
   type KeyboardEvent,
   type SyntheticEvent,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -30,6 +31,7 @@ interface ReplyLoadingSkeletonProps {
 
 interface CommunityCommentBranchProps {
   node: CommentTreeNode;
+  targetCommentId: number | null;
   onProfileImageError: (event: SyntheticEvent<HTMLImageElement>) => void;
   onReplySubmit: CommunityReplySubmitHandler;
   onRepliesLoad: CommunityReplyLoadHandler;
@@ -62,8 +64,20 @@ function ReplyLoadingSkeleton({
   );
 }
 
+function hasTargetDescendant(
+  node: CommentTreeNode,
+  targetCommentId: number,
+): boolean {
+  return node.children.some(
+    (child) =>
+      child.comment.commentId === targetCommentId ||
+      hasTargetDescendant(child, targetCommentId),
+  );
+}
+
 export function CommunityCommentBranch({
   node,
+  targetCommentId,
   onProfileImageError,
   onReplySubmit,
   onRepliesLoad,
@@ -94,6 +108,9 @@ export function CommunityCommentBranch({
   const [editedCommentContent, setEditedCommentContent] = useState('');
   const [isCommentMutating, setIsCommentMutating] = useState(false);
   const commentMenuRef = useRef<HTMLDivElement>(null);
+  const [dismissedTargetCommentId, setDismissedTargetCommentId] = useState<
+    number | null
+  >(null);
 
   const loadedReplyCount = node.children.length;
   const totalReplyCount = Math.max(0, comment.replyCount);
@@ -108,12 +125,17 @@ export function CommunityCommentBranch({
     loadedReplyCount === 0;
   const hasCollapseControl =
     !isExpandedByAncestor || comment.depth === FLATTENED_TREE_DEPTH;
+  const shouldExpandToTarget =
+    targetCommentId !== null &&
+    targetCommentId !== dismissedTargetCommentId &&
+    hasTargetDescendant(node, targetCommentId);
+  const isRepliesVisible = isRepliesOpen || shouldExpandToTarget;
   const shouldShowReplies =
-    hasReplies && (!hasCollapseControl || isRepliesOpen);
+    hasReplies && (!hasCollapseControl || isRepliesVisible);
   const shouldFlattenChildTree = comment.depth > FLATTENED_TREE_DEPTH;
   const isFlattenedTree = comment.depth > FLATTENED_TREE_DEPTH;
   const hasCommonConnector = comment.depth === FLATTENED_TREE_DEPTH;
-  const repliesToggleLabel = isRepliesOpen
+  const repliesToggleLabel = isRepliesVisible
     ? '답글 숨기기'
     : comment.depth >= FLATTENED_TREE_DEPTH
       ? '답글 더보기'
@@ -162,7 +184,7 @@ export function CommunityCommentBranch({
     setIsReplySubmitting(false);
   };
 
-  const handleRepliesLoad = async () => {
+  const handleRepliesLoad = useCallback(async () => {
     if (isRepliesLoading) {
       return;
     }
@@ -178,7 +200,7 @@ export function CommunityCommentBranch({
       setIsRepliesOpen(true);
     }
     setIsRepliesLoading(false);
-  };
+  }, [comment.commentId, isRepliesLoading, onRepliesLoad]);
 
   const handleReplyKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
@@ -271,11 +293,12 @@ export function CommunityCommentBranch({
       $isFlattened={isFlattenedTree}
     >
       <S.CommentRow
+        id={`comment-${comment.commentId}`}
         $isReply={comment.depth > 0}
         $isFlattened={isFlattenedTree}
         $hasFlattenedChildren={shouldFlattenChildTree}
       >
-        <S.CommentItem>
+        <S.CommentItem $isTarget={comment.commentId === targetCommentId}>
           <S.CommentAuthorImage
             src={
               resolveCommunityAssetUrl(comment.userProfileImageUrl) ??
@@ -480,6 +503,7 @@ export function CommunityCommentBranch({
                     <CommunityCommentBranch
                       key={child.comment.commentId}
                       node={child}
+                      targetCommentId={targetCommentId}
                       onProfileImageError={onProfileImageError}
                       onReplySubmit={onReplySubmit}
                       onRepliesLoad={onRepliesLoad}
@@ -503,12 +527,23 @@ export function CommunityCommentBranch({
                   <S.RepliesToggleRow $isWithinReplies>
                     <S.RepliesToggle
                       type="button"
-                      aria-expanded={isRepliesOpen}
-                      onClick={() => setIsRepliesOpen((isOpen) => !isOpen)}
+                      aria-expanded={isRepliesVisible}
+                      onClick={() => {
+                        if (
+                          shouldExpandToTarget &&
+                          targetCommentId !== null
+                        ) {
+                          setDismissedTargetCommentId(targetCommentId);
+                          setIsRepliesOpen(false);
+                          return;
+                        }
+
+                        setIsRepliesOpen((isOpen) => !isOpen);
+                      }}
                     >
                       {repliesToggleLabel}
                       <S.RepliesCaret
-                        $isOpen={isRepliesOpen}
+                        $isOpen={isRepliesVisible}
                         aria-hidden="true"
                       />
                     </S.RepliesToggle>
@@ -517,7 +552,7 @@ export function CommunityCommentBranch({
               </S.CommentChildren>
             )}
           {hasCollapseControl &&
-            !isRepliesOpen &&
+            !isRepliesVisible &&
             !requiresInitialReplyLoad && (
               <S.RepliesToggleRow $isWithinReplies={shouldFlattenChildTree}>
                 <S.RepliesToggle

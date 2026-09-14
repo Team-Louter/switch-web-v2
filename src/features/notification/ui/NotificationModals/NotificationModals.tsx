@@ -98,7 +98,6 @@ export function DeleteNotificationModal({
 }
 
 interface NotificationSettingsModalProps {
-  closeIconUrl: string
   settings: NotificationSettings
   errorMessage?: string
   isUpdating?: boolean
@@ -107,23 +106,16 @@ interface NotificationSettingsModalProps {
 }
 
 export function NotificationSettingsModal({
-  closeIconUrl,
   settings,
   errorMessage,
   isUpdating = false,
   onClose,
   onToggle,
 }: NotificationSettingsModalProps) {
-  const closeButtonRef = useRef<HTMLButtonElement>(null)
-
-  function handleOverlayClick(event: MouseEvent<HTMLDivElement>) {
-    if (event.target === event.currentTarget) {
-      onClose()
-    }
-  }
+  const settingsPopoverRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow
+    const previouslyFocusedElement = document.activeElement as HTMLElement | null
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -131,36 +123,44 @@ export function NotificationSettingsModal({
       }
     }
 
-    document.body.style.overflow = 'hidden'
+    function handlePointerDown(event: PointerEvent) {
+      const settingsAnchor = settingsPopoverRef.current?.parentElement
+      const isToggleButton =
+        event.target instanceof Element &&
+        event.target.closest('button[role="switch"]') !== null
+      const isInsidePopover =
+        event.target instanceof Node &&
+        settingsPopoverRef.current?.contains(event.target)
+      const isInsideSettingsAnchor =
+        event.target instanceof Node && settingsAnchor?.contains(event.target)
+
+      if (!isToggleButton && (!isInsideSettingsAnchor || isInsidePopover)) {
+        onClose()
+      }
+    }
+
     window.addEventListener('keydown', handleKeyDown)
-    closeButtonRef.current?.focus()
+    document.addEventListener('pointerdown', handlePointerDown)
+    settingsPopoverRef.current?.focus()
 
     return () => {
-      document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('pointerdown', handlePointerDown)
+      previouslyFocusedElement?.focus()
     }
   }, [onClose])
 
   return (
-    <S.Overlay onClick={handleOverlayClick}>
-      <S.SettingsDialog
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="notification-settings-title"
-        aria-busy={isUpdating}
-      >
+    <S.SettingsPopover
+      ref={settingsPopoverRef}
+      role="dialog"
+      aria-label="알림 설정"
+      aria-busy={isUpdating}
+      tabIndex={-1}
+    >
+      <S.SettingsContent>
         <S.SettingsHeader>
-          <S.SettingsTitle id="notification-settings-title">
-            알림 설정
-          </S.SettingsTitle>
-          <S.CloseButton
-            ref={closeButtonRef}
-            type="button"
-            aria-label="알림 설정 닫기"
-            onClick={onClose}
-          >
-            <S.CloseIcon src={closeIconUrl} alt="" />
-          </S.CloseButton>
+          <S.SettingsTitle>알림 설정</S.SettingsTitle>
         </S.SettingsHeader>
 
         {NOTIFICATION_SETTING_GROUPS.map((group, groupIndex) => (
@@ -191,7 +191,7 @@ export function NotificationSettingsModal({
         {errorMessage && (
           <S.SettingsError role="alert">{errorMessage}</S.SettingsError>
         )}
-      </S.SettingsDialog>
-    </S.Overlay>
+      </S.SettingsContent>
+    </S.SettingsPopover>
   )
 }

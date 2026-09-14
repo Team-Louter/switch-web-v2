@@ -8,7 +8,7 @@ import {
 } from 'react';
 import { isAxiosError } from 'axios';
 import ReactMarkdown from 'react-markdown';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import remarkGfm from 'remark-gfm';
@@ -79,6 +79,118 @@ const markdownSanitizeSchema = {
 
 const COMMENT_SKELETON_ITEMS = [0, 1, 2];
 const FLOATING_CONFIRM_ANIMATION_MS = 180;
+const TARGET_COMMENT_SEARCH_CONCURRENCY = 4;
+
+function getTargetCommentId(hash: string): number | null {
+  const match = /^#comment-(\d+)$/.exec(hash);
+
+  if (!match) {
+    return null;
+  }
+
+  const commentId = Number(match[1]);
+
+  return Number.isSafeInteger(commentId) ? commentId : null;
+}
+
+interface TargetCommentSearchNode {
+  parentCommentId: number;
+  rootCommentId: number;
+  path: CommentResponse[];
+}
+
+interface TargetCommentSearchResult {
+  rootCommentId: number;
+  commentPath: CommentResponse[];
+}
+
+async function findTargetCommentPath(
+  postId: number,
+  rootComments: CommentResponse[],
+  targetCommentId: number,
+): Promise<TargetCommentSearchResult | null> {
+  const pendingNodes: TargetCommentSearchNode[] = rootComments
+    .filter((comment) => comment.replyCount > 0)
+    .map((comment) => ({
+      parentCommentId: comment.commentId,
+      rootCommentId: comment.commentId,
+      path: [],
+    }));
+  const scheduledCommentIds = new Set(
+    pendingNodes.map((node) => node.parentCommentId),
+  );
+
+  while (pendingNodes.length > 0) {
+    const currentNodes = pendingNodes.splice(
+      0,
+      TARGET_COMMENT_SEARCH_CONCURRENCY,
+    );
+    const responses = await Promise.all(
+      currentNodes.map(async (node) => {
+        try {
+          return {
+            node,
+            replies: await getCommentReplies(postId, node.parentCommentId),
+          };
+        } catch {
+          return null;
+        }
+      }),
+    );
+
+    for (const response of responses) {
+      if (!response) {
+        continue;
+      }
+
+      const depth = response.node.path.length + 1;
+
+      for (const reply of response.replies) {
+        const replyWithDepth = { ...reply, depth };
+        const commentPath = [...response.node.path, replyWithDepth];
+
+        if (reply.commentId === targetCommentId) {
+          return {
+            rootCommentId: response.node.rootCommentId,
+            commentPath,
+          };
+        }
+
+        if (
+          reply.replyCount > 0 &&
+          !scheduledCommentIds.has(reply.commentId)
+        ) {
+          scheduledCommentIds.add(reply.commentId);
+          pendingNodes.push({
+            parentCommentId: reply.commentId,
+            rootCommentId: response.node.rootCommentId,
+            path: commentPath,
+          });
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+function appendTargetCommentPath(
+  comments: CommentResponse[],
+  rootCommentId: number,
+  targetCommentPath: CommentResponse[],
+): CommentResponse[] {
+  let nextComments = comments;
+  let parentCommentId = rootCommentId;
+
+  for (const comment of targetCommentPath) {
+    nextComments = appendCommentReplies(nextComments, parentCommentId, [
+      comment,
+    ]);
+    parentCommentId = comment.commentId;
+  }
+
+  return nextComments;
+}
 
 async function withTotalReplyCount(
   postId: number,
@@ -102,6 +214,7 @@ async function withTotalReplyCount(
 }
 
 export function CommunityDetailPage() {
+  const { hash } = useLocation();
   const navigate = useNavigate();
   const { postId: postIdParam } = useParams();
   const postId = Number(postIdParam);
@@ -143,6 +256,7 @@ export function CommunityDetailPage() {
   const isHeartMutatingRef = useRef(false);
   const postStatsRefreshVersionRef = useRef(0);
   const commentDeleteCloseTimerRef = useRef<number | null>(null);
+  const targetCommentSearchKeyRef = useRef<string | null>(null);
 
   const canManagePost = currentMemberId === post?.userId;
   const canOpenPostMenu = canManagePostPin || canManagePost;
@@ -174,6 +288,7 @@ export function CommunityDetailPage() {
     [serializedPostContent],
   );
   const commentTree = useMemo(() => buildCommentTree(comments), [comments]);
+  const targetCommentId = getTargetCommentId(hash);
 
   const handleBackToList = () => {
     navigate('/community');
@@ -813,6 +928,91 @@ export function CommunityDetailPage() {
     };
   }, [postId, reloadKey, commentReloadKey]);
 
+  useEffect(() => {
+    if (
+      isCommentsLoading ||
+      targetCommentId === null ||
+      !Number.isSafeInteger(postId) ||
+      postId <= 0 ||
+      comments.some((comment) => comment.commentId === targetCommentId)
+    ) {
+      return;
+    }
+
+    const targetId = targetCommentId;
+    const searchKey = `${postId}:${targetId}:${commentReloadKey}`;
+
+    if (targetCommentSearchKeyRef.current === searchKey) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    async function loadTargetCommentPath() {
+      const rootComments = comments.filter((comment) => comment.depth === 0);
+
+      const targetCommentResult = await findTargetCommentPath(
+        postId,
+        rootComments,
+        targetId,
+      );
+
+      if (isCancelled || !targetCommentResult) {
+        return;
+      }
+
+      targetCommentSearchKeyRef.current = searchKey;
+      setComments((currentComments) =>
+        appendTargetCommentPath(
+          currentComments,
+          targetCommentResult.rootCommentId,
+          targetCommentResult.commentPath,
+        ),
+      );
+      setLoadedReplyCommentIds((currentIds) => {
+        const nextIds = new Set(currentIds);
+        const loadedCommentIds = [
+          targetCommentResult.rootCommentId,
+          ...targetCommentResult.commentPath
+            .slice(0, -1)
+            .map((comment) => comment.commentId),
+        ];
+
+        for (const commentId of loadedCommentIds) {
+          nextIds.add(commentId);
+        }
+
+        return nextIds;
+      });
+    }
+
+    void loadTargetCommentPath();
+
+    return () => {
+      isCancelled = true;
+
+      if (targetCommentSearchKeyRef.current === searchKey) {
+        targetCommentSearchKeyRef.current = null;
+      }
+    };
+  }, [
+    comments,
+    commentReloadKey,
+    isCommentsLoading,
+    postId,
+    targetCommentId,
+  ]);
+
+  useEffect(() => {
+    if (isCommentsLoading || targetCommentId === null) {
+      return;
+    }
+
+    document
+      .getElementById(`comment-${targetCommentId}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [commentTree, isCommentsLoading, targetCommentId]);
+
   return (
     <S.Page>
       <S.Content>
@@ -1141,7 +1341,7 @@ export function CommunityDetailPage() {
                   >
                     {COMMENT_SKELETON_ITEMS.map((item) => (
                       <S.CommentSkeletonItem key={item} aria-hidden="true">
-                        <S.SkeletonBlock $width="32px" $height={32} />
+                        <S.CommentSkeletonAvatar $height={32} />
                         <S.CommentSkeletonContent>
                           <S.CommentSkeletonMeta>
                             <S.SkeletonBlock $width="112px" $height={16} />
@@ -1149,6 +1349,7 @@ export function CommunityDetailPage() {
                           </S.CommentSkeletonMeta>
                           <S.SkeletonBlock $width="68%" $height={18} />
                           <S.SkeletonBlock $width="44%" $height={18} />
+                          <S.CommentSkeletonAction $height={14} />
                         </S.CommentSkeletonContent>
                       </S.CommentSkeletonItem>
                     ))}
@@ -1170,6 +1371,7 @@ export function CommunityDetailPage() {
                   <CommunityCommentBranch
                     key={node.comment.commentId}
                     node={node}
+                    targetCommentId={targetCommentId}
                     onProfileImageError={handleProfileImageError}
                     onReplySubmit={handleReplySubmit}
                     onRepliesLoad={handleRepliesLoad}
