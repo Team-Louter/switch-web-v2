@@ -892,6 +892,28 @@ export function CommunityWritePage() {
   }, [isCategoryMenuOpen]);
 
   useEffect(() => {
+    const handleDocumentPointerDown = (event: PointerEvent) => {
+      if (
+        !(event.target instanceof Element) ||
+        event.target.closest('.community-block-editor') ||
+        event.target.closest('.bn-side-menu') ||
+        event.target.closest('.bn-drag-handle-menu')
+      ) {
+        return;
+      }
+
+      setSelectedBlockId(null);
+      setIsEditorPlaceholderVisible(false);
+    };
+
+    document.addEventListener('pointerdown', handleDocumentPointerDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', handleDocumentPointerDown);
+    };
+  }, []);
+
+  useEffect(() => {
     const handleDocumentMouseMove = (event: MouseEvent) => {
       const editorBounds = editorAreaRef.current?.getBoundingClientRect();
 
