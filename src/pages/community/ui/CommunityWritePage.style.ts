@@ -410,6 +410,11 @@ export const Editor = styled.section<EditorProps>`
     transform: none;
   }
 
+  .community-block-editor:not(:has(.bn-editor.ProseMirror-focused))
+    .bn-block-content:has(.ProseMirror-trailingBreak:only-child)::after {
+    display: none;
+  }
+
   .community-block-editor .bn-inline-content {
     overflow-wrap: anywhere;
   }
