@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { PiHammerFill } from 'react-icons/pi';
 
 import {
   formatCommunityDate,
@@ -15,7 +16,6 @@ import {
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png';
 import { getNameStyleKey } from '@/shared/styles';
 
-import firstDeveloperTitleImage from '../assets/images/first-developer-title.png';
 import anonymousProfileImage from '../assets/images/anonymousProfile.png';
 import {
   FLATTENED_TREE_DEPTH,
@@ -157,10 +157,6 @@ export function CommunityCommentBranch({
       profileNameColor?.itemName,
   );
   const profileTitleName = equippedItems?.title?.itemName;
-  const profileTitleImageUrl =
-    profileTitleName === '최초의 개발자'
-      ? firstDeveloperTitleImage
-      : undefined;
   const profileBorder = equippedItems?.border;
   const profileBorderImageUrl =
     profileBorder?.valueImageUrl ??
@@ -329,7 +325,6 @@ export function CommunityCommentBranch({
           <S.CommentAuthorImage
             alt={`${comment.userName} 프로필`}
             $hasBorder={hasCustomBorder}
-            $hasTitleImage={Boolean(profileTitleImageUrl)}
             equippedItems={equippedItems}
             imageUrl={
               resolveCommunityAssetUrl(comment.userProfileImageUrl) ??
@@ -346,14 +341,10 @@ export function CommunityCommentBranch({
                 </S.CommentAuthor>
                 {profileTitleName && (
                   <S.CommentAuthorTitle>
-                    {profileTitleImageUrl ? (
-                      <img
-                        src={profileTitleImageUrl}
-                        alt={profileTitleName}
-                      />
-                    ) : (
-                      profileTitleName
+                    {profileTitleName === '최초의 개발자' && (
+                      <PiHammerFill size={16} aria-hidden="true" />
                     )}
+                    <span>{profileTitleName}</span>
                   </S.CommentAuthorTitle>
                 )}
                 <S.CommentMetaDot aria-hidden="true" />

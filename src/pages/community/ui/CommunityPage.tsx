@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react';
 import {
+  PiHammerFill,
   PiList,
   PiNoteBlank,
   PiPencilSimpleLineBold,
@@ -28,7 +29,6 @@ import eyeIcon from '@/shared/assets/my/eye-icon.svg';
 import { getNameStyleKey } from '@/shared/styles';
 import { Button } from '@/shared/ui';
 
-import firstDeveloperTitleImage from '../assets/images/first-developer-title.png';
 import commentOutlineIcon from '../assets/svg/comment-outline.svg';
 import heartColoredIcon from '../assets/svg/heart-colored.svg';
 import heartOutlineIcon from '../assets/svg/heart-outline.svg';
@@ -363,10 +363,6 @@ export function CommunityPage() {
                   profileNameColor?.itemName,
               );
               const profileTitleName = equippedItems?.title?.itemName;
-              const profileTitleImageUrl =
-                profileTitleName === '최초의 개발자'
-                  ? firstDeveloperTitleImage
-                  : undefined;
               const profileBorder = equippedItems?.border;
               const profileBorderImageUrl =
                 profileBorder?.valueImageUrl ??
@@ -428,14 +424,10 @@ export function CommunityPage() {
                       </AuthorName>
                       {profileTitleName && (
                         <AuthorTitle>
-                          {profileTitleImageUrl ? (
-                            <img
-                              src={profileTitleImageUrl}
-                              alt={profileTitleName}
-                            />
-                          ) : (
-                            profileTitleName
+                          {profileTitleName === '최초의 개발자' && (
+                            <PiHammerFill size={14} aria-hidden="true" />
                           )}
+                          <span>{profileTitleName}</span>
                         </AuthorTitle>
                       )}
                     </AuthorMeta>

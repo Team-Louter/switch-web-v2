@@ -413,10 +413,7 @@ export const CommentItem = styled.div<CommentItemProps>`
 
 export const CommentAuthorImage = styled(ProfileAvatar)<{
   $hasBorder: boolean;
-  $hasTitleImage: boolean;
 }>`
-  margin-top: ${({ $hasTitleImage }) => ($hasTitleImage ? '7px' : '0')};
-
   ${({ $hasBorder }) =>
     !$hasBorder &&
     css`
@@ -477,23 +474,27 @@ export const CommentAuthor = styled(UserName)`
 `;
 
 export const CommentAuthorTitle = styled.span`
-  display: block;
+  display: inline-flex;
+  align-items: center;
   flex: 0 0 auto;
+  gap: 4px;
   min-width: 0;
   max-width: 160px;
   overflow: hidden;
   color: #ffa20a;
   ${token.typography('caption', 'sm', 'medium')}
   line-height: 1;
-  text-overflow: ellipsis;
   white-space: nowrap;
 
-  img {
-    display: block;
-    width: 120px;
-    max-width: 100%;
-    height: auto;
-    object-fit: contain;
+  svg {
+    flex: 0 0 auto;
+  }
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 `;
 

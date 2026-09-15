@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { isAxiosError } from 'axios';
 import ReactMarkdown from 'react-markdown';
+import { PiHammerFill } from 'react-icons/pi';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
@@ -52,7 +53,6 @@ import kebabIcon from '../assets/svg/kebab.svg';
 import paperclipIcon from '../assets/svg/paperclip.svg';
 import pinIcon from '../assets/svg/pin-solid.svg';
 import sendIcon from '../assets/svg/send.svg';
-import firstDeveloperTitleImage from '../assets/images/first-developer-title.png';
 import {
   FLATTENED_TREE_DEPTH,
   REPLY_LOAD_DEPTH_INTERVAL,
@@ -295,10 +295,6 @@ export function CommunityDetailPage() {
     ? undefined
     : post?.equippedItems;
   const postProfileTitleName = postEquippedItems?.title?.itemName;
-  const postProfileTitleImageUrl =
-    postProfileTitleName === '최초의 개발자'
-      ? firstDeveloperTitleImage
-      : undefined;
   const postNameColor = postEquippedItems?.nameColor;
   const postNameStyleKey = getNameStyleKey(
     postNameColor?.styleKey ??
@@ -1133,14 +1129,13 @@ export function CommunityDetailPage() {
                           </S.PostAuthorName>
                           {postProfileTitleName && (
                             <S.PostAuthorTitle>
-                              {postProfileTitleImageUrl ? (
-                                <img
-                                  src={postProfileTitleImageUrl}
-                                  alt={postProfileTitleName}
+                              {postProfileTitleName === '최초의 개발자' && (
+                                <PiHammerFill
+                                  size={16}
+                                  aria-hidden="true"
                                 />
-                              ) : (
-                                postProfileTitleName
                               )}
+                              <span>{postProfileTitleName}</span>
                             </S.PostAuthorTitle>
                           )}
                         </S.PostAuthor>

@@ -325,23 +325,27 @@ export const PostAuthorName = styled(UserName)`
 `;
 
 export const PostAuthorTitle = styled.span`
-  display: block;
+  display: inline-flex;
+  align-items: center;
   flex: 0 0 auto;
+  gap: 4px;
   min-width: 0;
   max-width: 140px;
   overflow: hidden;
   color: #ffa20a;
   ${token.typography('caption', 'sm', 'medium')}
   line-height: 1;
-  text-overflow: ellipsis;
   white-space: nowrap;
 
-  img {
-    display: block;
-    width: 120px;
-    max-width: 100%;
-    height: auto;
-    object-fit: contain;
+  svg {
+    flex: 0 0 auto;
+  }
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 `;
 
