@@ -4,8 +4,10 @@ import * as token from '@/shared/styles/values/token';
 
 export const Page = styled.section`
   box-sizing: border-box;
+  height: 100dvh;
   min-height: 100dvh;
   padding: clamp(32px, 5.1dvh, 50px) clamp(24px, 8.31%, 100px);
+  overflow: hidden;
   container-name: community-write;
   container-type: inline-size;
   background: ${token.colors.white};
@@ -16,13 +18,16 @@ export const Content = styled.div`
   gap: 20px;
   width: 100%;
   max-width: calc(1003px / 0.9);
-  min-height: calc(100dvh - 100px);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
   margin: 0 auto;
   zoom: 0.9;
 `;
 
 export const Header = styled.header`
   ${token.flexColumn}
+  flex: 0 0 auto;
   gap: 24px;
   width: 100%;
 `;
@@ -233,13 +238,14 @@ export const TitleCounter = styled.span<{ $isOverLimit: boolean }>`
 export const Editor = styled.section`
   ${token.flexColumn}
   position: relative;
-  flex: 1 1 706px;
+  flex: 1 1 0;
   gap: 16px;
   box-sizing: border-box;
   width: 100%;
-  min-height: 706px;
+  min-height: 0;
+  max-height: 100%;
   padding: 16px;
-  overflow: visible;
+  overflow: hidden;
   border-radius: ${token.shapes.small};
   background: #f5f5f5;
 
@@ -296,6 +302,9 @@ export const Editor = styled.section`
     min-width: 0;
     max-width: 100%;
     min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .community-block-editor .bn-root {
@@ -312,7 +321,8 @@ export const Editor = styled.section`
   }
 
   .community-block-editor .bn-editor {
-    min-height: 620px;
+    box-sizing: border-box;
+    min-height: 100%;
     padding: 8px 12px 32px 54px;
     background: transparent;
     ${token.typography('body', 'lg', 'medium')}
@@ -327,6 +337,11 @@ export const Editor = styled.section`
 
   .community-block-editor .bn-block-content {
     min-height: 30px;
+    overflow-wrap: anywhere;
+  }
+
+  .community-block-editor .bn-inline-content {
+    overflow-wrap: anywhere;
   }
 
   .community-block-editor [data-file-block] .bn-file-block-content-wrapper,
@@ -397,11 +412,10 @@ export const Editor = styled.section`
   }
 
   @container community-write (max-width: 560px) {
-    flex-basis: 520px;
-    min-height: 520px;
+    flex-basis: 0;
+    min-height: 0;
 
     .community-block-editor .bn-editor {
-      min-height: 430px;
       padding-inline: 54px 12px;
     }
   }
