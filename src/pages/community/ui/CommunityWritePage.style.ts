@@ -108,7 +108,7 @@ export const CategoryTrigger = styled.button`
   outline: none;
   color: ${token.colors.gray.gray60};
   background: #f5f5f5;
-  ${token.typography('body', 'lg', 'medium')}
+  ${token.typography('body', 'md', 'medium')}
   line-height: 1;
   text-align: left;
   cursor: pointer;
@@ -206,7 +206,7 @@ export const TitleInput = styled.input<{ $isOverLimit: boolean }>`
     $isOverLimit ? `2px solid ${token.colors.danger.danger30}` : 'none'};
   color: ${token.colors.gray.gray100};
   background: ${token.colors.gray.gray0};
-  ${token.typography('body', 'lg', 'medium')}
+  ${token.typography('body', 'md', 'medium')}
   line-height: 1;
 
   &::placeholder {
@@ -246,8 +246,9 @@ export const Editor = styled.section`
   max-height: 100%;
   padding: 16px;
   overflow: hidden;
+  border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.small};
-  background: #f5f5f5;
+  background: ${token.colors.white};
 
   .community-toolbar-actions {
     display: flex;
