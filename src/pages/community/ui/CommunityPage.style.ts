@@ -590,10 +590,10 @@ export const AuthorTitle = styled.span`
   max-width: 112px;
   overflow: hidden;
   padding: 3px 5px;
-  border: 1px solid ${token.colors.gray.gray10};
+  border: 1px solid ${token.colors.gray.gray20};
   border-radius: ${token.shapes.xsmall};
   color: ${token.colors.gray.gray70};
-  background: ${token.colors.gray.gray0};
+  background: ${token.colors.white};
   ${token.typography('caption', 'sm', 'medium')}
   line-height: 1;
   white-space: nowrap;

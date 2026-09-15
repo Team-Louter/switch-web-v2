@@ -483,10 +483,10 @@ export const CommentAuthorTitle = styled.span`
   max-width: 160px;
   overflow: hidden;
   padding: 4px 7px;
-  border: 1px solid ${token.colors.gray.gray10};
+  border: 1px solid ${token.colors.gray.gray20};
   border-radius: ${token.shapes.xsmall};
   color: ${token.colors.gray.gray70};
-  background: ${token.colors.gray.gray0};
+  background: ${token.colors.white};
   ${token.typography('caption', 'sm', 'medium')}
   line-height: 1;
   white-space: nowrap;
