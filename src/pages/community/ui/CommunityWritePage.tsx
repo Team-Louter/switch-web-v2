@@ -294,6 +294,7 @@ export function CommunityWritePage() {
   const editorAreaRef = useRef<HTMLElement>(null);
   const categoryFieldRef = useRef<HTMLDivElement>(null);
   const draggedBlockIdRef = useRef<string | null>(null);
+  const isPostLoadingRef = useRef(false);
   const [category, setCategory] = useState<PostCategory | ''>('');
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [tag, setTag] = useState<PostTag | undefined>(undefined);
@@ -871,17 +872,37 @@ export function CommunityWritePage() {
   };
 
   useEffect(() => {
+    return editor.onBeforeChange(({ tr }) => {
+      if (!tr.docChanged || isPostLoadingRef.current) {
+        return true;
+      }
+
+      const nextContentLength = tr.doc.textContent.length;
+      const currentContentLength = tr.before.textContent.length;
+
+      // Allow users to reduce existing posts that were saved over the limit.
+      return (
+        nextContentLength <= COMMUNITY_CONTENT_MAX_LENGTH ||
+        nextContentLength <= currentContentLength
+      );
+    });
+  }, [editor]);
+
+  useEffect(() => {
     if (!isEditRoute) {
+      isPostLoadingRef.current = false;
       return;
     }
 
     if (!isEditing) {
+      isPostLoadingRef.current = false;
       return;
     }
 
     let isCancelled = false;
 
     async function loadPostForEdit() {
+      isPostLoadingRef.current = true;
       setIsPostLoading(true);
       setPostLoadError(null);
 
@@ -923,6 +944,7 @@ export function CommunityWritePage() {
         }
       } finally {
         if (!isCancelled) {
+          isPostLoadingRef.current = false;
           setIsPostLoading(false);
         }
       }
@@ -932,6 +954,7 @@ export function CommunityWritePage() {
 
     return () => {
       isCancelled = true;
+      isPostLoadingRef.current = false;
     };
   }, [editor, editingPostId, isEditing, isEditRoute]);
 
