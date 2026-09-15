@@ -490,9 +490,9 @@ export const BlockSideMenu = styled.div`
   }
 
   .bn-side-menu > [draggable='true'] {
-    width: 22px;
-    min-width: 22px;
-    padding-inline: 2px;
+    width: auto;
+    min-width: 0;
+    padding-inline: 0;
     cursor: grab;
   }
 
