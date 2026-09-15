@@ -51,7 +51,6 @@ import {
   ImageAttachmentIcon,
   MobileCategoryButton,
   MobileCategoryButtonLabel,
-  MobileCategoryChevron,
   MobileCategoryMenu,
   MobileCategoryOption,
   MobileCategoryPanel,
@@ -281,10 +280,6 @@ export function CommunityPage() {
                   <PiList size={18} aria-hidden="true" />
                   <span>{selectedCategoryLabel}</span>
                 </MobileCategoryButtonLabel>
-                <MobileCategoryChevron
-                  $open={isCategoryMenuOpen}
-                  aria-hidden="true"
-                />
               </MobileCategoryButton>
               <MobileCategoryPanel
                 id="community-category-menu"

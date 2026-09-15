@@ -155,9 +155,7 @@ export const CategoryTab = styled.button<{ $active: boolean }>`
 export const MobileCategoryMenu = styled.div`
   position: relative;
   display: none;
-  flex: 0 1 220px;
-  width: 220px;
-  max-width: calc(100% - 98px);
+  flex: 1 1 0;
   min-width: 0;
 
   @media (max-width: 1055px) {
@@ -168,7 +166,6 @@ export const MobileCategoryMenu = styled.div`
 export const MobileCategoryButton = styled.button`
   display: flex;
   align-items: center;
-  justify-content: space-between;
   box-sizing: border-box;
   width: 100%;
   min-height: 44px;
@@ -205,36 +202,22 @@ export const MobileCategoryButtonLabel = styled.span`
   }
 `;
 
-export const MobileCategoryChevron = styled.span<{ $open: boolean }>`
-  flex: 0 0 auto;
-  width: 8px;
-  height: 8px;
-  margin: -4px 3px 0 8px;
-  border-right: 2px solid ${token.colors.gray.gray60};
-  border-bottom: 2px solid ${token.colors.gray.gray60};
-  transform: ${({ $open }) => ($open ? 'rotate(225deg)' : 'rotate(45deg)')};
-  transition: transform 180ms ease;
-
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
-`;
-
 export const MobileCategoryPanel = styled.div<{ $open: boolean }>`
   position: absolute;
   z-index: 20;
-  top: calc(100% + 8px);
-  right: 0;
+  top: calc(100% + 6px);
+  right: auto;
   left: 0;
+  width: 162px;
   display: flex;
   flex-direction: column;
   gap: 4px;
   box-sizing: border-box;
-  padding: 8px;
+  padding: 6px;
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.medium};
   background: ${token.colors.white};
-  box-shadow: 0 10px 24px rgb(25 25 25 / 12%);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 12%);
   opacity: ${({ $open }) => ($open ? 1 : 0)};
   pointer-events: ${({ $open }) => ($open ? 'auto' : 'none')};
   transform: ${({ $open }) =>
@@ -253,15 +236,15 @@ export const MobileCategoryPanel = styled.div<{ $open: boolean }>`
 export const MobileCategoryOption = styled.button<{ $active: boolean }>`
   width: 100%;
   min-width: 0;
-  min-height: 40px;
-  padding: 8px 12px;
+  min-height: 36px;
+  padding: 8px;
   overflow: hidden;
   border: 0;
   border-radius: ${token.shapes.small};
   color: ${({ $active }) =>
     $active ? token.colors.primary.primary80 : token.colors.gray.gray80};
   background: ${({ $active }) =>
-    $active ? token.colors.primary.primary20 : 'transparent'};
+    $active ? token.colors.primary.primary10 : 'transparent'};
   ${token.typography('body', 'sm', 'medium')}
   line-height: 1;
   text-align: left;
@@ -271,7 +254,7 @@ export const MobileCategoryOption = styled.button<{ $active: boolean }>`
 
   &:hover {
     background: ${({ $active }) =>
-      $active ? token.colors.primary.primary20 : token.colors.gray.gray0};
+      $active ? token.colors.primary.primary10 : token.colors.gray.gray0};
   }
 
   &:focus-visible {
