@@ -414,7 +414,10 @@ export const AuthorImage = styled(ProfileAvatar)<{ $hasBorder: boolean }>`
 `;
 
 export const AuthorName = styled(UserName)<{ $pinned: boolean }>`
-  flex: 0 0 136px;
+  flex: 0 1 auto;
+  width: fit-content;
+  max-width: 136px;
+  min-width: 0;
   overflow: hidden;
   margin: 0;
   color: ${token.colors.gray.gray80};
