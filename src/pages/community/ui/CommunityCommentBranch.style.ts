@@ -483,18 +483,17 @@ export const CommentAuthorTitle = styled.span`
   max-width: 160px;
   overflow: hidden;
   padding: 4px 7px;
-  border: 1px solid #e1e3e7;
-  border-radius: 6px;
-  color: #555861;
-  background: linear-gradient(180deg, #f8f9fa 0%, #eceef1 100%);
-  box-shadow: inset 0 1px 0 #ffffff;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.xsmall};
+  color: ${token.colors.gray.gray70};
+  background: ${token.colors.gray.gray0};
   ${token.typography('caption', 'sm', 'medium')}
   line-height: 1;
   white-space: nowrap;
 
   svg {
     flex: 0 0 auto;
-    color: #6c7b94;
+    color: ${token.colors.gray.gray60};
   }
 
   span {
