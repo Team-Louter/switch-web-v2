@@ -1126,7 +1126,7 @@ export function CommunityDetailPage() {
                               ) ?? fallbackProfileImage
                             }
                             onImageError={handleProfileImageError}
-                            size={22}
+                            size={32}
                           />
                           {postProfileTitleName && (
                             <S.PostAuthorTitle>

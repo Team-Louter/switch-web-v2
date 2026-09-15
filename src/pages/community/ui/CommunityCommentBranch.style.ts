@@ -411,7 +411,12 @@ export const CommentItem = styled.div<CommentItemProps>`
   }
 `;
 
-export const CommentAuthorImage = styled(ProfileAvatar)<{ $hasBorder: boolean }>`
+export const CommentAuthorImage = styled(ProfileAvatar)<{
+  $hasBorder: boolean;
+  $hasTitleImage: boolean;
+}>`
+  margin-top: ${({ $hasTitleImage }) => ($hasTitleImage ? '7px' : '0')};
+
   ${({ $hasBorder }) =>
     !$hasBorder &&
     css`

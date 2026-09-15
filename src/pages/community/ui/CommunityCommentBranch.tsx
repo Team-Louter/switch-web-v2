@@ -329,6 +329,7 @@ export function CommunityCommentBranch({
           <S.CommentAuthorImage
             alt={`${comment.userName} 프로필`}
             $hasBorder={hasCustomBorder}
+            $hasTitleImage={Boolean(profileTitleImageUrl)}
             equippedItems={equippedItems}
             imageUrl={
               resolveCommunityAssetUrl(comment.userProfileImageUrl) ??
