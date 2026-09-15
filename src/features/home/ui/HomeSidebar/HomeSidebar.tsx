@@ -50,6 +50,7 @@ export function HomeSidebar() {
   const [isPopularLoading, setIsPopularLoading] = useState(true);
   const [isRankingLoading, setIsRankingLoading] = useState(true);
   const topRankings = rankings.slice(0, 2);
+  const isMyRankingInTop = myRanking !== null && topRankings.some((ranking) => ranking.userId === myRanking.userId);
 
   useEffect(() => {
     let cancelled = false;
@@ -151,12 +152,12 @@ export function HomeSidebar() {
             {isRankingLoading ? <S.RankingSkeleton aria-label="랭킹 불러오는 중"><S.RankingSkeletonLine /><S.RankingSkeletonLine /></S.RankingSkeleton> : topRankings.length || myRanking || rankingStatus === '랭킹이 없습니다.' ? (
               <S.RankingList>
                 {topRankings.map((ranking) => <RankingItem key={ranking.userId} ranking={ranking} />)}
-                <RankingItem
+                {!isMyRankingInTop && <RankingItem
                   key={myRanking ? `my-ranking-${myRanking.userId}` : 'my-ranking-unranked'}
                   ranking={myRanking}
                   isMine
                   fallbackUserName={user?.userName}
-                />
+                />}
               </S.RankingList>
             ) : (
               <S.RankingEmpty role="status">{rankingStatus}</S.RankingEmpty>
