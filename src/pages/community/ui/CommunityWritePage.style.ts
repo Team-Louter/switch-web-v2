@@ -183,15 +183,22 @@ export const CategoryOption = styled.button<{ $selected: boolean }>`
   }
 `;
 
-export const TitleInput = styled.input`
+export const TitleField = styled.div`
+  position: relative;
   flex: 1 1 0;
+  min-width: 0;
+`;
+
+export const TitleInput = styled.input<{ $isOverLimit: boolean }>`
+  width: 100%;
   box-sizing: border-box;
   min-width: 0;
   height: 52px;
-  padding: 12px 20px;
+  padding: 12px 82px 12px 20px;
   border: 0;
   border-radius: ${token.shapes.medium};
-  outline: none;
+  outline: ${({ $isOverLimit }) =>
+    $isOverLimit ? `2px solid ${token.colors.danger.danger30}` : 'none'};
   color: ${token.colors.gray.gray100};
   background: ${token.colors.gray.gray0};
   ${token.typography('body', 'lg', 'medium')}
@@ -203,9 +210,24 @@ export const TitleInput = styled.input`
   }
 
   &:focus-visible {
-    outline: 2px solid ${token.colors.primary.primary50};
+    outline: ${({ $isOverLimit }) =>
+      $isOverLimit
+        ? `2px solid ${token.colors.danger.danger30}`
+        : `2px solid ${token.colors.primary.primary50}`};
     outline-offset: -2px;
   }
+`;
+
+export const TitleCounter = styled.span<{ $isOverLimit: boolean }>`
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  color: ${({ $isOverLimit }) =>
+    $isOverLimit ? token.colors.danger.danger30 : token.colors.gray.gray40};
+  ${token.typography('caption', 'sm', 'medium')}
+  line-height: 1;
+  pointer-events: none;
+  transform: translateY(-50%);
 `;
 
 export const Editor = styled.section`

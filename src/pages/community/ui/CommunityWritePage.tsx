@@ -13,6 +13,7 @@ import {
   type SideMenuProps,
   useCreateBlockNote,
 } from '@blocknote/react';
+import { isAxiosError } from 'axios';
 import {
   type ChangeEvent,
   type DragEvent as ReactDragEvent,
@@ -106,6 +107,9 @@ const COMMUNITY_EDITOR_DICTIONARY = {
   },
 };
 
+const COMMUNITY_TITLE_MAX_LENGTH = 100;
+const COMMUNITY_CONTENT_MAX_LENGTH = 20_000;
+
 const EDITOR_TOOLS: EditorTool[] = [
   { action: 'bold', label: '굵게', icon: boldIcon },
   { action: 'italic', label: '기울임', icon: italicIcon },
@@ -133,6 +137,37 @@ function hasPostContent(content: string): boolean {
     .trim();
 
   return Boolean(textContent) || /<(img|audio|video)\b/i.test(content);
+}
+
+function getCommunityRequestErrorMessage(
+  error: unknown,
+  fallbackMessage: string,
+): string {
+  if (!isAxiosError<unknown>(error)) {
+    return fallbackMessage;
+  }
+
+  const responseData = error.response?.data;
+
+  if (typeof responseData === 'string' && responseData.trim()) {
+    return responseData.trim();
+  }
+
+  if (typeof responseData !== 'object' || responseData === null) {
+    return fallbackMessage;
+  }
+
+  const responseRecord = responseData as Record<string, unknown>;
+
+  for (const key of ['message', 'error']) {
+    const message = responseRecord[key];
+
+    if (typeof message === 'string' && message.trim()) {
+      return message.trim();
+    }
+  }
+
+  return fallbackMessage;
 }
 
 function getCommunityDropCursorPosition({
@@ -187,10 +222,13 @@ export function CommunityWritePage() {
   const selectedCategoryLabel =
     POST_CATEGORY_OPTIONS.find((option) => option.value === category)?.label ??
     '카테고리';
+  const titleLength = title.length;
+  const isTitleOverLimit = titleLength > COMMUNITY_TITLE_MAX_LENGTH;
 
   const handleCategorySelect = (nextCategory: PostCategory) => {
     setCategory(nextCategory);
     setIsCategoryMenuOpen(false);
+    setSubmitError(null);
   };
 
   const uploadPostFile = useCallback(async (file: File) => {
@@ -412,14 +450,40 @@ export function CommunityWritePage() {
       return;
     }
 
+    const trimmedTitle = title.trim();
+
+    if (!trimmedTitle) {
+      setSubmitError('제목을 입력해주세요.');
+      return;
+    }
+
+    if (isTitleOverLimit) {
+      setSubmitError(
+        `제목은 ${COMMUNITY_TITLE_MAX_LENGTH}자 이내로 입력해주세요.`,
+      );
+      return;
+    }
+
+    if (!category) {
+      setSubmitError('카테고리를 선택해주세요.');
+      return;
+    }
+
     const postContentHtml = editor.blocksToHTMLLossy();
 
-    if (!category || !title.trim() || !hasPostContent(postContentHtml)) {
-      setSubmitError('카테고리와 제목, 내용을 모두 입력해주세요.');
+    if (!hasPostContent(postContentHtml)) {
+      setSubmitError('본문을 입력해주세요.');
       return;
     }
 
     const postContent = serializeBlockNotePostContent(editor.document);
+
+    if (postContent.length > COMMUNITY_CONTENT_MAX_LENGTH) {
+      setSubmitError(
+        `본문은 ${COMMUNITY_CONTENT_MAX_LENGTH.toLocaleString()}자 이내로 입력해주세요.`,
+      );
+      return;
+    }
 
     setIsSubmitting(true);
     setSubmitError(null);
@@ -445,12 +509,12 @@ export function CommunityWritePage() {
         : await createPost(postRequest);
 
       navigate(`/community/${post.postId}`, { replace: true });
-    } catch {
-      setSubmitError(
-        isEditing
-          ? '게시글을 수정하지 못했습니다. 잠시 후 다시 시도해주세요.'
-          : '게시글을 등록하지 못했습니다. 잠시 후 다시 시도해주세요.',
-      );
+    } catch (error: unknown) {
+      const fallbackMessage = isEditing
+        ? '게시글을 수정하지 못했습니다. 잠시 후 다시 시도해주세요.'
+        : '게시글을 등록하지 못했습니다. 잠시 후 다시 시도해주세요.';
+
+      setSubmitError(getCommunityRequestErrorMessage(error, fallbackMessage));
     } finally {
       setIsSubmitting(false);
     }
@@ -743,15 +807,29 @@ export function CommunityWritePage() {
                 )}
               </S.CategoryField>
 
-              <S.TitleInput
-                type="text"
-                aria-label="게시글 제목"
-                placeholder="제목을 입력해주세요"
-                value={title}
-                required
-                disabled={isEditorDisabled}
-                onChange={(event) => setTitle(event.target.value)}
-              />
+              <S.TitleField>
+                <S.TitleInput
+                  type="text"
+                  aria-label="게시글 제목"
+                  aria-describedby="community-title-length"
+                  aria-invalid={isTitleOverLimit}
+                  placeholder="제목을 입력해주세요"
+                  value={title}
+                  required
+                  disabled={isEditorDisabled}
+                  $isOverLimit={isTitleOverLimit}
+                  onChange={(event) => {
+                    setTitle(event.target.value);
+                    setSubmitError(null);
+                  }}
+                />
+                <S.TitleCounter
+                  id="community-title-length"
+                  $isOverLimit={isTitleOverLimit}
+                >
+                  {titleLength} / {COMMUNITY_TITLE_MAX_LENGTH}
+                </S.TitleCounter>
+              </S.TitleField>
             </S.Fields>
           </S.WriteForm>
         </S.Header>
