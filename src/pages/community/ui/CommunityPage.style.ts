@@ -245,6 +245,8 @@ export const MobileCategoryOption = styled.button<{ $active: boolean }>`
   background: ${({ $active }) =>
     $active ? token.colors.primary.primary10 : 'transparent'};
   ${token.typography('body', 'sm', 'medium')}
+  font-weight: ${({ $active }) =>
+    $active ? token.fontWeight.semibold : token.fontWeight.medium};
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
