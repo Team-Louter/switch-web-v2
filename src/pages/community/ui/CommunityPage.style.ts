@@ -535,6 +535,14 @@ export const Author = styled.div`
   }
 `;
 
+export const AuthorMeta = styled.div`
+  ${token.flexLeft}
+  flex: 1 1 0;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+`;
+
 export const AuthorImage = styled(ProfileAvatar)<{ $hasBorder: boolean }>`
   flex: 0 0 auto;
 
@@ -554,7 +562,10 @@ export const AuthorImage = styled(ProfileAvatar)<{ $hasBorder: boolean }>`
 `;
 
 export const AuthorName = styled(UserName)<{ $pinned: boolean }>`
-  flex: 0 0 136px;
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 136px;
   overflow: hidden;
   margin: 0;
   color: ${token.colors.gray.gray80};
@@ -565,8 +576,29 @@ export const AuthorName = styled(UserName)<{ $pinned: boolean }>`
   white-space: nowrap;
 
   @container community-page (max-width: 900px) {
-    flex-basis: 96px;
+    max-width: 96px;
   }
+`;
+
+export const AuthorMetaDot = styled.span`
+  flex: 0 0 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: ${token.shapes.circle};
+  background: ${token.colors.gray.gray40};
+`;
+
+export const AuthorTitle = styled.span`
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 96px;
+  overflow: hidden;
+  color: #ffa20a;
+  ${token.typography('caption', 'sm', 'medium')}
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 export const Date = styled.time`

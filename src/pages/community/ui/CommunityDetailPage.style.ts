@@ -281,13 +281,17 @@ export const PostActions = styled.div`
 
 export const PostMeta = styled.div`
   ${token.flexLeft}
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  max-width: 100%;
+  min-width: 0;
   gap: 12px;
   height: 34px;
 `;
 
 export const PostAuthor = styled.div`
   ${token.flexLeft}
+  flex: 0 1 auto;
+  min-width: 0;
   gap: 8px;
 `;
 
@@ -308,9 +312,28 @@ export const PostAuthorImage = styled(ProfileAvatar)<{ $hasBorder: boolean }>`
 `;
 
 export const PostAuthorName = styled(UserName)`
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 180px;
+  overflow: hidden;
   color: ${token.colors.gray.gray80};
   ${token.typography('body', 'md', 'medium')}
   line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+export const PostAuthorTitle = styled.span`
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 140px;
+  overflow: hidden;
+  color: #ffa20a;
+  ${token.typography('caption', 'sm', 'medium')}
+  line-height: 1;
+  text-overflow: ellipsis;
   white-space: nowrap;
 `;
 

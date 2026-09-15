@@ -459,13 +459,33 @@ export const CommentMeta = styled.div`
 `;
 
 export const CommentAuthor = styled(UserName)`
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   color: #404040;
   ${token.typography('heading', 'sm', 'semibold')}
   line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+export const CommentAuthorTitle = styled.span`
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 160px;
+  overflow: hidden;
+  color: #ffa20a;
+  ${token.typography('caption', 'sm', 'medium')}
+  line-height: 1;
+  text-overflow: ellipsis;
   white-space: nowrap;
 `;
 
 export const CommentMetaDot = styled.span`
+  flex: 0 0 4px;
   width: 4px;
   height: 4px;
   border-radius: ${token.shapes.circle};

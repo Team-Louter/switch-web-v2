@@ -293,6 +293,9 @@ export function CommunityDetailPage() {
   const postEquippedItems = post?.isAnonymous
     ? undefined
     : post?.equippedItems;
+  const postProfileTitle = postEquippedItems?.title;
+  const postProfileTitleText =
+    postProfileTitle?.valueText ?? postProfileTitle?.itemName;
   const postNameColor = postEquippedItems?.nameColor;
   const postNameStyleKey = getNameStyleKey(
     postNameColor?.styleKey ??
@@ -1126,6 +1129,14 @@ export function CommunityDetailPage() {
                             {post.userName}
                           </S.PostAuthorName>
                         </S.PostAuthor>
+                        {postProfileTitleText && (
+                          <>
+                            <S.MetaDot aria-hidden="true" />
+                            <S.PostAuthorTitle>
+                              {postProfileTitleText}
+                            </S.PostAuthorTitle>
+                          </>
+                        )}
                         <S.MetaDot aria-hidden="true" />
                         <S.PostDate
                           dateTime={post.createdAt}

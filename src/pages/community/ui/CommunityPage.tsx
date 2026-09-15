@@ -37,7 +37,10 @@ import pinIcon from '../assets/svg/pin-solid.svg';
 import {
   Author,
   AuthorImage,
+  AuthorMeta,
+  AuthorMetaDot,
   AuthorName,
+  AuthorTitle,
   CategoryCell,
   CategoryTab,
   CategoryTabs,
@@ -359,6 +362,9 @@ export function CommunityPage() {
                   profileNameColor?.valueText ??
                   profileNameColor?.itemName,
               );
+              const profileTitle = equippedItems?.title;
+              const profileTitleText =
+                profileTitle?.valueText ?? profileTitle?.itemName;
               const profileBorder = equippedItems?.border;
               const profileBorderImageUrl =
                 profileBorder?.valueImageUrl ??
@@ -411,12 +417,20 @@ export function CommunityPage() {
                       onImageError={handleProfileImageError}
                       size={28}
                     />
-                    <AuthorName
-                      $pinned={post.pinned}
-                      styleKey={profileNameStyleKey}
-                    >
-                      {post.userName}
-                    </AuthorName>
+                    <AuthorMeta>
+                      <AuthorName
+                        $pinned={post.pinned}
+                        styleKey={profileNameStyleKey}
+                      >
+                        {post.userName}
+                      </AuthorName>
+                      {profileTitleText && (
+                        <>
+                          <AuthorMetaDot aria-hidden="true" />
+                          <AuthorTitle>{profileTitleText}</AuthorTitle>
+                        </>
+                      )}
+                    </AuthorMeta>
                   </Author>
                   <Date dateTime={post.createdAt}>
                     {formatCommunityListRecentDate(post.createdAt, currentTime)}
