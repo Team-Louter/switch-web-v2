@@ -4,6 +4,8 @@ import { UserName } from '@/entities/user';
 import * as token from '@/shared/styles/values/token';
 import { ProfileAvatar } from '@/shared/ui';
 
+import { CommunityTitleBadge } from './CommunityTitleBadge.style';
+
 interface SkeletonBlockProps {
   $height: number;
   $width?: string;
@@ -324,35 +326,10 @@ export const PostAuthorName = styled(UserName)`
   white-space: nowrap;
 `;
 
-export const PostAuthorTitle = styled.span`
-  display: inline-flex;
-  align-items: center;
-  box-sizing: border-box;
-  flex: 0 0 auto;
+export const PostAuthorTitle = styled(CommunityTitleBadge)`
   gap: 4px;
-  min-width: 0;
   max-width: 140px;
-  overflow: hidden;
   padding: 4px 7px;
-  border: 1px solid ${token.colors.gray.gray20};
-  border-radius: ${token.shapes.xsmall};
-  color: ${token.colors.gray.gray70};
-  background: ${token.colors.white};
-  ${token.typography('caption', 'sm', 'medium')}
-  line-height: 1;
-  white-space: nowrap;
-
-  svg {
-    flex: 0 0 auto;
-    color: ${token.colors.gray.gray60};
-  }
-
-  span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
 `;
 
 export const MetaDot = styled.span`

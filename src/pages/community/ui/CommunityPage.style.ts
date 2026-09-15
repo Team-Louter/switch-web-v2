@@ -4,6 +4,8 @@ import { UserName } from '@/entities/user';
 import * as token from '@/shared/styles/values/token';
 import { Button, ProfileAvatar } from '@/shared/ui';
 
+import { CommunityTitleBadge } from './CommunityTitleBadge.style';
+
 type StatIconKind = 'heart' | 'comment' | 'view';
 
 export const Page = styled.section`
@@ -580,38 +582,13 @@ export const AuthorName = styled(UserName)<{ $pinned: boolean }>`
   }
 `;
 
-export const AuthorTitle = styled.span`
-  display: inline-flex;
-  align-items: center;
-  box-sizing: border-box;
-  flex: 0 0 auto;
+export const AuthorTitle = styled(CommunityTitleBadge)`
   gap: 3px;
-  min-width: 0;
   max-width: 112px;
-  overflow: hidden;
   padding: 3px 5px;
-  border: 1px solid ${token.colors.gray.gray20};
-  border-radius: ${token.shapes.xsmall};
-  color: ${token.colors.gray.gray70};
-  background: ${token.colors.white};
-  ${token.typography('caption', 'sm', 'medium')}
-  line-height: 1;
-  white-space: nowrap;
 
   @media (max-width: 1183px) {
     display: none;
-  }
-
-  svg {
-    flex: 0 0 auto;
-    color: ${token.colors.gray.gray60};
-  }
-
-  span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 `;
 
