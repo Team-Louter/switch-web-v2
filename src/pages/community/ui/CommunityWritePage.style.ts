@@ -125,10 +125,10 @@ export const CategoryTrigger = styled.button`
 
 export const CategoryChevron = styled.img<{ $open: boolean }>`
   position: absolute;
-  top: 20px;
+  top: 21px;
   right: 12px;
-  width: 20px;
-  height: 12px;
+  width: 16px;
+  height: 10px;
   pointer-events: none;
   transform: rotate(${({ $open }) => ($open ? '0deg' : '180deg')});
   transition: transform 150ms ease;
