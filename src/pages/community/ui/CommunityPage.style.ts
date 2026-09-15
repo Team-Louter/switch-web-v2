@@ -155,7 +155,9 @@ export const CategoryTab = styled.button<{ $active: boolean }>`
 export const MobileCategoryMenu = styled.div`
   position: relative;
   display: none;
-  flex: 1 1 0;
+  flex: 0 1 220px;
+  width: 220px;
+  max-width: calc(100% - 98px);
   min-width: 0;
 
   @media (max-width: 1055px) {
@@ -164,20 +166,19 @@ export const MobileCategoryMenu = styled.div`
 `;
 
 export const MobileCategoryButton = styled.button`
-  position: relative;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   box-sizing: border-box;
   width: 100%;
-  min-height: 52px;
-  padding: 12px 48px 12px 20px;
-  border: 2px solid ${token.colors.primary.primary40};
-  border-radius: ${token.shapes.xlarge};
-  color: ${token.colors.gray.gray60};
-  background: ${token.colors.gray.gray0};
-  ${token.typography('body', 'lg', 'medium')}
+  min-height: 44px;
+  padding: 0 8px;
+  border: 0;
+  border-bottom: 1px solid ${token.colors.gray.gray10};
+  color: ${token.colors.gray.gray100};
+  background: transparent;
+  ${token.typography('body', 'sm', 'semibold')}
   line-height: 1;
-  text-align: left;
   cursor: pointer;
 
   &:focus-visible {
@@ -204,14 +205,14 @@ export const MobileCategoryButtonLabel = styled.span`
   }
 `;
 
-export const MobileCategoryChevron = styled.img<{ $open: boolean }>`
-  position: absolute;
-  top: 50%;
-  right: 20px;
-  width: 18px;
-  height: 12px;
-  pointer-events: none;
-  transform: translateY(-50%) rotate(${({ $open }) => ($open ? '0deg' : '180deg')});
+export const MobileCategoryChevron = styled.span<{ $open: boolean }>`
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  margin: -4px 3px 0 8px;
+  border-right: 2px solid ${token.colors.gray.gray60};
+  border-bottom: 2px solid ${token.colors.gray.gray60};
+  transform: ${({ $open }) => ($open ? 'rotate(225deg)' : 'rotate(45deg)')};
   transition: transform 180ms ease;
 
   @media (prefers-reduced-motion: reduce) {
@@ -222,16 +223,16 @@ export const MobileCategoryChevron = styled.img<{ $open: boolean }>`
 export const MobileCategoryPanel = styled.div<{ $open: boolean }>`
   position: absolute;
   z-index: 20;
-  top: calc(100% + 10px);
+  top: calc(100% + 8px);
   right: 0;
   left: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
   box-sizing: border-box;
-  padding: 12px 24px;
+  padding: 8px;
   border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.xlarge};
+  border-radius: ${token.shapes.medium};
   background: ${token.colors.white};
   box-shadow: 0 10px 24px rgb(25 25 25 / 12%);
   opacity: ${({ $open }) => ($open ? 1 : 0)};
@@ -251,7 +252,8 @@ export const MobileCategoryPanel = styled.div<{ $open: boolean }>`
 
 export const MobileCategoryOption = styled.button<{ $active: boolean }>`
   width: 100%;
-  min-height: 52px;
+  min-width: 0;
+  min-height: 40px;
   padding: 8px 12px;
   overflow: hidden;
   border: 0;
@@ -259,8 +261,8 @@ export const MobileCategoryOption = styled.button<{ $active: boolean }>`
   color: ${({ $active }) =>
     $active ? token.colors.primary.primary80 : token.colors.gray.gray80};
   background: ${({ $active }) =>
-    $active ? token.colors.primary.primary10 : 'transparent'};
-  ${token.typography('body', 'lg', 'medium')}
+    $active ? token.colors.primary.primary20 : 'transparent'};
+  ${token.typography('body', 'sm', 'medium')}
   line-height: 1;
   text-align: left;
   text-overflow: ellipsis;

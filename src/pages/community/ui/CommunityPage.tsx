@@ -28,7 +28,6 @@ import eyeIcon from '@/shared/assets/my/eye-icon.svg';
 import { getNameStyleKey } from '@/shared/styles';
 import { Button } from '@/shared/ui';
 
-import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg';
 import commentOutlineIcon from '../assets/svg/comment-outline.svg';
 import heartColoredIcon from '../assets/svg/heart-colored.svg';
 import heartOutlineIcon from '../assets/svg/heart-outline.svg';
@@ -120,10 +119,8 @@ export function CommunityPage() {
     (_, index) => firstVisiblePage + index,
   );
   const selectedCategoryLabel =
-    selectedCategory === null
-      ? '카테고리'
-      : CATEGORY_TABS.find((category) => category.value === selectedCategory)
-          ?.label ?? '카테고리';
+    CATEGORY_TABS.find((category) => category.value === selectedCategory)
+      ?.label ?? CATEGORY_TABS[0].label;
 
   const handleCategorySelect = (category: PostCategory | null) => {
     setSelectedCategory(category);
@@ -285,9 +282,8 @@ export function CommunityPage() {
                   <span>{selectedCategoryLabel}</span>
                 </MobileCategoryButtonLabel>
                 <MobileCategoryChevron
-                  src={attachmentChevronIcon}
-                  alt=""
                   $open={isCategoryMenuOpen}
+                  aria-hidden="true"
                 />
               </MobileCategoryButton>
               <MobileCategoryPanel
