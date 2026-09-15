@@ -463,16 +463,16 @@ export const BlockSideMenu = styled.div`
   --bn-colors-side-menu: ${token.colors.gray.gray40};
 
   .bn-side-menu {
-    gap: 6px;
+    gap: 2px;
   }
 
   .bn-side-menu .mantine-UnstyledButton-root:not(.mantine-Menu-item) {
     box-sizing: border-box;
-    width: 28px;
-    min-width: 28px;
-    height: 28px;
-    min-height: 28px;
-    padding: 5px;
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    min-height: 24px;
+    padding: 3px;
     color: ${token.colors.gray.gray40};
   }
 
@@ -483,6 +483,9 @@ export const BlockSideMenu = styled.div`
   }
 
   .bn-side-menu > [draggable='true'] {
+    width: 22px;
+    min-width: 22px;
+    padding-inline: 2px;
     cursor: grab;
   }
 
