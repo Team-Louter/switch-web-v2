@@ -105,7 +105,7 @@ export const CategoryTabs = styled.div`
     overflow: visible;
   }
 
-  @container community-page (max-width: 600px) {
+  @media (max-width: 1055px) {
     display: none;
   }
 `;
@@ -147,7 +147,7 @@ export const CategoryTab = styled.button<{ $active: boolean }>`
     }
   }
 
-  @container community-page (max-width: 600px) {
+  @media (max-width: 1055px) {
     display: none;
   }
 `;
@@ -158,25 +158,26 @@ export const MobileCategoryMenu = styled.div`
   flex: 1 1 0;
   min-width: 0;
 
-  @container community-page (max-width: 600px) {
+  @media (max-width: 1055px) {
     display: block;
   }
 `;
 
 export const MobileCategoryButton = styled.button`
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   box-sizing: border-box;
   width: 100%;
-  min-height: 44px;
-  padding: 0 8px;
-  border: 0;
-  border-bottom: 1px solid ${token.colors.gray.gray10};
-  color: ${token.colors.gray.gray100};
-  background: transparent;
-  ${token.typography('body', 'sm', 'semibold')}
+  min-height: 52px;
+  padding: 12px 48px 12px 20px;
+  border: 2px solid ${token.colors.primary.primary40};
+  border-radius: ${token.shapes.xlarge};
+  color: ${token.colors.gray.gray60};
+  background: ${token.colors.gray.gray0};
+  ${token.typography('body', 'lg', 'medium')}
   line-height: 1;
+  text-align: left;
   cursor: pointer;
 
   &:focus-visible {
@@ -203,14 +204,14 @@ export const MobileCategoryButtonLabel = styled.span`
   }
 `;
 
-export const MobileCategoryChevron = styled.span<{ $open: boolean }>`
-  flex: 0 0 auto;
-  width: 8px;
-  height: 8px;
-  margin: -4px 3px 0 8px;
-  border-right: 2px solid ${token.colors.gray.gray60};
-  border-bottom: 2px solid ${token.colors.gray.gray60};
-  transform: ${({ $open }) => ($open ? 'rotate(225deg)' : 'rotate(45deg)')};
+export const MobileCategoryChevron = styled.img<{ $open: boolean }>`
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  width: 18px;
+  height: 12px;
+  pointer-events: none;
+  transform: translateY(-50%) rotate(${({ $open }) => ($open ? '0deg' : '180deg')});
   transition: transform 180ms ease;
 
   @media (prefers-reduced-motion: reduce) {
@@ -221,16 +222,16 @@ export const MobileCategoryChevron = styled.span<{ $open: boolean }>`
 export const MobileCategoryPanel = styled.div<{ $open: boolean }>`
   position: absolute;
   z-index: 20;
-  top: calc(100% + 8px);
+  top: calc(100% + 10px);
   right: 0;
   left: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 4px;
   box-sizing: border-box;
-  padding: 8px;
+  padding: 12px 24px;
   border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.medium};
+  border-radius: ${token.shapes.xlarge};
   background: ${token.colors.white};
   box-shadow: 0 10px 24px rgb(25 25 25 / 12%);
   opacity: ${({ $open }) => ($open ? 1 : 0)};
@@ -249,18 +250,19 @@ export const MobileCategoryPanel = styled.div<{ $open: boolean }>`
 `;
 
 export const MobileCategoryOption = styled.button<{ $active: boolean }>`
-  min-width: 0;
-  min-height: 40px;
-  padding: 8px 6px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 12px;
   overflow: hidden;
   border: 0;
   border-radius: ${token.shapes.small};
   color: ${({ $active }) =>
     $active ? token.colors.primary.primary80 : token.colors.gray.gray80};
   background: ${({ $active }) =>
-    $active ? token.colors.primary.primary20 : 'transparent'};
-  ${token.typography('body', 'sm', 'medium')}
+    $active ? token.colors.primary.primary10 : 'transparent'};
+  ${token.typography('body', 'lg', 'medium')}
   line-height: 1;
+  text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: pointer;
