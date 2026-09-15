@@ -254,14 +254,16 @@ export const Editor = styled.section`
     flex: 0 1 auto;
     flex-wrap: wrap;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
   }
 
   .community-toolbar-button {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex: 0 0 24px;
     min-width: 0;
+    width: 24px;
     height: 24px;
     padding: 0;
     border: 0;
@@ -285,7 +287,10 @@ export const Editor = styled.section`
 
     img {
       display: block;
-      max-height: 24px;
+      flex: 0 0 auto;
+      width: auto;
+      height: 20px;
+      max-width: 20px;
     }
   }
 
