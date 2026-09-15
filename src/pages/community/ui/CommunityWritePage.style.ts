@@ -362,7 +362,9 @@ export const Editor = styled.section`
   }
 
   .community-block-editor .bn-block-content {
+    box-sizing: border-box;
     min-height: 30px;
+    padding-left: 8px;
     overflow-wrap: anywhere;
   }
 
@@ -453,23 +455,31 @@ export const BlockSideMenu = styled.div`
   --bn-colors-side-menu: ${token.colors.gray.gray40};
 
   .bn-side-menu {
-    gap: 2px;
+    gap: 6px;
   }
 
   .bn-side-menu .mantine-UnstyledButton-root:not(.mantine-Menu-item) {
     box-sizing: border-box;
-    width: 24px;
-    min-width: 24px;
-    height: 24px;
-    min-height: 24px;
-    padding: 4px;
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+    min-height: 28px;
+    padding: 5px;
     color: ${token.colors.gray.gray40};
   }
 
   .bn-side-menu .mantine-UnstyledButton-root:not(.mantine-Menu-item) svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     color: ${token.colors.gray.gray40};
+  }
+
+  .bn-side-menu > [draggable='true'] {
+    cursor: grab;
+  }
+
+  .bn-side-menu > [draggable='true']:active {
+    cursor: grabbing;
   }
 
   .bn-drag-handle-menu {
