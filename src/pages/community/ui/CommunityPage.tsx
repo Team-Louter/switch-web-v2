@@ -425,7 +425,7 @@ export function CommunityPage() {
                       {profileTitleName && (
                         <AuthorTitle>
                           {profileTitleName === '최초의 개발자' && (
-                            <PixelHammerIcon size={12} />
+                            <PixelHammerIcon size={14} />
                           )}
                           <span>{profileTitleName}</span>
                         </AuthorTitle>
