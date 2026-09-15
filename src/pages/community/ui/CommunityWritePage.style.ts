@@ -489,14 +489,14 @@ export const BlockSideMenu = styled.div`
     color: ${token.colors.gray.gray40};
   }
 
-  .bn-side-menu > [draggable='true'] {
-    width: auto;
-    min-width: 0;
+  .bn-side-menu [draggable='true'] {
+    width: 18px;
+    min-width: 18px;
     padding-inline: 0;
     cursor: grab;
   }
 
-  .bn-side-menu > [draggable='true']:active {
+  .bn-side-menu [draggable='true']:active {
     cursor: grabbing;
   }
 
