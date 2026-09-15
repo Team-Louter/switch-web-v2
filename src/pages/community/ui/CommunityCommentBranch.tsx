@@ -335,17 +335,14 @@ export function CommunityCommentBranch({
           <S.CommentContent>
             <S.CommentHeader>
               <S.CommentMeta>
+                {profileTitleName && (
+                  <S.CommentAuthorTitle>
+                    {profileTitleName}
+                  </S.CommentAuthorTitle>
+                )}
                 <S.CommentAuthor styleKey={profileNameStyleKey}>
                   {comment.userName}
                 </S.CommentAuthor>
-                {profileTitleName && (
-                  <>
-                    <S.CommentMetaDot aria-hidden="true" />
-                    <S.CommentAuthorTitle>
-                      {profileTitleName}
-                    </S.CommentAuthorTitle>
-                  </>
-                )}
                 <S.CommentMetaDot aria-hidden="true" />
                 <S.CommentDate
                   dateTime={comment.createdAt}

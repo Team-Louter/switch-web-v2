@@ -38,7 +38,6 @@ import {
   Author,
   AuthorImage,
   AuthorMeta,
-  AuthorMetaDot,
   AuthorName,
   AuthorTitle,
   CategoryCell,
@@ -416,18 +415,15 @@ export function CommunityPage() {
                       size={28}
                     />
                     <AuthorMeta>
+                      {profileTitleName && (
+                        <AuthorTitle>{profileTitleName}</AuthorTitle>
+                      )}
                       <AuthorName
                         $pinned={post.pinned}
                         styleKey={profileNameStyleKey}
                       >
                         {post.userName}
                       </AuthorName>
-                      {profileTitleName && (
-                        <>
-                          <AuthorMetaDot aria-hidden="true" />
-                          <AuthorTitle>{profileTitleName}</AuthorTitle>
-                        </>
-                      )}
                     </AuthorMeta>
                   </Author>
                   <Date dateTime={post.createdAt}>

@@ -1123,18 +1123,15 @@ export function CommunityDetailPage() {
                             onImageError={handleProfileImageError}
                             size={22}
                           />
+                          {postProfileTitleName && (
+                            <S.PostAuthorTitle>
+                              {postProfileTitleName}
+                            </S.PostAuthorTitle>
+                          )}
                           <S.PostAuthorName styleKey={postNameStyleKey}>
                             {post.userName}
                           </S.PostAuthorName>
                         </S.PostAuthor>
-                        {postProfileTitleName && (
-                          <>
-                            <S.MetaDot aria-hidden="true" />
-                            <S.PostAuthorTitle>
-                              {postProfileTitleName}
-                            </S.PostAuthorTitle>
-                          </>
-                        )}
                         <S.MetaDot aria-hidden="true" />
                         <S.PostDate
                           dateTime={post.createdAt}

@@ -580,14 +580,6 @@ export const AuthorName = styled(UserName)<{ $pinned: boolean }>`
   }
 `;
 
-export const AuthorMetaDot = styled.span`
-  flex: 0 0 4px;
-  width: 4px;
-  height: 4px;
-  border-radius: ${token.shapes.circle};
-  background: ${token.colors.gray.gray40};
-`;
-
 export const AuthorTitle = styled.span`
   display: block;
   flex: 0 1 auto;
