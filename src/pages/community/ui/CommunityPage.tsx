@@ -420,6 +420,12 @@ export function CommunityPage() {
                       size={28}
                     />
                     <AuthorMeta>
+                      <AuthorName
+                        $pinned={post.pinned}
+                        styleKey={profileNameStyleKey}
+                      >
+                        {post.userName}
+                      </AuthorName>
                       {profileTitleName && (
                         <AuthorTitle>
                           {profileTitleImageUrl ? (
@@ -432,12 +438,6 @@ export function CommunityPage() {
                           )}
                         </AuthorTitle>
                       )}
-                      <AuthorName
-                        $pinned={post.pinned}
-                        styleKey={profileNameStyleKey}
-                      >
-                        {post.userName}
-                      </AuthorName>
                     </AuthorMeta>
                   </Author>
                   <Date dateTime={post.createdAt}>

@@ -341,6 +341,9 @@ export function CommunityCommentBranch({
           <S.CommentContent>
             <S.CommentHeader>
               <S.CommentMeta>
+                <S.CommentAuthor styleKey={profileNameStyleKey}>
+                  {comment.userName}
+                </S.CommentAuthor>
                 {profileTitleName && (
                   <S.CommentAuthorTitle>
                     {profileTitleImageUrl ? (
@@ -353,9 +356,6 @@ export function CommunityCommentBranch({
                     )}
                   </S.CommentAuthorTitle>
                 )}
-                <S.CommentAuthor styleKey={profileNameStyleKey}>
-                  {comment.userName}
-                </S.CommentAuthor>
                 <S.CommentMetaDot aria-hidden="true" />
                 <S.CommentDate
                   dateTime={comment.createdAt}

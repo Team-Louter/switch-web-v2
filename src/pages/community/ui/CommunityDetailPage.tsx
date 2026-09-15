@@ -1128,6 +1128,9 @@ export function CommunityDetailPage() {
                             onImageError={handleProfileImageError}
                             size={32}
                           />
+                          <S.PostAuthorName styleKey={postNameStyleKey}>
+                            {post.userName}
+                          </S.PostAuthorName>
                           {postProfileTitleName && (
                             <S.PostAuthorTitle>
                               {postProfileTitleImageUrl ? (
@@ -1140,9 +1143,6 @@ export function CommunityDetailPage() {
                               )}
                             </S.PostAuthorTitle>
                           )}
-                          <S.PostAuthorName styleKey={postNameStyleKey}>
-                            {post.userName}
-                          </S.PostAuthorName>
                         </S.PostAuthor>
                         <S.MetaDot aria-hidden="true" />
                         <S.PostDate
