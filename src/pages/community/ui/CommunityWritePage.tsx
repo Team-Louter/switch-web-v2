@@ -25,6 +25,7 @@ import {
   useState,
 } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 import {
   getCommunityFileDownloadUrl,
@@ -219,7 +220,6 @@ export function CommunityWritePage() {
   const [pendingFileUploadCount, setPendingFileUploadCount] = useState(0);
   const [fileUploadError, setFileUploadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [isPostLoading, setIsPostLoading] = useState(isEditing);
   const [postLoadError, setPostLoadError] = useState<string | null>(null);
   const [blockDropIndicator, setBlockDropIndicator] =
@@ -239,7 +239,6 @@ export function CommunityWritePage() {
   const handleCategorySelect = (nextCategory: PostCategory) => {
     setCategory(nextCategory);
     setIsCategoryMenuOpen(false);
-    setSubmitError(null);
   };
 
   const uploadPostFile = useCallback(async (file: File) => {
@@ -448,7 +447,7 @@ export function CommunityWritePage() {
     event.preventDefault();
 
     if (isEditRoute && !isEditing) {
-      setSubmitError('올바르지 않은 게시글 주소입니다.');
+      toast.error('올바르지 않은 게시글 주소입니다.');
       return;
     }
 
@@ -457,47 +456,46 @@ export function CommunityWritePage() {
     }
 
     if (isUploadingFile) {
-      setSubmitError('파일 업로드가 완료될 때까지 기다려주세요.');
+      toast.error('파일 업로드가 완료될 때까지 기다려주세요.');
       return;
     }
 
     const trimmedTitle = title.trim();
 
     if (!trimmedTitle) {
-      setSubmitError('제목을 입력해주세요.');
+      toast.error('제목을 입력해주세요.');
       return;
     }
 
     if (isTitleOverLimit) {
-      setSubmitError(
+      toast.error(
         `제목은 ${COMMUNITY_TITLE_MAX_LENGTH}자 이내로 입력해주세요.`,
       );
       return;
     }
 
     if (!category) {
-      setSubmitError('카테고리를 선택해주세요.');
+      toast.error('카테고리를 선택해주세요.');
       return;
     }
 
     const postContentHtml = editor.blocksToHTMLLossy();
 
     if (!hasPostContent(postContentHtml)) {
-      setSubmitError('본문을 입력해주세요.');
+      toast.error('본문을 입력해주세요.');
       return;
     }
 
     const postContent = serializeBlockNotePostContent(editor.document);
 
     if (postContent.length > COMMUNITY_CONTENT_MAX_LENGTH) {
-      setSubmitError(
+      toast.error(
         `본문은 ${COMMUNITY_CONTENT_MAX_LENGTH.toLocaleString()}자 이내로 입력해주세요.`,
       );
       return;
     }
 
     setIsSubmitting(true);
-    setSubmitError(null);
 
     try {
       const postRequest = {
@@ -525,7 +523,7 @@ export function CommunityWritePage() {
         ? '게시글을 수정하지 못했습니다. 잠시 후 다시 시도해주세요.'
         : '게시글을 등록하지 못했습니다. 잠시 후 다시 시도해주세요.';
 
-      setSubmitError(getCommunityRequestErrorMessage(error, fallbackMessage));
+      toast.error(getCommunityRequestErrorMessage(error, fallbackMessage));
     } finally {
       setIsSubmitting(false);
     }
@@ -809,7 +807,11 @@ export function CommunityWritePage() {
             목록 보기
           </S.BackButton>
 
-          <S.WriteForm id="community-write-form" onSubmit={handleSubmit}>
+          <S.WriteForm
+            id="community-write-form"
+            noValidate
+            onSubmit={handleSubmit}
+          >
             <S.TitleRow>
               <S.Heading>
                 {isEditRoute ? '게시글 수정' : '게시글 작성'}
@@ -893,7 +895,6 @@ export function CommunityWritePage() {
                     setTitle(
                       event.target.value.slice(0, COMMUNITY_TITLE_MAX_LENGTH),
                     );
-                    setSubmitError(null);
                   }}
                 />
                 <S.TitleCounter
@@ -1009,9 +1010,6 @@ export function CommunityWritePage() {
         )}
         {fileUploadError && (
           <S.SubmitError role="alert">{fileUploadError}</S.SubmitError>
-        )}
-        {submitError && (
-          <S.SubmitError role="alert">{submitError}</S.SubmitError>
         )}
         {visiblePostLoadError && (
           <S.SubmitError role="alert">{visiblePostLoadError}</S.SubmitError>
