@@ -377,9 +377,7 @@ export const Editor = styled.section`
   }
 
   .community-block-editor
-    .bn-block-outer[data-community-block-selected='true']
-    > .bn-block
-    > .bn-block-content {
+    .bn-block-outer[data-community-block-selected='true'] {
     border-radius: ${token.shapes.small};
     background: ${token.colors.info.info0};
     transition: background-color 120ms ease-out;
