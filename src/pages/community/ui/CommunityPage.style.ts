@@ -211,7 +211,6 @@ export const MobileCategoryPanel = styled.div<{ $open: boolean }>`
   width: 162px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
   box-sizing: border-box;
   padding: 6px;
   border: 1px solid ${token.colors.gray.gray10};
@@ -242,19 +241,17 @@ export const MobileCategoryOption = styled.button<{ $active: boolean }>`
   border: 0;
   border-radius: ${token.shapes.small};
   color: ${({ $active }) =>
-    $active ? token.colors.primary.primary80 : token.colors.gray.gray80};
+    $active ? token.colors.gray.gray100 : token.colors.gray.gray60};
   background: ${({ $active }) =>
     $active ? token.colors.primary.primary10 : 'transparent'};
   ${token.typography('body', 'sm', 'medium')}
-  line-height: 1;
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: pointer;
 
   &:hover {
-    background: ${({ $active }) =>
-      $active ? token.colors.primary.primary10 : token.colors.gray.gray0};
+    background: ${token.colors.gray.gray0};
   }
 
   &:focus-visible {
