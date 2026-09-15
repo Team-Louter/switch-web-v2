@@ -110,7 +110,7 @@ const COMMUNITY_EDITOR_DICTIONARY = {
   placeholders: {
     ...ko.placeholders,
     default: undefined,
-    emptyDocument: '내용을 입력해주세요.',
+    emptyDocument: '/를 입력해 명령어 사용',
   },
 };
 

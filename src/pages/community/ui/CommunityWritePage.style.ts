@@ -376,6 +376,13 @@ export const Editor = styled.section`
     overflow-wrap: anywhere;
   }
 
+  .community-block-editor
+    .bn-block-content:has(.ProseMirror-trailingBreak:only-child):after {
+    color: ${token.colors.gray.gray40};
+    font-style: normal;
+    transform: none;
+  }
+
   .community-block-editor .bn-inline-content {
     overflow-wrap: anywhere;
   }
