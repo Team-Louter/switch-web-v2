@@ -20,6 +20,7 @@ import {
 } from '@/entities/community';
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png';
 import eyeIcon from '@/shared/assets/my/eye-icon.svg';
+import { getNameStyleKey } from '@/shared/styles';
 import { Button } from '@/shared/ui';
 
 import commentOutlineIcon from '../assets/svg/comment-outline.svg';
@@ -262,6 +263,26 @@ export function CommunityPage() {
               const authorImage =
                 resolveCommunityAssetUrl(post.userProfileImageUrl) ??
                 fallbackProfileImage;
+              const equippedItems = post.isAnonymous
+                ? undefined
+                : post.equippedItems;
+              const profileNameColor = equippedItems?.nameColor;
+              const profileNameStyleKey = getNameStyleKey(
+                profileNameColor?.styleKey ??
+                  profileNameColor?.valueColor ??
+                  profileNameColor?.value_color ??
+                  profileNameColor?.valueText ??
+                  profileNameColor?.itemName,
+              );
+              const profileBorder = equippedItems?.border;
+              const profileBorderImageUrl =
+                profileBorder?.valueImageUrl ??
+                profileBorder?.imageUrl ??
+                profileBorder?.itemImageUrl ??
+                profileBorder?.originalImageUrl ??
+                profileBorder?.previewImageUrl ??
+                profileBorder?.thumbnailUrl;
+              const hasCustomBorder = Boolean(profileBorderImageUrl?.trim());
               const hasImageAttachment = post.files?.some((file) =>
                 file.fileType.startsWith('image/'),
               );
@@ -296,13 +317,19 @@ export function CommunityPage() {
                   </PostTitle>
                   <Author>
                     <AuthorImage
-                      src={authorImage}
                       alt={`${post.userName} 프로필`}
+                      $hasBorder={hasCustomBorder}
+                      equippedItems={equippedItems}
+                      imageUrl={authorImage}
                       loading="lazy"
                       decoding="async"
-                      onError={handleProfileImageError}
+                      onImageError={handleProfileImageError}
+                      size={28}
                     />
-                    <AuthorName $pinned={post.pinned}>
+                    <AuthorName
+                      $pinned={post.pinned}
+                      styleKey={profileNameStyleKey}
+                    >
                       {post.userName}
                     </AuthorName>
                   </Author>

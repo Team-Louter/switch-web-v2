@@ -1,7 +1,8 @@
 import styled, { css, keyframes } from 'styled-components';
 
+import { UserName } from '@/entities/user';
 import * as token from '@/shared/styles/values/token';
-import { Button } from '@/shared/ui';
+import { Button, ProfileAvatar } from '@/shared/ui';
 
 type StatIconKind = 'heart' | 'comment' | 'view';
 
@@ -394,16 +395,25 @@ export const Author = styled.div`
   }
 `;
 
-export const AuthorImage = styled.img`
+export const AuthorImage = styled(ProfileAvatar)<{ $hasBorder: boolean }>`
   flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
-  border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.circle};
-  object-fit: cover;
+
+  ${({ $hasBorder }) =>
+    !$hasBorder &&
+    css`
+      &::after {
+        position: absolute;
+        z-index: 2;
+        inset: 0;
+        border: 1px solid ${token.colors.gray.gray10};
+        border-radius: ${token.shapes.circle};
+        content: '';
+        pointer-events: none;
+      }
+    `}
 `;
 
-export const AuthorName = styled.p<{ $pinned: boolean }>`
+export const AuthorName = styled(UserName)<{ $pinned: boolean }>`
   flex: 0 0 136px;
   overflow: hidden;
   margin: 0;

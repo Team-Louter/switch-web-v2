@@ -1,6 +1,8 @@
 import styled, { css, keyframes } from 'styled-components';
 
+import { UserName } from '@/entities/user';
 import * as token from '@/shared/styles/values/token';
+import { ProfileAvatar } from '@/shared/ui';
 
 interface SkeletonBlockProps {
   $height: number;
@@ -289,15 +291,23 @@ export const PostAuthor = styled.div`
   gap: 8px;
 `;
 
-export const PostAuthorImage = styled.img`
-  width: 22px;
-  height: 22px;
-  border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.circle};
-  object-fit: cover;
+export const PostAuthorImage = styled(ProfileAvatar)<{ $hasBorder: boolean }>`
+  ${({ $hasBorder }) =>
+    !$hasBorder &&
+    css`
+      &::after {
+        position: absolute;
+        z-index: 2;
+        inset: 0;
+        border: 1px solid ${token.colors.gray.gray10};
+        border-radius: ${token.shapes.circle};
+        content: '';
+        pointer-events: none;
+      }
+    `}
 `;
 
-export const PostAuthorName = styled.span`
+export const PostAuthorName = styled(UserName)`
   color: ${token.colors.gray.gray80};
   ${token.typography('body', 'md', 'medium')}
   line-height: 1;

@@ -40,6 +40,7 @@ import eyeIcon from '@/shared/assets/my/eye-icon.svg';
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png';
 import { parseBlockNotePostContent } from '@/shared/lib/blockNotePostContent';
 import { renderCustomUnderlineMarkdown } from '@/shared/lib/markdown';
+import { getNameStyleKey } from '@/shared/styles';
 import { Button, ConfirmModal } from '@/shared/ui';
 
 import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg';
@@ -289,6 +290,26 @@ export function CommunityDetailPage() {
   );
   const commentTree = useMemo(() => buildCommentTree(comments), [comments]);
   const targetCommentId = getTargetCommentId(hash);
+  const postEquippedItems = post?.isAnonymous
+    ? undefined
+    : post?.equippedItems;
+  const postNameColor = postEquippedItems?.nameColor;
+  const postNameStyleKey = getNameStyleKey(
+    postNameColor?.styleKey ??
+      postNameColor?.valueColor ??
+      postNameColor?.value_color ??
+      postNameColor?.valueText ??
+      postNameColor?.itemName,
+  );
+  const postBorder = postEquippedItems?.border;
+  const postBorderImageUrl =
+    postBorder?.valueImageUrl ??
+    postBorder?.imageUrl ??
+    postBorder?.itemImageUrl ??
+    postBorder?.originalImageUrl ??
+    postBorder?.previewImageUrl ??
+    postBorder?.thumbnailUrl;
+  const hasPostCustomBorder = Boolean(postBorderImageUrl?.trim());
 
   const handleBackToList = () => {
     navigate('/community');
@@ -1090,15 +1111,20 @@ export function CommunityDetailPage() {
                       <S.PostMeta>
                         <S.PostAuthor>
                           <S.PostAuthorImage
-                            src={
+                            alt={`${post.userName} 프로필`}
+                            $hasBorder={hasPostCustomBorder}
+                            equippedItems={postEquippedItems}
+                            imageUrl={
                               resolveCommunityAssetUrl(
                                 post.userProfileImageUrl,
                               ) ?? fallbackProfileImage
                             }
-                            alt={`${post.userName} 프로필`}
-                            onError={handleProfileImageError}
+                            onImageError={handleProfileImageError}
+                            size={22}
                           />
-                          <S.PostAuthorName>{post.userName}</S.PostAuthorName>
+                          <S.PostAuthorName styleKey={postNameStyleKey}>
+                            {post.userName}
+                          </S.PostAuthorName>
                         </S.PostAuthor>
                         <S.MetaDot aria-hidden="true" />
                         <S.PostDate

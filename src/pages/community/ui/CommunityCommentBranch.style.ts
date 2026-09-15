@@ -1,6 +1,8 @@
 import styled, { css, keyframes } from 'styled-components';
 
+import { UserName } from '@/entities/user';
 import * as token from '@/shared/styles/values/token';
+import { ProfileAvatar } from '@/shared/ui';
 
 interface CommentMenuItemProps {
   $danger?: boolean;
@@ -409,19 +411,20 @@ export const CommentItem = styled.div<CommentItemProps>`
   }
 `;
 
-export const CommentAuthorImage = styled.img`
-  flex: 0 0 32px;
-  width: 32px;
-  height: 32px;
-  border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.circle};
-  object-fit: cover;
-
-  @container community-detail (max-width: 430px) {
-    flex-basis: 28px;
-    width: 28px;
-    height: 28px;
-  }
+export const CommentAuthorImage = styled(ProfileAvatar)<{ $hasBorder: boolean }>`
+  ${({ $hasBorder }) =>
+    !$hasBorder &&
+    css`
+      &::after {
+        position: absolute;
+        z-index: 2;
+        inset: 0;
+        border: 1px solid ${token.colors.gray.gray10};
+        border-radius: ${token.shapes.circle};
+        content: '';
+        pointer-events: none;
+      }
+    `}
 `;
 
 export const CommentContent = styled.div`
@@ -455,7 +458,7 @@ export const CommentMeta = styled.div`
   }
 `;
 
-export const CommentAuthor = styled.span`
+export const CommentAuthor = styled(UserName)`
   color: #404040;
   ${token.typography('heading', 'sm', 'semibold')}
   line-height: 1.2;

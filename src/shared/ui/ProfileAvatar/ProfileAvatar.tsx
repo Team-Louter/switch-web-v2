@@ -6,9 +6,12 @@ import type { ProfileAvatarProps } from './types'
 export function ProfileAvatar({
   alt = '',
   className,
+  decoding,
   equippedItems,
   imageScale = 1,
   imageUrl,
+  loading,
+  onImageError,
   size,
 }: ProfileAvatarProps) {
   const { decorations, layout, normalizedImageUrl } =
@@ -28,6 +31,9 @@ export function ProfileAvatar({
             src={normalizedImageUrl}
             alt={alt}
             $imageScale={imageScale}
+            decoding={decoding}
+            loading={loading}
+            onError={onImageError}
           />
         )}
       </S.ImageClip>
