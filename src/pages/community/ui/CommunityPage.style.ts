@@ -251,7 +251,8 @@ export const MobileCategoryOption = styled.button<{ $active: boolean }>`
   cursor: pointer;
 
   &:hover {
-    background: ${token.colors.gray.gray0};
+    background: ${({ $active }) =>
+      $active ? token.colors.primary.primary10 : token.colors.gray.gray0};
   }
 
   &:focus-visible {
