@@ -8,7 +8,6 @@ import {
 import { PiNoteBlank, PiPencilSimpleLineBold } from 'react-icons/pi';
 import { useNavigate } from 'react-router-dom';
 
-import { getMember } from '@/entities/member';
 import {
   formatCommunityCount,
   formatCommunityListRecentDate,
@@ -23,7 +22,6 @@ import fallbackProfileImage from '@/shared/assets/sidebar/profile.png';
 import eyeIcon from '@/shared/assets/my/eye-icon.svg';
 import { getNameStyleKey } from '@/shared/styles';
 import { Button } from '@/shared/ui';
-import type { ProfileAvatarEquippedItems } from '@/shared/ui';
 
 import commentOutlineIcon from '../assets/svg/comment-outline.svg';
 import heartColoredIcon from '../assets/svg/heart-colored.svg';
@@ -97,9 +95,6 @@ export function CommunityPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [currentTime, setCurrentTime] = useState(globalThis.Date.now);
-  const [memberEquippedItems, setMemberEquippedItems] = useState<
-    Record<number, ProfileAvatarEquippedItems>
-  >({});
 
   const firstVisiblePage = Math.min(
     Math.max(currentPage - Math.floor(MAX_VISIBLE_PAGE_COUNT / 2), 0),
@@ -154,37 +149,6 @@ export function CommunityPage() {
 
     return () => {
       window.clearInterval(refreshIntervalId);
-    };
-  }, []);
-
-  useEffect(() => {
-    let isCancelled = false;
-
-    getMember()
-      .then((members) => {
-        if (isCancelled) {
-          return;
-        }
-
-        const nextMemberEquippedItems: Record<
-          number,
-          ProfileAvatarEquippedItems
-        > = {};
-
-        members.forEach((member) => {
-          if (member.equippedItems) {
-            nextMemberEquippedItems[member.userId] = member.equippedItems;
-          }
-        });
-
-        setMemberEquippedItems(nextMemberEquippedItems);
-      })
-      .catch(() => {
-        // 프로필 효과 조회 실패 시 게시글 목록은 기본 프로필로 표시한다.
-      });
-
-    return () => {
-      isCancelled = true;
     };
   }, []);
 
@@ -301,7 +265,7 @@ export function CommunityPage() {
                 fallbackProfileImage;
               const equippedItems = post.isAnonymous
                 ? undefined
-                : post.equippedItems ?? memberEquippedItems[post.userId];
+                : post.equippedItems;
               const profileNameColor = equippedItems?.nameColor;
               const profileNameStyleKey = getNameStyleKey(
                 profileNameColor?.styleKey ??

@@ -14,7 +14,6 @@ import {
 } from '@/entities/community';
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png';
 import { getNameStyleKey } from '@/shared/styles';
-import type { ProfileAvatarEquippedItems } from '@/shared/ui';
 
 import anonymousProfileImage from '../assets/images/anonymousProfile.png';
 import {
@@ -42,9 +41,6 @@ interface CommunityCommentBranchProps {
   onCommentEditStart: () => void;
   currentMemberId: number | null;
   loadedReplyCommentIds: ReadonlySet<number>;
-  memberEquippedItemsByUserId: Readonly<
-    Record<number, ProfileAvatarEquippedItems>
-  >;
   replyAuthorProfileImageUrl?: string;
   replyToUserName?: string;
   isExpandedByAncestor?: boolean;
@@ -91,7 +87,6 @@ export function CommunityCommentBranch({
   onCommentEditStart,
   currentMemberId,
   loadedReplyCommentIds,
-  memberEquippedItemsByUserId,
   replyAuthorProfileImageUrl,
   replyToUserName,
   isExpandedByAncestor = false,
@@ -151,7 +146,7 @@ export function CommunityCommentBranch({
     : '답글 더보기';
   const equippedItems = comment.isAnonymous
     ? undefined
-    : comment.equippedItems ?? memberEquippedItemsByUserId[comment.userId];
+    : comment.equippedItems;
   const profileNameColor = equippedItems?.nameColor;
   const profileNameStyleKey = getNameStyleKey(
     profileNameColor?.styleKey ??
@@ -543,7 +538,6 @@ export function CommunityCommentBranch({
                       onCommentEditStart={onCommentEditStart}
                       currentMemberId={currentMemberId}
                       loadedReplyCommentIds={loadedReplyCommentIds}
-                      memberEquippedItemsByUserId={memberEquippedItemsByUserId}
                       replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
                       replyToUserName={
                         child.comment.depth > FLATTENED_TREE_DEPTH
