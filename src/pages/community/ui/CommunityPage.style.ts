@@ -105,7 +105,7 @@ export const CategoryTabs = styled.div`
     overflow: visible;
   }
 
-  @media (max-width: 1055px) {
+  @container community-page (max-width: 1020px) {
     display: none;
   }
 `;
@@ -147,7 +147,7 @@ export const CategoryTab = styled.button<{ $active: boolean }>`
     }
   }
 
-  @media (max-width: 1055px) {
+  @container community-page (max-width: 1020px) {
     display: none;
   }
 `;
@@ -158,7 +158,7 @@ export const MobileCategoryMenu = styled.div`
   flex: 1 1 0;
   min-width: 0;
 
-  @media (max-width: 1055px) {
+  @container community-page (max-width: 1020px) {
     display: block;
   }
 `;
