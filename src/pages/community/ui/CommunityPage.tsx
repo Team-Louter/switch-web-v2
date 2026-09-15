@@ -7,7 +7,6 @@ import {
   useState,
 } from 'react';
 import {
-  PiHammerFill,
   PiList,
   PiNoteBlank,
   PiPencilSimpleLineBold,
@@ -81,6 +80,7 @@ import {
   TabActionRow,
   WriteButton,
 } from './CommunityPage.style';
+import { PixelHammerIcon } from './PixelHammerIcon';
 
 interface CategoryTabItem {
   value: PostCategory | null;
@@ -425,7 +425,7 @@ export function CommunityPage() {
                       {profileTitleName && (
                         <AuthorTitle>
                           {profileTitleName === '최초의 개발자' && (
-                            <PiHammerFill size={14} aria-hidden="true" />
+                            <PixelHammerIcon size={12} />
                           )}
                           <span>{profileTitleName}</span>
                         </AuthorTitle>

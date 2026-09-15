@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { PiHammerFill } from 'react-icons/pi';
 
 import {
   formatCommunityDate,
@@ -26,6 +25,7 @@ import {
 } from '../model/commentTree';
 import kebabIcon from '../assets/svg/kebab.svg';
 import * as S from './CommunityCommentBranch.style';
+import { PixelHammerIcon } from './PixelHammerIcon';
 
 interface ReplyLoadingSkeletonProps {
   isWithinReplies?: boolean;
@@ -342,7 +342,7 @@ export function CommunityCommentBranch({
                 {profileTitleName && (
                   <S.CommentAuthorTitle>
                     {profileTitleName === '최초의 개발자' && (
-                      <PiHammerFill size={16} aria-hidden="true" />
+                      <PixelHammerIcon size={14} />
                     )}
                     <span>{profileTitleName}</span>
                   </S.CommentAuthorTitle>

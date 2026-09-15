@@ -583,12 +583,16 @@ export const AuthorName = styled(UserName)<{ $pinned: boolean }>`
 export const AuthorTitle = styled.span`
   display: inline-flex;
   align-items: center;
+  box-sizing: border-box;
   flex: 0 0 auto;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
   max-width: 112px;
   overflow: hidden;
-  color: #ffa20a;
+  padding: 3px 5px;
+  border-radius: 6px;
+  color: #ffffff;
+  background: #45464f;
   ${token.typography('caption', 'sm', 'medium')}
   line-height: 1;
   white-space: nowrap;
@@ -599,6 +603,7 @@ export const AuthorTitle = styled.span`
 
   svg {
     flex: 0 0 auto;
+    color: #f4c95d;
   }
 
   span {

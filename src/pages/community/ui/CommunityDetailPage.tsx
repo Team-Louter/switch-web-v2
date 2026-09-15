@@ -8,7 +8,6 @@ import {
 } from 'react';
 import { isAxiosError } from 'axios';
 import ReactMarkdown from 'react-markdown';
-import { PiHammerFill } from 'react-icons/pi';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
@@ -69,6 +68,7 @@ import { CommunityCommentBranch } from './CommunityCommentBranch';
 import { CommunityPostBlockContent } from './CommunityPostBlockContent';
 import { CommunityRollingNumber } from './CommunityRollingNumber';
 import * as S from './CommunityDetailPage.style';
+import { PixelHammerIcon } from './PixelHammerIcon';
 
 const markdownSanitizeSchema = {
   ...defaultSchema,
@@ -1130,10 +1130,7 @@ export function CommunityDetailPage() {
                           {postProfileTitleName && (
                             <S.PostAuthorTitle>
                               {postProfileTitleName === '최초의 개발자' && (
-                                <PiHammerFill
-                                  size={16}
-                                  aria-hidden="true"
-                                />
+                                <PixelHammerIcon size={14} />
                               )}
                               <span>{postProfileTitleName}</span>
                             </S.PostAuthorTitle>

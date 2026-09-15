@@ -476,18 +476,23 @@ export const CommentAuthor = styled(UserName)`
 export const CommentAuthorTitle = styled.span`
   display: inline-flex;
   align-items: center;
+  box-sizing: border-box;
   flex: 0 0 auto;
   gap: 4px;
   min-width: 0;
   max-width: 160px;
   overflow: hidden;
-  color: #ffa20a;
+  padding: 4px 7px;
+  border-radius: 6px;
+  color: #ffffff;
+  background: #45464f;
   ${token.typography('caption', 'sm', 'medium')}
   line-height: 1;
   white-space: nowrap;
 
   svg {
     flex: 0 0 auto;
+    color: #f4c95d;
   }
 
   span {
