@@ -235,6 +235,14 @@ export const TitleCounter = styled.span<{ $isOverLimit: boolean }>`
   transform: translateY(-50%);
 `;
 
+export const ContentCounter = styled.span`
+  flex: 0 0 auto;
+  align-self: flex-end;
+  color: ${token.colors.gray.gray40};
+  ${token.typography('caption', 'sm', 'medium')}
+  line-height: 1;
+`;
+
 export const Editor = styled.section`
   ${token.flexColumn}
   position: relative;

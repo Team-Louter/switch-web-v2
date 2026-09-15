@@ -131,12 +131,15 @@ const EDITOR_TOOLS: EditorTool[] = [
 ];
 
 function hasPostContent(content: string): boolean {
-  const textContent = content
+  const textContent = getCommunityTextContent(content).trim()
+
+  return Boolean(textContent) || /<(img|audio|video)\b/i.test(content)
+}
+
+function getCommunityTextContent(content: string): string {
+  return content
     .replaceAll(/<[^>]*>/g, '')
     .replaceAll('&nbsp;', ' ')
-    .trim();
-
-  return Boolean(textContent) || /<(img|audio|video)\b/i.test(content);
 }
 
 function getCommunityRequestErrorMessage(
@@ -203,6 +206,7 @@ export function CommunityWritePage() {
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [tag, setTag] = useState<PostTag | undefined>(undefined);
   const [title, setTitle] = useState('');
+  const [contentLength, setContentLength] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [pendingFileUploadCount, setPendingFileUploadCount] = useState(0);
@@ -662,6 +666,9 @@ export function CommunityWritePage() {
 
         if (contentBlocks.length > 0) {
           editor.replaceBlocks(editor.document, contentBlocks);
+          setContentLength(
+            getCommunityTextContent(editor.blocksToHTMLLossy()).length,
+          );
         }
       } catch {
         if (!isCancelled) {
@@ -908,6 +915,13 @@ export function CommunityWritePage() {
             <BlockNoteView
               editor={editor}
               editable={!isEditorDisabled}
+              onChange={(changedEditor) => {
+                setContentLength(
+                  getCommunityTextContent(
+                    changedEditor.blocksToHTMLLossy(),
+                  ).length,
+                );
+              }}
               sideMenu={false}
               portalElements={{ default: null }}
             >
@@ -920,6 +934,10 @@ export function CommunityWritePage() {
               />
             )}
           </div>
+          <S.ContentCounter aria-label="본문 글자 수">
+            {contentLength.toLocaleString()} /{' '}
+            {COMMUNITY_CONTENT_MAX_LENGTH.toLocaleString()}
+          </S.ContentCounter>
         </S.Editor>
         {isUploadingFile && (
           <S.FileUploadStatus role="status">
