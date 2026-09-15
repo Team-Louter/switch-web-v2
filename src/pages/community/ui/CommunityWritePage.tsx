@@ -607,14 +607,16 @@ export function CommunityWritePage() {
       return;
     }
 
-    const postContent = serializeBlockNotePostContent(editor.document);
+    const postContentLength = getCommunityTextContent(postContentHtml).length;
 
-    if (postContent.length > COMMUNITY_CONTENT_MAX_LENGTH) {
+    if (postContentLength > COMMUNITY_CONTENT_MAX_LENGTH) {
       toast.error(
         `본문은 ${COMMUNITY_CONTENT_MAX_LENGTH.toLocaleString()}자 이내로 입력해주세요.`,
       );
       return;
     }
+
+    const postContent = serializeBlockNotePostContent(editor.document);
 
     setIsSubmitting(true);
 

@@ -11,6 +11,12 @@ export const Page = styled.section`
   container-name: community-write;
   container-type: inline-size;
   background: ${token.colors.white};
+
+  @media (max-height: 720px) {
+    // 헤더와 툴바가 화면에 맞지 않을 때 페이지가 자연스럽게 늘어나도록 합니다.
+    height: auto;
+    overflow: visible;
+  }
 `;
 
 export const Content = styled.div`
@@ -23,6 +29,12 @@ export const Content = styled.div`
   overflow: hidden;
   margin: 0 auto;
   zoom: 0.9;
+
+  @media (max-height: 720px) {
+    height: auto;
+    min-height: calc(100dvh - 100px);
+    overflow: visible;
+  }
 `;
 
 export const Header = styled.header`
@@ -493,6 +505,21 @@ export const Editor = styled.section<EditorProps>`
 
     .community-block-editor .bn-editor {
       padding-inline: 54px;
+    }
+  }
+
+  @media (max-height: 720px) {
+    flex: 0 0 auto;
+    max-height: none;
+    overflow: visible;
+
+    .community-block-editor {
+      flex: 0 0 auto;
+      overflow: visible;
+    }
+
+    .community-block-editor .bn-editor {
+      min-height: clamp(430px, 70dvh, 620px);
     }
   }
 `;

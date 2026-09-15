@@ -156,7 +156,8 @@ export function CommunityCommentBranch({
       profileNameColor?.valueText ??
       profileNameColor?.itemName,
   );
-  const profileTitleName = equippedItems?.title?.itemName;
+  const profileTitleName =
+    equippedItems?.title?.valueText ?? equippedItems?.title?.itemName;
   const profileBorder = equippedItems?.border;
   const profileBorderImageUrl =
     profileBorder?.valueImageUrl ??

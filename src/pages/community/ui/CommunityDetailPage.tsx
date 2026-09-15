@@ -294,7 +294,8 @@ export function CommunityDetailPage() {
   const postEquippedItems = post?.isAnonymous
     ? undefined
     : post?.equippedItems;
-  const postProfileTitleName = postEquippedItems?.title?.itemName;
+  const postProfileTitleName =
+    postEquippedItems?.title?.valueText ?? postEquippedItems?.title?.itemName;
   const postNameColor = postEquippedItems?.nameColor;
   const postNameStyleKey = getNameStyleKey(
     postNameColor?.styleKey ??
