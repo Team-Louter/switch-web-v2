@@ -24,6 +24,7 @@ import { MdDragIndicator } from 'react-icons/md';
 import {
   type ChangeEvent,
   type DragEvent as ReactDragEvent,
+  type FocusEvent as ReactFocusEvent,
   type FormEvent,
   type MouseEvent as ReactMouseEvent,
   useCallback,
@@ -226,6 +227,7 @@ function CommunityDragHandleButton({
       onOpenChange={(isOpen) => {
         if (isOpen) {
           sideMenu.freezeMenu();
+          onBlockMenuOpen(block.id);
         } else {
           sideMenu.unfreezeMenu();
         }
@@ -284,6 +286,8 @@ export function CommunityWritePage() {
   const [fileUploadError, setFileUploadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+  const [isEditorPlaceholderVisible, setIsEditorPlaceholderVisible] =
+    useState(false);
   const [isPostLoading, setIsPostLoading] = useState(isEditing);
   const [postLoadError, setPostLoadError] = useState<string | null>(null);
   const [blockDropIndicator, setBlockDropIndicator] =
@@ -360,13 +364,18 @@ export function CommunityWritePage() {
     [handleEditorFileUpload],
   );
 
+  const handleBlockMenuOpen = useCallback((blockId: string) => {
+    setSelectedBlockId(blockId);
+    setIsEditorPlaceholderVisible(false);
+  }, []);
+
   const communityBlockSideMenu = useCallback(
     () => (
       <CommunityBlockSideMenu
-        onBlockMenuClick={setSelectedBlockId}
+        onBlockMenuClick={handleBlockMenuOpen}
       />
     ),
-    [],
+    [handleBlockMenuOpen],
   );
 
   const handleBackToList = () => {
@@ -724,6 +733,8 @@ export function CommunityWritePage() {
       return;
     }
 
+    setIsEditorPlaceholderVisible(true);
+
     if (event.target.closest('.bn-block-outer')) {
       setSelectedBlockId(null);
       return;
@@ -754,6 +765,44 @@ export function CommunityWritePage() {
     if (emptyBlock) {
       editor.setTextCursorPosition(emptyBlock, 'start');
     }
+  };
+
+  const handleEditorContentAreaFocus = (
+    event: ReactFocusEvent<HTMLDivElement>,
+  ) => {
+    if (
+      isEditorDisabled ||
+      isUploadingFile ||
+      !(event.target instanceof Element) ||
+      event.target.closest('.bn-side-menu')
+    ) {
+      return;
+    }
+
+    setIsEditorPlaceholderVisible(true);
+    setSelectedBlockId(null);
+  };
+
+  const handleEditorContentAreaBlur = (
+    event: ReactFocusEvent<HTMLDivElement>,
+  ) => {
+    const relatedElement =
+      event.relatedTarget instanceof Element ? event.relatedTarget : null;
+
+    if (relatedElement?.closest('.bn-side-menu')) {
+      setIsEditorPlaceholderVisible(false);
+      return;
+    }
+
+    if (
+      event.relatedTarget instanceof Node &&
+      event.currentTarget.contains(event.relatedTarget)
+    ) {
+      return;
+    }
+
+    setIsEditorPlaceholderVisible(false);
+    setSelectedBlockId(null);
   };
 
   useEffect(() => {
@@ -988,6 +1037,7 @@ export function CommunityWritePage() {
         <S.Editor
           ref={editorAreaRef}
           $selectedBlockId={selectedBlockId}
+          $showEditorPlaceholder={isEditorPlaceholderVisible}
           aria-label="게시글 내용 편집기"
           onDragOver={handleEditorDragOver}
           onDragLeave={handleEditorDragLeave}
@@ -1053,6 +1103,8 @@ export function CommunityWritePage() {
           <div
             className="community-block-editor"
             onClick={handleEditorContentAreaClick}
+            onFocusCapture={handleEditorContentAreaFocus}
+            onBlurCapture={handleEditorContentAreaBlur}
           >
             <BlockNoteView
               editor={editor}

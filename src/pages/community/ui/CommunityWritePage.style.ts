@@ -245,6 +245,7 @@ export const ContentCounter = styled.span`
 
 interface EditorProps {
   $selectedBlockId: string | null;
+  $showEditorPlaceholder: boolean;
 }
 
 export const Editor = styled.section<EditorProps>`
@@ -392,8 +393,18 @@ export const Editor = styled.section<EditorProps>`
         `
       : ''}
 
+  ${({ $selectedBlockId, $showEditorPlaceholder }) =>
+    $selectedBlockId || !$showEditorPlaceholder
+      ? `
+          .community-block-editor
+            .bn-block-content:has(.ProseMirror-trailingBreak:only-child)::after {
+            display: none;
+          }
+        `
+      : ''}
+
   .community-block-editor
-    .bn-block-content:has(.ProseMirror-trailingBreak:only-child):after {
+    .bn-block-content:has(.ProseMirror-trailingBreak:only-child)::after {
     color: ${token.colors.gray.gray30};
     font-style: normal;
     transform: none;
