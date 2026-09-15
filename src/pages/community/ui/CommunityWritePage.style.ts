@@ -243,7 +243,11 @@ export const ContentCounter = styled.span`
   line-height: 1;
 `;
 
-export const Editor = styled.section`
+interface EditorProps {
+  $selectedBlockId: string | null;
+}
+
+export const Editor = styled.section<EditorProps>`
   ${token.flexColumn}
   position: relative;
   flex: 1 1 0;
@@ -376,12 +380,17 @@ export const Editor = styled.section`
     overflow-wrap: anywhere;
   }
 
-  .community-block-editor
-    .bn-block-outer[data-community-block-selected='true'] {
-    border-radius: ${token.shapes.small};
-    background: ${token.colors.info.info0};
-    transition: background-color 120ms ease-out;
-  }
+  ${({ $selectedBlockId }) =>
+    $selectedBlockId
+      ? `
+          .community-block-editor
+            .bn-block-outer[data-id='${$selectedBlockId}'] {
+            border-radius: ${token.shapes.small};
+            background: ${token.colors.info.info0};
+            transition: background-color 120ms ease-out;
+          }
+        `
+      : ''}
 
   .community-block-editor
     .bn-block-content:has(.ProseMirror-trailingBreak:only-child):after {

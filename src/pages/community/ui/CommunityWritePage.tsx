@@ -225,7 +225,6 @@ function CommunityDragHandleButton({
     <Components.Generic.Menu.Root
       onOpenChange={(isOpen) => {
         if (isOpen) {
-          onBlockMenuOpen(block.id);
           sideMenu.freezeMenu();
         } else {
           sideMenu.unfreezeMenu();
@@ -238,6 +237,7 @@ function CommunityDragHandleButton({
           className="bn-button"
           label={dictionary.side_menu.drag_handle_label}
           draggable={true}
+          onClick={() => onBlockMenuOpen(block.id)}
           onDragStart={(event) => sideMenu.blockDragStart(event, block)}
           onDragEnd={sideMenu.blockDragEnd}
           icon={<MdDragIndicator size={24} data-test="dragHandle" />}
@@ -843,23 +843,6 @@ export function CommunityWritePage() {
   }, [isCategoryMenuOpen]);
 
   useEffect(() => {
-    const blockElements = editorAreaRef.current?.querySelectorAll<HTMLElement>(
-      '.community-block-editor .bn-block-outer[data-id]',
-    );
-
-    if (!blockElements) {
-      return;
-    }
-
-    blockElements.forEach((blockElement) => {
-      blockElement.toggleAttribute(
-        'data-community-block-selected',
-        blockElement.getAttribute('data-id') === selectedBlockId,
-      );
-    });
-  }, [selectedBlockId]);
-
-  useEffect(() => {
     const handleDocumentMouseMove = (event: MouseEvent) => {
       const editorBounds = editorAreaRef.current?.getBoundingClientRect();
 
@@ -1004,6 +987,7 @@ export function CommunityWritePage() {
 
         <S.Editor
           ref={editorAreaRef}
+          $selectedBlockId={selectedBlockId}
           aria-label="게시글 내용 편집기"
           onDragOver={handleEditorDragOver}
           onDragLeave={handleEditorDragLeave}
