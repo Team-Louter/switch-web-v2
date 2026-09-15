@@ -65,6 +65,10 @@ export const TabActionRow = styled.div`
   @container community-page (max-width: 600px) {
     gap: 8px;
   }
+
+  @container community-page (max-width: 900px) {
+    align-items: flex-start;
+  }
 `;
 
 export const WriteButton = styled(Button)`
@@ -93,6 +97,11 @@ export const CategoryTabs = styled.div`
   &::-webkit-scrollbar {
     display: none;
   }
+
+  @container community-page (max-width: 900px) {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
 `;
 
 export const CategoryTab = styled.button<{ $active: boolean }>`
@@ -120,6 +129,11 @@ export const CategoryTab = styled.button<{ $active: boolean }>`
 
   @container community-page (max-width: 600px) {
     flex-basis: 96px;
+  }
+
+  @container community-page (max-width: 900px) {
+    flex-basis: 25%;
+    min-width: 0;
   }
 `;
 
@@ -423,6 +437,10 @@ export const AuthorName = styled(UserName)<{ $pinned: boolean }>`
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  @container community-page (max-width: 900px) {
+    flex-basis: 96px;
+  }
 `;
 
 export const Date = styled.time`
