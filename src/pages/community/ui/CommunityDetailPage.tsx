@@ -27,7 +27,7 @@ import {
   type CommentResponse,
   type PostResponse,
 } from '@/entities/community';
-import { getCurrentMember } from '@/entities/member';
+import { getCurrentMember, getMember } from '@/entities/member';
 import {
   createComment,
   deleteComment,
@@ -42,6 +42,7 @@ import { parseBlockNotePostContent } from '@/shared/lib/blockNotePostContent';
 import { renderCustomUnderlineMarkdown } from '@/shared/lib/markdown';
 import { getNameStyleKey } from '@/shared/styles';
 import { Button, ConfirmModal } from '@/shared/ui';
+import type { ProfileAvatarEquippedItems } from '@/shared/ui';
 
 import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg';
 import backChevronIcon from '../assets/svg/back-chevron.svg';
@@ -238,6 +239,9 @@ export function CommunityDetailPage() {
   const [currentMemberId, setCurrentMemberId] = useState<number | null>(null);
   const [currentMemberProfileImageUrl, setCurrentMemberProfileImageUrl] =
     useState<string | undefined>(undefined);
+  const [memberEquippedItems, setMemberEquippedItems] = useState<
+    Record<number, ProfileAvatarEquippedItems>
+  >({});
   const [canManagePostPin, setCanManagePostPin] = useState(false);
   const [isPinMutating, setIsPinMutating] = useState(false);
   const [isPostDeleting, setIsPostDeleting] = useState(false);
@@ -292,7 +296,8 @@ export function CommunityDetailPage() {
   const targetCommentId = getTargetCommentId(hash);
   const postEquippedItems = post?.isAnonymous
     ? undefined
-    : post?.equippedItems;
+    : post?.equippedItems ??
+      (post ? memberEquippedItems[post.userId] : undefined);
   const postNameColor = postEquippedItems?.nameColor;
   const postNameStyleKey = getNameStyleKey(
     postNameColor?.styleKey ??
@@ -672,6 +677,37 @@ export function CommunityDetailPage() {
     },
     [],
   );
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    getMember()
+      .then((members) => {
+        if (isCancelled) {
+          return;
+        }
+
+        const nextMemberEquippedItems: Record<
+          number,
+          ProfileAvatarEquippedItems
+        > = {};
+
+        members.forEach((member) => {
+          if (member.equippedItems) {
+            nextMemberEquippedItems[member.userId] = member.equippedItems;
+          }
+        });
+
+        setMemberEquippedItems(nextMemberEquippedItems);
+      })
+      .catch(() => {
+        // 프로필 효과 조회 실패 시 게시글과 댓글은 기본 프로필로 표시한다.
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   const handleCommentKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
@@ -1407,6 +1443,7 @@ export function CommunityDetailPage() {
                     onCommentEditStart={closeCommentDeleteConfirm}
                     currentMemberId={currentMemberId}
                     replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
+                    memberEquippedItemsByUserId={memberEquippedItems}
                   />
                 ))}
               </S.CommentList>
