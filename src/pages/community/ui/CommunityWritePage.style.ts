@@ -378,7 +378,7 @@ export const Editor = styled.section`
 
   .community-block-editor
     .bn-block-content:has(.ProseMirror-trailingBreak:only-child):after {
-    color: ${token.colors.gray.gray40};
+    color: ${token.colors.gray.gray30};
     font-style: normal;
     transform: none;
   }
