@@ -31,8 +31,8 @@ export function UserName({ children, className, styleKey }: UserNameProps) {
   }
 
   return (
-    <S.Name className={className} style={nameStyle}>
-      {children}
+    <S.Name className={className}>
+      <S.NameText style={nameStyle}>{children}</S.NameText>
     </S.Name>
   )
 }
