@@ -519,7 +519,7 @@ export const ImageAttachmentIcon = styled.img`
 
 export const Author = styled.div`
   ${token.flexCenter}
-  flex: 0 0 180px;
+  flex: 0 0 200px;
   gap: 8px;
   box-sizing: border-box;
   height: 100%;
@@ -527,7 +527,7 @@ export const Author = styled.div`
   overflow: hidden;
 
   @container community-page (max-width: 900px) {
-    flex-basis: 140px;
+    flex-basis: 180px;
   }
 
   @container community-page (max-width: 600px) {
@@ -591,6 +591,10 @@ export const AuthorTitle = styled.span`
   line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  @media (max-width: 1183px) {
+    display: none;
+  }
 
   img {
     display: block;
