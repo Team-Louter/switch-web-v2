@@ -77,6 +77,13 @@ interface BlockDropIndicatorPosition {
   width: number;
 }
 
+interface BlockDragOverEvent {
+  clientX: number;
+  clientY: number;
+  dataTransfer: DataTransfer | null;
+  target: EventTarget | null;
+}
+
 type EditorAction =
   | 'bold'
   | 'italic'
@@ -524,30 +531,72 @@ export function CommunityWritePage() {
     }
   };
 
-  const handleEditorDragOver = (event: ReactDragEvent<HTMLElement>) => {
-    if (!event.dataTransfer.types.includes('blocknote/html')) {
+  const handleEditorDragOver = useCallback((event: BlockDragOverEvent) => {
+    if (!event.dataTransfer?.types.includes('blocknote/html')) {
       return;
     }
 
     const editorArea = editorAreaRef.current;
-    const target = event.target;
+    const blockEditor = editorArea?.querySelector<HTMLElement>(
+      '.community-block-editor',
+    );
 
-    if (!editorArea || !(target instanceof Element)) {
+    if (!editorArea || !blockEditor) {
       return;
     }
 
-    const blockElement = target.closest<HTMLElement>(
+    const editorBounds = editorArea.getBoundingClientRect();
+    const blockEditorBounds = blockEditor.getBoundingClientRect();
+
+    if (
+      event.clientX < editorBounds.left ||
+      event.clientX > editorBounds.right ||
+      event.clientY < blockEditorBounds.top ||
+      event.clientY > blockEditorBounds.bottom
+    ) {
+      return;
+    }
+
+    const blockElements = Array.from(
+      blockEditor.querySelectorAll<HTMLElement>(
+        '[data-node-type="blockContainer"]',
+      ),
+    );
+
+    if (blockElements.length === 0) {
+      return;
+    }
+
+    const targetElement =
+      event.target instanceof Element ? event.target : undefined;
+    const targetBlock = targetElement?.closest<HTMLElement>(
       '[data-node-type="blockContainer"]',
     );
+    const blockElement =
+      targetBlock && blockEditor.contains(targetBlock)
+        ? targetBlock
+        : blockElements.find((candidateBlock) => {
+            const candidateBounds = candidateBlock.getBoundingClientRect();
+
+            return (
+              event.clientY <=
+              candidateBounds.top + candidateBounds.height / 2
+            );
+          }) ?? blockElements.at(-1);
 
     if (!blockElement) {
       return;
     }
 
-    const editorBounds = editorArea.getBoundingClientRect();
     const blockBounds = blockElement.getBoundingClientRect();
-    const scaleX = editorBounds.width / editorArea.offsetWidth;
-    const scaleY = editorBounds.height / editorArea.offsetHeight;
+    const scaleX =
+      editorArea.offsetWidth > 0
+        ? editorBounds.width / editorArea.offsetWidth
+        : 1;
+    const scaleY =
+      editorArea.offsetHeight > 0
+        ? editorBounds.height / editorArea.offsetHeight
+        : 1;
     const targetTop =
       event.clientY < blockBounds.top + blockBounds.height / 2
         ? blockBounds.top
@@ -569,7 +618,29 @@ export function CommunityWritePage() {
 
       return nextIndicator;
     });
+  }, []);
+
+  const handleEditorDragLeave = (event: ReactDragEvent<HTMLElement>) => {
+    if (
+      event.relatedTarget instanceof Node &&
+      event.currentTarget.contains(event.relatedTarget)
+    ) {
+      return;
+    }
+
+    if (
+      event.relatedTarget instanceof Element &&
+      event.relatedTarget.closest('.bn-side-menu')
+    ) {
+      return;
+    }
+
+    setBlockDropIndicator(null);
   };
+
+  const hideBlockDropIndicator = useCallback(() => {
+    setBlockDropIndicator(null);
+  }, []);
 
   const handleEditorContentAreaClick = (
     event: ReactMouseEvent<HTMLDivElement>,
@@ -608,21 +679,6 @@ export function CommunityWritePage() {
     if (emptyBlock) {
       editor.setTextCursorPosition(emptyBlock, 'start');
     }
-  };
-
-  const handleEditorDragLeave = (event: ReactDragEvent<HTMLElement>) => {
-    if (
-      event.relatedTarget instanceof Node &&
-      event.currentTarget.contains(event.relatedTarget)
-    ) {
-      return;
-    }
-
-    setBlockDropIndicator(null);
-  };
-
-  const hideBlockDropIndicator = () => {
-    setBlockDropIndicator(null);
   };
 
   useEffect(() => {
@@ -727,15 +783,22 @@ export function CommunityWritePage() {
         editor.getExtension(SideMenuExtension)?.hideMenuIfNotFrozen();
       }
     };
+    const handleDocumentDragOver = (event: DragEvent) => {
+      handleEditorDragOver(event);
+    };
 
     document.addEventListener('mousemove', handleDocumentMouseMove);
+    // BlockNote's side menu is portaled to body, so the editor-local
+    // dragover handler is skipped there.
+    document.addEventListener('dragover', handleDocumentDragOver);
     document.addEventListener('dragend', hideBlockDropIndicator);
 
     return () => {
       document.removeEventListener('mousemove', handleDocumentMouseMove);
+      document.removeEventListener('dragover', handleDocumentDragOver);
       document.removeEventListener('dragend', hideBlockDropIndicator);
     };
-  }, [editor]);
+  }, [editor, handleEditorDragOver, hideBlockDropIndicator]);
 
   return (
     <S.Page>
