@@ -50,7 +50,6 @@ export function HomeSidebar() {
   const [isPopularLoading, setIsPopularLoading] = useState(true);
   const [isRankingLoading, setIsRankingLoading] = useState(true);
   const topRankings = rankings.slice(0, 2);
-  const isMyRankingInTop = myRanking !== null && topRankings.some((ranking) => ranking.userId === myRanking.userId);
 
   useEffect(() => {
     let cancelled = false;
@@ -149,10 +148,16 @@ export function HomeSidebar() {
             </S.RankingTabs>
           </S.PanelHeader>
           <S.RankingContent>
-            {isRankingLoading ? <S.RankingSkeleton aria-label="랭킹 불러오는 중"><S.RankingSkeletonLine /><S.RankingSkeletonLine /></S.RankingSkeleton> : topRankings.length || myRanking ? (
+            {isRankingLoading ? <S.RankingSkeleton aria-label="랭킹 불러오는 중"><S.RankingSkeletonLine /><S.RankingSkeletonLine /></S.RankingSkeleton> : topRankings.length || myRanking || rankingStatus === '랭킹이 없습니다.' ? (
               <S.RankingList>
-                {topRankings.map((ranking) => <RankingItem key={ranking.userId} ranking={ranking} isMine={ranking.userId === myRanking?.userId} />)}
-                {!isMyRankingInTop && myRanking && <RankingItem key={`my-ranking-${myRanking.userId}`} ranking={myRanking} isMine isMyRankingRow />}
+                {topRankings.map((ranking) => <RankingItem key={ranking.userId} ranking={ranking} />)}
+                <RankingItem
+                  key={myRanking ? `my-ranking-${myRanking.userId}` : 'my-ranking-unranked'}
+                  ranking={myRanking}
+                  isMine
+                  isMyRankingRow
+                  fallbackUserName={user?.userName}
+                />
               </S.RankingList>
             ) : (
               <S.RankingEmpty role="status">{rankingStatus}</S.RankingEmpty>
@@ -168,17 +173,27 @@ export function HomeSidebar() {
   );
 }
 
-function RankingItem({ ranking, isMine = false, isMyRankingRow = false }: { ranking: Ranking; isMine?: boolean; isMyRankingRow?: boolean }) {
-  const medal = ranking.rank === 1 ? medal1stIcon : ranking.rank === 2 ? medal2ndIcon : null;
+interface RankingItemProps {
+  ranking: Ranking | null;
+  isMine?: boolean;
+  isMyRankingRow?: boolean;
+  fallbackUserName?: string;
+}
+
+function RankingItem({ ranking, isMine = false, isMyRankingRow = false, fallbackUserName }: RankingItemProps) {
+  const medal = ranking?.rank === 1 ? medal1stIcon : ranking?.rank === 2 ? medal2ndIcon : null;
+  const userName = ranking?.userName ?? fallbackUserName ?? '나';
+  const rank = ranking?.rank ?? '-';
+  const averageSpeed = ranking ? Math.round(ranking.averageSpeed) : 0;
 
   return (
     <S.RankingItem $isMyRankingRow={isMyRankingRow}>
       <S.RankingUser>
-        {medal ? <S.MedalIcon src={medal} alt={`${ranking.rank}위`} /> : <S.RankNumber>{ranking.rank}</S.RankNumber>}
-        <span>{ranking.userName}</span>
+        {medal ? <S.MedalIcon src={medal} alt={`${rank}위`} /> : <S.RankNumber>{rank}</S.RankNumber>}
+        <span>{userName}</span>
         {isMine && <S.MyRankingBadge>내 랭킹</S.MyRankingBadge>}
       </S.RankingUser>
-      <S.RankingSpeed>{Math.round(ranking.averageSpeed)}타</S.RankingSpeed>
+      <S.RankingSpeed>{averageSpeed}타</S.RankingSpeed>
     </S.RankingItem>
   );
 }
