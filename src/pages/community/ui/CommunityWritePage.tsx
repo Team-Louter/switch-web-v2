@@ -895,13 +895,13 @@ export function CommunityWritePage() {
     const handleDocumentPointerDown = (event: PointerEvent) => {
       if (
         !(event.target instanceof Element) ||
-        event.target.closest('.community-block-editor') ||
         event.target.closest('.bn-side-menu') ||
         event.target.closest('.bn-drag-handle-menu')
       ) {
         return;
       }
 
+      editor.getExtension(SideMenuExtension)?.unfreezeMenu();
       setSelectedBlockId(null);
       setIsEditorPlaceholderVisible(false);
     };
@@ -911,7 +911,7 @@ export function CommunityWritePage() {
     return () => {
       document.removeEventListener('pointerdown', handleDocumentPointerDown);
     };
-  }, []);
+  }, [editor]);
 
   useEffect(() => {
     const handleDocumentMouseMove = (event: MouseEvent) => {
