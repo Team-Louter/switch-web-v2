@@ -544,7 +544,7 @@ export const AnonymousLabel = styled.label`
   gap: 6px;
   margin-left: auto;
   color: ${token.colors.gray.gray40};
-  ${token.typography('body', 'lg', 'medium')}
+  ${token.typography('body', 'md', 'medium')}
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
@@ -562,7 +562,7 @@ export const AnonymousToggle = styled.input`
   background: ${token.colors.gray.gray30};
   appearance: none;
   cursor: pointer;
-  transition: background-color 120ms ease;
+  transition: background-color 180ms ease-out;
 
   &::after {
     position: absolute;
@@ -573,7 +573,7 @@ export const AnonymousToggle = styled.input`
     border-radius: ${token.shapes.circle};
     background: ${token.colors.white};
     content: '';
-    transition: transform 120ms ease;
+    transition: transform 180ms ease-out;
   }
 
   &:checked {
