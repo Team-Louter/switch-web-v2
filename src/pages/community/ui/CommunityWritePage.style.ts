@@ -103,11 +103,11 @@ export const CategoryTrigger = styled.button`
   height: 100%;
   padding: 12px 44px 12px 12px;
   overflow: hidden;
-  border: 0;
+  border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.medium};
   outline: none;
   color: ${token.colors.gray.gray60};
-  background: #f5f5f5;
+  background: ${token.colors.white};
   ${token.typography('body', 'md', 'medium')}
   line-height: 1;
   text-align: left;
@@ -200,12 +200,12 @@ export const TitleInput = styled.input<{ $isOverLimit: boolean }>`
   min-width: 0;
   height: 52px;
   padding: 12px 82px 12px 20px;
-  border: 0;
+  border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.medium};
   outline: ${({ $isOverLimit }) =>
     $isOverLimit ? `2px solid ${token.colors.danger.danger30}` : 'none'};
   color: ${token.colors.gray.gray100};
-  background: ${token.colors.gray.gray0};
+  background: ${token.colors.white};
   ${token.typography('body', 'md', 'medium')}
   line-height: 1;
 
