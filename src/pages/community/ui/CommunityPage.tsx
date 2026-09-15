@@ -362,9 +362,7 @@ export function CommunityPage() {
                   profileNameColor?.valueText ??
                   profileNameColor?.itemName,
               );
-              const profileTitle = equippedItems?.title;
-              const profileTitleText =
-                profileTitle?.valueText ?? profileTitle?.itemName;
+              const profileTitleName = equippedItems?.title?.itemName;
               const profileBorder = equippedItems?.border;
               const profileBorderImageUrl =
                 profileBorder?.valueImageUrl ??
@@ -424,10 +422,10 @@ export function CommunityPage() {
                       >
                         {post.userName}
                       </AuthorName>
-                      {profileTitleText && (
+                      {profileTitleName && (
                         <>
                           <AuthorMetaDot aria-hidden="true" />
-                          <AuthorTitle>{profileTitleText}</AuthorTitle>
+                          <AuthorTitle>{profileTitleName}</AuthorTitle>
                         </>
                       )}
                     </AuthorMeta>

@@ -155,8 +155,7 @@ export function CommunityCommentBranch({
       profileNameColor?.valueText ??
       profileNameColor?.itemName,
   );
-  const profileTitle = equippedItems?.title;
-  const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName;
+  const profileTitleName = equippedItems?.title?.itemName;
   const profileBorder = equippedItems?.border;
   const profileBorderImageUrl =
     profileBorder?.valueImageUrl ??
@@ -339,11 +338,11 @@ export function CommunityCommentBranch({
                 <S.CommentAuthor styleKey={profileNameStyleKey}>
                   {comment.userName}
                 </S.CommentAuthor>
-                {profileTitleText && (
+                {profileTitleName && (
                   <>
                     <S.CommentMetaDot aria-hidden="true" />
                     <S.CommentAuthorTitle>
-                      {profileTitleText}
+                      {profileTitleName}
                     </S.CommentAuthorTitle>
                   </>
                 )}
