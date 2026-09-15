@@ -299,9 +299,12 @@ export const Editor = styled.section`
 
   .community-block-editor {
     flex: 1 1 0;
+    box-sizing: border-box;
     min-width: 0;
-    max-width: 100%;
+    max-width: none;
     min-height: 0;
+    margin-right: -16px;
+    padding-right: 16px;
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -323,7 +326,7 @@ export const Editor = styled.section`
   .community-block-editor .bn-editor {
     box-sizing: border-box;
     min-height: 100%;
-    padding: 8px 12px 32px 54px;
+    padding: 8px 54px 32px;
     background: transparent;
     ${token.typography('body', 'lg', 'medium')}
     line-height: 1.5;
@@ -416,7 +419,7 @@ export const Editor = styled.section`
     min-height: 0;
 
     .community-block-editor .bn-editor {
-      padding-inline: 54px 12px;
+      padding-inline: 54px;
     }
   }
 `;
