@@ -815,11 +815,14 @@ export function CommunityWritePage() {
                   aria-invalid={isTitleOverLimit}
                   placeholder="제목을 입력해주세요"
                   value={title}
+                  maxLength={COMMUNITY_TITLE_MAX_LENGTH}
                   required
                   disabled={isEditorDisabled}
                   $isOverLimit={isTitleOverLimit}
                   onChange={(event) => {
-                    setTitle(event.target.value);
+                    setTitle(
+                      event.target.value.slice(0, COMMUNITY_TITLE_MAX_LENGTH),
+                    );
                     setSubmitError(null);
                   }}
                 />
