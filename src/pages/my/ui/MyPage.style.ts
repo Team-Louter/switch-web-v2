@@ -169,7 +169,8 @@ export const ActivitySection = styled.section`
 export const PostList = styled.div`
   ${token.flexColumn}
   width: 100%;
-  gap: 20px;
+  overflow: hidden;
+  gap: 0;
 `
 
 export const EmptyState = styled.div`
@@ -183,10 +184,16 @@ export const EmptyState = styled.div`
   ${token.typography('caption', 'md', 'medium')}
 `
 
+export const FooterSection = styled.div`
+  ${token.flexColumn}
+  width: 100%;
+  margin-top: auto;
+  gap: 40px;
+`
+
 export const FooterActions = styled.div`
   ${token.flexLeft}
   width: 100%;
-  margin-top: auto;
   gap: 20px;
 `
 

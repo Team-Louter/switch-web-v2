@@ -31,8 +31,10 @@ export type MyPost = {
   category: string
   title: string
   author: string
+  authorImageUrl?: string
   createdAt: string
   likes: number
+  isLiked?: boolean
   comments: number
   views: number
   commentPreview?: string

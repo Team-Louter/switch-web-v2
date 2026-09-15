@@ -271,7 +271,12 @@ export function MyPage() {
           {hasPosts ? (
             <S.PostList>
               {posts.map((post) => (
-                <ActivityPost key={post.id} post={post} />
+                <ActivityPost
+                  key={post.id}
+                  post={post}
+                  isLiked={activeTabId === 'likes' || post.isLiked}
+                  onClick={() => navigate(`/community/${post.id}`)}
+                />
               ))}
             </S.PostList>
           ) : (
@@ -279,21 +284,23 @@ export function MyPage() {
           )}
         </S.ActivitySection>
 
-        <S.Divider />
+        <S.FooterSection>
+          <S.Divider />
 
-        <S.FooterActions>
-          <S.FooterButton type="button" onClick={handleLogout}>
-            로그아웃
-          </S.FooterButton>
-          <S.FooterDivider />
-          <S.FooterButton
-            type="button"
-            $danger
-            onClick={handleOpenWithdrawModal}
-          >
-            회원 탈퇴
-          </S.FooterButton>
-        </S.FooterActions>
+          <S.FooterActions>
+            <S.FooterButton type="button" onClick={handleLogout}>
+              로그아웃
+            </S.FooterButton>
+            <S.FooterDivider />
+            <S.FooterButton
+              type="button"
+              $danger
+              onClick={handleOpenWithdrawModal}
+            >
+              회원 탈퇴
+            </S.FooterButton>
+          </S.FooterActions>
+        </S.FooterSection>
       </S.Content>
 
       {withdrawStep && (

@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import {
+  POST_CATEGORY_OPTIONS,
+  resolveCommunityAssetUrl,
+} from '@/entities/community'
 import { formatProfileClassInfo, useUserStore } from '@/entities/profile'
 import { mergeSyncedEquippedItems } from '@/shared/lib/profileSync'
 
@@ -35,6 +39,10 @@ const majorLabelMap: Record<ProfileMajor, string> = {
   SECURITY: '보안',
 }
 
+const postCategoryLabelMap = new Map(
+  POST_CATEGORY_OPTIONS.map(({ label, value }) => [value, label]),
+)
+
 const initialProfile: MyProfile = {
   name: '',
   classInfo: '',
@@ -66,14 +74,55 @@ const initialLoadedTabs: Record<MyActivityTabId, boolean> = {
   likes: false,
 }
 
-const getStringValue = (
+const getNestedStringValue = (
   record: MyPostResponse,
   keys: string[],
+  nestedKeys: string[],
 ) => {
   const value = keys.map((key) => record[key]).find(Boolean)
 
-  return typeof value === 'string' ? value : ''
+  if (typeof value === 'string') {
+    return value
+  }
+
+  if (value && typeof value === 'object') {
+    const objectValue = value as Record<string, unknown>
+    const nestedValue = nestedKeys
+      .map((key) => objectValue[key])
+      .find((item) => typeof item === 'string' && item)
+
+    return typeof nestedValue === 'string' ? nestedValue : ''
+  }
+
+  return ''
 }
+
+const getStringValue = (
+  record: MyPostResponse,
+  keys: string[],
+) =>
+  getNestedStringValue(record, keys, [
+    'label',
+    'name',
+    'value',
+    'userName',
+    'authorName',
+    'writerName',
+  ])
+
+const getImageValue = (
+  record: MyPostResponse,
+  keys: string[],
+) =>
+  getNestedStringValue(record, keys, [
+    'profileImageUrl',
+    'userProfileImageUrl',
+    'authorProfileImageUrl',
+    'writerProfileImageUrl',
+    'imageUrl',
+    'thumbnailUrl',
+    'url',
+  ])
 
 const getNumberValue = (
   record: MyPostResponse | ProfileResponse,
@@ -84,6 +133,17 @@ const getNumberValue = (
   )
 
   return typeof value === 'number' ? value : undefined
+}
+
+const getBooleanValue = (
+  record: MyPostResponse,
+  keys: string[],
+) => {
+  const value = keys
+    .map((key) => record[key])
+    .find((item) => item !== undefined && item !== null)
+
+  return typeof value === 'boolean' ? value : undefined
 }
 
 const getPostId = (record: MyPostResponse, fallback: number) => {
@@ -127,21 +187,82 @@ const formatProfile = (profile: ProfileResponse): MyProfile => {
   return nextProfile
 }
 
+const formatCategoryText = (category: string) =>
+  postCategoryLabelMap.get(category) ?? category
+
 const formatPost = (
   post: MyPostResponse,
   index: number,
   shouldShowComment = false,
 ): MyPost => ({
   id: getPostId(post, index + 1),
-  category: getStringValue(post, ['category', 'categoryName']),
+  category: formatCategoryText(
+    getStringValue(post, [
+      'categoryLabel',
+      'categoryName',
+      'postCategoryLabel',
+      'postCategoryName',
+      'category',
+      'postCategory',
+      'boardCategory',
+    ]),
+  ),
   title: getStringValue(post, ['title', 'postTitle']),
-  author: getStringValue(post, ['author', 'writer', 'userName']),
+  author: getStringValue(post, [
+    'postAuthorName',
+    'postWriterName',
+    'postUserName',
+    'originalAuthorName',
+    'originalWriterName',
+    'authorName',
+    'writerName',
+    'memberName',
+    'createdByName',
+    'authorNickname',
+    'writerNickname',
+    'userNickname',
+    'nickname',
+    'userName',
+    'author',
+    'writer',
+    'user',
+    'member',
+    'createdBy',
+  ]),
+  authorImageUrl: resolveCommunityAssetUrl(
+    getImageValue(post, [
+      'postAuthorProfileImageUrl',
+      'postWriterProfileImageUrl',
+      'postUserProfileImageUrl',
+      'originalAuthorProfileImageUrl',
+      'originalWriterProfileImageUrl',
+      'authorProfileImageUrl',
+      'writerProfileImageUrl',
+      'userProfileImageUrl',
+      'profileImageUrl',
+      'authorImageUrl',
+      'writerImageUrl',
+      'imageUrl',
+      'author',
+      'writer',
+      'user',
+      'member',
+    ]),
+  ),
   createdAt: getStringValue(post, [
     'createdAt',
     'createdDate',
     'createdDateTime',
   ]),
   likes: getNumberValue(post, ['likes', 'likeCount', 'heartCount']) ?? 0,
+  isLiked: getBooleanValue(post, [
+    'isHearted',
+    'hearted',
+    'isLiked',
+    'liked',
+    'hasHearted',
+    'hasLiked',
+  ]),
   comments: getNumberValue(post, ['comments', 'commentCount']) ?? 0,
   views: getNumberValue(post, ['views', 'viewCount']) ?? 0,
   commentPreview: shouldShowComment
