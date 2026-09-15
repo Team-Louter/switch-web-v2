@@ -95,10 +95,14 @@ interface BlockDragOverEvent {
 
 interface CommunityBlockSideMenuProps {
   onBlockMenuClick: (blockId: string) => void;
+  onBlockDragStart: (blockId: string) => void;
+  onBlockDragEnd: () => void;
 }
 
 interface CommunityDragHandleButtonProps {
   onBlockMenuOpen: (blockId: string) => void;
+  onBlockDragStart: (blockId: string) => void;
+  onBlockDragEnd: () => void;
 }
 
 type EditorAction =
@@ -208,6 +212,8 @@ function getCommunityDropCursorPosition({
 
 function CommunityDragHandleButton({
   onBlockMenuOpen,
+  onBlockDragStart,
+  onBlockDragEnd,
 }: CommunityDragHandleButtonProps) {
   const Components = useComponentsContext()!;
   const dictionary = useDictionary();
@@ -240,8 +246,14 @@ function CommunityDragHandleButton({
           label={dictionary.side_menu.drag_handle_label}
           draggable={true}
           onClick={() => onBlockMenuOpen(block.id)}
-          onDragStart={(event) => sideMenu.blockDragStart(event, block)}
-          onDragEnd={sideMenu.blockDragEnd}
+          onDragStart={(event) => {
+            onBlockDragStart(block.id);
+            sideMenu.blockDragStart(event, block);
+          }}
+          onDragEnd={() => {
+            sideMenu.blockDragEnd();
+            onBlockDragEnd();
+          }}
           icon={<MdDragIndicator size={24} data-test="dragHandle" />}
         />
       </Components.Generic.Menu.Trigger>
@@ -252,12 +264,18 @@ function CommunityDragHandleButton({
 
 function CommunityBlockSideMenu({
   onBlockMenuClick,
+  onBlockDragStart,
+  onBlockDragEnd,
 }: CommunityBlockSideMenuProps) {
   return (
     <S.BlockSideMenu>
       <SideMenu>
         <AddBlockButton />
-        <CommunityDragHandleButton onBlockMenuOpen={onBlockMenuClick} />
+        <CommunityDragHandleButton
+          onBlockMenuOpen={onBlockMenuClick}
+          onBlockDragStart={onBlockDragStart}
+          onBlockDragEnd={onBlockDragEnd}
+        />
       </SideMenu>
     </S.BlockSideMenu>
   );
@@ -275,6 +293,7 @@ export function CommunityWritePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editorAreaRef = useRef<HTMLElement>(null);
   const categoryFieldRef = useRef<HTMLDivElement>(null);
+  const draggedBlockIdRef = useRef<string | null>(null);
   const [category, setCategory] = useState<PostCategory | ''>('');
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [tag, setTag] = useState<PostTag | undefined>(undefined);
@@ -369,13 +388,32 @@ export function CommunityWritePage() {
     setIsEditorPlaceholderVisible(false);
   }, []);
 
+  const handleBlockDragStart = useCallback((blockId: string) => {
+    draggedBlockIdRef.current = blockId;
+    setSelectedBlockId(null);
+  }, []);
+
+  const handleBlockDragEnd = useCallback(() => {
+    const draggedBlockId = draggedBlockIdRef.current;
+
+    draggedBlockIdRef.current = null;
+
+    if (draggedBlockId) {
+      setSelectedBlockId(draggedBlockId);
+    }
+
+    setBlockDropIndicator(null);
+  }, []);
+
   const communityBlockSideMenu = useCallback(
     () => (
       <CommunityBlockSideMenu
         onBlockMenuClick={handleBlockMenuOpen}
+        onBlockDragStart={handleBlockDragStart}
+        onBlockDragEnd={handleBlockDragEnd}
       />
     ),
-    [handleBlockMenuOpen],
+    [handleBlockDragEnd, handleBlockDragStart, handleBlockMenuOpen],
   );
 
   const handleBackToList = () => {
