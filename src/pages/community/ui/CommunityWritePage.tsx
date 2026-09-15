@@ -8,12 +8,19 @@ import {
 import { ko } from '@blocknote/core/locales';
 import { BlockNoteView } from '@blocknote/mantine';
 import {
+  AddBlockButton,
+  DragHandleMenu,
   SideMenu,
   SideMenuController,
-  type SideMenuProps,
+  useBlockNoteEditor,
+  useComponentsContext,
   useCreateBlockNote,
+  useDictionary,
+  useExtension,
+  useExtensionState,
 } from '@blocknote/react';
 import { isAxiosError } from 'axios';
+import { MdDragIndicator } from 'react-icons/md';
 import {
   type ChangeEvent,
   type DragEvent as ReactDragEvent,
@@ -83,6 +90,14 @@ interface BlockDragOverEvent {
   clientY: number;
   dataTransfer: DataTransfer | null;
   target: EventTarget | null;
+}
+
+interface CommunityBlockSideMenuProps {
+  onBlockMenuClick: (blockId: string) => void;
+}
+
+interface CommunityDragHandleButtonProps {
+  onBlockMenuOpen: (blockId: string) => void;
 }
 
 type EditorAction =
@@ -190,10 +205,58 @@ function getCommunityDropCursorPosition({
     : defaultPosition;
 }
 
-function CommunityBlockSideMenu(props: SideMenuProps) {
+function CommunityDragHandleButton({
+  onBlockMenuOpen,
+}: CommunityDragHandleButtonProps) {
+  const Components = useComponentsContext()!;
+  const dictionary = useDictionary();
+  const editor = useBlockNoteEditor();
+  const sideMenu = useExtension(SideMenuExtension, { editor });
+  const block = useExtensionState(SideMenuExtension, {
+    editor,
+    selector: (state) => state?.block,
+  });
+
+  if (!block) {
+    return null;
+  }
+
+  return (
+    <Components.Generic.Menu.Root
+      onOpenChange={(isOpen) => {
+        if (isOpen) {
+          onBlockMenuOpen(block.id);
+          sideMenu.freezeMenu();
+        } else {
+          sideMenu.unfreezeMenu();
+        }
+      }}
+      position="left"
+    >
+      <Components.Generic.Menu.Trigger>
+        <Components.SideMenu.Button
+          className="bn-button"
+          label={dictionary.side_menu.drag_handle_label}
+          draggable={true}
+          onDragStart={(event) => sideMenu.blockDragStart(event, block)}
+          onDragEnd={sideMenu.blockDragEnd}
+          icon={<MdDragIndicator size={24} data-test="dragHandle" />}
+        />
+      </Components.Generic.Menu.Trigger>
+      <DragHandleMenu />
+    </Components.Generic.Menu.Root>
+  );
+}
+
+function CommunityBlockSideMenu({
+  onBlockMenuClick,
+}: CommunityBlockSideMenuProps) {
   return (
     <S.BlockSideMenu>
-      <SideMenu {...props} />
+      <SideMenu>
+        <AddBlockButton />
+        <CommunityDragHandleButton onBlockMenuOpen={onBlockMenuClick} />
+      </SideMenu>
     </S.BlockSideMenu>
   );
 }
@@ -220,6 +283,7 @@ export function CommunityWritePage() {
   const [pendingFileUploadCount, setPendingFileUploadCount] = useState(0);
   const [fileUploadError, setFileUploadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [isPostLoading, setIsPostLoading] = useState(isEditing);
   const [postLoadError, setPostLoadError] = useState<string | null>(null);
   const [blockDropIndicator, setBlockDropIndicator] =
@@ -294,6 +358,15 @@ export function CommunityWritePage() {
       uploadFile: handleEditorFileUpload,
     },
     [handleEditorFileUpload],
+  );
+
+  const communityBlockSideMenu = useCallback(
+    () => (
+      <CommunityBlockSideMenu
+        onBlockMenuClick={setSelectedBlockId}
+      />
+    ),
+    [],
   );
 
   const handleBackToList = () => {
@@ -646,9 +719,13 @@ export function CommunityWritePage() {
     if (
       isEditorDisabled ||
       isUploadingFile ||
-      !(event.target instanceof Element) ||
-      event.target.closest('.bn-block-outer')
+      !(event.target instanceof Element)
     ) {
+      return;
+    }
+
+    if (event.target.closest('.bn-block-outer')) {
+      setSelectedBlockId(null);
       return;
     }
 
@@ -764,6 +841,23 @@ export function CommunityWritePage() {
       document.removeEventListener('pointerdown', handleOutsidePointerDown);
     };
   }, [isCategoryMenuOpen]);
+
+  useEffect(() => {
+    const blockElements = editorAreaRef.current?.querySelectorAll<HTMLElement>(
+      '.community-block-editor .bn-block-outer[data-id]',
+    );
+
+    if (!blockElements) {
+      return;
+    }
+
+    blockElements.forEach((blockElement) => {
+      blockElement.toggleAttribute(
+        'data-community-block-selected',
+        blockElement.getAttribute('data-id') === selectedBlockId,
+      );
+    });
+  }, [selectedBlockId]);
 
   useEffect(() => {
     const handleDocumentMouseMove = (event: MouseEvent) => {
@@ -989,7 +1083,7 @@ export function CommunityWritePage() {
               sideMenu={false}
               portalElements={{ default: null }}
             >
-              <SideMenuController sideMenu={CommunityBlockSideMenu} />
+              <SideMenuController sideMenu={communityBlockSideMenu} />
             </BlockNoteView>
             {isUploadingFile && (
               <S.FileUploadSkeleton

@@ -377,6 +377,15 @@ export const Editor = styled.section`
   }
 
   .community-block-editor
+    .bn-block-outer[data-community-block-selected='true']
+    > .bn-block
+    > .bn-block-content {
+    border-radius: ${token.shapes.small};
+    background: ${token.colors.info.info0};
+    transition: background-color 120ms ease-out;
+  }
+
+  .community-block-editor
     .bn-block-content:has(.ProseMirror-trailingBreak:only-child):after {
     color: ${token.colors.gray.gray30};
     font-style: normal;
