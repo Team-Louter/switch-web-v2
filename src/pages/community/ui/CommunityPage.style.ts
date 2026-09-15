@@ -590,9 +590,11 @@ export const AuthorTitle = styled.span`
   max-width: 112px;
   overflow: hidden;
   padding: 3px 5px;
+  border: 1px solid #e1e3e7;
   border-radius: 6px;
-  color: #ffffff;
-  background: #45464f;
+  color: #555861;
+  background: linear-gradient(180deg, #f8f9fa 0%, #eceef1 100%);
+  box-shadow: inset 0 1px 0 #ffffff;
   ${token.typography('caption', 'sm', 'medium')}
   line-height: 1;
   white-space: nowrap;
@@ -603,7 +605,7 @@ export const AuthorTitle = styled.span`
 
   svg {
     flex: 0 0 auto;
-    color: #f4c95d;
+    color: #6c7b94;
   }
 
   span {
