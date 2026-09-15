@@ -290,10 +290,6 @@ export const ProfileCustomizeButton = styled.button`
     pointer-events: none;
   }
 
-  @media (hover: none), (pointer: coarse) {
-    opacity: 1;
-  }
-
   &:hover {
     background: rgb(0 0 0 / 60%);
   }
