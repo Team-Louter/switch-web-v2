@@ -357,6 +357,7 @@ export const Editor = styled.section<EditorProps>`
     --bn-colors-side-menu: ${token.colors.gray.gray40};
     --bn-colors-border: ${token.colors.gray.gray20};
     --bn-font-family: ${token.fontFamily.system};
+    min-height: 100%;
   }
 
   .community-block-editor .bn-editor {

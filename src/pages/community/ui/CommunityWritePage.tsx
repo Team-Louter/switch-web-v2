@@ -722,24 +722,7 @@ export function CommunityWritePage() {
     setBlockDropIndicator(null);
   }, []);
 
-  const handleEditorContentAreaClick = (
-    event: ReactMouseEvent<HTMLDivElement>,
-  ) => {
-    if (
-      isEditorDisabled ||
-      isUploadingFile ||
-      !(event.target instanceof Element)
-    ) {
-      return;
-    }
-
-    setIsEditorPlaceholderVisible(true);
-
-    if (event.target.closest('.bn-block-outer')) {
-      setSelectedBlockId(null);
-      return;
-    }
-
+  const focusEditorAtEnd = () => {
     const lastBlock = editor.document.at(-1);
 
     if (!lastBlock) {
@@ -753,6 +736,7 @@ export function CommunityWritePage() {
       lastBlock.content.length === 0
     ) {
       editor.setTextCursorPosition(lastBlock, 'end');
+      editor.focus();
       return;
     }
 
@@ -764,7 +748,50 @@ export function CommunityWritePage() {
 
     if (emptyBlock) {
       editor.setTextCursorPosition(emptyBlock, 'start');
+      editor.focus();
     }
+  };
+
+  const handleEditorContentAreaClick = (
+    event: ReactMouseEvent<HTMLDivElement>,
+  ) => {
+    if (
+      isEditorDisabled ||
+      isUploadingFile ||
+      !(event.target instanceof Element)
+    ) {
+      return;
+    }
+
+    if (
+      event.target.closest('.bn-side-menu') ||
+      event.target.closest('.bn-drag-handle-menu') ||
+      !event.target.closest('.bn-block-outer')
+    ) {
+      return;
+    }
+
+    setIsEditorPlaceholderVisible(true);
+    setSelectedBlockId(null);
+  };
+
+  const handleEditorBlankAreaClick = (
+    event: ReactMouseEvent<HTMLDivElement>,
+  ) => {
+    if (
+      isEditorDisabled ||
+      isUploadingFile ||
+      !(event.target instanceof Element) ||
+      event.target.closest('.bn-block-outer') ||
+      event.target.closest('.bn-side-menu') ||
+      event.target.closest('.bn-drag-handle-menu')
+    ) {
+      return;
+    }
+
+    setIsEditorPlaceholderVisible(true);
+    setSelectedBlockId(null);
+    focusEditorAtEnd();
   };
 
   const handleEditorContentAreaFocus = (
@@ -893,17 +920,28 @@ export function CommunityWritePage() {
 
   useEffect(() => {
     const handleDocumentPointerDown = (event: PointerEvent) => {
+      if (!(event.target instanceof Element)) {
+        return;
+      }
+
       if (
-        !(event.target instanceof Element) ||
         event.target.closest('.bn-side-menu') ||
         event.target.closest('.bn-drag-handle-menu')
       ) {
         return;
       }
 
-      editor.getExtension(SideMenuExtension)?.unfreezeMenu();
+      const sideMenu = editor.getExtension(SideMenuExtension);
+
+      if (sideMenu?.menuFrozen) {
+        sideMenu.unfreezeMenu();
+      }
+
       setSelectedBlockId(null);
-      setIsEditorPlaceholderVisible(false);
+
+      if (!event.target.closest('.community-block-editor')) {
+        setIsEditorPlaceholderVisible(false);
+      }
     };
 
     document.addEventListener('pointerdown', handleDocumentPointerDown);
@@ -1125,6 +1163,7 @@ export function CommunityWritePage() {
           <div
             className="community-block-editor"
             onClick={handleEditorContentAreaClick}
+            onClickCapture={handleEditorBlankAreaClick}
             onFocusCapture={handleEditorContentAreaFocus}
             onBlurCapture={handleEditorContentAreaBlur}
           >
