@@ -62,12 +62,13 @@ export const TabActionRow = styled.div`
     flex: 0 0 auto;
   }
 
-  @container community-page (max-width: 600px) {
-    gap: 8px;
-  }
-
   @container community-page (max-width: 900px) {
     align-items: flex-start;
+    gap: 10px;
+  }
+
+  @container community-page (max-width: 600px) {
+    gap: 8px;
   }
 `;
 
@@ -99,8 +100,13 @@ export const CategoryTabs = styled.div`
   }
 
   @container community-page (max-width: 900px) {
-    flex-wrap: wrap;
-    overflow-x: visible;
+    flex-wrap: nowrap;
+    padding-inline: 2px;
+    overflow: visible;
+  }
+
+  @container community-page (max-width: 600px) {
+    display: none;
   }
 `;
 
@@ -127,13 +133,146 @@ export const CategoryTab = styled.button<{ $active: boolean }>`
     content: '';
   }
 
-  @container community-page (max-width: 600px) {
-    flex-basis: 96px;
+  @container community-page (max-width: 900px) {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-inline: 2px;
+    font-size: 13px;
+    white-space: nowrap;
+
+    &::after {
+      right: 4px;
+      left: 4px;
+      height: 2px;
+    }
   }
 
-  @container community-page (max-width: 900px) {
-    flex-basis: 25%;
-    min-width: 0;
+  @container community-page (max-width: 600px) {
+    display: none;
+  }
+`;
+
+export const MobileCategoryMenu = styled.div`
+  position: relative;
+  display: none;
+  flex: 1 1 0;
+  min-width: 0;
+
+  @container community-page (max-width: 600px) {
+    display: block;
+  }
+`;
+
+export const MobileCategoryButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 8px;
+  border: 0;
+  border-bottom: 1px solid ${token.colors.gray.gray10};
+  color: ${token.colors.gray.gray100};
+  background: transparent;
+  ${token.typography('body', 'sm', 'semibold')}
+  line-height: 1;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: -2px;
+  }
+`;
+
+export const MobileCategoryButtonLabel = styled.span`
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+
+  svg {
+    flex: 0 0 auto;
+    color: ${token.colors.gray.gray80};
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`;
+
+export const MobileCategoryChevron = styled.span<{ $open: boolean }>`
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  margin: -4px 3px 0 8px;
+  border-right: 2px solid ${token.colors.gray.gray60};
+  border-bottom: 2px solid ${token.colors.gray.gray60};
+  transform: ${({ $open }) => ($open ? 'rotate(225deg)' : 'rotate(45deg)')};
+  transition: transform 180ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+`;
+
+export const MobileCategoryPanel = styled.div<{ $open: boolean }>`
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  right: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.medium};
+  background: ${token.colors.white};
+  box-shadow: 0 10px 24px rgb(25 25 25 / 12%);
+  opacity: ${({ $open }) => ($open ? 1 : 0)};
+  pointer-events: ${({ $open }) => ($open ? 'auto' : 'none')};
+  transform: ${({ $open }) =>
+    $open ? 'translateY(0)' : 'translateY(-8px)'};
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    visibility 180ms ease;
+  visibility: ${({ $open }) => ($open ? 'visible' : 'hidden')};
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+`;
+
+export const MobileCategoryOption = styled.button<{ $active: boolean }>`
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 6px;
+  overflow: hidden;
+  border: 0;
+  border-radius: ${token.shapes.small};
+  color: ${({ $active }) =>
+    $active ? token.colors.primary.primary80 : token.colors.gray.gray80};
+  background: ${({ $active }) =>
+    $active ? token.colors.primary.primary20 : 'transparent'};
+  ${token.typography('body', 'sm', 'medium')}
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    background: ${({ $active }) =>
+      $active ? token.colors.primary.primary20 : token.colors.gray.gray0};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: -2px;
   }
 `;
 
