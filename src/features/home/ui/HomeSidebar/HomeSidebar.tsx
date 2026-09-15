@@ -155,7 +155,6 @@ export function HomeSidebar() {
                   key={myRanking ? `my-ranking-${myRanking.userId}` : 'my-ranking-unranked'}
                   ranking={myRanking}
                   isMine
-                  isMyRankingRow
                   fallbackUserName={user?.userName}
                 />
               </S.RankingList>
@@ -176,18 +175,17 @@ export function HomeSidebar() {
 interface RankingItemProps {
   ranking: Ranking | null;
   isMine?: boolean;
-  isMyRankingRow?: boolean;
   fallbackUserName?: string;
 }
 
-function RankingItem({ ranking, isMine = false, isMyRankingRow = false, fallbackUserName }: RankingItemProps) {
+function RankingItem({ ranking, isMine = false, fallbackUserName }: RankingItemProps) {
   const medal = ranking?.rank === 1 ? medal1stIcon : ranking?.rank === 2 ? medal2ndIcon : null;
   const userName = ranking?.userName ?? fallbackUserName ?? '나';
   const rank = ranking?.rank ?? '-';
   const averageSpeed = ranking ? Math.round(ranking.averageSpeed) : 0;
 
   return (
-    <S.RankingItem $isMyRankingRow={isMyRankingRow}>
+    <S.RankingItem>
       <S.RankingUser>
         {medal ? <S.MedalIcon src={medal} alt={`${rank}위`} /> : <S.RankNumber>{rank}</S.RankNumber>}
         <span>{userName}</span>

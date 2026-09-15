@@ -213,14 +213,10 @@ export const RankingEmpty = styled.p`
   color: #727272;
   font-size: 12px;
 `;
-export const RankingItem = styled.li<{ $isMyRankingRow?: boolean }>`
+export const RankingItem = styled.li`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  ${({ $isMyRankingRow }) => $isMyRankingRow && `
-    padding-top: 8px;
-    border-top: 1px solid #eee;
-  `}
   color: #333;
   font-size: 14px;
 `;
