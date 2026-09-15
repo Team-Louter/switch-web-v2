@@ -151,7 +151,7 @@ export function HomeSidebar() {
           <S.RankingContent>
             {isRankingLoading ? <S.RankingSkeleton aria-label="랭킹 불러오는 중"><S.RankingSkeletonLine /><S.RankingSkeletonLine /></S.RankingSkeleton> : topRankings.length || myRanking || rankingStatus === '랭킹이 없습니다.' ? (
               <S.RankingList>
-                {topRankings.map((ranking) => <RankingItem key={ranking.userId} ranking={ranking} />)}
+                {topRankings.map((ranking) => <RankingItem key={ranking.userId} ranking={ranking} isMine={ranking.userId === myRanking?.userId} />)}
                 {!isMyRankingInTop && <RankingItem
                   key={myRanking ? `my-ranking-${myRanking.userId}` : 'my-ranking-unranked'}
                   ranking={myRanking}
