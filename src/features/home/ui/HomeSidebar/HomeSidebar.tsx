@@ -41,6 +41,7 @@ export function HomeSidebar() {
   const [recent, setRecent] = useState<RecentHomePost | null>(null);
   const [popular, setPopular] = useState<Post[]>([]);
   const [rankings, setRankings] = useState<Ranking[]>([]);
+  const [myRanking, setMyRanking] = useState<Ranking | null>(null);
   const [rankingType, setRankingType] = useState<TypingProblemType>(DEFAULT_TYPING_RANKING_TAB);
   const [recentStatus, setRecentStatus] = useState('불러오는 중입니다.');
   const [popularStatus, setPopularStatus] = useState('불러오는 중입니다.');
@@ -48,6 +49,8 @@ export function HomeSidebar() {
   const [isRecentLoading, setIsRecentLoading] = useState(true);
   const [isPopularLoading, setIsPopularLoading] = useState(true);
   const [isRankingLoading, setIsRankingLoading] = useState(true);
+  const topRankings = rankings.slice(0, 2);
+  const isMyRankingInTop = myRanking !== null && topRankings.some((ranking) => ranking.userId === myRanking.userId);
 
   useEffect(() => {
     let cancelled = false;
@@ -86,6 +89,7 @@ export function HomeSidebar() {
       .then((response) => {
         if (cancelled) return;
         setRankings(response.topRankings);
+        setMyRanking(response.myRanking);
         setRankingStatus('랭킹이 없습니다.');
       })
       .catch(() => {
@@ -145,8 +149,11 @@ export function HomeSidebar() {
             </S.RankingTabs>
           </S.PanelHeader>
           <S.RankingContent>
-            {isRankingLoading ? <S.RankingSkeleton aria-label="랭킹 불러오는 중"><S.RankingSkeletonLine /><S.RankingSkeletonLine /></S.RankingSkeleton> : rankings.length ? (
-              <S.RankingList>{rankings.slice(0, 2).map((ranking) => <RankingItem key={ranking.userId} ranking={ranking} />)}</S.RankingList>
+            {isRankingLoading ? <S.RankingSkeleton aria-label="랭킹 불러오는 중"><S.RankingSkeletonLine /><S.RankingSkeletonLine /></S.RankingSkeleton> : topRankings.length || myRanking ? (
+              <S.RankingList>
+                {topRankings.map((ranking) => <RankingItem key={ranking.userId} ranking={ranking} isMine={ranking.userId === myRanking?.userId} />)}
+                {!isMyRankingInTop && myRanking && <RankingItem key={`my-ranking-${myRanking.userId}`} ranking={myRanking} isMine isMyRankingRow />}
+              </S.RankingList>
             ) : (
               <S.RankingEmpty role="status">{rankingStatus}</S.RankingEmpty>
             )}
@@ -161,14 +168,15 @@ export function HomeSidebar() {
   );
 }
 
-function RankingItem({ ranking }: { ranking: Ranking }) {
+function RankingItem({ ranking, isMine = false, isMyRankingRow = false }: { ranking: Ranking; isMine?: boolean; isMyRankingRow?: boolean }) {
   const medal = ranking.rank === 1 ? medal1stIcon : ranking.rank === 2 ? medal2ndIcon : null;
 
   return (
-    <S.RankingItem>
+    <S.RankingItem $isMyRankingRow={isMyRankingRow}>
       <S.RankingUser>
         {medal ? <S.MedalIcon src={medal} alt={`${ranking.rank}위`} /> : <S.RankNumber>{ranking.rank}</S.RankNumber>}
         <span>{ranking.userName}</span>
+        {isMine && <S.MyRankingBadge>내 랭킹</S.MyRankingBadge>}
       </S.RankingUser>
       <S.RankingSpeed>{Math.round(ranking.averageSpeed)}타</S.RankingSpeed>
     </S.RankingItem>

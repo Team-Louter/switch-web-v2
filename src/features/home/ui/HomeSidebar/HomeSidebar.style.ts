@@ -157,7 +157,7 @@ export const PanelTitle = styled.h2`
   font-weight: 700;
 `;
 export const RankingSection = styled.section`
-  flex: 0 0 115px;
+  flex: 0 0 auto;
   padding: 16px;
 `;
 export const PostSection = styled.section`
@@ -170,10 +170,6 @@ export const PostSection = styled.section`
 
   ${PanelTitle} {
     margin: 0 16px 8px;
-  }
-
-  > h2 + * {
-    margin-top: auto;
   }
 `;
 export const PanelHeader = styled.div`
@@ -210,17 +206,21 @@ export const RankingContent = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 48px;
+  min-height: 48px;
   margin-top: 14px;
 `;
 export const RankingEmpty = styled.p`
   color: #727272;
   font-size: 12px;
 `;
-export const RankingItem = styled.li`
+export const RankingItem = styled.li<{ $isMyRankingRow?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
+  ${({ $isMyRankingRow }) => $isMyRankingRow && `
+    padding-top: 8px;
+    border-top: 1px solid #eee;
+  `}
   color: #333;
   font-size: 14px;
 `;
@@ -246,6 +246,16 @@ export const RankingSpeed = styled.span`
   flex: 0 0 auto;
   font-size: 14px;
   font-weight: 600;
+`;
+export const MyRankingBadge = styled.span`
+  flex: 0 0 auto;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #fff4b8;
+  color: #806d00;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
 `;
 export const Post = styled.button`
   display: flex;
