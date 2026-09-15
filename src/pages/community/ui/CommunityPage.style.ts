@@ -582,7 +582,7 @@ export const AuthorName = styled(UserName)<{ $pinned: boolean }>`
 
 export const AuthorTitle = styled.span`
   display: block;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
   max-width: 96px;
   overflow: hidden;
@@ -591,6 +591,14 @@ export const AuthorTitle = styled.span`
   line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  img {
+    display: block;
+    width: 120px;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
 `;
 
 export const Date = styled.time`

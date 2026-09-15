@@ -52,6 +52,7 @@ import kebabIcon from '../assets/svg/kebab.svg';
 import paperclipIcon from '../assets/svg/paperclip.svg';
 import pinIcon from '../assets/svg/pin-solid.svg';
 import sendIcon from '../assets/svg/send.svg';
+import firstDeveloperTitleImage from '../assets/images/first-developer-title.png';
 import {
   FLATTENED_TREE_DEPTH,
   REPLY_LOAD_DEPTH_INTERVAL,
@@ -294,6 +295,10 @@ export function CommunityDetailPage() {
     ? undefined
     : post?.equippedItems;
   const postProfileTitleName = postEquippedItems?.title?.itemName;
+  const postProfileTitleImageUrl =
+    postProfileTitleName === '최초의 개발자'
+      ? firstDeveloperTitleImage
+      : undefined;
   const postNameColor = postEquippedItems?.nameColor;
   const postNameStyleKey = getNameStyleKey(
     postNameColor?.styleKey ??
@@ -1125,7 +1130,14 @@ export function CommunityDetailPage() {
                           />
                           {postProfileTitleName && (
                             <S.PostAuthorTitle>
-                              {postProfileTitleName}
+                              {postProfileTitleImageUrl ? (
+                                <img
+                                  src={postProfileTitleImageUrl}
+                                  alt={postProfileTitleName}
+                                />
+                              ) : (
+                                postProfileTitleName
+                              )}
                             </S.PostAuthorTitle>
                           )}
                           <S.PostAuthorName styleKey={postNameStyleKey}>

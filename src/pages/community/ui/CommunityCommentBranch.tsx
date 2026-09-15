@@ -15,6 +15,7 @@ import {
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png';
 import { getNameStyleKey } from '@/shared/styles';
 
+import firstDeveloperTitleImage from '../assets/images/first-developer-title.png';
 import anonymousProfileImage from '../assets/images/anonymousProfile.png';
 import {
   FLATTENED_TREE_DEPTH,
@@ -156,6 +157,10 @@ export function CommunityCommentBranch({
       profileNameColor?.itemName,
   );
   const profileTitleName = equippedItems?.title?.itemName;
+  const profileTitleImageUrl =
+    profileTitleName === '최초의 개발자'
+      ? firstDeveloperTitleImage
+      : undefined;
   const profileBorder = equippedItems?.border;
   const profileBorderImageUrl =
     profileBorder?.valueImageUrl ??
@@ -337,7 +342,14 @@ export function CommunityCommentBranch({
               <S.CommentMeta>
                 {profileTitleName && (
                   <S.CommentAuthorTitle>
-                    {profileTitleName}
+                    {profileTitleImageUrl ? (
+                      <img
+                        src={profileTitleImageUrl}
+                        alt={profileTitleName}
+                      />
+                    ) : (
+                      profileTitleName
+                    )}
                   </S.CommentAuthorTitle>
                 )}
                 <S.CommentAuthor styleKey={profileNameStyleKey}>

@@ -473,7 +473,7 @@ export const CommentAuthor = styled(UserName)`
 
 export const CommentAuthorTitle = styled.span`
   display: block;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
   max-width: 160px;
   overflow: hidden;
@@ -482,6 +482,14 @@ export const CommentAuthorTitle = styled.span`
   line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  img {
+    display: block;
+    width: 120px;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
 `;
 
 export const CommentMetaDot = styled.span`
