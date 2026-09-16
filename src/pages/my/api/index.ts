@@ -10,6 +10,7 @@ export {
   verifyWithdrawalCode,
 } from './myApi'
 export type {
+  MyCommentResponse,
   MyPostResponse,
   PageResponse,
   ProfileResponse,

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { getPostCategoryLabel, resolveCommunityAssetUrl } from '@/entities/community'
 import { formatProfileClassInfo, useUserStore } from '@/entities/profile'
-import { mergeSyncedEquippedItems } from '@/shared/lib/profileSync'
 
 import {
   getMyComments,
@@ -11,19 +10,16 @@ import {
   getMyPosts,
   getMyReceivedLikeCount,
 } from '../api'
+import type { MyCommentResponse, MyPostResponse, ProfileResponse } from '../api'
 import type {
   MyActivityTab,
   MyActivityTabId,
   MyPost,
   MyProfile,
-  MyStat,
   ProfileMajor,
 } from '../types'
-import type {
-  MyCommentResponse,
-  MyPostResponse,
-  ProfileResponse,
-} from '../api'
+
+const PAGE_SIZE = 5
 
 const majorLabelMap: Record<ProfileMajor, string> = {
   AI: 'AI',
@@ -45,15 +41,9 @@ const initialProfile: MyProfile = {
 }
 
 const initialActivityTabs: MyActivityTab[] = [
-  { id: 'posts', label: '작성한 글', count: 0 },
-  { id: 'comments', label: '댓글', count: 0 },
-  { id: 'likes', label: '좋아요', count: 0 },
-]
-
-const initialStats: MyStat[] = [
-  { id: 'point', label: '포인트', value: '-' },
-  { id: 'badge', label: '뱃지', value: '0' },
-  { id: 'view', label: '총 조회수', value: '-' },
+  { id: 'posts', label: '내가 쓴 글', count: 0 },
+  { id: 'comments', label: '댓글 단 글', count: 0 },
+  { id: 'likes', label: '좋아요한 글', count: 0 },
 ]
 
 const initialPostsByTab: Record<MyActivityTabId, MyPost[]> = {
@@ -68,15 +58,16 @@ const initialLoadedTabs: Record<MyActivityTabId, boolean> = {
   likes: false,
 }
 
-const getNumberValue = (
-  record: ProfileResponse,
-  keys: (keyof ProfileResponse)[],
-) => {
-  const value = keys
-    .map((key) => record[key])
-    .find((item) => item !== undefined && item !== null)
+type ActivityTabMeta = {
+  fetching: boolean
+  hasMore: boolean
+  nextPage: number
+}
 
-  return typeof value === 'number' ? value : undefined
+const initialActivityMeta: Record<MyActivityTabId, ActivityTabMeta> = {
+  posts: { fetching: false, hasMore: true, nextPage: 0 },
+  comments: { fetching: false, hasMore: true, nextPage: 0 },
+  likes: { fetching: false, hasMore: true, nextPage: 0 },
 }
 
 const getPageItems = <T>(response: { content?: T[] }): T[] =>
@@ -94,13 +85,16 @@ const formatProfile = (profile: ProfileResponse): MyProfile => {
     classInfo: formatProfileClassInfo(profile),
     majors: formatMajorText(profile.majors),
     email: profile.userEmail,
+    githubUrl: profile.githubUrl,
+    linkedinUrl: profile.linkedinUrl,
+    point: profile.point ?? profile.points,
+    badgeCount: profile.badgeCount,
+    receivedLikeCount: profile.receivedLikeCount,
     role: profile.role,
   }
 
-  const equippedItems = mergeSyncedEquippedItems(profile.equippedItems)
-
-  if (equippedItems) {
-    nextProfile.equippedItems = equippedItems
+  if (profile.equippedItems) {
+    nextProfile.equippedItems = profile.equippedItems
   }
 
   if (profile.profileImageUrl) {
@@ -112,6 +106,7 @@ const formatProfile = (profile: ProfileResponse): MyProfile => {
 
 const formatMyPost = (post: MyPostResponse): MyPost => ({
   id: String(post.postId),
+  communityPostId: String(post.postId),
   category: getPostCategoryLabel(post.postCategory),
   title: post.postTitle,
   author: post.userName,
@@ -124,7 +119,8 @@ const formatMyPost = (post: MyPostResponse): MyPost => ({
 })
 
 const formatMyComment = (comment: MyCommentResponse): MyPost => ({
-  id: String(comment.postId),
+  id: `${comment.postId}:${comment.commentId}`,
+  communityPostId: String(comment.postId),
   category: getPostCategoryLabel(comment.postCategory),
   title: comment.postTitle,
   author: comment.userName,
@@ -137,161 +133,281 @@ const formatMyComment = (comment: MyCommentResponse): MyPost => ({
   commentPreview: comment.commentContent,
 })
 
-const formatOptionalStatValue = (value?: number) =>
-  typeof value === 'number' ? value.toLocaleString() : '-'
+const isAbortError = (error: unknown) => {
+  if (!error || typeof error !== 'object') {
+    return false
+  }
 
-// 마이 페이지의 프로필과 활동 데이터를 서버 응답 기준으로 구성한다.
+  const candidate = error as { code?: string; name?: string }
+  return (
+    candidate.code === 'ERR_CANCELED' ||
+    candidate.name === 'CanceledError' ||
+    candidate.name === 'AbortError'
+  )
+}
+
+const getHasMore = (
+  response: { content?: unknown[]; last?: boolean; totalPages?: number },
+  page: number,
+) => {
+  if (typeof response.last === 'boolean') {
+    return !response.last
+  }
+
+  if (typeof response.totalPages === 'number') {
+    return page + 1 < response.totalPages
+  }
+
+  return getPageItems(response).length === PAGE_SIZE
+}
+
+const mergePosts = (current: MyPost[], incoming: MyPost[]) => {
+  const postsById = new Map(current.map((post) => [post.id, post]))
+
+  incoming.forEach((post) => {
+    postsById.set(post.id, post)
+  })
+
+  return Array.from(postsById.values())
+}
+
+const formatPageItems = (
+  tabId: MyActivityTabId,
+  response: { content?: MyPostResponse[] | MyCommentResponse[] },
+) => {
+  if (tabId === 'comments') {
+    return getPageItems(response as { content?: MyCommentResponse[] }).map(
+      formatMyComment,
+    )
+  }
+
+  return getPageItems(response as { content?: MyPostResponse[] }).map(
+    formatMyPost,
+  )
+}
+
+const getActivityTabLabel = (tabId: MyActivityTabId) =>
+  initialActivityTabs.find((tab) => tab.id === tabId)?.label ?? '활동'
+
+// v1 프로필 화면의 탭별 캐시와 무한 스크롤 동작을 v2 API에 맞춰 유지한다.
 export function useMyPage() {
   const fetchUser = useUserStore((state) => state.fetchUser)
   const [activeTabId, setActiveTabId] = useState<MyActivityTabId>('posts')
   const [profile, setProfile] = useState<MyProfile>(initialProfile)
-  const [stats, setStats] = useState<MyStat[]>(initialStats)
-  const [activityTabs, setActivityTabs] =
-    useState<MyActivityTab[]>(initialActivityTabs)
+  const [activityTabs, setActivityTabs] = useState<MyActivityTab[]>(
+    initialActivityTabs,
+  )
   const [postsByTab, setPostsByTab] =
     useState<Record<MyActivityTabId, MyPost[]>>(initialPostsByTab)
   const [loadedTabs, setLoadedTabs] =
     useState<Record<MyActivityTabId, boolean>>(initialLoadedTabs)
+  const [activityMeta, setActivityMeta] =
+    useState<Record<MyActivityTabId, ActivityTabMeta>>(initialActivityMeta)
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
 
-  const loadActivityTab = useCallback(async (tabId: MyActivityTabId) => {
-    setIsLoading(true)
+  const applyProfileUpdate = useCallback((profileResponse: ProfileResponse) => {
+    const nextProfile = formatProfile(profileResponse)
 
-    try {
-      let posts: MyPost[]
-
-      if (tabId === 'comments') {
-        posts = getPageItems(await getMyComments()).map(formatMyComment)
-      } else if (tabId === 'likes') {
-        posts = getPageItems(await getMyLikedPosts()).map(formatMyPost)
-      } else {
-        posts = getPageItems(await getMyPosts()).map(formatMyPost)
-      }
-
-      setPostsByTab((currentPostsByTab) => ({
-        ...currentPostsByTab,
-        [tabId]: posts,
-      }))
-      setLoadedTabs((currentLoadedTabs) => ({
-        ...currentLoadedTabs,
-        [tabId]: true,
-      }))
-      setErrorMessage('')
-    } catch {
-      setErrorMessage('마이 페이지 정보를 불러오지 못했어요')
-    } finally {
-      setIsLoading(false)
-    }
+    setProfile((currentProfile) => ({
+      ...nextProfile,
+      badgeCount: nextProfile.badgeCount ?? currentProfile.badgeCount,
+      point: nextProfile.point ?? currentProfile.point,
+      receivedLikeCount:
+        nextProfile.receivedLikeCount ?? currentProfile.receivedLikeCount,
+    }))
+    setActivityTabs([
+      { id: 'posts', label: '내가 쓴 글', count: profileResponse.postCount },
+      {
+        id: 'comments',
+        label: '댓글 단 글',
+        count: profileResponse.commentCount,
+      },
+      {
+        id: 'likes',
+        label: '좋아요한 글',
+        count: profileResponse.likedPostCount,
+      },
+    ])
   }, [])
 
-  useEffect(() => {
-    let shouldIgnore = false
+  const loadActivityPage = useCallback(
+    async (tabId: MyActivityTabId, page: number, signal?: AbortSignal) => {
+      setActivityMeta((currentMeta) => ({
+        ...currentMeta,
+        [tabId]: {
+          ...(currentMeta[tabId] ?? initialActivityMeta[tabId]),
+          fetching: true,
+        },
+      }))
 
-    const fetchMyPage = async () => {
       try {
-        setIsLoading(true)
-        const [
-          profileResponse,
-          postsResponse,
-          point,
-          receivedLikeCount,
-        ] = await Promise.all([
-          fetchUser(),
-          getMyPosts(),
-          getMyPoint(),
-          getMyReceivedLikeCount(),
-        ])
+        const response =
+          tabId === 'comments'
+            ? await getMyComments({ page, size: PAGE_SIZE }, signal)
+            : tabId === 'likes'
+              ? await getMyLikedPosts({ page, size: PAGE_SIZE }, signal)
+              : await getMyPosts({ page, size: PAGE_SIZE }, signal)
 
-        if (shouldIgnore) {
+        if (signal?.aborted) {
           return
         }
 
-        setProfile(formatProfile(profileResponse))
+        const incomingPosts = formatPageItems(tabId, response)
+
+        setPostsByTab((currentPostsByTab) => ({
+          ...currentPostsByTab,
+          [tabId]: mergePosts(currentPostsByTab[tabId], incomingPosts),
+        }))
+        setLoadedTabs((currentLoadedTabs) => ({
+          ...currentLoadedTabs,
+          [tabId]: true,
+        }))
+        setActivityMeta((currentMeta) => ({
+          ...currentMeta,
+          [tabId]: {
+            fetching: false,
+            hasMore: getHasMore(response, page),
+            nextPage: page + 1,
+          },
+        }))
+        setErrorMessage('')
+      } catch (error: unknown) {
+        if (signal?.aborted || isAbortError(error)) {
+          setActivityMeta((currentMeta) => ({
+            ...currentMeta,
+            [tabId]: {
+              ...(currentMeta[tabId] ?? initialActivityMeta[tabId]),
+              fetching: false,
+            },
+          }))
+          return
+        }
+
+        setErrorMessage('마이 페이지 정보를 불러오지 못했어요')
+        setActivityMeta((currentMeta) => ({
+          ...currentMeta,
+          [tabId]: {
+            ...(currentMeta[tabId] ?? initialActivityMeta[tabId]),
+            fetching: false,
+            hasMore: false,
+          },
+        }))
+      }
+    },
+    [],
+  )
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    const fetchMyPage = async () => {
+      setIsLoading(true)
+
+      try {
+        const [profileResponse, postsResponse, receivedLikeCount, point] =
+          await Promise.all([
+            fetchUser(),
+            getMyPosts({ page: 0, size: PAGE_SIZE }, controller.signal),
+            getMyReceivedLikeCount(controller.signal),
+            getMyPoint(controller.signal).catch(() => undefined),
+          ])
+
+        if (controller.signal.aborted) {
+          return
+        }
+
+        const nextProfile = formatProfile(profileResponse)
+
+        if (typeof nextProfile.point !== 'number' && typeof point === 'number') {
+          nextProfile.point = point
+        }
+
+        if (
+          typeof nextProfile.receivedLikeCount !== 'number' &&
+          typeof receivedLikeCount === 'number'
+        ) {
+          nextProfile.receivedLikeCount = receivedLikeCount
+        }
+
+        setProfile(nextProfile)
         setActivityTabs([
-          { id: 'posts', label: '작성한 글', count: profileResponse.postCount },
-          { id: 'comments', label: '댓글', count: profileResponse.commentCount },
+          { id: 'posts', label: '내가 쓴 글', count: profileResponse.postCount },
+          {
+            id: 'comments',
+            label: '댓글 단 글',
+            count: profileResponse.commentCount,
+          },
           {
             id: 'likes',
-            label: '좋아요',
+            label: '좋아요한 글',
             count: profileResponse.likedPostCount,
           },
         ])
-        setStats([
-          {
-            id: 'point',
-            label: '포인트',
-            value: formatOptionalStatValue(point),
-          },
-          {
-            id: 'badge',
-            label: '뱃지',
-            value: formatOptionalStatValue(
-              getNumberValue(profileResponse, ['badgeCount']) ?? 0,
-            ),
-          },
-          {
-            id: 'view',
-            label: '총 조회수',
-            value: formatOptionalStatValue(
-              getNumberValue(profileResponse, ['totalViewCount', 'viewCount']),
-            ),
-          },
-        ])
-        setPostsByTab({
-          ...initialPostsByTab,
+        setPostsByTab((currentPostsByTab) => ({
+          ...currentPostsByTab,
           posts: getPageItems(postsResponse).map(formatMyPost),
-        })
-        setLoadedTabs({
-          ...initialLoadedTabs,
+        }))
+        setLoadedTabs((currentLoadedTabs) => ({
+          ...currentLoadedTabs,
           posts: true,
-        })
+        }))
+        setActivityMeta((currentMeta) => ({
+          ...currentMeta,
+          posts: {
+            fetching: false,
+            hasMore: getHasMore(postsResponse, 0),
+            nextPage: 1,
+          },
+        }))
         setErrorMessage('')
-
-        if (typeof receivedLikeCount === 'number') {
-          setStats((currentStats) =>
-            currentStats.map((stat) =>
-              stat.id === 'view' &&
-              stat.value === '-' &&
-              profileResponse.totalViewCount === undefined &&
-              profileResponse.viewCount === undefined
-                ? {
-                    ...stat,
-                    label: '받은 좋아요',
-                    value: receivedLikeCount.toLocaleString(),
-                  }
-                : stat,
-            ),
-          )
-        }
-      } catch {
-        if (!shouldIgnore) {
+      } catch (error: unknown) {
+        if (!controller.signal.aborted && !isAbortError(error)) {
           setErrorMessage('마이 페이지 정보를 불러오지 못했어요')
         }
       } finally {
-        if (!shouldIgnore) {
+        if (!controller.signal.aborted) {
           setIsLoading(false)
         }
       }
     }
 
-    fetchMyPage()
+    void fetchMyPage()
 
-    return () => {
-      shouldIgnore = true
-    }
+    return () => controller.abort()
   }, [fetchUser])
 
   useEffect(() => {
-    if (isLoading || loadedTabs[activeTabId]) {
+    if (activeTabId === 'posts' || loadedTabs[activeTabId]) {
       return
     }
 
-    void loadActivityTab(activeTabId)
-  }, [activeTabId, isLoading, loadedTabs, loadActivityTab])
+    const controller = new AbortController()
+    void Promise.resolve().then(() => {
+      if (!controller.signal.aborted) {
+        void loadActivityPage(activeTabId, 0, controller.signal)
+      }
+    })
 
+    return () => controller.abort()
+  }, [activeTabId, loadedTabs, loadActivityPage])
+
+  const loadMore = useCallback(() => {
+    const meta = activityMeta[activeTabId]
+
+    if (!meta || meta.fetching || !meta.hasMore) {
+      return
+    }
+
+    void loadActivityPage(activeTabId, meta.nextPage)
+  }, [activeTabId, activityMeta, loadActivityPage])
+
+  const posts = postsByTab[activeTabId]
+  const activeTabMeta = activityMeta[activeTabId]
+  const isActiveTabLoading =
+    isLoading || (activeTabMeta.fetching && posts.length === 0)
   const emptyMessage = useMemo(() => {
-    if (isLoading) {
+    if (isActiveTabLoading) {
       return '불러오는 중이에요'
     }
 
@@ -299,20 +415,21 @@ export function useMyPage() {
       return errorMessage
     }
 
-    const activeTabLabel =
-      activityTabs.find((tab) => tab.id === activeTabId)?.label ?? '활동'
-
-    return `${activeTabLabel}이 없어요`
-  }, [activeTabId, activityTabs, errorMessage, isLoading])
+    return `${getActivityTabLabel(activeTabId)}이 없어요`
+  }, [activeTabId, errorMessage, isActiveTabLoading])
 
   return {
     activeTabId,
     activityTabs,
+    applyProfileUpdate,
     emptyMessage,
-    isLoading,
-    posts: postsByTab[activeTabId],
+    hasMore: activeTabMeta.hasMore,
+    isFetchingMore: activeTabMeta.fetching && posts.length > 0,
+    isLoading: isActiveTabLoading,
+    isProfileLoading: isLoading,
+    loadMore,
+    posts,
     profile,
     setActiveTabId,
-    stats,
   }
 }

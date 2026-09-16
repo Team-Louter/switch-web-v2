@@ -6,11 +6,15 @@ export type ProfileMajorOption = {
 }
 
 export const profileMajorOptions: ProfileMajorOption[] = [
-  { id: 'FRONTEND', label: '프론트엔드' },
-  { id: 'BACKEND', label: '백엔드' },
-  { id: 'DESIGN', label: '디자인' },
-  { id: 'IOS', label: 'ios' },
-  { id: 'ANDROID', label: '안드로이드' },
+  { id: 'BACKEND', label: 'BACKEND' },
+  { id: 'FRONTEND', label: 'FRONTEND' },
+  { id: 'DESIGN', label: 'DESIGN' },
+  { id: 'IOS', label: 'IOS' },
+  { id: 'ANDROID', label: 'ANDROID' },
+  { id: 'SECURITY', label: 'SECURITY' },
+  { id: 'GAME', label: 'GAME' },
+  { id: 'AI', label: 'AI' },
+  { id: 'EMBEDDED', label: 'EMBEDDED' },
 ]
 
 export const createStudentId = (

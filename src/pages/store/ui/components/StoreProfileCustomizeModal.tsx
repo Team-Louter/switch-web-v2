@@ -19,7 +19,7 @@ type StoreProfileCustomizeModalProps = {
   recommendedEffects: StoreEffect[]
   selectedCategory: StoreCategory
   selectedEffect: StoreEffect | null
-  selectedEffectsByCategory: SelectedEffectsByCategory
+  selectedEffectsByCategory?: SelectedEffectsByCategory
   onCategorySelect: (category: StoreCategory) => void
   onClose: () => void
   onEffectSelect: (effect: StoreEffect | null) => void
@@ -59,8 +59,27 @@ type SelectedEffectsByCategory = Record<
 
 const getCustomizePreviewEquippedItems = (
   profile: StoreProfilePreview | null,
-  selectedEffectsByCategory: SelectedEffectsByCategory,
+  selectedCategory: StoreCategory,
+  selectedEffect: StoreEffect | null,
+  selectedEffectsByCategory?: SelectedEffectsByCategory,
 ) => {
+  if (!selectedEffectsByCategory) {
+    if (selectedCategory === '전체') {
+      return profile?.equippedItems
+    }
+
+    const equippedItems = { ...profile?.equippedItems }
+    const targetKey = CATEGORY_EQUIPPED_ITEM_KEY[selectedCategory]
+
+    if (!selectedEffect) {
+      delete equippedItems[targetKey]
+      return equippedItems
+    }
+
+    equippedItems[targetKey] = getEffectDecorationItem(selectedEffect)
+    return equippedItems
+  }
+
   const equippedItems = { ...profile?.equippedItems }
 
   for (const category of Object.keys(
@@ -152,15 +171,33 @@ export function StoreProfileCustomizeModal({
 }: StoreProfileCustomizeModalProps) {
   const previewEquippedItems = getCustomizePreviewEquippedItems(
     profile,
+    selectedCategory,
+    selectedEffect,
     selectedEffectsByCategory,
   )
-  const selectedNameColorEffect = selectedEffectsByCategory['이름 색상']
-  const previewNameStyleKey = selectedNameColorEffect?.nameStyleKey
+  const selectedNameColorEffect = selectedEffectsByCategory?.['이름 색상']
+  const equippedNameColor = profile?.equippedItems?.nameColor
+  const previewNameStyleKey = selectedEffectsByCategory
+    ? selectedNameColorEffect?.nameStyleKey
+    : selectedCategory === '이름 색상'
+      ? selectedEffect?.nameStyleKey
+      : getNameStyleKey(
+          equippedNameColor?.styleKey ??
+            equippedNameColor?.valueColor ??
+            equippedNameColor?.value_color ??
+            equippedNameColor?.valueText ??
+            equippedNameColor?.itemName,
+        )
   const previewTitle = previewEquippedItems?.title
   const previewTitleText = previewTitle?.valueText ?? previewTitle?.itemName
-  const isAnySelectionLocked = Object.values(selectedEffectsByCategory).some(
-    (effect) => effect?.status === 'recommended',
-  )
+  const isAnySelectionLocked = selectedEffectsByCategory
+    ? Object.values(selectedEffectsByCategory).some(
+        (effect) => effect?.status === 'recommended',
+      )
+    : Boolean(
+        selectedEffect &&
+          recommendedEffects.some((effect) => effect.id === selectedEffect.id),
+      )
 
   return (
     <S.Overlay>

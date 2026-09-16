@@ -261,6 +261,7 @@ export function CommunityDetailPage() {
   const targetCommentSearchKeyRef = useRef<string | null>(null);
 
   const canManagePost = currentMemberId === post?.userId;
+  const canDeletePost = canManagePost || canManagePostPin;
   const canOpenPostMenu = canManagePostPin || canManagePost;
   const isPostActionMutating = isPinMutating || isPostDeleting;
   const isPostStatsPollingReady = post?.postId === postId;
@@ -700,7 +701,7 @@ export function CommunityDetailPage() {
   };
 
   const handlePostDeleteRequest = () => {
-    if (!post || !canManagePost || isPostDeleting) {
+    if (!post || !canDeletePost || isPostDeleting) {
       return;
     }
 
@@ -709,7 +710,7 @@ export function CommunityDetailPage() {
   };
 
   const handlePostDelete = async () => {
-    if (!post || !canManagePost || isPostDeleting) {
+    if (!post || !canDeletePost || isPostDeleting) {
       return;
     }
 
@@ -1176,30 +1177,32 @@ export function CommunityDetailPage() {
                                     {post.pinned ? '고정 해제' : '고정하기'}
                                   </S.PostMenuItem>
                                 )}
-                                {canManagePostPin && canManagePost && (
+                                {canManagePostPin && canDeletePost && (
                                   <S.PostMenuDivider aria-hidden="true" />
                                 )}
                                 {canManagePost && (
-                                  <>
-                                    <S.PostMenuItem
-                                      type="button"
-                                      role="menuitem"
-                                      disabled={isPostActionMutating}
-                                      onClick={handlePostEdit}
-                                    >
-                                      수정하기
-                                    </S.PostMenuItem>
-                                    <S.PostMenuDivider aria-hidden="true" />
-                                    <S.PostMenuItem
-                                      type="button"
-                                      role="menuitem"
-                                      $danger
-                                      disabled={isPostActionMutating}
-                                      onClick={handlePostDeleteRequest}
-                                    >
-                                      {isPostDeleting ? '삭제 중' : '삭제하기'}
-                                    </S.PostMenuItem>
-                                  </>
+                                  <S.PostMenuItem
+                                    type="button"
+                                    role="menuitem"
+                                    disabled={isPostActionMutating}
+                                    onClick={handlePostEdit}
+                                  >
+                                    수정하기
+                                  </S.PostMenuItem>
+                                )}
+                                {canManagePost && (
+                                  <S.PostMenuDivider aria-hidden="true" />
+                                )}
+                                {canDeletePost && (
+                                  <S.PostMenuItem
+                                    type="button"
+                                    role="menuitem"
+                                    $danger
+                                    disabled={isPostActionMutating}
+                                    onClick={handlePostDeleteRequest}
+                                  >
+                                    {isPostDeleting ? '삭제 중' : '삭제하기'}
+                                  </S.PostMenuItem>
                                 )}
                               </S.PostMenuPanel>
                             )}

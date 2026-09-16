@@ -1,6 +1,7 @@
 import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
+import { myPagePalette as color } from '../myPagePalette'
 
 export const Row = styled.article`
   ${token.flexColumn}
@@ -10,16 +11,17 @@ export const Row = styled.article`
   width: 100%;
   min-height: 56px;
   overflow: hidden;
+  border-bottom: 1px solid ${color.line};
   background: ${token.colors.white};
   cursor: pointer;
-  transition: background-color 120ms ease;
+  transition: background-color 150ms ease;
 
   &:hover {
-    background: ${token.colors.gray.gray0};
+    background: #F5F5F5;
   }
 
   &:focus-visible {
-    outline: 2px solid ${token.colors.primary.primary50};
+    outline: 2px solid ${color.yellow};
     outline-offset: -2px;
   }
 `
@@ -29,120 +31,108 @@ export const MainLine = styled.div<{ $hasComment: boolean }>`
   align-items: center;
   box-sizing: border-box;
   width: 100%;
-  min-height: ${({ $hasComment }) => ($hasComment ? '46px' : '56px')};
-  gap: 10px;
-  padding: ${({ $hasComment }) =>
-    $hasComment ? '6px 10px 2px' : '6px 10px'};
+  min-height: ${({ $hasComment }) => ($hasComment ? '70px' : '55px')};
+  gap: clamp(8px, 1.06vw, 16px);
+  padding: 10px clamp(8px, calc(2.69vw - 12.6px), 28px);
 `
 
 export const CategoryBadge = styled.span`
   ${token.flexCenter}
-  flex: 0 0 80px;
+  flex: 0 0 auto;
   box-sizing: border-box;
-  min-height: 26px;
-  padding: 3px 10px;
-  border: 1px solid ${token.colors.primary.text};
-  border-radius: 999px;
-  color: ${token.colors.primary.primary80};
-  background: transparent;
+  padding: 2px 10px;
+  border-radius: 50px;
+  color: ${color.categoryText};
+  background: ${color.categoryBackground};
   line-height: 1;
   white-space: nowrap;
-  ${token.typography('caption', 'lg', 'semibold')}
+  ${token.typography('caption', 'md', 'medium')}
 `
 
 export const Title = styled.strong`
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: ${color.text};
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  ${token.typography('body', 'sm', 'semibold')}
+`
+
+export const PostContent = styled.div`
+  ${token.flexColumn}
   flex: 1 1 0;
+  align-items: flex-start;
+  justify-content: center;
   min-width: 0;
-  box-sizing: border-box;
-  overflow: hidden;
-  color: ${token.colors.gray.gray100};
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  ${token.typography('body', 'md', 'medium')}
-`
-
-export const Author = styled.div`
-  ${token.flexCenter}
-  flex: 0 0 120px;
-  box-sizing: border-box;
-  min-width: 0;
-  gap: 8px;
-  overflow: hidden;
-  padding: 6px 4px;
-`
-
-export const AuthorAvatar = styled.img`
-  flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
-  overflow: hidden;
-  border-radius: ${token.shapes.circle};
-  object-fit: cover;
-`
-
-export const AuthorName = styled.span`
-  flex: 0 0 72px;
-  overflow: hidden;
-  color: ${token.colors.gray.gray80};
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  ${token.typography('body', 'sm', 'medium')}
+  gap: 4px;
 `
 
 export const DateText = styled.span`
   ${token.flexCenter}
-  flex: 0 0 176px;
-  box-sizing: border-box;
-  padding: 6px 10px;
-  color: ${token.colors.gray.gray80};
+  flex: 0 0 auto;
+  color: ${color.metricGray};
   line-height: 1.2;
-  text-align: center;
   white-space: nowrap;
-  ${token.typography('body', 'sm', 'medium')}
+  ${token.typography('caption', 'lg', 'medium')}
 `
 
 export const Metrics = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  flex: 0 0 180px;
-  box-sizing: border-box;
-  overflow: hidden;
-  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: clamp(8px, calc(1.62vw - 4.4px), 20px);
 `
 
-export const Metric = styled.span`
+export const Metric = styled.span<{ $tone?: 'red' | 'yellow' }>`
   ${token.flexLeft}
   justify-content: flex-start;
   min-width: 0;
   gap: 3px;
-  color: ${token.colors.gray.gray80};
+  color: ${({ $tone }) =>
+    $tone === 'red'
+      ? color.red
+      : $tone === 'yellow'
+        ? color.yellow
+        : color.metricGray};
   font-variant-numeric: tabular-nums;
   line-height: 1;
   white-space: nowrap;
-  ${token.typography('body', 'sm', 'medium')}
+  ${token.typography('caption', 'lg', 'medium')}
 `
 
 export const MetricIcon = styled.img`
   flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
   object-fit: contain;
 `
 
 export const CommentPreview = styled.div`
+  position: relative;
   box-sizing: border-box;
   width: 100%;
   min-height: 16px;
-  padding: 0 10px 6px 100px;
-  color: ${token.colors.gray.gray50};
+  padding: 0 0 0 16px;
+  color: ${color.coolText};
   line-height: 1;
   ${token.typography('caption', 'lg', 'medium')}
+
+  &::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: ${color.coolText};
+    content: '└';
+  }
 `
 
 export const CommentText = styled.span`
   display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

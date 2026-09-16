@@ -86,9 +86,11 @@ export function WithdrawCodeInput({
             inputRefs.current[index] = element
           }}
           value={digit}
+          $filled={digit !== ''}
           inputMode="numeric"
           maxLength={1}
           aria-label={`회원 탈퇴 인증 코드 ${index + 1}번째 숫자`}
+          autoFocus={index === 0}
           onChange={(event) => handleCodeChange(index, event)}
           onKeyDown={(event) => handleCodeKeyDown(index, event)}
           onPaste={handleCodePaste}
