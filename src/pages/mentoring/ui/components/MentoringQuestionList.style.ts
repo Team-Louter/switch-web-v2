@@ -85,11 +85,15 @@ export const StatusRow = styled.div`
   gap: 4px;
 `
 
-export const StatusBadge = styled.span<{ $color: string }>`
+export const StatusBadge = styled.span<{
+  $color: string
+  $isDone?: boolean
+}>`
   ${token.flexRow}
   align-items: center;
   gap: 5px;
-  color: ${token.colors.gray.gray60};
+  color: ${({ $color, $isDone }) =>
+    $isDone ? $color : token.colors.gray.gray60};
   white-space: nowrap;
   ${token.typography('caption', 'lg', 'medium')}
 
@@ -100,6 +104,14 @@ export const StatusBadge = styled.span<{ $color: string }>`
     border-radius: ${token.shapes.circle};
     background: ${({ $color }) => $color};
     content: '';
+    display: ${({ $isDone }) => ($isDone ? 'none' : 'block')};
+  }
+
+  svg {
+    width: 13px;
+    height: 13px;
+    flex: 0 0 auto;
+    stroke-width: 3;
   }
 `
 

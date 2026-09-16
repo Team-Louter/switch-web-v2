@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { PiDotsThreeVertical } from 'react-icons/pi'
+import { PiCheck, PiDotsThreeVertical } from 'react-icons/pi'
 
 import type { MentoringQuestion } from '@/entities/mentoring'
 import {
@@ -145,7 +145,9 @@ function QuestionListItem({
         <S.StatusRow>
           <S.StatusBadge
             $color={QUESTION_STATUS_COLOR[question.status]}
+            $isDone={question.status === 'DONE'}
           >
+            {question.status === 'DONE' && <PiCheck aria-hidden="true" />}
             {QUESTION_STATUS_LABEL[question.status]}
           </S.StatusBadge>
           <S.QuestionDate>{formatQuestionDate(question.createdAt)}</S.QuestionDate>

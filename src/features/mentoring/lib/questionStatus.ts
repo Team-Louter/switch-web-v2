@@ -12,7 +12,7 @@ export const QUESTION_STATUS_LABEL: Record<QuestionStatus, string> = {
 export const QUESTION_STATUS_COLOR: Record<QuestionStatus, string> = {
   PAUSED: token.colors.warning.warning20,
   ACTIVE: token.colors.info.info20,
-  DONE: token.colors.gray.gray50,
+  DONE: token.colors.success.success20,
 }
 
 const parseQuestionDate = (isoDate: string): Date | null => {
