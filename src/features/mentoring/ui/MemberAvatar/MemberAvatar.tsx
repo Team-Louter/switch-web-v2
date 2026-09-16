@@ -1,4 +1,6 @@
-import defaultProfileImage from '@/shared/assets/sidebar/profile.png'
+import { useState } from 'react'
+
+import defaultProfileImage from '../../assets/default-profile.svg'
 
 import * as S from './MemberAvatar.style'
 
@@ -15,12 +17,23 @@ export function MemberAvatar({
   size = 32,
   borderWidth = 1,
 }: MemberAvatarProps) {
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null)
+  const imageSource =
+    profileImageUrl && profileImageUrl !== failedImageUrl
+      ? profileImageUrl
+      : defaultProfileImage
+
   return (
     <S.Avatar
-      src={profileImageUrl || defaultProfileImage}
+      src={imageSource}
       alt={userName}
       $size={size}
       $borderWidth={borderWidth}
+      onError={() => {
+        if (profileImageUrl && failedImageUrl !== profileImageUrl) {
+          setFailedImageUrl(profileImageUrl)
+        }
+      }}
     />
   )
 }
