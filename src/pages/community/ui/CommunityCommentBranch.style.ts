@@ -1,6 +1,10 @@
 import styled, { css, keyframes } from 'styled-components';
 
+import { UserName } from '@/entities/user';
 import * as token from '@/shared/styles/values/token';
+import { ProfileAvatar } from '@/shared/ui';
+
+import { CommunityTitleBadge } from './CommunityTitleBadge.style';
 
 interface CommentMenuItemProps {
   $danger?: boolean;
@@ -409,19 +413,22 @@ export const CommentItem = styled.div<CommentItemProps>`
   }
 `;
 
-export const CommentAuthorImage = styled.img`
-  flex: 0 0 32px;
-  width: 32px;
-  height: 32px;
-  border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.circle};
-  object-fit: cover;
-
-  @container community-detail (max-width: 430px) {
-    flex-basis: 28px;
-    width: 28px;
-    height: 28px;
-  }
+export const CommentAuthorImage = styled(ProfileAvatar)<{
+  $hasBorder: boolean;
+}>`
+  ${({ $hasBorder }) =>
+    !$hasBorder &&
+    css`
+      &::after {
+        position: absolute;
+        z-index: 2;
+        inset: 0;
+        border: 1px solid ${token.colors.gray.gray10};
+        border-radius: ${token.shapes.circle};
+        content: '';
+        pointer-events: none;
+      }
+    `}
 `;
 
 export const CommentContent = styled.div`
@@ -455,14 +462,27 @@ export const CommentMeta = styled.div`
   }
 `;
 
-export const CommentAuthor = styled.span`
+export const CommentAuthor = styled(UserName)`
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   color: #404040;
   ${token.typography('heading', 'sm', 'semibold')}
   line-height: 1.2;
+  text-overflow: ellipsis;
   white-space: nowrap;
 `;
 
+export const CommentAuthorTitle = styled(CommunityTitleBadge)`
+  gap: 4px;
+  max-width: 160px;
+  padding: 4px 7px;
+`;
+
 export const CommentMetaDot = styled.span`
+  flex: 0 0 4px;
   width: 4px;
   height: 4px;
   border-radius: ${token.shapes.circle};

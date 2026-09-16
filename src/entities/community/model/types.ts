@@ -1,3 +1,5 @@
+import type { ProfileAvatarEquippedItems } from '@/shared/ui'
+
 export type PostCategory =
   | 'NOTICE'
   | 'FREE'
@@ -56,6 +58,7 @@ export interface PostResponse {
   pinned: boolean
   tag?: PostTag
   files?: PostFileResponse[]
+  equippedItems?: ProfileAvatarEquippedItems
 }
 
 export interface CommentResponse {
@@ -69,6 +72,7 @@ export interface CommentResponse {
   isAnonymous: boolean
   deleted: boolean
   replyCount: number
+  equippedItems?: ProfileAvatarEquippedItems
 }
 
 export interface CommentReplyCountResponse {

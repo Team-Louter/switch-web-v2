@@ -13,6 +13,7 @@ import {
   resolveCommunityAssetUrl,
 } from '@/entities/community';
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png';
+import { getNameStyleKey } from '@/shared/styles';
 
 import anonymousProfileImage from '../assets/images/anonymousProfile.png';
 import {
@@ -24,6 +25,7 @@ import {
 } from '../model/commentTree';
 import kebabIcon from '../assets/svg/kebab.svg';
 import * as S from './CommunityCommentBranch.style';
+import { PixelHammerIcon } from './PixelHammerIcon';
 
 interface ReplyLoadingSkeletonProps {
   isWithinReplies?: boolean;
@@ -143,6 +145,28 @@ export function CommunityCommentBranch({
   const repliesLoadLabel = replyLoadError
     ? '답글 다시 불러오기'
     : '답글 더보기';
+  const equippedItems = comment.isAnonymous
+    ? undefined
+    : comment.equippedItems;
+  const profileNameColor = equippedItems?.nameColor;
+  const profileNameStyleKey = getNameStyleKey(
+    profileNameColor?.styleKey ??
+      profileNameColor?.valueColor ??
+      profileNameColor?.value_color ??
+      profileNameColor?.valueText ??
+      profileNameColor?.itemName,
+  );
+  const profileTitleName =
+    equippedItems?.title?.valueText ?? equippedItems?.title?.itemName;
+  const profileBorder = equippedItems?.border;
+  const profileBorderImageUrl =
+    profileBorder?.valueImageUrl ??
+    profileBorder?.imageUrl ??
+    profileBorder?.itemImageUrl ??
+    profileBorder?.originalImageUrl ??
+    profileBorder?.previewImageUrl ??
+    profileBorder?.thumbnailUrl;
+  const hasCustomBorder = Boolean(profileBorderImageUrl?.trim());
 
   const handleReplyComposerOpen = () => {
     setIsReplyComposerOpen(true);
@@ -300,17 +324,30 @@ export function CommunityCommentBranch({
       >
         <S.CommentItem $isTarget={comment.commentId === targetCommentId}>
           <S.CommentAuthorImage
-            src={
+            alt={`${comment.userName} 프로필`}
+            $hasBorder={hasCustomBorder}
+            equippedItems={equippedItems}
+            imageUrl={
               resolveCommunityAssetUrl(comment.userProfileImageUrl) ??
               fallbackProfileImage
             }
-            alt={`${comment.userName} 프로필`}
-            onError={onProfileImageError}
+            onImageError={onProfileImageError}
+            size={32}
           />
           <S.CommentContent>
             <S.CommentHeader>
               <S.CommentMeta>
-                <S.CommentAuthor>{comment.userName}</S.CommentAuthor>
+                <S.CommentAuthor styleKey={profileNameStyleKey}>
+                  {comment.userName}
+                </S.CommentAuthor>
+                {profileTitleName && (
+                  <S.CommentAuthorTitle>
+                    {profileTitleName === '최초의 개발자' && (
+                      <PixelHammerIcon size={14} />
+                    )}
+                    <span>{profileTitleName}</span>
+                  </S.CommentAuthorTitle>
+                )}
                 <S.CommentMetaDot aria-hidden="true" />
                 <S.CommentDate
                   dateTime={comment.createdAt}

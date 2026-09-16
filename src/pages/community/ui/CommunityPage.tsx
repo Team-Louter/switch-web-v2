@@ -3,9 +3,14 @@ import {
   type SyntheticEvent,
   useEffect,
   useLayoutEffect,
+  useRef,
   useState,
 } from 'react';
-import { PiNoteBlank, PiPencilSimpleLineBold } from 'react-icons/pi';
+import {
+  PiList,
+  PiNoteBlank,
+  PiPencilSimpleLineBold,
+} from 'react-icons/pi';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -20,6 +25,7 @@ import {
 } from '@/entities/community';
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png';
 import eyeIcon from '@/shared/assets/my/eye-icon.svg';
+import { getNameStyleKey } from '@/shared/styles';
 import { Button } from '@/shared/ui';
 
 import commentOutlineIcon from '../assets/svg/comment-outline.svg';
@@ -31,7 +37,9 @@ import pinIcon from '../assets/svg/pin-solid.svg';
 import {
   Author,
   AuthorImage,
+  AuthorMeta,
   AuthorName,
+  AuthorTitle,
   CategoryCell,
   CategoryTab,
   CategoryTabs,
@@ -43,6 +51,11 @@ import {
   EmptyTitle,
   Header,
   ImageAttachmentIcon,
+  MobileCategoryButton,
+  MobileCategoryButtonLabel,
+  MobileCategoryMenu,
+  MobileCategoryOption,
+  MobileCategoryPanel,
   Page,
   PageButton,
   Pagination,
@@ -67,6 +80,7 @@ import {
   TabActionRow,
   WriteButton,
 } from './CommunityPage.style';
+import { PixelHammerIcon } from './PixelHammerIcon';
 
 interface CategoryTabItem {
   value: PostCategory | null;
@@ -94,6 +108,9 @@ export function CommunityPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [currentTime, setCurrentTime] = useState(globalThis.Date.now);
+  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+  const categoryMenuRef = useRef<HTMLDivElement>(null);
+  const categoryMenuButtonRef = useRef<HTMLButtonElement>(null);
 
   const firstVisiblePage = Math.min(
     Math.max(currentPage - Math.floor(MAX_VISIBLE_PAGE_COUNT / 2), 0),
@@ -103,10 +120,19 @@ export function CommunityPage() {
     { length: Math.min(totalPages, MAX_VISIBLE_PAGE_COUNT) },
     (_, index) => firstVisiblePage + index,
   );
+  const selectedCategoryLabel =
+    CATEGORY_TABS.find((category) => category.value === selectedCategory)
+      ?.label ?? CATEGORY_TABS[0].label;
 
   const handleCategorySelect = (category: PostCategory | null) => {
     setSelectedCategory(category);
     setCurrentPage(0);
+    setIsCategoryMenuOpen(false);
+  };
+
+  const handleMobileCategorySelect = (category: PostCategory | null) => {
+    handleCategorySelect(category);
+    categoryMenuButtonRef.current?.focus();
   };
 
   const handleWritePost = () => {
@@ -150,6 +176,33 @@ export function CommunityPage() {
       window.clearInterval(refreshIntervalId);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isCategoryMenuOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: globalThis.PointerEvent) => {
+      const target = event.target;
+
+      if (target instanceof Node && !categoryMenuRef.current?.contains(target)) {
+        setIsCategoryMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsCategoryMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isCategoryMenuOpen]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -215,6 +268,42 @@ export function CommunityPage() {
                 </CategoryTab>
               ))}
             </CategoryTabs>
+            <MobileCategoryMenu ref={categoryMenuRef}>
+              <MobileCategoryButton
+                ref={categoryMenuButtonRef}
+                type="button"
+                aria-controls="community-category-menu"
+                aria-expanded={isCategoryMenuOpen}
+                aria-haspopup="menu"
+                onClick={() =>
+                  setIsCategoryMenuOpen((isOpen) => !isOpen)
+                }
+              >
+                <MobileCategoryButtonLabel>
+                  <PiList size={18} aria-hidden="true" />
+                  <span>{selectedCategoryLabel}</span>
+                </MobileCategoryButtonLabel>
+              </MobileCategoryButton>
+              <MobileCategoryPanel
+                id="community-category-menu"
+                aria-hidden={!isCategoryMenuOpen}
+                role="menu"
+                $open={isCategoryMenuOpen}
+              >
+                {CATEGORY_TABS.map((category) => (
+                  <MobileCategoryOption
+                    key={category.label}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={selectedCategory === category.value}
+                    $active={selectedCategory === category.value}
+                    onClick={() => handleMobileCategorySelect(category.value)}
+                  >
+                    {category.label}
+                  </MobileCategoryOption>
+                ))}
+              </MobileCategoryPanel>
+            </MobileCategoryMenu>
             <WriteButton size="sm" onClick={handleWritePost}>
               <PiPencilSimpleLineBold size={16} aria-hidden="true" />
               글쓰기
@@ -262,6 +351,29 @@ export function CommunityPage() {
               const authorImage =
                 resolveCommunityAssetUrl(post.userProfileImageUrl) ??
                 fallbackProfileImage;
+              const equippedItems = post.isAnonymous
+                ? undefined
+                : post.equippedItems;
+              const profileNameColor = equippedItems?.nameColor;
+              const profileNameStyleKey = getNameStyleKey(
+                profileNameColor?.styleKey ??
+                  profileNameColor?.valueColor ??
+                  profileNameColor?.value_color ??
+                  profileNameColor?.valueText ??
+                  profileNameColor?.itemName,
+              );
+              const profileTitleName =
+                equippedItems?.title?.valueText ??
+                equippedItems?.title?.itemName;
+              const profileBorder = equippedItems?.border;
+              const profileBorderImageUrl =
+                profileBorder?.valueImageUrl ??
+                profileBorder?.imageUrl ??
+                profileBorder?.itemImageUrl ??
+                profileBorder?.originalImageUrl ??
+                profileBorder?.previewImageUrl ??
+                profileBorder?.thumbnailUrl;
+              const hasCustomBorder = Boolean(profileBorderImageUrl?.trim());
               const hasImageAttachment = post.files?.some((file) =>
                 file.fileType.startsWith('image/'),
               );
@@ -296,15 +408,31 @@ export function CommunityPage() {
                   </PostTitle>
                   <Author>
                     <AuthorImage
-                      src={authorImage}
                       alt={`${post.userName} 프로필`}
+                      $hasBorder={hasCustomBorder}
+                      equippedItems={equippedItems}
+                      imageUrl={authorImage}
                       loading="lazy"
                       decoding="async"
-                      onError={handleProfileImageError}
+                      onImageError={handleProfileImageError}
+                      size={28}
                     />
-                    <AuthorName $pinned={post.pinned}>
-                      {post.userName}
-                    </AuthorName>
+                    <AuthorMeta>
+                      <AuthorName
+                        $pinned={post.pinned}
+                        styleKey={profileNameStyleKey}
+                      >
+                        {post.userName}
+                      </AuthorName>
+                      {profileTitleName && (
+                        <AuthorTitle>
+                          {profileTitleName === '최초의 개발자' && (
+                            <PixelHammerIcon size={14} />
+                          )}
+                          <span>{profileTitleName}</span>
+                        </AuthorTitle>
+                      )}
+                    </AuthorMeta>
                   </Author>
                   <Date dateTime={post.createdAt}>
                     {formatCommunityListRecentDate(post.createdAt, currentTime)}

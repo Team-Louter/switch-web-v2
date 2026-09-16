@@ -4,11 +4,19 @@ import * as token from '@/shared/styles/values/token';
 
 export const Page = styled.section`
   box-sizing: border-box;
+  height: 100dvh;
   min-height: 100dvh;
   padding: clamp(32px, 5.1dvh, 50px) clamp(24px, 8.31%, 100px);
+  overflow: hidden;
   container-name: community-write;
   container-type: inline-size;
   background: ${token.colors.white};
+
+  @media (max-height: 720px) {
+    // 헤더와 툴바가 화면에 맞지 않을 때 페이지가 자연스럽게 늘어나도록 합니다.
+    height: auto;
+    overflow: visible;
+  }
 `;
 
 export const Content = styled.div`
@@ -16,13 +24,22 @@ export const Content = styled.div`
   gap: 20px;
   width: 100%;
   max-width: calc(1003px / 0.9);
-  min-height: calc(100dvh - 100px);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
   margin: 0 auto;
   zoom: 0.9;
+
+  @media (max-height: 720px) {
+    height: auto;
+    min-height: calc(100dvh - 100px);
+    overflow: visible;
+  }
 `;
 
 export const Header = styled.header`
   ${token.flexColumn}
+  flex: 0 0 auto;
   gap: 24px;
   width: 100%;
 `;
@@ -98,12 +115,12 @@ export const CategoryTrigger = styled.button`
   height: 100%;
   padding: 12px 44px 12px 12px;
   overflow: hidden;
-  border: 0;
+  border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.medium};
   outline: none;
   color: ${token.colors.gray.gray60};
-  background: #f5f5f5;
-  ${token.typography('body', 'lg', 'medium')}
+  background: ${token.colors.white};
+  ${token.typography('body', 'md', 'medium')}
   line-height: 1;
   text-align: left;
   cursor: pointer;
@@ -120,10 +137,10 @@ export const CategoryTrigger = styled.button`
 
 export const CategoryChevron = styled.img<{ $open: boolean }>`
   position: absolute;
-  top: 20px;
+  top: 21px;
   right: 12px;
-  width: 20px;
-  height: 12px;
+  width: 16px;
+  height: 10px;
   pointer-events: none;
   transform: rotate(${({ $open }) => ($open ? '0deg' : '180deg')});
   transition: transform 150ms ease;
@@ -183,18 +200,25 @@ export const CategoryOption = styled.button<{ $selected: boolean }>`
   }
 `;
 
-export const TitleInput = styled.input`
+export const TitleField = styled.div`
+  position: relative;
   flex: 1 1 0;
+  min-width: 0;
+`;
+
+export const TitleInput = styled.input<{ $isOverLimit: boolean }>`
+  width: 100%;
   box-sizing: border-box;
   min-width: 0;
   height: 52px;
-  padding: 12px 20px;
-  border: 0;
+  padding: 12px 82px 12px 20px;
+  border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.medium};
-  outline: none;
+  outline: ${({ $isOverLimit }) =>
+    $isOverLimit ? `2px solid ${token.colors.danger.danger30}` : 'none'};
   color: ${token.colors.gray.gray100};
-  background: ${token.colors.gray.gray0};
-  ${token.typography('body', 'lg', 'medium')}
+  background: ${token.colors.white};
+  ${token.typography('body', 'md', 'medium')}
   line-height: 1;
 
   &::placeholder {
@@ -203,37 +227,69 @@ export const TitleInput = styled.input`
   }
 
   &:focus-visible {
-    outline: 2px solid ${token.colors.primary.primary50};
+    outline: ${({ $isOverLimit }) =>
+      $isOverLimit
+        ? `2px solid ${token.colors.danger.danger30}`
+        : `2px solid ${token.colors.primary.primary50}`};
     outline-offset: -2px;
   }
 `;
 
-export const Editor = styled.section`
+export const TitleCounter = styled.span<{ $isOverLimit: boolean }>`
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  color: ${({ $isOverLimit }) =>
+    $isOverLimit ? token.colors.danger.danger30 : token.colors.gray.gray40};
+  ${token.typography('caption', 'sm', 'medium')}
+  line-height: 1;
+  pointer-events: none;
+  transform: translateY(-50%);
+`;
+
+export const ContentCounter = styled.span`
+  flex: 0 0 auto;
+  align-self: flex-end;
+  color: ${token.colors.gray.gray40};
+  ${token.typography('caption', 'sm', 'medium')}
+  line-height: 1;
+`;
+
+interface EditorProps {
+  $selectedBlockId: string | null;
+  $showEditorPlaceholder: boolean;
+}
+
+export const Editor = styled.section<EditorProps>`
   ${token.flexColumn}
   position: relative;
-  flex: 1 1 706px;
+  flex: 1 1 0;
   gap: 16px;
   box-sizing: border-box;
   width: 100%;
-  min-height: 706px;
+  min-height: 0;
+  max-height: 100%;
   padding: 16px;
-  overflow: visible;
+  overflow: hidden;
+  border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.small};
-  background: #f5f5f5;
+  background: ${token.colors.white};
 
   .community-toolbar-actions {
     display: flex;
     flex: 0 1 auto;
     flex-wrap: wrap;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
   }
 
   .community-toolbar-button {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex: 0 0 24px;
     min-width: 0;
+    width: 24px;
     height: 24px;
     padding: 0;
     border: 0;
@@ -257,7 +313,10 @@ export const Editor = styled.section`
 
     img {
       display: block;
-      max-height: 24px;
+      flex: 0 0 auto;
+      width: auto;
+      height: 20px;
+      max-width: 20px;
     }
   }
 
@@ -271,9 +330,32 @@ export const Editor = styled.section`
 
   .community-block-editor {
     flex: 1 1 0;
+    box-sizing: border-box;
     min-width: 0;
-    max-width: 100%;
+    max-width: none;
     min-height: 0;
+    margin-right: -16px;
+    padding-right: 16px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-color: ${token.colors.gray.gray40} transparent;
+    scrollbar-width: thin;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-track,
+    &::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: ${token.colors.gray.gray40};
+    }
   }
 
   .community-block-editor .bn-root {
@@ -287,11 +369,13 @@ export const Editor = styled.section`
     --bn-colors-side-menu: ${token.colors.gray.gray40};
     --bn-colors-border: ${token.colors.gray.gray20};
     --bn-font-family: ${token.fontFamily.system};
+    min-height: 100%;
   }
 
   .community-block-editor .bn-editor {
-    min-height: 620px;
-    padding: 8px 12px 32px 54px;
+    box-sizing: border-box;
+    min-height: 100%;
+    padding: 8px 54px 32px;
     background: transparent;
     ${token.typography('body', 'lg', 'medium')}
     line-height: 1.5;
@@ -304,7 +388,48 @@ export const Editor = styled.section`
   }
 
   .community-block-editor .bn-block-content {
+    box-sizing: border-box;
     min-height: 30px;
+    padding-left: 8px;
+    overflow-wrap: anywhere;
+  }
+
+  ${({ $selectedBlockId }) =>
+    $selectedBlockId
+      ? `
+          .community-block-editor
+            .bn-block-outer[data-id='${$selectedBlockId}'] {
+            border-radius: ${token.shapes.small};
+            background: ${token.colors.info.info0};
+            transition: background-color 120ms ease-out;
+          }
+        `
+      : ''}
+
+  ${({ $selectedBlockId, $showEditorPlaceholder }) =>
+    $selectedBlockId || !$showEditorPlaceholder
+      ? `
+          .community-block-editor
+            .bn-block-content:has(.ProseMirror-trailingBreak:only-child)::after {
+            display: none;
+          }
+        `
+      : ''}
+
+  .community-block-editor
+    .bn-block-content:has(.ProseMirror-trailingBreak:only-child)::after {
+    color: ${token.colors.gray.gray30};
+    font-style: normal;
+    transform: none;
+  }
+
+  .community-block-editor:not(:has(.bn-editor.ProseMirror-focused))
+    .bn-block-content:has(.ProseMirror-trailingBreak:only-child)::after {
+    display: none;
+  }
+
+  .community-block-editor .bn-inline-content {
+    overflow-wrap: anywhere;
   }
 
   .community-block-editor [data-file-block] .bn-file-block-content-wrapper,
@@ -375,12 +500,26 @@ export const Editor = styled.section`
   }
 
   @container community-write (max-width: 560px) {
-    flex-basis: 520px;
-    min-height: 520px;
+    flex-basis: 0;
+    min-height: 0;
 
     .community-block-editor .bn-editor {
-      min-height: 430px;
-      padding-inline: 54px 12px;
+      padding-inline: 54px;
+    }
+  }
+
+  @media (max-height: 720px) {
+    flex: 0 0 auto;
+    max-height: none;
+    overflow: visible;
+
+    .community-block-editor {
+      flex: 0 0 auto;
+      overflow: visible;
+    }
+
+    .community-block-editor .bn-editor {
+      min-height: clamp(430px, 70dvh, 620px);
     }
   }
 `;
@@ -400,14 +539,25 @@ export const BlockSideMenu = styled.div`
     min-width: 24px;
     height: 24px;
     min-height: 24px;
-    padding: 4px;
+    padding: 3px;
     color: ${token.colors.gray.gray40};
   }
 
   .bn-side-menu .mantine-UnstyledButton-root:not(.mantine-Menu-item) svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     color: ${token.colors.gray.gray40};
+  }
+
+  .bn-side-menu [draggable='true'] {
+    width: 18px;
+    min-width: 18px;
+    padding-inline: 0;
+    cursor: grab;
+  }
+
+  .bn-side-menu [draggable='true']:active {
+    cursor: grabbing;
   }
 
   .bn-drag-handle-menu {
@@ -454,7 +604,7 @@ export const AnonymousLabel = styled.label`
   gap: 6px;
   margin-left: auto;
   color: ${token.colors.gray.gray40};
-  ${token.typography('body', 'lg', 'medium')}
+  ${token.typography('body', 'md', 'medium')}
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
@@ -472,7 +622,7 @@ export const AnonymousToggle = styled.input`
   background: ${token.colors.gray.gray30};
   appearance: none;
   cursor: pointer;
-  transition: background-color 120ms ease;
+  transition: background-color 180ms ease-out;
 
   &::after {
     position: absolute;
@@ -483,7 +633,7 @@ export const AnonymousToggle = styled.input`
     border-radius: ${token.shapes.circle};
     background: ${token.colors.white};
     content: '';
-    transition: transform 120ms ease;
+    transition: transform 180ms ease-out;
   }
 
   &:checked {

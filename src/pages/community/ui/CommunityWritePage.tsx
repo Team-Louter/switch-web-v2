@@ -8,14 +8,23 @@ import {
 import { ko } from '@blocknote/core/locales';
 import { BlockNoteView } from '@blocknote/mantine';
 import {
+  AddBlockButton,
+  DragHandleMenu,
   SideMenu,
   SideMenuController,
-  type SideMenuProps,
+  useBlockNoteEditor,
+  useComponentsContext,
   useCreateBlockNote,
+  useDictionary,
+  useExtension,
+  useExtensionState,
 } from '@blocknote/react';
+import { isAxiosError } from 'axios';
+import { MdDragIndicator } from 'react-icons/md';
 import {
   type ChangeEvent,
   type DragEvent as ReactDragEvent,
+  type FocusEvent as ReactFocusEvent,
   type FormEvent,
   type MouseEvent as ReactMouseEvent,
   useCallback,
@@ -24,6 +33,7 @@ import {
   useState,
 } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 import {
   getCommunityFileDownloadUrl,
@@ -76,6 +86,25 @@ interface BlockDropIndicatorPosition {
   width: number;
 }
 
+interface BlockDragOverEvent {
+  clientX: number;
+  clientY: number;
+  dataTransfer: DataTransfer | null;
+  target: EventTarget | null;
+}
+
+interface CommunityBlockSideMenuProps {
+  onBlockMenuClick: (blockId: string) => void;
+  onBlockDragStart: (blockId: string) => void;
+  onBlockDragEnd: () => void;
+}
+
+interface CommunityDragHandleButtonProps {
+  onBlockMenuOpen: (blockId: string) => void;
+  onBlockDragStart: (blockId: string) => void;
+  onBlockDragEnd: () => void;
+}
+
 type EditorAction =
   | 'bold'
   | 'italic'
@@ -102,9 +131,12 @@ const COMMUNITY_EDITOR_DICTIONARY = {
   placeholders: {
     ...ko.placeholders,
     default: undefined,
-    emptyDocument: '내용을 입력해주세요.',
+    emptyDocument: '/를 입력해 명령어 사용',
   },
 };
+
+const COMMUNITY_TITLE_MAX_LENGTH = 100;
+const COMMUNITY_CONTENT_MAX_LENGTH = 20_000;
 
 const EDITOR_TOOLS: EditorTool[] = [
   { action: 'bold', label: '굵게', icon: boldIcon },
@@ -127,12 +159,46 @@ const EDITOR_TOOLS: EditorTool[] = [
 ];
 
 function hasPostContent(content: string): boolean {
-  const textContent = content
+  const textContent = getCommunityTextContent(content).trim()
+
+  return Boolean(textContent) || /<(img|audio|video)\b/i.test(content)
+}
+
+function getCommunityTextContent(content: string): string {
+  return content
     .replaceAll(/<[^>]*>/g, '')
     .replaceAll('&nbsp;', ' ')
-    .trim();
+}
 
-  return Boolean(textContent) || /<(img|audio|video)\b/i.test(content);
+function getCommunityRequestErrorMessage(
+  error: unknown,
+  fallbackMessage: string,
+): string {
+  if (!isAxiosError<unknown>(error)) {
+    return fallbackMessage;
+  }
+
+  const responseData = error.response?.data;
+
+  if (typeof responseData === 'string' && responseData.trim()) {
+    return responseData.trim();
+  }
+
+  if (typeof responseData !== 'object' || responseData === null) {
+    return fallbackMessage;
+  }
+
+  const responseRecord = responseData as Record<string, unknown>;
+
+  for (const key of ['message', 'error']) {
+    const message = responseRecord[key];
+
+    if (typeof message === 'string' && message.trim()) {
+      return message.trim();
+    }
+  }
+
+  return fallbackMessage;
 }
 
 function getCommunityDropCursorPosition({
@@ -144,10 +210,73 @@ function getCommunityDropCursorPosition({
     : defaultPosition;
 }
 
-function CommunityBlockSideMenu(props: SideMenuProps) {
+function CommunityDragHandleButton({
+  onBlockMenuOpen,
+  onBlockDragStart,
+  onBlockDragEnd,
+}: CommunityDragHandleButtonProps) {
+  const Components = useComponentsContext()!;
+  const dictionary = useDictionary();
+  const editor = useBlockNoteEditor();
+  const sideMenu = useExtension(SideMenuExtension, { editor });
+  const block = useExtensionState(SideMenuExtension, {
+    editor,
+    selector: (state) => state?.block,
+  });
+
+  if (!block) {
+    return null;
+  }
+
+  return (
+    <Components.Generic.Menu.Root
+      onOpenChange={(isOpen) => {
+        if (isOpen) {
+          sideMenu.freezeMenu();
+          onBlockMenuOpen(block.id);
+        } else {
+          sideMenu.unfreezeMenu();
+        }
+      }}
+      position="left"
+    >
+      <Components.Generic.Menu.Trigger>
+        <Components.SideMenu.Button
+          className="bn-button"
+          label={dictionary.side_menu.drag_handle_label}
+          draggable={true}
+          onClick={() => onBlockMenuOpen(block.id)}
+          onDragStart={(event) => {
+            onBlockDragStart(block.id);
+            sideMenu.blockDragStart(event, block);
+          }}
+          onDragEnd={() => {
+            sideMenu.blockDragEnd();
+            onBlockDragEnd();
+          }}
+          icon={<MdDragIndicator size={24} data-test="dragHandle" />}
+        />
+      </Components.Generic.Menu.Trigger>
+      <DragHandleMenu />
+    </Components.Generic.Menu.Root>
+  );
+}
+
+function CommunityBlockSideMenu({
+  onBlockMenuClick,
+  onBlockDragStart,
+  onBlockDragEnd,
+}: CommunityBlockSideMenuProps) {
   return (
     <S.BlockSideMenu>
-      <SideMenu {...props} />
+      <SideMenu>
+        <AddBlockButton />
+        <CommunityDragHandleButton
+          onBlockMenuOpen={onBlockMenuClick}
+          onBlockDragStart={onBlockDragStart}
+          onBlockDragEnd={onBlockDragEnd}
+        />
+      </SideMenu>
     </S.BlockSideMenu>
   );
 }
@@ -164,16 +293,21 @@ export function CommunityWritePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editorAreaRef = useRef<HTMLElement>(null);
   const categoryFieldRef = useRef<HTMLDivElement>(null);
+  const draggedBlockIdRef = useRef<string | null>(null);
+  const isPostLoadingRef = useRef(false);
   const [category, setCategory] = useState<PostCategory | ''>('');
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [tag, setTag] = useState<PostTag | undefined>(undefined);
   const [title, setTitle] = useState('');
+  const [contentLength, setContentLength] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [pendingFileUploadCount, setPendingFileUploadCount] = useState(0);
   const [fileUploadError, setFileUploadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+  const [isEditorPlaceholderVisible, setIsEditorPlaceholderVisible] =
+    useState(false);
   const [isPostLoading, setIsPostLoading] = useState(isEditing);
   const [postLoadError, setPostLoadError] = useState<string | null>(null);
   const [blockDropIndicator, setBlockDropIndicator] =
@@ -187,6 +321,8 @@ export function CommunityWritePage() {
   const selectedCategoryLabel =
     POST_CATEGORY_OPTIONS.find((option) => option.value === category)?.label ??
     '카테고리';
+  const titleLength = title.length;
+  const isTitleOverLimit = titleLength > COMMUNITY_TITLE_MAX_LENGTH;
 
   const handleCategorySelect = (nextCategory: PostCategory) => {
     setCategory(nextCategory);
@@ -246,6 +382,39 @@ export function CommunityWritePage() {
       uploadFile: handleEditorFileUpload,
     },
     [handleEditorFileUpload],
+  );
+
+  const handleBlockMenuOpen = useCallback((blockId: string) => {
+    setSelectedBlockId(blockId);
+    setIsEditorPlaceholderVisible(false);
+  }, []);
+
+  const handleBlockDragStart = useCallback((blockId: string) => {
+    draggedBlockIdRef.current = blockId;
+    setSelectedBlockId(null);
+  }, []);
+
+  const handleBlockDragEnd = useCallback(() => {
+    const draggedBlockId = draggedBlockIdRef.current;
+
+    draggedBlockIdRef.current = null;
+
+    if (draggedBlockId) {
+      setSelectedBlockId(draggedBlockId);
+    }
+
+    setBlockDropIndicator(null);
+  }, []);
+
+  const communityBlockSideMenu = useCallback(
+    () => (
+      <CommunityBlockSideMenu
+        onBlockMenuClick={handleBlockMenuOpen}
+        onBlockDragStart={handleBlockDragStart}
+        onBlockDragEnd={handleBlockDragEnd}
+      />
+    ),
+    [handleBlockDragEnd, handleBlockDragStart, handleBlockMenuOpen],
   );
 
   const handleBackToList = () => {
@@ -399,7 +568,7 @@ export function CommunityWritePage() {
     event.preventDefault();
 
     if (isEditRoute && !isEditing) {
-      setSubmitError('올바르지 않은 게시글 주소입니다.');
+      toast.error('올바르지 않은 게시글 주소입니다.');
       return;
     }
 
@@ -408,21 +577,48 @@ export function CommunityWritePage() {
     }
 
     if (isUploadingFile) {
-      setSubmitError('파일 업로드가 완료될 때까지 기다려주세요.');
+      toast.error('파일 업로드가 완료될 때까지 기다려주세요.');
+      return;
+    }
+
+    const trimmedTitle = title.trim();
+
+    if (!trimmedTitle) {
+      toast.error('제목을 입력해주세요.');
+      return;
+    }
+
+    if (isTitleOverLimit) {
+      toast.error(
+        `제목은 ${COMMUNITY_TITLE_MAX_LENGTH}자 이내로 입력해주세요.`,
+      );
+      return;
+    }
+
+    if (!category) {
+      toast.error('카테고리를 선택해주세요.');
       return;
     }
 
     const postContentHtml = editor.blocksToHTMLLossy();
 
-    if (!category || !title.trim() || !hasPostContent(postContentHtml)) {
-      setSubmitError('카테고리와 제목, 내용을 모두 입력해주세요.');
+    if (!hasPostContent(postContentHtml)) {
+      toast.error('본문을 입력해주세요.');
+      return;
+    }
+
+    const postContentLength = getCommunityTextContent(postContentHtml).length;
+
+    if (postContentLength > COMMUNITY_CONTENT_MAX_LENGTH) {
+      toast.error(
+        `본문은 ${COMMUNITY_CONTENT_MAX_LENGTH.toLocaleString()}자 이내로 입력해주세요.`,
+      );
       return;
     }
 
     const postContent = serializeBlockNotePostContent(editor.document);
 
     setIsSubmitting(true);
-    setSubmitError(null);
 
     try {
       const postRequest = {
@@ -445,41 +641,83 @@ export function CommunityWritePage() {
         : await createPost(postRequest);
 
       navigate(`/community/${post.postId}`, { replace: true });
-    } catch {
-      setSubmitError(
-        isEditing
-          ? '게시글을 수정하지 못했습니다. 잠시 후 다시 시도해주세요.'
-          : '게시글을 등록하지 못했습니다. 잠시 후 다시 시도해주세요.',
-      );
+    } catch (error: unknown) {
+      const fallbackMessage = isEditing
+        ? '게시글을 수정하지 못했습니다. 잠시 후 다시 시도해주세요.'
+        : '게시글을 등록하지 못했습니다. 잠시 후 다시 시도해주세요.';
+
+      toast.error(getCommunityRequestErrorMessage(error, fallbackMessage));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleEditorDragOver = (event: ReactDragEvent<HTMLElement>) => {
-    if (!event.dataTransfer.types.includes('blocknote/html')) {
+  const handleEditorDragOver = useCallback((event: BlockDragOverEvent) => {
+    if (!event.dataTransfer?.types.includes('blocknote/html')) {
       return;
     }
 
     const editorArea = editorAreaRef.current;
-    const target = event.target;
+    const blockEditor = editorArea?.querySelector<HTMLElement>(
+      '.community-block-editor',
+    );
 
-    if (!editorArea || !(target instanceof Element)) {
+    if (!editorArea || !blockEditor) {
       return;
     }
 
-    const blockElement = target.closest<HTMLElement>(
+    const editorBounds = editorArea.getBoundingClientRect();
+    const blockEditorBounds = blockEditor.getBoundingClientRect();
+
+    if (
+      event.clientX < editorBounds.left ||
+      event.clientX > editorBounds.right ||
+      event.clientY < blockEditorBounds.top ||
+      event.clientY > blockEditorBounds.bottom
+    ) {
+      return;
+    }
+
+    const blockElements = Array.from(
+      blockEditor.querySelectorAll<HTMLElement>(
+        '[data-node-type="blockContainer"]',
+      ),
+    );
+
+    if (blockElements.length === 0) {
+      return;
+    }
+
+    const targetElement =
+      event.target instanceof Element ? event.target : undefined;
+    const targetBlock = targetElement?.closest<HTMLElement>(
       '[data-node-type="blockContainer"]',
     );
+    const blockElement =
+      targetBlock && blockEditor.contains(targetBlock)
+        ? targetBlock
+        : blockElements.find((candidateBlock) => {
+            const candidateBounds = candidateBlock.getBoundingClientRect();
+
+            return (
+              event.clientY <=
+              candidateBounds.top + candidateBounds.height / 2
+            );
+          }) ?? blockElements.at(-1);
 
     if (!blockElement) {
       return;
     }
 
-    const editorBounds = editorArea.getBoundingClientRect();
     const blockBounds = blockElement.getBoundingClientRect();
-    const scaleX = editorBounds.width / editorArea.offsetWidth;
-    const scaleY = editorBounds.height / editorArea.offsetHeight;
+    const scaleX =
+      editorArea.offsetWidth > 0
+        ? editorBounds.width / editorArea.offsetWidth
+        : 1;
+    const scaleY =
+      editorArea.offsetHeight > 0
+        ? editorBounds.height / editorArea.offsetHeight
+        : 1;
     const targetTop =
       event.clientY < blockBounds.top + blockBounds.height / 2
         ? blockBounds.top
@@ -501,20 +739,31 @@ export function CommunityWritePage() {
 
       return nextIndicator;
     });
-  };
+  }, []);
 
-  const handleEditorContentAreaClick = (
-    event: ReactMouseEvent<HTMLDivElement>,
-  ) => {
+  const handleEditorDragLeave = (event: ReactDragEvent<HTMLElement>) => {
     if (
-      isEditorDisabled ||
-      isUploadingFile ||
-      !(event.target instanceof Element) ||
-      event.target.closest('.bn-block-outer')
+      event.relatedTarget instanceof Node &&
+      event.currentTarget.contains(event.relatedTarget)
     ) {
       return;
     }
 
+    if (
+      event.relatedTarget instanceof Element &&
+      event.relatedTarget.closest('.bn-side-menu')
+    ) {
+      return;
+    }
+
+    setBlockDropIndicator(null);
+  };
+
+  const hideBlockDropIndicator = useCallback(() => {
+    setBlockDropIndicator(null);
+  }, []);
+
+  const focusEditorAtEnd = () => {
     const lastBlock = editor.document.at(-1);
 
     if (!lastBlock) {
@@ -528,6 +777,7 @@ export function CommunityWritePage() {
       lastBlock.content.length === 0
     ) {
       editor.setTextCursorPosition(lastBlock, 'end');
+      editor.focus();
       return;
     }
 
@@ -539,10 +789,79 @@ export function CommunityWritePage() {
 
     if (emptyBlock) {
       editor.setTextCursorPosition(emptyBlock, 'start');
+      editor.focus();
     }
   };
 
-  const handleEditorDragLeave = (event: ReactDragEvent<HTMLElement>) => {
+  const handleEditorContentAreaClick = (
+    event: ReactMouseEvent<HTMLDivElement>,
+  ) => {
+    if (
+      isEditorDisabled ||
+      isUploadingFile ||
+      !(event.target instanceof Element)
+    ) {
+      return;
+    }
+
+    if (
+      event.target.closest('.bn-side-menu') ||
+      event.target.closest('.bn-drag-handle-menu') ||
+      !event.target.closest('.bn-block-outer')
+    ) {
+      return;
+    }
+
+    setIsEditorPlaceholderVisible(true);
+    setSelectedBlockId(null);
+  };
+
+  const handleEditorBlankAreaClick = (
+    event: ReactMouseEvent<HTMLDivElement>,
+  ) => {
+    if (
+      isEditorDisabled ||
+      isUploadingFile ||
+      !(event.target instanceof Element) ||
+      event.target.closest('.bn-block-outer') ||
+      event.target.closest('.bn-side-menu') ||
+      event.target.closest('.bn-drag-handle-menu')
+    ) {
+      return;
+    }
+
+    setIsEditorPlaceholderVisible(true);
+    setSelectedBlockId(null);
+    focusEditorAtEnd();
+  };
+
+  const handleEditorContentAreaFocus = (
+    event: ReactFocusEvent<HTMLDivElement>,
+  ) => {
+    if (
+      isEditorDisabled ||
+      isUploadingFile ||
+      !(event.target instanceof Element) ||
+      event.target.closest('.bn-side-menu')
+    ) {
+      return;
+    }
+
+    setIsEditorPlaceholderVisible(true);
+    setSelectedBlockId(null);
+  };
+
+  const handleEditorContentAreaBlur = (
+    event: ReactFocusEvent<HTMLDivElement>,
+  ) => {
+    const relatedElement =
+      event.relatedTarget instanceof Element ? event.relatedTarget : null;
+
+    if (relatedElement?.closest('.bn-side-menu')) {
+      setIsEditorPlaceholderVisible(false);
+      return;
+    }
+
     if (
       event.relatedTarget instanceof Node &&
       event.currentTarget.contains(event.relatedTarget)
@@ -550,25 +869,42 @@ export function CommunityWritePage() {
       return;
     }
 
-    setBlockDropIndicator(null);
-  };
-
-  const hideBlockDropIndicator = () => {
-    setBlockDropIndicator(null);
+    setIsEditorPlaceholderVisible(false);
+    setSelectedBlockId(null);
   };
 
   useEffect(() => {
+    return editor.onBeforeChange(({ tr }) => {
+      if (!tr.docChanged || isPostLoadingRef.current) {
+        return true;
+      }
+
+      const nextContentLength = tr.doc.textContent.length;
+      const currentContentLength = tr.before.textContent.length;
+
+      // Allow users to reduce existing posts that were saved over the limit.
+      return (
+        nextContentLength <= COMMUNITY_CONTENT_MAX_LENGTH ||
+        nextContentLength <= currentContentLength
+      );
+    });
+  }, [editor]);
+
+  useEffect(() => {
     if (!isEditRoute) {
+      isPostLoadingRef.current = false;
       return;
     }
 
     if (!isEditing) {
+      isPostLoadingRef.current = false;
       return;
     }
 
     let isCancelled = false;
 
     async function loadPostForEdit() {
+      isPostLoadingRef.current = true;
       setIsPostLoading(true);
       setPostLoadError(null);
 
@@ -598,6 +934,9 @@ export function CommunityWritePage() {
 
         if (contentBlocks.length > 0) {
           editor.replaceBlocks(editor.document, contentBlocks);
+          setContentLength(
+            getCommunityTextContent(editor.blocksToHTMLLossy()).length,
+          );
         }
       } catch {
         if (!isCancelled) {
@@ -607,6 +946,7 @@ export function CommunityWritePage() {
         }
       } finally {
         if (!isCancelled) {
+          isPostLoadingRef.current = false;
           setIsPostLoading(false);
         }
       }
@@ -616,6 +956,7 @@ export function CommunityWritePage() {
 
     return () => {
       isCancelled = true;
+      isPostLoadingRef.current = false;
     };
   }, [editor, editingPostId, isEditing, isEditRoute]);
 
@@ -641,6 +982,39 @@ export function CommunityWritePage() {
   }, [isCategoryMenuOpen]);
 
   useEffect(() => {
+    const handleDocumentPointerDown = (event: PointerEvent) => {
+      if (!(event.target instanceof Element)) {
+        return;
+      }
+
+      if (
+        event.target.closest('.bn-side-menu') ||
+        event.target.closest('.bn-drag-handle-menu')
+      ) {
+        return;
+      }
+
+      const sideMenu = editor.getExtension(SideMenuExtension);
+
+      if (sideMenu?.menuFrozen) {
+        sideMenu.unfreezeMenu();
+      }
+
+      setSelectedBlockId(null);
+
+      if (!event.target.closest('.community-block-editor')) {
+        setIsEditorPlaceholderVisible(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', handleDocumentPointerDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', handleDocumentPointerDown);
+    };
+  }, [editor]);
+
+  useEffect(() => {
     const handleDocumentMouseMove = (event: MouseEvent) => {
       const editorBounds = editorAreaRef.current?.getBoundingClientRect();
 
@@ -656,15 +1030,22 @@ export function CommunityWritePage() {
         editor.getExtension(SideMenuExtension)?.hideMenuIfNotFrozen();
       }
     };
+    const handleDocumentDragOver = (event: DragEvent) => {
+      handleEditorDragOver(event);
+    };
 
     document.addEventListener('mousemove', handleDocumentMouseMove);
+    // BlockNote's side menu is portaled to body, so the editor-local
+    // dragover handler is skipped there.
+    document.addEventListener('dragover', handleDocumentDragOver);
     document.addEventListener('dragend', hideBlockDropIndicator);
 
     return () => {
       document.removeEventListener('mousemove', handleDocumentMouseMove);
+      document.removeEventListener('dragover', handleDocumentDragOver);
       document.removeEventListener('dragend', hideBlockDropIndicator);
     };
-  }, [editor]);
+  }, [editor, handleEditorDragOver, hideBlockDropIndicator]);
 
   return (
     <S.Page>
@@ -675,7 +1056,11 @@ export function CommunityWritePage() {
             목록 보기
           </S.BackButton>
 
-          <S.WriteForm id="community-write-form" onSubmit={handleSubmit}>
+          <S.WriteForm
+            id="community-write-form"
+            noValidate
+            onSubmit={handleSubmit}
+          >
             <S.TitleRow>
               <S.Heading>
                 {isEditRoute ? '게시글 수정' : '게시글 작성'}
@@ -743,21 +1128,39 @@ export function CommunityWritePage() {
                 )}
               </S.CategoryField>
 
-              <S.TitleInput
-                type="text"
-                aria-label="게시글 제목"
-                placeholder="제목을 입력해주세요"
-                value={title}
-                required
-                disabled={isEditorDisabled}
-                onChange={(event) => setTitle(event.target.value)}
-              />
+              <S.TitleField>
+                <S.TitleInput
+                  type="text"
+                  aria-label="게시글 제목"
+                  aria-describedby="community-title-length"
+                  aria-invalid={isTitleOverLimit}
+                  placeholder="제목을 입력해주세요"
+                  value={title}
+                  maxLength={COMMUNITY_TITLE_MAX_LENGTH}
+                  required
+                  disabled={isEditorDisabled}
+                  $isOverLimit={isTitleOverLimit}
+                  onChange={(event) => {
+                    setTitle(
+                      event.target.value.slice(0, COMMUNITY_TITLE_MAX_LENGTH),
+                    );
+                  }}
+                />
+                <S.TitleCounter
+                  id="community-title-length"
+                  $isOverLimit={isTitleOverLimit}
+                >
+                  {titleLength} / {COMMUNITY_TITLE_MAX_LENGTH}
+                </S.TitleCounter>
+              </S.TitleField>
             </S.Fields>
           </S.WriteForm>
         </S.Header>
 
         <S.Editor
           ref={editorAreaRef}
+          $selectedBlockId={selectedBlockId}
+          $showEditorPlaceholder={isEditorPlaceholderVisible}
           aria-label="게시글 내용 편집기"
           onDragOver={handleEditorDragOver}
           onDragLeave={handleEditorDragLeave}
@@ -823,14 +1226,24 @@ export function CommunityWritePage() {
           <div
             className="community-block-editor"
             onClick={handleEditorContentAreaClick}
+            onClickCapture={handleEditorBlankAreaClick}
+            onFocusCapture={handleEditorContentAreaFocus}
+            onBlurCapture={handleEditorContentAreaBlur}
           >
             <BlockNoteView
               editor={editor}
               editable={!isEditorDisabled}
+              onChange={(changedEditor) => {
+                setContentLength(
+                  getCommunityTextContent(
+                    changedEditor.blocksToHTMLLossy(),
+                  ).length,
+                );
+              }}
               sideMenu={false}
               portalElements={{ default: null }}
             >
-              <SideMenuController sideMenu={CommunityBlockSideMenu} />
+              <SideMenuController sideMenu={communityBlockSideMenu} />
             </BlockNoteView>
             {isUploadingFile && (
               <S.FileUploadSkeleton
@@ -839,6 +1252,10 @@ export function CommunityWritePage() {
               />
             )}
           </div>
+          <S.ContentCounter aria-label="본문 글자 수">
+            {contentLength.toLocaleString()} /{' '}
+            {COMMUNITY_CONTENT_MAX_LENGTH.toLocaleString()}
+          </S.ContentCounter>
         </S.Editor>
         {isUploadingFile && (
           <S.FileUploadStatus role="status">
@@ -847,9 +1264,6 @@ export function CommunityWritePage() {
         )}
         {fileUploadError && (
           <S.SubmitError role="alert">{fileUploadError}</S.SubmitError>
-        )}
-        {submitError && (
-          <S.SubmitError role="alert">{submitError}</S.SubmitError>
         )}
         {visiblePostLoadError && (
           <S.SubmitError role="alert">{visiblePostLoadError}</S.SubmitError>

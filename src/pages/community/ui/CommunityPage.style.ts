@@ -1,7 +1,10 @@
 import styled, { css, keyframes } from 'styled-components';
 
+import { UserName } from '@/entities/user';
 import * as token from '@/shared/styles/values/token';
-import { Button } from '@/shared/ui';
+import { Button, ProfileAvatar } from '@/shared/ui';
+
+import { CommunityTitleBadge } from './CommunityTitleBadge.style';
 
 type StatIconKind = 'heart' | 'comment' | 'view';
 
@@ -61,6 +64,11 @@ export const TabActionRow = styled.div`
     flex: 0 0 auto;
   }
 
+  @container community-page (max-width: 900px) {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
   @container community-page (max-width: 600px) {
     gap: 8px;
   }
@@ -92,6 +100,16 @@ export const CategoryTabs = styled.div`
   &::-webkit-scrollbar {
     display: none;
   }
+
+  @container community-page (max-width: 900px) {
+    flex-wrap: nowrap;
+    padding-inline: 2px;
+    overflow: visible;
+  }
+
+  @container community-page (max-width: 1020px) {
+    display: none;
+  }
 `;
 
 export const CategoryTab = styled.button<{ $active: boolean }>`
@@ -117,8 +135,133 @@ export const CategoryTab = styled.button<{ $active: boolean }>`
     content: '';
   }
 
-  @container community-page (max-width: 600px) {
-    flex-basis: 96px;
+  @container community-page (max-width: 900px) {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-inline: 2px;
+    font-size: 13px;
+    white-space: nowrap;
+
+    &::after {
+      right: 4px;
+      left: 4px;
+      height: 2px;
+    }
+  }
+
+  @container community-page (max-width: 1020px) {
+    display: none;
+  }
+`;
+
+export const MobileCategoryMenu = styled.div`
+  position: relative;
+  display: none;
+  flex: 1 1 0;
+  min-width: 0;
+
+  @container community-page (max-width: 1020px) {
+    display: block;
+  }
+`;
+
+export const MobileCategoryButton = styled.button`
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 8px;
+  border: 0;
+  border-bottom: 1px solid ${token.colors.gray.gray10};
+  color: ${token.colors.gray.gray100};
+  background: transparent;
+  ${token.typography('body', 'sm', 'semibold')}
+  line-height: 1;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: -2px;
+  }
+`;
+
+export const MobileCategoryButtonLabel = styled.span`
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+
+  svg {
+    flex: 0 0 auto;
+    color: ${token.colors.gray.gray80};
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`;
+
+export const MobileCategoryPanel = styled.div<{ $open: boolean }>`
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  right: auto;
+  left: 0;
+  width: 162px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 6px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.medium};
+  background: ${token.colors.white};
+  box-shadow: 0 8px 20px rgb(0 0 0 / 12%);
+  opacity: ${({ $open }) => ($open ? 1 : 0)};
+  pointer-events: ${({ $open }) => ($open ? 'auto' : 'none')};
+  transform: ${({ $open }) =>
+    $open ? 'translateY(0)' : 'translateY(-8px)'};
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    visibility 180ms ease;
+  visibility: ${({ $open }) => ($open ? 'visible' : 'hidden')};
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+`;
+
+export const MobileCategoryOption = styled.button<{ $active: boolean }>`
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 8px;
+  overflow: hidden;
+  border: 0;
+  border-radius: ${token.shapes.small};
+  color: ${({ $active }) =>
+    $active ? token.colors.gray.gray100 : token.colors.gray.gray60};
+  background: ${({ $active }) =>
+    $active ? token.colors.primary.primary10 : 'transparent'};
+  ${token.typography('body', 'sm', 'medium')}
+  font-weight: ${({ $active }) =>
+    $active ? token.fontWeight.semibold : token.fontWeight.medium};
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    background: ${({ $active }) =>
+      $active ? token.colors.primary.primary10 : token.colors.gray.gray0};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: -2px;
   }
 `;
 
@@ -378,7 +521,7 @@ export const ImageAttachmentIcon = styled.img`
 
 export const Author = styled.div`
   ${token.flexCenter}
-  flex: 0 0 180px;
+  flex: 0 0 200px;
   gap: 8px;
   box-sizing: border-box;
   height: 100%;
@@ -386,7 +529,7 @@ export const Author = styled.div`
   overflow: hidden;
 
   @container community-page (max-width: 900px) {
-    flex-basis: 140px;
+    flex-basis: 180px;
   }
 
   @container community-page (max-width: 600px) {
@@ -394,17 +537,37 @@ export const Author = styled.div`
   }
 `;
 
-export const AuthorImage = styled.img`
-  flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
-  border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.circle};
-  object-fit: cover;
+export const AuthorMeta = styled.div`
+  ${token.flexLeft}
+  flex: 1 1 0;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
 `;
 
-export const AuthorName = styled.p<{ $pinned: boolean }>`
-  flex: 0 0 136px;
+export const AuthorImage = styled(ProfileAvatar)<{ $hasBorder: boolean }>`
+  flex: 0 0 auto;
+
+  ${({ $hasBorder }) =>
+    !$hasBorder &&
+    css`
+      &::after {
+        position: absolute;
+        z-index: 2;
+        inset: 0;
+        border: 1px solid ${token.colors.gray.gray10};
+        border-radius: ${token.shapes.circle};
+        content: '';
+        pointer-events: none;
+      }
+    `}
+`;
+
+export const AuthorName = styled(UserName)<{ $pinned: boolean }>`
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 136px;
   overflow: hidden;
   margin: 0;
   color: ${token.colors.gray.gray80};
@@ -413,6 +576,20 @@ export const AuthorName = styled.p<{ $pinned: boolean }>`
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  @container community-page (max-width: 900px) {
+    max-width: 96px;
+  }
+`;
+
+export const AuthorTitle = styled(CommunityTitleBadge)`
+  gap: 3px;
+  max-width: 112px;
+  padding: 3px 5px;
+
+  @media (max-width: 1183px) {
+    display: none;
+  }
 `;
 
 export const Date = styled.time`

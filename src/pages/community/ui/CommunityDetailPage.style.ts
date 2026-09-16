@@ -1,6 +1,10 @@
 import styled, { css, keyframes } from 'styled-components';
 
+import { UserName } from '@/entities/user';
 import * as token from '@/shared/styles/values/token';
+import { ProfileAvatar } from '@/shared/ui';
+
+import { CommunityTitleBadge } from './CommunityTitleBadge.style';
 
 interface SkeletonBlockProps {
   $height: number;
@@ -279,29 +283,53 @@ export const PostActions = styled.div`
 
 export const PostMeta = styled.div`
   ${token.flexLeft}
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  max-width: 100%;
+  min-width: 0;
   gap: 12px;
-  height: 34px;
+  height: 44px;
 `;
 
 export const PostAuthor = styled.div`
   ${token.flexLeft}
+  flex: 0 1 auto;
+  min-width: 0;
   gap: 8px;
 `;
 
-export const PostAuthorImage = styled.img`
-  width: 22px;
-  height: 22px;
-  border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.circle};
-  object-fit: cover;
+export const PostAuthorImage = styled(ProfileAvatar)<{ $hasBorder: boolean }>`
+  ${({ $hasBorder }) =>
+    !$hasBorder &&
+    css`
+      &::after {
+        position: absolute;
+        z-index: 2;
+        inset: 0;
+        border: 1px solid ${token.colors.gray.gray10};
+        border-radius: ${token.shapes.circle};
+        content: '';
+        pointer-events: none;
+      }
+    `}
 `;
 
-export const PostAuthorName = styled.span`
+export const PostAuthorName = styled(UserName)`
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 180px;
+  overflow: hidden;
   color: ${token.colors.gray.gray80};
   ${token.typography('body', 'md', 'medium')}
   line-height: 1;
+  text-overflow: ellipsis;
   white-space: nowrap;
+`;
+
+export const PostAuthorTitle = styled(CommunityTitleBadge)`
+  gap: 4px;
+  max-width: 140px;
+  padding: 4px 7px;
 `;
 
 export const MetaDot = styled.span`
