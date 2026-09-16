@@ -7,7 +7,6 @@ import { useUserStore, formatProfileClassInfo } from '@/entities/profile';
 import { UserName } from '@/entities/user';
 import { getRankingList } from '@/entities/typing';
 import type { Ranking, TypingProblemType } from '@/entities/typing';
-import { mergeSyncedEquippedItems } from '@/shared/lib/profileSync';
 import { getNameStyleKey } from '@/shared/styles';
 import medal1stIcon from '../../assets/medal-1st.svg';
 import medal2ndIcon from '../../assets/medal-2nd.svg';
@@ -19,7 +18,7 @@ import * as S from './HomeSidebar.style';
 export function HomeSidebar() {
   const navigate = useNavigate();
   const user = useUserStore((state) => state.user);
-  const equippedItems = mergeSyncedEquippedItems(user?.equippedItems);
+  const equippedItems = user?.equippedItems;
   const profileNameColor = equippedItems?.nameColor;
   const profileNameStyleKey = getNameStyleKey(
     profileNameColor?.styleKey ??

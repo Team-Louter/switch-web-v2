@@ -57,11 +57,6 @@ const MentoringPage = lazy(() =>
 const MyPage = lazy(() =>
   import('@/pages/my').then(({ MyPage: Page }) => ({ default: Page })),
 )
-const ProfileEditPage = lazy(() =>
-  import('@/pages/my').then(({ ProfileEditPage: Page }) => ({
-    default: Page,
-  })),
-)
 const WithdrawCompletePage = lazy(() =>
   import('@/pages/my').then(({ WithdrawCompletePage: Page }) => ({
     default: Page,
@@ -132,7 +127,6 @@ export function App() {
             <Route path="/notification" element={<NotificationPage />} />
             <Route path="/store" element={<StorePage />} />
             <Route path="/my" element={<MyPage />} />
-            <Route path="/my/edit" element={<ProfileEditPage />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

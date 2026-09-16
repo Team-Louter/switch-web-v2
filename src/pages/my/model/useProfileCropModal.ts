@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, PointerEvent } from 'react'
 
-const CROP_AREA_SIZE = 640
-const OUTPUT_IMAGE_SIZE = 338
+const CROP_AREA_WIDTH = 464
+const CROP_AREA_ASPECT_RATIO = 3 / 2
+const OUTPUT_IMAGE_HEIGHT = 338
+const OUTPUT_IMAGE_WIDTH = Math.round(
+  OUTPUT_IMAGE_HEIGHT * CROP_AREA_ASPECT_RATIO,
+)
 const PROFILE_IMAGE_MIME_TYPE = 'image/jpeg'
 
 type UseProfileCropModalParams = {
@@ -104,8 +108,8 @@ export function useProfileCropModal({
     height: 1,
   })
   const [cropAreaSize, setCropAreaSize] = useState<ImageSize>({
-    width: CROP_AREA_SIZE,
-    height: CROP_AREA_SIZE,
+    width: CROP_AREA_WIDTH,
+    height: CROP_AREA_WIDTH / CROP_AREA_ASPECT_RATIO,
   })
   const [zoomValue, setZoomValue] = useState(initialState.zoomValue)
   const zoomScale = getZoomScale(zoomValue)
@@ -271,8 +275,8 @@ export function useProfileCropModal({
       return
     }
 
-    canvas.width = OUTPUT_IMAGE_SIZE
-    canvas.height = OUTPUT_IMAGE_SIZE
+    canvas.width = OUTPUT_IMAGE_WIDTH
+    canvas.height = OUTPUT_IMAGE_HEIGHT
     context.drawImage(
       image,
       sourceX,
@@ -281,8 +285,8 @@ export function useProfileCropModal({
       sourceHeight,
       0,
       0,
-      OUTPUT_IMAGE_SIZE,
-      OUTPUT_IMAGE_SIZE,
+      OUTPUT_IMAGE_WIDTH,
+      OUTPUT_IMAGE_HEIGHT,
     )
     onComplete(canvas.toDataURL(PROFILE_IMAGE_MIME_TYPE), {
       position: boundedImagePosition,
@@ -291,6 +295,7 @@ export function useProfileCropModal({
   }
 
   return {
+    cropAreaSize,
     cropAreaRef,
     handleComplete,
     handleImageLoad,

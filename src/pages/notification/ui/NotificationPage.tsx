@@ -88,6 +88,25 @@ function getNotificationTargetPath(notification: Notification): string | null {
   const target = notification.target
 
   if (
+    target?.type === 'MENTORING_QUESTION' &&
+    Number.isSafeInteger(target.id) &&
+    target.id > 0
+  ) {
+    return `/mentoring?questionId=${target.id}`
+  }
+
+  if (
+    target?.type === 'MENTORING_MESSAGE' &&
+    Number.isSafeInteger(target.id) &&
+    target.id > 0 &&
+    target.parentId !== null &&
+    Number.isSafeInteger(target.parentId) &&
+    target.parentId > 0
+  ) {
+    return `/mentoring?questionId=${target.parentId}#message-${target.id}`
+  }
+
+  if (
     target?.type === 'SCHEDULE' &&
     Number.isSafeInteger(target.id) &&
     target.id > 0

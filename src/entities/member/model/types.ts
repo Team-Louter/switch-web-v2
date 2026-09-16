@@ -29,6 +29,7 @@ export interface Member {
 export type AdminMemberResponse = {
   userId: number
   userName: string
+  profileImageUrl?: string
   grade: number
   classRoom: number
   number: number

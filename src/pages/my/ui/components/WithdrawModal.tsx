@@ -1,4 +1,4 @@
-import { MyDialog } from './MyDialog'
+import withdrawArrow from '../assets/withdraw-arrow.svg'
 import { WithdrawCodeInput } from './WithdrawCodeInput'
 import {
   WITHDRAW_CONFIRM_TEXT,
@@ -14,9 +14,10 @@ type WithdrawModalProps = {
   onConfirmTextChange: (value: string) => void
   verificationCode: string
   onVerificationCodeChange: (value: string) => void
-  remainingSeconds: number
-  canResendCode: boolean
+  isRequestingCode: boolean
+  isWithdrawing: boolean
   onCancel: () => void
+  onBack: () => void
   onNext: () => void
   onResendCode: () => void
   onWithdraw: () => void
@@ -28,105 +29,113 @@ export function WithdrawModal({
   onConfirmTextChange,
   verificationCode,
   onVerificationCodeChange,
-  remainingSeconds,
-  canResendCode,
+  isRequestingCode,
+  isWithdrawing,
   onCancel,
+  onBack,
   onNext,
   onResendCode,
   onWithdraw,
 }: WithdrawModalProps) {
-  const isConfirmTextMatched = confirmText.trim() === WITHDRAW_CONFIRM_TEXT
-  const formattedRemainingSeconds = `${Math.floor(
-    remainingSeconds / 60,
-  )}:${String(remainingSeconds % 60).padStart(2, '0')}`
-
+  const isConfirmTextMatched = confirmText === WITHDRAW_CONFIRM_TEXT
   if (step === 'confirm') {
     return (
-      <MyDialog
-        title="회원 탈퇴"
-        descriptions={[
-          '이메일 인증이 완료되었습니다.',
-          '정말 탈퇴하시겠습니까?',
-        ]}
-        size="sm"
-        actions={
-          <>
-            <S.SecondaryButton type="button" onClick={onCancel}>
-              취소
-            </S.SecondaryButton>
-            <S.DangerButton type="button" onClick={onWithdraw}>
-              탈퇴
-            </S.DangerButton>
-          </>
-        }
-      />
+      <S.Overlay onClick={onCancel}>
+        <S.Modal onClick={(event) => event.stopPropagation()}>
+          <S.Title>회원 탈퇴</S.Title>
+          <S.Description>
+            이메일 인증이 완료되었습니다.
+            <br />
+            <br />
+            정말 탈퇴하시겠습니까?
+          </S.Description>
+          <S.ButtonRow>
+            <S.CancelButton
+              type="button"
+              disabled={isWithdrawing}
+              onClick={onBack}
+            >
+              이전
+            </S.CancelButton>
+            <S.ConfirmButton
+              type="button"
+              $active={!isWithdrawing}
+              disabled={isWithdrawing}
+              onClick={onWithdraw}
+            >
+              탈퇴합니다.
+            </S.ConfirmButton>
+          </S.ButtonRow>
+        </S.Modal>
+      </S.Overlay>
     )
   }
 
   if (step === 'verify') {
     return (
-      <MyDialog
-        title="코드 입력"
-        descriptions={['가입된 이메일로 전송된 6자리 코드를 입력해 주세요']}
-        size="hug"
-        actions={
-          <>
-            <S.SecondaryButton type="button" onClick={onCancel}>
-              취소
-            </S.SecondaryButton>
-            <S.PrimaryButton
-              type="button"
-              disabled={verificationCode.length < 6 || remainingSeconds === 0}
-              onClick={onNext}
-            >
-              다음
-            </S.PrimaryButton>
-          </>
-        }
-      >
-        <S.VerificationBody>
-          <WithdrawCodeInput
-            value={verificationCode}
-            onChange={onVerificationCodeChange}
-          />
-          <S.VerificationMeta>
-            <S.ResendButton
-              type="button"
-              disabled={!canResendCode}
-              onClick={onResendCode}
-            >
-              인증 코드 재전송
-            </S.ResendButton>
-            <S.TimerText>{formattedRemainingSeconds}</S.TimerText>
-          </S.VerificationMeta>
-        </S.VerificationBody>
-      </MyDialog>
+      <S.Overlay onClick={onCancel}>
+        <S.VerifyModal onClick={(event) => event.stopPropagation()}>
+          {isRequestingCode ? (
+            <S.Spinner />
+          ) : (
+            <>
+              <S.VerifyTitle>코드를 입력하세요</S.VerifyTitle>
+              <S.Subtitle>
+                아래에 이메일로 전송된 6자리 코드를 입력하세요.
+              </S.Subtitle>
+              <S.CodeInputWrap>
+                <WithdrawCodeInput
+                  value={verificationCode}
+                  onChange={onVerificationCodeChange}
+                />
+              </S.CodeInputWrap>
+              <S.ResendButton
+                type="button"
+                onClick={onResendCode}
+              >
+                인증 코드 재전송
+              </S.ResendButton>
+              <S.SubmitButton
+                type="button"
+                $active={verificationCode.length === 6}
+                disabled={verificationCode.length < 6}
+                aria-label="회원 탈퇴 인증 계속"
+                onClick={onNext}
+              >
+                <img src={withdrawArrow} width={40} height={40} alt="" />
+              </S.SubmitButton>
+            </>
+          )}
+        </S.VerifyModal>
+      </S.Overlay>
     )
   }
 
   return (
-    <MyDialog
-      title="회원 탈퇴"
-      descriptions={['회원 탈퇴를 위한 이메일인증을 진행합니다']}
-      actions={
-        <>
-          <S.SecondaryButton type="button" onClick={onCancel}>
-            취소
-          </S.SecondaryButton>
-          <S.PrimaryButton
+    <S.Overlay onClick={onCancel}>
+      <S.Modal onClick={(event) => event.stopPropagation()}>
+        <S.Title>회원 탈퇴</S.Title>
+        <S.Description>
+          회원 탈퇴를 위한 이메일 인증을 진행합니다
+        </S.Description>
+        <WithdrawConfirmInput
+          value={confirmText}
+          onChange={onConfirmTextChange}
+        />
+        <S.ButtonRow>
+          <S.CancelButton type="button" onClick={onCancel}>
+            이전
+          </S.CancelButton>
+          <S.ConfirmButton
             type="button"
+            $active={isConfirmTextMatched}
             disabled={!isConfirmTextMatched}
             onClick={onNext}
           >
-            다음
-          </S.PrimaryButton>
-        </>
-      }
-    >
-      <WithdrawConfirmInput
-        value={confirmText}
-        onChange={onConfirmTextChange}
-      />
-    </MyDialog>
+            인증하기
+          </S.ConfirmButton>
+        </S.ButtonRow>
+      </S.Modal>
+    </S.Overlay>
   )
 }

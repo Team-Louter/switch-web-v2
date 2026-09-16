@@ -55,17 +55,23 @@ export interface MyCommentResponse {
 
 export type PageResponse<T> = {
   content?: T[]
+  first?: boolean
+  last?: boolean
+  number?: number
   numberOfElements?: number
+  size?: number
   totalElements?: number
+  totalPages?: number
 }
 
 const defaultPageable: Required<Pick<PageableQuery, 'page' | 'size'>> = {
   page: 0,
-  size: 20,
+  size: 5,
 }
 
 export const getMyPosts = async (
   pageable: PageableQuery = defaultPageable,
+  signal?: AbortSignal,
 ) => {
   const response = await apiClient.get<PageResponse<MyPostResponse>>(
     '/me/posts',
@@ -74,6 +80,7 @@ export const getMyPosts = async (
         ...defaultPageable,
         ...pageable,
       },
+      signal,
     },
   )
 
@@ -82,6 +89,7 @@ export const getMyPosts = async (
 
 export const getMyLikedPosts = async (
   pageable: PageableQuery = defaultPageable,
+  signal?: AbortSignal,
 ) => {
   const response = await apiClient.get<PageResponse<MyPostResponse>>(
     '/me/hearts',
@@ -90,6 +98,7 @@ export const getMyLikedPosts = async (
         ...defaultPageable,
         ...pageable,
       },
+      signal,
     },
   )
 
@@ -98,6 +107,7 @@ export const getMyLikedPosts = async (
 
 export const getMyComments = async (
   pageable: PageableQuery = defaultPageable,
+  signal?: AbortSignal,
 ) => {
   const response = await apiClient.get<PageResponse<MyCommentResponse>>(
     '/me/comments',
@@ -106,20 +116,23 @@ export const getMyComments = async (
         ...defaultPageable,
         ...pageable,
       },
+      signal,
     },
   )
 
   return response.data
 }
 
-export const getMyPoint = async () => {
-  const response = await apiClient.get<number>('/me/points')
+export const getMyPoint = async (signal?: AbortSignal) => {
+  const response = await apiClient.get<number>('/me/points', { signal })
 
   return response.data
 }
 
-export const getMyReceivedLikeCount = async () => {
-  const response = await apiClient.get<number>('/me/hearts/received')
+export const getMyReceivedLikeCount = async (signal?: AbortSignal) => {
+  const response = await apiClient.get<number>('/me/hearts/received', {
+    signal,
+  })
 
   return response.data
 }

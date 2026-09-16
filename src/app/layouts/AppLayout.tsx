@@ -13,7 +13,6 @@ import { formatProfileClassInfo, useUserStore } from '@/entities/profile'
 import { SIDEBAR_MENU } from '@/shared/constants/sidebar'
 import {
   getProfileSyncPayload,
-  mergeSyncedEquippedItems,
   PROFILE_SYNC_EVENT_NAME,
 } from '@/shared/lib/profileSync'
 import * as token from '@/shared/styles/values/token'
@@ -67,7 +66,6 @@ export function AppLayout() {
     null,
   )
   const shouldShowSidebar =
-    !location.pathname.startsWith('/my/edit') &&
     !location.pathname.startsWith('/my/withdraw-complete') &&
     location.pathname !== '/typing/daily' &&
     !location.pathname.startsWith('/typing/code/')
@@ -125,10 +123,8 @@ export function AppLayout() {
           nextProfile.imageUrl = profile.profileImageUrl
         }
 
-        const equippedItems = mergeSyncedEquippedItems(profile.equippedItems)
-
-        if (equippedItems) {
-          nextProfile.equippedItems = equippedItems
+        if (profile.equippedItems) {
+          nextProfile.equippedItems = profile.equippedItems
         }
 
         if (!isCancelled) {

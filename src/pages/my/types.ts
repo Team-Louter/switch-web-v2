@@ -9,6 +9,11 @@ export type MyProfile = {
   classInfo: string
   majors: string
   email: string
+  githubUrl?: string
+  linkedinUrl?: string
+  point?: number
+  badgeCount?: number
+  receivedLikeCount?: number
   equippedItems?: ProfileEquippedItems
   role?: ProfileRole
   imageUrl?: string
@@ -28,6 +33,7 @@ export type MyActivityTab = {
 
 export type MyPost = {
   id: string
+  communityPostId: string
   category: string
   title: string
   author: string
