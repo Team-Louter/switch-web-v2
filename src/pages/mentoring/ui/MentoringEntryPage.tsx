@@ -56,14 +56,6 @@ const wait = (durationMs: number) =>
     setTimeout(resolve, durationMs)
   })
 
-function createRoomViews(mentorings: MentoringRoom[]): MentoringRoomView[] {
-  return mentorings.map((room) => ({
-    ...room,
-    members: [],
-    mentors: [],
-  }))
-}
-
 async function fetchMentoringBase(): Promise<MentoringBaseData> {
   const [mentorings, questions] = await Promise.all([
     getMentorings(),
@@ -111,6 +103,33 @@ async function hydrateRoomViews(
 }
 
 /**
+ * 스켈레톤을 숨기기 전에 실제 아바타 리소스를 브라우저 캐시에 준비한다.
+ * 프로필 목록은 API 응답보다 이미지 로딩이 늦을 수 있어, 준비 전 화면을 노출하면
+ * 기본 이미지가 잠시 보이는 플래시가 발생한다.
+ */
+async function preloadMemberImages(members: Member[]): Promise<void> {
+  const imageUrls = [
+    ...new Set(
+      members
+        .map(({ profileImageUrl }) => profileImageUrl)
+        .filter((url): url is string => Boolean(url)),
+    ),
+  ]
+
+  await Promise.all(
+    imageUrls.map(
+      (url) =>
+        new Promise<void>((resolve) => {
+          const image = new Image()
+          image.onload = () => resolve()
+          image.onerror = () => resolve()
+          image.src = url
+        }),
+    ),
+  )
+}
+
+/**
  * 멘토링 방, 방별 멤버, 질문을 v1 화면이 요구하는 단위로 구성한다.
  */
 async function fetchMentoring(): Promise<MentoringData> {
@@ -118,11 +137,15 @@ async function fetchMentoring(): Promise<MentoringData> {
     fetchMentoringBase(),
     getMember(),
   ])
+  const rooms = await hydrateRoomViews(mentorings, members)
+  await preloadMemberImages(
+    rooms.flatMap(({ members: roomMembers }) => roomMembers),
+  )
 
   return {
     members,
     questions,
-    rooms: await hydrateRoomViews(mentorings, members),
+    rooms,
   }
 }
 
@@ -197,9 +220,6 @@ export function MentoringEntryPage() {
         }
 
         setQuestions(questions)
-        setRooms(createRoomViews(mentorings))
-        setInitialMessagesPromise(messagesPromise)
-        setIsLoading(false)
 
         const members = await membersPromise
 
@@ -209,10 +229,17 @@ export function MentoringEntryPage() {
 
         setMembers(members)
         const hydratedRooms = await hydrateRoomViews(mentorings, members)
+        await preloadMemberImages(
+          hydratedRooms.flatMap(({ members: roomMembers }) => roomMembers),
+        )
 
-        if (!isCancelled) {
-          setRooms(hydratedRooms)
+        if (isCancelled) {
+          return
         }
+
+        setRooms(hydratedRooms)
+        setInitialMessagesPromise(messagesPromise)
+        setIsLoading(false)
       } catch {
         await minimumSkeleton
 
