@@ -206,7 +206,6 @@ export function QuestionDetailPanel({
           </S.TitleRow>
           {showCompleteAction && (
             <S.CompletionAction>
-              <S.CompletionPrompt>질문에 대한 답변이 끝났나요?</S.CompletionPrompt>
               <S.CompletionButton
                 type="button"
                 disabled={isCompleting}

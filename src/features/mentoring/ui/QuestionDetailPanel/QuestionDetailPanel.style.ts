@@ -79,6 +79,8 @@ export const QuestionInfo = styled.div`
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-rows: auto auto;
+  column-gap: 12px;
+  row-gap: 4px;
   width: 100%;
   min-width: 0;
 `
@@ -127,10 +129,6 @@ export const CompletionAction = styled.div`
     justify-self: end;
     white-space: normal;
   }
-`
-
-export const CompletionPrompt = styled.span`
-  min-width: 0;
 `
 
 export const CompletionButton = styled.button`
