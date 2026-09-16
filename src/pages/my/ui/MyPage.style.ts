@@ -131,7 +131,7 @@ export const ProfileTitle = styled.span`
   line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
-  ${token.typography('caption', 'sm', 'medium')}
+  ${token.typography('body', 'md', 'semibold')}
 `
 
 export const ProfileName = styled.h1`
