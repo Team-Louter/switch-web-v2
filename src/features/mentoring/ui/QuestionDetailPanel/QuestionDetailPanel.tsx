@@ -259,69 +259,64 @@ export function QuestionDetailPanel({
             </S.MessageBody>
           </S.MessageGroup>
 
-          {/* 질문에 달린 답변이 없으면 안내 문구를 보여준다 */}
-          {messageGroups.length === 0 ? (
-            <S.EmptyText>아직 답변이 없어요.</S.EmptyText>
-          ) : (
-            messageGroups.map((group) => {
-              const isMine = group.userId === currentUserId
-              const sender = membersByUserId[group.userId]
+          {messageGroups.map((group) => {
+            const isMine = group.userId === currentUserId
+            const sender = membersByUserId[group.userId]
 
-              return (
-                <S.MessageGroup
-                  key={group.groupId}
-                  $isMine={embedded ? false : isMine}
-                >
+            return (
+              <S.MessageGroup
+                key={group.groupId}
+                $isMine={embedded ? false : isMine}
+              >
+                {(!isMine || embedded) && (
+                  <MemberAvatar
+                    userName={sender?.userName}
+                    profileImageUrl={sender?.profileImageUrl}
+                  />
+                )}
+                <S.MessageBody>
                   {(!isMine || embedded) && (
-                    <MemberAvatar
-                      userName={sender?.userName}
-                      profileImageUrl={sender?.profileImageUrl}
-                    />
+                    <S.SenderName>{sender?.userName ?? '멤버'}</S.SenderName>
                   )}
-                  <S.MessageBody>
-                    {(!isMine || embedded) && (
-                      <S.SenderName>{sender?.userName ?? '멤버'}</S.SenderName>
-                    )}
-                    <S.Bubbles $isMine={embedded ? false : isMine}>
-                      {group.messages.map((message) => (
-                        <S.Bubble
-                          key={message.messageId}
-                          $isMine={embedded ? false : isMine}
-                          $embedded={embedded}
-                        >
-                          {message.content}
-                          {message.files?.map((file) =>
-                            isImageFile(file) ? (
-                              <S.AttachedImage
-                                key={file.fileId}
-                                src={file.fileUrl}
-                                alt={file.fileName}
-                              />
-                            ) : (
-                              <S.AttachedFile
-                                key={file.fileId}
-                                href={file.fileUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                {file.fileName}
-                              </S.AttachedFile>
-                            ),
-                          )}
-                        </S.Bubble>
-                      ))}
-                      <S.MessageTime
+                  <S.Bubbles $isMine={embedded ? false : isMine}>
+                    {group.messages.map((message) => (
+                      <S.Bubble
+                        key={message.messageId}
                         $isMine={embedded ? false : isMine}
                         $embedded={embedded}
                       >
-                        {formatQuestionDate(group.createdAt)}
-                      </S.MessageTime>
-                    </S.Bubbles>
-                  </S.MessageBody>
-                </S.MessageGroup>
-              )
-            })
-          )}
+                        {message.content}
+                        {message.files?.map((file) =>
+                          isImageFile(file) ? (
+                            <S.AttachedImage
+                              key={file.fileId}
+                              src={file.fileUrl}
+                              alt={file.fileName}
+                            />
+                          ) : (
+                            <S.AttachedFile
+                              key={file.fileId}
+                              href={file.fileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {file.fileName}
+                            </S.AttachedFile>
+                          ),
+                        )}
+                      </S.Bubble>
+                    ))}
+                    <S.MessageTime
+                      $isMine={embedded ? false : isMine}
+                      $embedded={embedded}
+                    >
+                      {formatQuestionDate(group.createdAt)}
+                    </S.MessageTime>
+                  </S.Bubbles>
+                </S.MessageBody>
+              </S.MessageGroup>
+            )
+          })}
         </S.MessageList>
         {question.status !== 'DONE' && (
           <MentoringComposer

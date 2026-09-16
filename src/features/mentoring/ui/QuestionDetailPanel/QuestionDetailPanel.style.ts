@@ -134,15 +134,18 @@ export const CompletionPrompt = styled.span`
 `
 
 export const CompletionButton = styled.button`
+  ${token.flexCenter}
+  box-sizing: border-box;
   flex-shrink: 0;
-  padding: 4px 8px;
+  height: 32px;
+  padding: 0 10px;
   border: 0;
-  border-radius: ${token.shapes.xsmall};
+  border-radius: ${token.shapes.small};
   background: ${token.colors.gray.gray90};
   color: ${token.colors.white};
   white-space: nowrap;
   cursor: pointer;
-  ${token.typography('caption', 'sm', 'semibold')}
+  ${token.typography('caption', 'lg', 'semibold')}
 
   &:hover {
     background: ${token.colors.gray.gray100};
@@ -236,14 +239,14 @@ export const Bubble = styled.div<{
   padding: 10px 12px;
   border: ${({ $isMine, $isRoot }) =>
     $isRoot
-      ? `1px solid ${token.colors.gray.gray10}`
+      ? `1px solid ${token.colors.primary.primary50}`
       : $isMine
         ? `1px solid ${token.colors.primary.primary30}`
         : `1px solid ${token.colors.gray.gray10}`};
   border-radius: ${token.shapes.medium};
   background-color: ${({ $isMine, $isRoot }) =>
     $isRoot
-      ? token.colors.gray.gray0
+      ? token.colors.white
       : $isMine
         ? token.colors.primary.primary10
         : token.colors.white};
@@ -276,12 +279,4 @@ export const MessageTime = styled.span<{
   max-width: ${({ $embedded }) => ($embedded ? 'min(100%, 705px)' : '296px')};
   color: ${token.colors.gray.gray40};
   text-align: ${({ $isMine }) => ($isMine ? 'right' : 'left')};
-`
-
-export const EmptyText = styled.p`
-  ${token.typography('body', 'sm', 'medium')}
-  width: 100%;
-  margin: auto 0;
-  color: ${token.colors.gray.gray50};
-  text-align: center;
 `
