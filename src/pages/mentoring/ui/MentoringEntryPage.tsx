@@ -6,11 +6,13 @@ import { getProfile } from '@/entities/member/getProfile'
 import type { Profile } from '@/entities/member/model/profile'
 import type { Member } from '@/entities/member/model/types'
 import {
+  getMessages,
   getMentoringMembers,
   getMentorings,
   getQuestions,
 } from '@/entities/mentoring'
 import type {
+  MentoringMessage,
   MentoringQuestion,
   MentoringRoom,
 } from '@/entities/mentoring'
@@ -41,15 +43,40 @@ interface MentoringData {
   rooms: MentoringRoomView[]
 }
 
-/**
- * 멘토링 방, 방별 멤버, 질문을 v1 화면이 요구하는 단위로 구성한다.
- */
-async function fetchMentoring(): Promise<MentoringData> {
-  const [mentorings, members, questions] = await Promise.all([
+interface MentoringBaseData {
+  mentorings: MentoringRoom[]
+  questions: MentoringQuestion[]
+}
+
+// 빠른 응답에서 스켈레톤이 한 프레임만 보이는 플래시를 방지한다.
+const INITIAL_SKELETON_MIN_DURATION_MS = 180
+
+const wait = (durationMs: number) =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, durationMs)
+  })
+
+function createRoomViews(mentorings: MentoringRoom[]): MentoringRoomView[] {
+  return mentorings.map((room) => ({
+    ...room,
+    members: [],
+    mentors: [],
+  }))
+}
+
+async function fetchMentoringBase(): Promise<MentoringBaseData> {
+  const [mentorings, questions] = await Promise.all([
     getMentorings(),
-    getMember(),
     getQuestions(),
   ])
+
+  return { mentorings, questions }
+}
+
+async function hydrateRoomViews(
+  mentorings: MentoringRoom[],
+  members: Member[],
+): Promise<MentoringRoomView[]> {
   const memberByUserId = new Map(
     members.map((member) => [member.userId, member]),
   )
@@ -58,7 +85,7 @@ async function fetchMentoring(): Promise<MentoringData> {
       .map((userId) => memberByUserId.get(userId))
       .filter((member): member is Member => member !== undefined)
 
-  const rooms = await Promise.all(
+  return Promise.all(
     mentorings.map(async (room: MentoringRoom) => {
       const [leaders, mentors, mentees] = await Promise.all([
         getMentoringMembers(room.mentoringId, 'LEADER').catch(() => []),
@@ -81,8 +108,22 @@ async function fetchMentoring(): Promise<MentoringData> {
       }
     }),
   )
+}
 
-  return { members, questions, rooms }
+/**
+ * 멘토링 방, 방별 멤버, 질문을 v1 화면이 요구하는 단위로 구성한다.
+ */
+async function fetchMentoring(): Promise<MentoringData> {
+  const [{ mentorings, questions }, members] = await Promise.all([
+    fetchMentoringBase(),
+    getMember(),
+  ])
+
+  return {
+    members,
+    questions,
+    rooms: await hydrateRoomViews(mentorings, members),
+  }
 }
 
 function applyMentoringData(
@@ -101,6 +142,9 @@ export function MentoringEntryPage() {
   const [members, setMembers] = useState<Member[]>([])
   const [rooms, setRooms] = useState<MentoringRoomView[]>([])
   const [questions, setQuestions] = useState<MentoringQuestion[]>([])
+  const [initialMessagesPromise, setInitialMessagesPromise] = useState<
+    Promise<MentoringMessage[]> | null
+  >(null)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null)
   const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(
@@ -127,6 +171,11 @@ export function MentoringEntryPage() {
 
   useEffect(() => {
     let isCancelled = false
+    const minimumSkeleton = wait(INITIAL_SKELETON_MIN_DURATION_MS)
+    // 방/질문과 답변 요청을 멤버 상세 조회와 동시에 시작한다.
+    const baseDataPromise = fetchMentoringBase()
+    const membersPromise = getMember().catch(() => [])
+    const messagesPromise = getMessages().catch(() => [])
 
     getProfile()
       .then((myProfile) => {
@@ -136,18 +185,44 @@ export function MentoringEntryPage() {
       })
       .catch(() => {})
 
-    fetchMentoring()
-      .then((data) => {
-        if (!isCancelled) {
-          applyMentoringData(data, setMembers, setQuestions, setRooms)
+    const loadInitialData = async () => {
+      try {
+        const [{ mentorings, questions }] = await Promise.all([
+          baseDataPromise,
+          minimumSkeleton,
+        ])
+
+        if (isCancelled) {
+          return
         }
-      })
-      .catch(() => {})
-      .finally(() => {
+
+        setQuestions(questions)
+        setRooms(createRoomViews(mentorings))
+        setInitialMessagesPromise(messagesPromise)
+        setIsLoading(false)
+
+        const members = await membersPromise
+
+        if (isCancelled) {
+          return
+        }
+
+        setMembers(members)
+        const hydratedRooms = await hydrateRoomViews(mentorings, members)
+
+        if (!isCancelled) {
+          setRooms(hydratedRooms)
+        }
+      } catch {
+        await minimumSkeleton
+
         if (!isCancelled) {
           setIsLoading(false)
         }
-      })
+      }
+    }
+
+    void loadInitialData()
 
     return () => {
       isCancelled = true
@@ -400,6 +475,7 @@ export function MentoringEntryPage() {
                 currentUserId={profile?.userId}
                 canChangeStatus={false}
                 membersByUserId={membersByUserId}
+                messagesPromise={initialMessagesPromise ?? undefined}
                 showCompleteAction={shouldShowCompleteAction}
                 isCompleting={isStatusUpdating}
                 onClose={() => setSelectedQuestionId(null)}

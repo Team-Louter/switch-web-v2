@@ -91,6 +91,7 @@ interface QuestionDetailPanelProps {
   currentUserId?: number
   canChangeStatus: boolean
   membersByUserId: Record<number, Member>
+  messagesPromise?: Promise<MentoringMessage[]>
   embedded?: boolean
   showCompleteAction?: boolean
   isCompleting?: boolean
@@ -105,6 +106,7 @@ export function QuestionDetailPanel({
   currentUserId,
   canChangeStatus,
   membersByUserId,
+  messagesPromise,
   embedded = false,
   showCompleteAction = false,
   isCompleting = false,
@@ -117,7 +119,9 @@ export function QuestionDetailPanel({
   const [isSending, setIsSending] = useState(false)
   const messageListRef = useRef<HTMLDivElement>(null)
   const messagesCacheRef = useRef(new Map<number, MentoringMessage[]>())
-  const allMessagesPromiseRef = useRef<Promise<MentoringMessage[]> | null>(null)
+  const allMessagesPromiseRef = useRef<Promise<MentoringMessage[]> | null>(
+    messagesPromise ?? null,
+  )
   const hasLoadedAllMessagesRef = useRef(false)
   const scrollToBottomQuestionIdRef = useRef<number | null>(null)
 
