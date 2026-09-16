@@ -80,25 +80,38 @@ export function MentoringComposer({
       return
     }
 
-    try {
-      setIsSubmittingInternal(true)
-      await onSubmit(
-        content.trim(),
-        attachedImages.map(({ file }) => file),
-      )
-    } catch {
-      // 전송에 실패하면 작성 중인 내용을 유지한다.
-      return
-    } finally {
-      setIsSubmittingInternal(false)
-    }
+    const submittedContent = content
+    const submittedImages = attachedImages
 
-    attachedImages.forEach(({ previewUrl }) => URL.revokeObjectURL(previewUrl))
+    // 전송 요청을 기다리는 동안에도 입력창을 즉시 비워 플레이스홀더를 보여준다.
     setContent('')
     setAttachedImages([])
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
     }
+
+    try {
+      setIsSubmittingInternal(true)
+      await onSubmit(
+        submittedContent.trim(),
+        submittedImages.map(({ file }) => file),
+      )
+    } catch {
+      // 실패 시 초안과 첨부 이미지를 복원해 작성 중인 내용을 잃지 않게 한다.
+      setContent(submittedContent)
+      setAttachedImages(submittedImages)
+      window.setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.style.height = 'auto'
+          textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+        }
+      }, 0)
+      return
+    } finally {
+      setIsSubmittingInternal(false)
+    }
+
+    submittedImages.forEach(({ previewUrl }) => URL.revokeObjectURL(previewUrl))
   }
 
   const handleCodeInsert = () => {
