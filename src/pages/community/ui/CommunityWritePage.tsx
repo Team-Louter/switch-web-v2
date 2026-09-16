@@ -384,6 +384,9 @@ export function CommunityWritePage() {
     [handleEditorFileUpload],
   );
 
+  const isEditorPortalTarget = (element: Element | null) =>
+    element !== null && editor.portalElement.contains(element);
+
   const handleBlockMenuOpen = useCallback((blockId: string) => {
     setSelectedBlockId(blockId);
     setIsEditorPlaceholderVisible(false);
@@ -825,7 +828,8 @@ export function CommunityWritePage() {
       !(event.target instanceof Element) ||
       event.target.closest('.bn-block-outer') ||
       event.target.closest('.bn-side-menu') ||
-      event.target.closest('.bn-drag-handle-menu')
+      event.target.closest('.bn-drag-handle-menu') ||
+      isEditorPortalTarget(event.target)
     ) {
       return;
     }
@@ -859,6 +863,10 @@ export function CommunityWritePage() {
 
     if (relatedElement?.closest('.bn-side-menu')) {
       setIsEditorPlaceholderVisible(false);
+      return;
+    }
+
+    if (isEditorPortalTarget(relatedElement)) {
       return;
     }
 
@@ -989,7 +997,8 @@ export function CommunityWritePage() {
 
       if (
         event.target.closest('.bn-side-menu') ||
-        event.target.closest('.bn-drag-handle-menu')
+        event.target.closest('.bn-drag-handle-menu') ||
+        editor.portalElement.contains(event.target)
       ) {
         return;
       }
