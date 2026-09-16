@@ -5,7 +5,10 @@ export interface TypingResult {
   resultId: number,
   accuracy: number,
   elapsedTime: number,
-  averageSpeed: number
+  averageSpeed: number,
+  problemType: TypingProblemType,
+  rank: number,
+  totalPracticeCount: number
 }
 
 export interface TypingProblem {

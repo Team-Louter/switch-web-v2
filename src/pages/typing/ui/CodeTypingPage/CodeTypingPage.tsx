@@ -30,11 +30,23 @@ interface CodeEditorProps {
   language: string
   modelPath: string
   editable?: boolean
+  disabled?: boolean
   onChange?: (value: string) => void
   onComplete?: () => void
+  onReady?: (editor: monaco.editor.IStandaloneCodeEditor) => void
 }
 
-function CodeEditor({ title, lines, language, modelPath, editable, onChange, onComplete }: CodeEditorProps) {
+function CodeEditor({
+  title,
+  lines,
+  language,
+  modelPath,
+  editable,
+  disabled,
+  onChange,
+  onComplete,
+  onReady,
+}: CodeEditorProps) {
   const errorDecorations = useRef<monaco.editor.IEditorDecorationsCollection | null>(null)
 
   const handleMount: OnMount = editor => {
@@ -75,7 +87,17 @@ function CodeEditor({ title, lines, language, modelPath, editable, onChange, onC
 
     updateErrorDecorations()
     editor.onDidChangeModelContent(updateErrorDecorations)
-    editor.focus()
+    editor.onDidChangeCursorSelection(event => {
+      if (!editable || (event.source !== 'mouse' && event.source !== 'keyboard')) return
+
+      const endPosition = model.getPositionAt(model.getValueLength())
+
+      if (!event.selection.isEmpty() || !event.selection.getPosition().equals(endPosition)) {
+        editor.setPosition(endPosition)
+      }
+    })
+    onReady?.(editor)
+    if (editable) editor.focus()
     editor.onKeyDown(event => {
       if ((event.keyCode !== monaco.KeyCode.Enter && event.keyCode !== monaco.KeyCode.Space) || model.getValue().length !== lines.join('\n').length) return
 
@@ -96,7 +118,7 @@ function CodeEditor({ title, lines, language, modelPath, editable, onChange, onC
           defaultLanguage={language}
           defaultValue={editable ? '' : lines.join('\n')}
           path={modelPath}
-          onMount={editable ? handleMount : undefined}
+          onMount={handleMount}
           theme="typing-vs-dark"
           options={{
             ariaLabel: `${title} 에디터`,
@@ -121,7 +143,7 @@ function CodeEditor({ title, lines, language, modelPath, editable, onChange, onC
             padding: { top: 9, bottom: 9 },
             parameterHints: { enabled: false },
             quickSuggestions: false,
-            readOnly: !editable,
+            readOnly: !editable || disabled,
             renderLineHighlight: editable ? 'line' : 'none',
             scrollBeyondLastLine: false,
             suggestOnTriggerCharacters: false,
@@ -146,9 +168,11 @@ export function CodeTypingPage() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [typedCode, setTypedCode] = useState('')
   const [isComplete, setIsComplete] = useState(false)
+  const [isTypingEnabled, setIsTypingEnabled] = useState(false)
   const [errorCount, setErrorCount] = useState(0)
   const roundIdRef = useRef<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
+  const inputEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
 
   useEffect(() => {
     if (!language || !(language in LANGUAGE_NAMES)) return
@@ -173,7 +197,12 @@ export function CodeTypingPage() {
 
   const handleCountdownComplete = useCallback(() => {
     startTimeRef.current = performance.now()
+    setIsTypingEnabled(true)
   }, [])
+
+  useEffect(() => {
+    if (isTypingEnabled) inputEditorRef.current?.focus()
+  }, [isTypingEnabled])
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -232,7 +261,7 @@ export function CodeTypingPage() {
   return (
     <S.Page>
       <TypingCountdown onComplete={handleCountdownComplete} />
-      <S.PracticeFrame>
+      <S.PracticeFrame onCopy={event => event.preventDefault()}>
         <TypingPracticeHeader category={languageName} time={formattedTime} typingSpeed={`${typingSpeed}타`} accuracy={`${accuracy}%`} />
         <S.Workspace>
           <S.Monitor>
@@ -251,8 +280,10 @@ export function CodeTypingPage() {
                 language={editorLanguage}
                 modelPath={`file:///typing-input-${currentProblem?.problemId ?? 0}.${modelExtension}`}
                 editable
+                disabled={!isTypingEnabled}
                 onChange={setTypedCode}
                 onComplete={handleComplete}
+                onReady={editor => { inputEditorRef.current = editor }}
               />
             </S.Screen>
             <S.MonitorNeck aria-hidden="true" />

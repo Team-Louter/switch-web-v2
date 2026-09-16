@@ -20,6 +20,11 @@ export const PracticeFrame = styled.section`
   overflow: hidden;
   border: 1px solid ${token.colors.gray.gray10};
   background: ${token.colors.white};
+  user-select: none;
+
+  * {
+    user-select: none;
+  }
 `
 
 export const Workspace = styled.div`
