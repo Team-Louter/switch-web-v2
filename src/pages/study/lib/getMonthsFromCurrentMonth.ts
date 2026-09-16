@@ -1,0 +1,25 @@
+const KOREA_TIME_ZONE = 'Asia/Seoul'
+
+export type MonthState = 'past' | 'current' | 'future'
+
+export function getCurrentMonth(): number {
+  return Number(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: KOREA_TIME_ZONE,
+      month: 'numeric',
+    }).format(new Date()),
+  )
+}
+
+export function getMonthsFromCurrentMonth(): number[] {
+  return Array.from({ length: 12 }, (_, index) => index + 1)
+}
+
+export function getMonthState(
+  month: number,
+  currentMonth = getCurrentMonth(),
+): MonthState {
+  if (month === currentMonth) return 'current'
+
+  return month < currentMonth ? 'past' : 'future'
+}
