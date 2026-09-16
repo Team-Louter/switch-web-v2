@@ -34,6 +34,7 @@ const getEffectDecorationItem = (
   thumbnailUrl: effect.thumbnailUrl,
   styleKey: effect.nameStyleKey,
   valueImageUrl: effect.imageUrl,
+  valueText: effect.valueText,
 })
 
 const getPurchasePreviewEquippedItems = (
