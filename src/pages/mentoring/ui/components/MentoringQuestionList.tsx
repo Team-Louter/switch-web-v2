@@ -10,9 +10,10 @@ import {
 import { ConfirmModal } from '@/shared/ui'
 
 import * as S from './MentoringQuestionList.style'
+import * as Menu from './MentoringContextMenu.style'
 import { getMenuPlacement, type MenuPlacement } from './menuPlacement'
 
-const QUESTION_MENU_HEIGHT = 44
+const QUESTION_MENU_HEIGHT = 64
 
 interface MentoringQuestionListProps {
   onDelete: (question: MentoringQuestion) => Promise<void>
@@ -164,8 +165,8 @@ function QuestionListItem({
           <PiDotsThreeVertical aria-hidden="true" />
         </S.MenuButton>
         {isMenuOpen && (
-          <S.Menu $placement={menuPlacement} role="menu">
-            <S.MenuItem
+          <Menu.Panel $placement={menuPlacement} role="menu">
+            <Menu.Item
               type="button"
               role="menuitem"
               $danger
@@ -174,9 +175,9 @@ function QuestionListItem({
                 onDelete(question)
               }}
             >
-              삭제
-            </S.MenuItem>
-          </S.Menu>
+              삭제하기
+            </Menu.Item>
+          </Menu.Panel>
         )}
       </S.QuestionActions>
     </S.QuestionItem>

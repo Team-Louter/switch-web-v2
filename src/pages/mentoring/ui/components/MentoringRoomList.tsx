@@ -8,10 +8,11 @@ import type { MentoringRoomView } from '@/features/mentoring'
 import { MemberAvatar } from '@/features/mentoring'
 
 import { getMenuPlacement, type MenuPlacement } from './menuPlacement'
+import * as Menu from './MentoringContextMenu.style'
 import * as S from './MentoringRoomList.style'
 
 const VISIBLE_AVATAR_COUNT = 4
-const ROOM_MENU_HEIGHT = 80
+const ROOM_MENU_HEIGHT = 144
 
 interface MentoringRoomListProps {
   canManageRoom: boolean
@@ -143,8 +144,8 @@ export function MentoringRoomList({
                       <PiDotsThreeVertical aria-hidden="true" />
                     </S.MenuButton>
                     {openedMenuRoomId === room.mentoringId && (
-                      <S.Menu $placement={menuPlacement} role="menu">
-                        <S.MenuItem
+                      <Menu.Panel $placement={menuPlacement} role="menu">
+                        <Menu.Item
                           type="button"
                           role="menuitem"
                           onClick={(event) => {
@@ -153,9 +154,10 @@ export function MentoringRoomList({
                             onEdit(room)
                           }}
                         >
-                          수정
-                        </S.MenuItem>
-                        <S.MenuItem
+                          수정하기
+                        </Menu.Item>
+                        <Menu.Divider aria-hidden="true" />
+                        <Menu.Item
                           type="button"
                           role="menuitem"
                           $danger
@@ -165,9 +167,9 @@ export function MentoringRoomList({
                             setDeleteTarget(room)
                           }}
                         >
-                          삭제
-                        </S.MenuItem>
-                      </S.Menu>
+                          삭제하기
+                        </Menu.Item>
+                      </Menu.Panel>
                     )}
                   </S.RoomActions>
                 )}

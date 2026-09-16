@@ -3,8 +3,6 @@ import styled from 'styled-components'
 import { contentReveal } from '@/shared/styles/animations'
 import * as token from '@/shared/styles/values/token'
 
-type MenuPlacement = 'bottom' | 'top'
-
 export const List = styled.div`
   ${token.flexColumn}
   width: 100%;
@@ -129,39 +127,6 @@ export const MenuButton = styled.button`
   &:hover {
     background: ${token.colors.gray.gray10};
     color: ${token.colors.gray.gray80};
-  }
-`
-
-export const Menu = styled.div<{ $placement: MenuPlacement }>`
-  ${token.flexColumnStart}
-  position: absolute;
-  ${({ $placement }) =>
-    $placement === 'top'
-      ? 'bottom: calc(100% + 4px);'
-      : 'top: calc(100% + 4px);'}
-  right: 0;
-  z-index: 10;
-  width: 72px;
-  padding: 4px;
-  border-radius: ${token.shapes.small};
-  background: ${token.colors.white};
-  ${token.elevation('black_3')}
-`
-
-export const MenuItem = styled.button<{ $danger?: boolean }>`
-  width: 100%;
-  padding: 8px 10px;
-  border: 0;
-  border-radius: ${token.shapes.xsmall};
-  background: transparent;
-  color: ${({ $danger }) =>
-    $danger ? token.colors.danger.danger20 : token.colors.gray.gray80};
-  text-align: left;
-  cursor: pointer;
-  ${token.typography('body', 'sm', 'medium')}
-
-  &:hover {
-    background: ${token.colors.gray.gray0};
   }
 `
 
