@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { PiCaretDoubleRight } from 'react-icons/pi'
 
 import { Button } from '@/shared/ui'
@@ -43,6 +49,11 @@ interface MessageGroup {
   userId: number
   messages: MentoringMessage[]
   createdAt: string
+}
+
+interface LoadedQuestionMessages {
+  questionId: number
+  messages: MentoringMessage[]
 }
 
 /**
@@ -101,16 +112,14 @@ export function QuestionDetailPanel({
   onComplete,
   onStatusChange,
 }: QuestionDetailPanelProps) {
-  const [messages, setMessages] = useState<MentoringMessage[]>([])
-  const [loadedMessagesQuestionId, setLoadedMessagesQuestionId] = useState<
-    number | null
-  >(null)
+  const [loadedMessages, setLoadedMessages] =
+    useState<LoadedQuestionMessages | null>(null)
   const [isSending, setIsSending] = useState(false)
   const messageListRef = useRef<HTMLDivElement>(null)
   const messagesCacheRef = useRef(new Map<number, MentoringMessage[]>())
   const allMessagesPromiseRef = useRef<Promise<MentoringMessage[]> | null>(null)
   const hasLoadedAllMessagesRef = useRef(false)
-  const activeQuestionIdRef = useRef(question.questionId)
+  const scrollToBottomQuestionIdRef = useRef<number | null>(null)
 
   const loadMessages = async (questionId: number) => {
     const cachedMessages = messagesCacheRef.current.get(questionId)
@@ -164,20 +173,19 @@ export function QuestionDetailPanel({
   useEffect(() => {
     let isCancelled = false
 
-    activeQuestionIdRef.current = question.questionId
-
     loadMessages(question.questionId)
       .then((questionMessages) => {
         if (!isCancelled) {
-          setMessages(questionMessages)
-          setLoadedMessagesQuestionId(question.questionId)
+          setLoadedMessages({
+            questionId: question.questionId,
+            messages: questionMessages,
+          })
         }
       })
       .catch(() => {
         messagesCacheRef.current.set(question.questionId, [])
         if (!isCancelled) {
-          setMessages([])
-          setLoadedMessagesQuestionId(question.questionId)
+          setLoadedMessages({ questionId: question.questionId, messages: [] })
         }
       })
 
@@ -186,11 +194,29 @@ export function QuestionDetailPanel({
     }
   }, [question.questionId])
 
+  useLayoutEffect(() => {
+    scrollToBottomQuestionIdRef.current = null
+    messageListRef.current?.scrollTo({
+      top: 0,
+    })
+  }, [question.questionId])
+
   useEffect(() => {
+    if (
+      scrollToBottomQuestionIdRef.current !== question.questionId ||
+      loadedMessages?.questionId !== question.questionId
+    ) {
+      if (loadedMessages?.questionId !== question.questionId) {
+        scrollToBottomQuestionIdRef.current = null
+      }
+      return
+    }
+
+    scrollToBottomQuestionIdRef.current = null
     messageListRef.current?.scrollTo({
       top: messageListRef.current.scrollHeight,
     })
-  }, [messages])
+  }, [loadedMessages, question.questionId])
 
   const handleSend = async (nextContent: string, nextFiles: File[]) => {
     // 전송 중에는 버튼/엔터 어느 쪽으로도 중복 전송되지 않게 막는다.
@@ -210,15 +236,25 @@ export function QuestionDetailPanel({
       })
 
       const nextMessages = [
-        ...(messagesCacheRef.current.get(question.questionId) ?? messages),
+        ...(messagesCacheRef.current.get(question.questionId) ??
+          (loadedMessages?.questionId === question.questionId
+            ? loadedMessages.messages
+            : [])),
         createdMessage,
       ].sort((first, second) => first.createdAt.localeCompare(second.createdAt))
 
       messagesCacheRef.current.set(question.questionId, nextMessages)
+      scrollToBottomQuestionIdRef.current = question.questionId
+      setLoadedMessages((currentMessages) => {
+        if (
+          currentMessages &&
+          currentMessages.questionId !== question.questionId
+        ) {
+          return currentMessages
+        }
 
-      if (activeQuestionIdRef.current === question.questionId) {
-        setMessages(nextMessages)
-      }
+        return { questionId: question.questionId, messages: nextMessages }
+      })
     } finally {
       setIsSending(false)
     }
@@ -235,10 +271,15 @@ export function QuestionDetailPanel({
     }
   }
 
-  const isLoadingMessages = loadedMessagesQuestionId !== question.questionId
+  const isLoadingMessages = loadedMessages?.questionId !== question.questionId
   const messageGroups = useMemo(
-    () => groupMessages(isLoadingMessages ? [] : messages),
-    [isLoadingMessages, messages],
+    () =>
+      groupMessages(
+        loadedMessages?.questionId === question.questionId
+          ? loadedMessages.messages
+          : [],
+      ),
+    [loadedMessages, question.questionId],
   )
   const questionAuthor = membersByUserId[question.userId]
 
