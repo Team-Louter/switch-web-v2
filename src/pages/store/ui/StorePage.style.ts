@@ -160,9 +160,10 @@ export const EffectCard = styled.article`
   ${token.flexColumn}
   box-sizing: border-box;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 16px;
   width: 220px;
-  height: 230px;
+  min-height: 230px;
   padding: 20px;
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.large};
