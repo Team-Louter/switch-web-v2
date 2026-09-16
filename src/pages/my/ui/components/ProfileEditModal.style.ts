@@ -279,8 +279,8 @@ export const ButtonRow = styled.div`
 `
 
 const actionButtonStyle = css`
-  width: 100px;
-  padding: 10px 0;
+  width: 92px;
+  padding: 9px 0;
   border-radius: 4px;
   ${token.typography('body', 'md', 'bold')}
 `
