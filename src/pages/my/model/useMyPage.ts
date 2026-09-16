@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { getPostCategoryLabel } from '@/entities/community'
+import { getPostCategoryLabel, resolveCommunityAssetUrl } from '@/entities/community'
 import { formatProfileClassInfo, useUserStore } from '@/entities/profile'
 import { mergeSyncedEquippedItems } from '@/shared/lib/profileSync'
 
@@ -110,35 +110,12 @@ const formatProfile = (profile: ProfileResponse): MyProfile => {
   return nextProfile
 }
 
-type MyActivityAuthor = {
-  name: string
-  imageUrl?: string
-}
-
-// '작성한 글' 탭은 항상 로그인한 본인 글이라 프로필 정보로 작성자를 채운다.
-// '댓글'/'좋아요' 탭은 다른 사람 글일 수 있지만, 백엔드 응답(MyCommentResponse/
-// MyPostResponse)에 원글 작성자 정보가 아예 내려오지 않아 프론트에서 복원할 수 없다.
-const formatMyPost = (
-  post: MyPostResponse,
-  currentUser: MyActivityAuthor,
-): MyPost => ({
+const formatMyPost = (post: MyPostResponse): MyPost => ({
   id: String(post.postId),
   category: getPostCategoryLabel(post.postCategory),
   title: post.postTitle,
-  author: currentUser.name,
-  authorImageUrl: currentUser.imageUrl,
-  createdAt: post.createdAt,
-  likes: post.likeCount,
-  isLiked: post.isHearted,
-  comments: post.commentCount,
-  views: post.viewers,
-})
-
-const formatMyLikedPost = (post: MyPostResponse): MyPost => ({
-  id: String(post.postId),
-  category: getPostCategoryLabel(post.postCategory),
-  title: post.postTitle,
-  author: '',
+  author: post.userName,
+  authorImageUrl: resolveCommunityAssetUrl(post.userProfileImageUrl),
   createdAt: post.createdAt,
   likes: post.likeCount,
   isLiked: post.isHearted,
@@ -150,7 +127,8 @@ const formatMyComment = (comment: MyCommentResponse): MyPost => ({
   id: String(comment.postId),
   category: getPostCategoryLabel(comment.postCategory),
   title: comment.postTitle,
-  author: '',
+  author: comment.userName,
+  authorImageUrl: resolveCommunityAssetUrl(comment.userProfileImageUrl),
   createdAt: comment.commentCreatedAt,
   likes: comment.likeCount,
   isLiked: comment.isHearted,
@@ -186,11 +164,9 @@ export function useMyPage() {
       if (tabId === 'comments') {
         posts = getPageItems(await getMyComments()).map(formatMyComment)
       } else if (tabId === 'likes') {
-        posts = getPageItems(await getMyLikedPosts()).map(formatMyLikedPost)
+        posts = getPageItems(await getMyLikedPosts()).map(formatMyPost)
       } else {
-        posts = getPageItems(await getMyPosts()).map((post) =>
-          formatMyPost(post, profile),
-        )
+        posts = getPageItems(await getMyPosts()).map(formatMyPost)
       }
 
       setPostsByTab((currentPostsByTab) => ({
@@ -207,7 +183,7 @@ export function useMyPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [profile])
+  }, [])
 
   useEffect(() => {
     let shouldIgnore = false
@@ -231,9 +207,7 @@ export function useMyPage() {
           return
         }
 
-        const nextProfile = formatProfile(profileResponse)
-
-        setProfile(nextProfile)
+        setProfile(formatProfile(profileResponse))
         setActivityTabs([
           { id: 'posts', label: '작성한 글', count: profileResponse.postCount },
           { id: 'comments', label: '댓글', count: profileResponse.commentCount },
@@ -266,9 +240,7 @@ export function useMyPage() {
         ])
         setPostsByTab({
           ...initialPostsByTab,
-          posts: getPageItems(postsResponse).map((post) =>
-            formatMyPost(post, nextProfile),
-          ),
+          posts: getPageItems(postsResponse).map(formatMyPost),
         })
         setLoadedTabs({
           ...initialLoadedTabs,

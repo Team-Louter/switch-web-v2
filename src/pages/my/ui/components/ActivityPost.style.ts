@@ -82,8 +82,7 @@ export const AuthorAvatar = styled.img`
 `
 
 export const AuthorName = styled.span`
-  flex: 0 1 auto;
-  min-width: 0;
+  flex: 0 0 72px;
   overflow: hidden;
   color: ${token.colors.gray.gray80};
   line-height: 1.2;

@@ -21,9 +21,12 @@ type PageableQuery = {
 }
 
 // 백엔드 OpenAPI 스펙(MyPostResponse/MyCommentResponse) 기준 응답 타입.
-// 두 응답 모두 작성자 정보는 내려오지 않는다.
 export interface MyPostResponse {
   postId: number
+  userId: number
+  userName: string
+  userProfileImageUrl?: string
+  isAnonymous: boolean
   postTitle: string
   postCategory: PostCategory
   viewers: number
@@ -38,6 +41,10 @@ export interface MyCommentResponse {
   commentContent: string
   commentCreatedAt: string
   postId: number
+  userId: number
+  userName: string
+  userProfileImageUrl?: string
+  isAnonymous: boolean
   postTitle: string
   postCategory: PostCategory
   viewers: number
