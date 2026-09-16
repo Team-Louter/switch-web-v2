@@ -22,6 +22,8 @@ const ROLE_LABELS: Record<MemberRole, string> = {
   STUDENT: '학생 (Student)',
 }
 
+// 방 목록에서 한 줄로 안정적으로 읽히도록 방 제목을 30자로 제한한다.
+const MAX_ROOM_NAME_LENGTH = 30
 const SKELETON_ROWS = [0, 1, 2, 3]
 
 interface CreateRoomModalProps {
@@ -230,12 +232,23 @@ function CreateRoomModalContent({
           </S.CloseButton>
         </S.Header>
 
-        <S.RoomName
-          type="text"
-          placeholder="방 제목을 입력해 주세요."
-          value={mentoringName}
-          onChange={(event) => setMentoringName(event.target.value)}
-        />
+        <S.RoomNameField>
+          <S.RoomName
+            type="text"
+            maxLength={MAX_ROOM_NAME_LENGTH}
+            placeholder="방 제목을 입력해 주세요."
+            value={mentoringName}
+            aria-describedby="mentoring-room-name-count"
+            onChange={(event) =>
+              setMentoringName(
+                event.target.value.slice(0, MAX_ROOM_NAME_LENGTH),
+              )
+            }
+          />
+          <S.RoomNameCount id="mentoring-room-name-count">
+            {mentoringName.length}/{MAX_ROOM_NAME_LENGTH}
+          </S.RoomNameCount>
+        </S.RoomNameField>
 
         <S.MemberList
           key={isMembersLoading ? 'member-list-loading' : 'member-list-ready'}

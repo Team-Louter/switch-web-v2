@@ -140,6 +140,12 @@ export const CloseButton = styled.button`
   }
 `
 
+export const RoomNameField = styled.div`
+  ${token.flexColumn}
+  width: 100%;
+  gap: 6px;
+`
+
 export const RoomName = styled.input`
   ${token.typography('body', 'sm', 'regular')}
   width: 100%;
@@ -159,6 +165,12 @@ export const RoomName = styled.input`
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: -1px;
   }
+`
+
+export const RoomNameCount = styled.span`
+  ${token.typography('caption', 'sm', 'regular')}
+  align-self: flex-end;
+  color: ${token.colors.gray.gray50};
 `
 
 export const MemberList = styled.div`
