@@ -4,6 +4,16 @@ import * as token from '@/shared/styles/values/token'
 
 import type { IconFrame } from './SidebarIcon'
 
+const profileSkeletonShimmer = keyframes`
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: -100% 0;
+  }
+`
+
 export const Aside = styled.aside`
   ${token.flexColumnStart}
   width: 100%;
@@ -202,6 +212,63 @@ export const ProfileText = styled.div`
   gap: clamp(3px, 0.58dvh, 5px);
   min-width: 0;
   overflow: hidden;
+`
+
+const ProfileSkeletonSurface = styled.span`
+  display: block;
+  flex: 0 0 auto;
+  background: linear-gradient(
+    90deg,
+    ${token.colors.gray.gray10} 25%,
+    ${token.colors.gray.gray0} 37%,
+    ${token.colors.gray.gray10} 63%
+  );
+  background-size: 400% 100%;
+  animation: ${profileSkeletonShimmer} 1.35s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
+export const ProfileSkeleton = styled.div`
+  ${token.flexLeft}
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 10px;
+`
+
+export const ProfileAvatarSkeleton = styled(ProfileSkeletonSurface)`
+  width: 50px;
+  height: 50px;
+  border-radius: ${token.shapes.circle};
+`
+
+export const ProfileTextSkeleton = styled.div`
+  ${token.flexColumn}
+  align-items: flex-start;
+  justify-content: center;
+  gap: clamp(3px, 0.58dvh, 5px);
+  min-width: 0;
+  overflow: hidden;
+`
+
+export const ProfileTitleSkeleton = styled(ProfileSkeletonSurface)`
+  width: 52px;
+  height: 10px;
+  border-radius: ${token.shapes.xsmall};
+`
+
+export const ProfileNameSkeleton = styled(ProfileSkeletonSurface)`
+  width: 64px;
+  height: 16px;
+  border-radius: ${token.shapes.xsmall};
+`
+
+export const ProfileMetaSkeleton = styled(ProfileSkeletonSurface)`
+  width: 84px;
+  height: 12px;
+  border-radius: ${token.shapes.xsmall};
 `
 
 export const ProfileTitle = styled.span`
