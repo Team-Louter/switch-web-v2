@@ -1,13 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { UserName } from '@/entities/user'
-import { getNameStyleKey } from '@/shared/styles'
-import {
-  clearAccessToken,
-  clearPendingAccessToken,
-} from '@/shared/lib/authToken'
-import { ProfileAvatar } from '@/shared/ui'
+import { clearAccessToken, clearPendingAccessToken } from '@/shared/lib/authToken'
 
 import {
   sendWithdrawalVerificationCode,
@@ -15,21 +9,15 @@ import {
 } from '../api'
 import { useMyPage } from '../model/useMyPage'
 import {
-  ActivityFilterBar,
-  ActivityPost,
   MemberActionToast,
   MemberManagementModal,
+  ProfileEditModal,
+  ProfileHeader,
+  ProfilePostList,
   WithdrawModal,
 } from './components'
-import { MyStatIcon } from './icons/MyStatIcon'
 import * as S from './MyPage.style'
 import type { WithdrawModalStep } from './components'
-
-import { useProfileCustomize } from '@/pages/store/model/useProfileCustomize'
-import { StoreProfileCustomizeModal } from '@/pages/store/ui/components/StoreProfileCustomizeModal'
-import { dispatchProfileSync } from '@/shared/lib/profileSync'
-
-import type { EquippedItemsResponse } from '@/entities/store'
 
 const WITHDRAW_CODE_TIME_LIMIT_SECONDS = 120
 const WITHDRAW_CODE_RESEND_DELAY_SECONDS = 30
@@ -40,6 +28,7 @@ export function MyPage() {
     null,
   )
   const [isMemberManagementOpen, setIsMemberManagementOpen] = useState(false)
+  const [isProfileEditOpen, setIsProfileEditOpen] = useState(false)
   const [memberActionToastMessage, setMemberActionToastMessage] = useState('')
   const [withdrawConfirmText, setWithdrawConfirmText] = useState('')
   const [verificationCode, setVerificationCode] = useState('')
@@ -47,35 +36,22 @@ export function MyPage() {
     useState(WITHDRAW_CODE_TIME_LIMIT_SECONDS)
   const [withdrawResendRemainingSeconds, setWithdrawResendRemainingSeconds] =
     useState(WITHDRAW_CODE_RESEND_DELAY_SECONDS)
-  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false)
-  const [equippedItemsOverride, setEquippedItemsOverride] =
-    useState<EquippedItemsResponse | undefined>(undefined)
   const {
     activeTabId,
     activityTabs,
+    applyProfileUpdate,
     emptyMessage,
+    hasMore,
+    isFetchingMore,
+    isLoading,
+    isProfileLoading,
+    loadMore,
     posts,
     profile,
     setActiveTabId,
-    stats,
   } = useMyPage()
 
-  const displayProfile = equippedItemsOverride
-    ? { ...profile, equippedItems: equippedItemsOverride }
-    : profile
-
-  const hasPosts = posts.length > 0
   const canManageMembers = profile.role === 'LEADER'
-  const profileNameColor = displayProfile.equippedItems?.nameColor
-  const profileNameStyleKey = getNameStyleKey(
-    profileNameColor?.styleKey ??
-      profileNameColor?.valueColor ??
-      profileNameColor?.value_color ??
-      profileNameColor?.valueText ??
-      profileNameColor?.itemName,
-  )
-  const profileTitle = displayProfile.equippedItems?.title
-  const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName
   const canResendWithdrawalCode =
     withdrawStep === 'verify' && withdrawResendRemainingSeconds === 0
 
@@ -107,21 +83,6 @@ export function MyPage() {
     return () => window.clearInterval(timerId)
   }, [withdrawResendRemainingSeconds, withdrawStep])
 
-  const { onSave: onCustomizeSaveRaw, ...customize } = useProfileCustomize({
-    isOpen: isCustomizeOpen,
-    onEquippedItemsChange: (equippedItems) => {
-      setEquippedItemsOverride(equippedItems)
-      dispatchProfileSync({ equippedItems })
-    },
-  })
-  
-  const handleCustomizeSave = async () => {
-    const didSave = await onCustomizeSaveRaw()
-  
-    if (didSave) {
-      setIsCustomizeOpen(false)
-    }
-  }
   const resetWithdrawalVerificationState = () => {
     setVerificationCode('')
     setWithdrawCodeRemainingSeconds(WITHDRAW_CODE_TIME_LIMIT_SECONDS)
@@ -134,7 +95,7 @@ export function MyPage() {
     navigate('/login', { replace: true })
   }
 
-  const handleOpenWithdrawModal = async () => {
+  const handleOpenWithdrawModal = () => {
     setWithdrawConfirmText('')
     resetWithdrawalVerificationState()
     setWithdrawStep('acknowledge')
@@ -194,155 +155,68 @@ export function MyPage() {
   return (
     <S.Page>
       <S.Content>
-        <S.ProfileSection>
-          <ProfileAvatar
-          imageUrl={displayProfile.imageUrl}
-          equippedItems={displayProfile.equippedItems}
-          size={200}
+        <S.Card>
+          <ProfileHeader
+            activityTabs={activityTabs}
+            isLoading={isProfileLoading}
+            onEdit={() => setIsProfileEditOpen(true)}
+            onLogout={handleLogout}
+            onMemberManage={
+              canManageMembers
+                ? () => setIsMemberManagementOpen(true)
+                : undefined
+            }
+            onWithdraw={handleOpenWithdrawModal}
+            profile={profile}
           />
 
-          <S.ProfileInfo>
-            <S.ProfileTextGroup>
-            <S.ProfileIdentity>
-            {profileTitleText && <S.ProfileTitle>{profileTitleText}</S.ProfileTitle>}
-            <S.ProfileName>
-              <UserName styleKey={profileNameStyleKey}>
-                {displayProfile.name}
-              </UserName>
-            </S.ProfileName>
-            <S.ProfileDescription>{displayProfile.classInfo}</S.ProfileDescription>
-            {displayProfile.majors && (
-              <S.ProfileDescription>{displayProfile.majors}</S.ProfileDescription>
-            )}
-            </S.ProfileIdentity>
-              <S.ProfileEmail>{profile.email}</S.ProfileEmail>
-            </S.ProfileTextGroup>
-
-            <S.ProfileActions>
-              {canManageMembers && (
-                <S.ActionButton
-                  type="button"
-                  $variant="secondary"
-                  onClick={() => setIsMemberManagementOpen(true)}
-                >
-                  멤버 관리
-                </S.ActionButton>
-              )}
-              <S.ActionButton
-                type="button"
-                onClick={() => setIsCustomizeOpen(true)}
-              >
-                프로필 꾸미기
-              </S.ActionButton>
-              <S.ActionButton
-                type="button"
-                $variant="outline"
-                onClick={() => navigate('/my/edit')}
-              >
-                프로필 수정
-              </S.ActionButton>
-            </S.ProfileActions>
-          </S.ProfileInfo>
-        </S.ProfileSection>
-
-        <S.StatBar>
-          {stats.map((stat) => (
-            <S.StatItem key={stat.id}>
-              <S.StatLabelGroup>
-                <S.StatIcon aria-hidden="true">
-                  <MyStatIcon type={stat.id} />
-                </S.StatIcon>
-                <S.StatLabel>{stat.label}</S.StatLabel>
-              </S.StatLabelGroup>
-              <S.StatValue>{stat.value}</S.StatValue>
-            </S.StatItem>
-          ))}
-        </S.StatBar>
-
-        <S.Divider />
-
-        <S.ActivitySection>
-          <ActivityFilterBar
-            tabs={activityTabs}
+          <ProfilePostList
             activeTabId={activeTabId}
-            onChange={setActiveTabId}
+            emptyMessage={emptyMessage}
+            hasMore={hasMore}
+            isFetchingMore={isFetchingMore}
+            isLoading={isLoading}
+            loadMore={loadMore}
+            onChangeTab={setActiveTabId}
+            onPostClick={(post) => navigate(`/community/${post.communityPostId}`)}
+            posts={posts}
+            tabs={activityTabs}
           />
-
-          {hasPosts ? (
-            <S.PostList>
-              {posts.map((post) => (
-                <ActivityPost
-                  key={post.id}
-                  post={post}
-                  isLiked={activeTabId === 'likes' || post.isLiked}
-                  onClick={() => navigate(`/community/${post.id}`)}
-                />
-              ))}
-            </S.PostList>
-          ) : (
-            <S.EmptyState>{emptyMessage}</S.EmptyState>
-          )}
-        </S.ActivitySection>
-
-        <S.FooterSection>
-          <S.Divider />
-
-          <S.FooterActions>
-            <S.FooterButton type="button" onClick={handleLogout}>
-              로그아웃
-            </S.FooterButton>
-            <S.FooterDivider />
-            <S.FooterButton
-              type="button"
-              $danger
-              onClick={handleOpenWithdrawModal}
-            >
-              회원 탈퇴
-            </S.FooterButton>
-          </S.FooterActions>
-        </S.FooterSection>
+        </S.Card>
       </S.Content>
 
       {withdrawStep && (
         <WithdrawModal
-          step={withdrawStep}
-          confirmText={withdrawConfirmText}
-          onConfirmTextChange={setWithdrawConfirmText}
-          verificationCode={verificationCode}
-          onVerificationCodeChange={setVerificationCode}
-          remainingSeconds={withdrawCodeRemainingSeconds}
           canResendCode={canResendWithdrawalCode}
+          confirmText={withdrawConfirmText}
           onCancel={handleCloseWithdrawModal}
+          onConfirmTextChange={setWithdrawConfirmText}
           onNext={
             withdrawStep === 'acknowledge'
               ? handleRequestWithdrawalCode
               : handleVerifyWithdrawalCode
           }
           onResendCode={handleResendWithdrawalCode}
+          onVerificationCodeChange={setVerificationCode}
           onWithdraw={handleCompleteWithdrawal}
+          remainingSeconds={withdrawCodeRemainingSeconds}
+          step={withdrawStep}
+          verificationCode={verificationCode}
         />
       )}
-      
-      {isCustomizeOpen && (
-        <StoreProfileCustomizeModal
-        categories={customize.categories}
-        isActionPending={customize.isActionPending}
-        ownedEffects={customize.ownedEffects}
-        profile={displayProfile}
-        recommendedEffects={customize.recommendedEffects}
-        selectedCategory={customize.selectedCategory}
-        selectedEffect={customize.selectedEffect}
-        selectedEffectsByCategory={customize.selectedEffectsByCategory}
-        onCategorySelect={customize.onCategorySelect}
-        onClose={() => setIsCustomizeOpen(false)}
-        onEffectSelect={customize.onEffectSelect}
-        onGoToStore={(category) =>
-          navigate(`/store?category=${encodeURIComponent(category)}`)
-        }
-        onPurchaseOpen={() => navigate('/store')}
-        onReset={customize.onReset}
-        onSave={handleCustomizeSave}
-      />
+
+      {isMemberManagementOpen && (
+        <MemberManagementModal
+          onClose={() => setIsMemberManagementOpen(false)}
+          onComplete={setMemberActionToastMessage}
+        />
+      )}
+
+      {isProfileEditOpen && (
+        <ProfileEditModal
+          onClose={() => setIsProfileEditOpen(false)}
+          onUpdated={applyProfileUpdate}
+        />
       )}
 
       {memberActionToastMessage && (

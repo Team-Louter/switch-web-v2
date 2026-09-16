@@ -22,11 +22,12 @@ export function ActivityFilterBar({
             key={tab.id}
             type="button"
             role="tab"
+            aria-label={`${tab.label} ${tab.count}개`}
             aria-selected={isActive}
             $active={isActive}
             onClick={() => onChange(tab.id)}
           >
-            {tab.label} ({tab.count})
+            {tab.label}
           </S.FilterItem>
         )
       })}

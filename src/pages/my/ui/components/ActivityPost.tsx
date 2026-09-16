@@ -1,17 +1,13 @@
-import {
-  formatCommunityCount,
-  formatCommunityListRecentDate,
-} from '@/entities/community'
-import commentIcon from '@/shared/assets/my/comment-icon.svg'
-import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
-import eyeIcon from '@/shared/assets/my/eye-icon.svg'
-import heartIcon from '@/shared/assets/my/heart-icon.svg'
+import { formatCommunityDate } from '@/entities/community'
 
-import activeHeartIcon from '../assets/activity-heart-active.svg'
+import commentIcon from '../assets/v1-chat.svg'
+import eyeIcon from '../assets/v1-view.svg'
+import heartIcon from '../assets/v1-heart-empty.svg'
+import activeHeartIcon from '../assets/v1-heart.svg'
 
 import * as S from './ActivityPost.style'
 
-import type { KeyboardEvent, SyntheticEvent } from 'react'
+import type { KeyboardEvent } from 'react'
 import type { MyPost } from '../../types'
 
 type ActivityPostProps = {
@@ -25,12 +21,11 @@ export function ActivityPost({
   onClick,
   post,
 }: ActivityPostProps) {
-  const authorName = post.author
-
-  const handleProfileImageError = (event: SyntheticEvent<HTMLImageElement>) => {
-    event.currentTarget.onerror = null
-    event.currentTarget.src = fallbackProfileImage
-  }
+  const formattedDate = formatCommunityDate(post.createdAt)
+  const dateText =
+    formattedDate === post.createdAt
+      ? formattedDate
+      : `${formattedDate.slice(2, 10)}. ${formattedDate.slice(11)}`
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (!onClick || (event.key !== 'Enter' && event.key !== ' ')) {
@@ -51,37 +46,25 @@ export function ActivityPost({
       <S.MainLine $hasComment={Boolean(post.commentPreview)}>
         <S.CategoryBadge>{post.category}</S.CategoryBadge>
         <S.Title>{post.title}</S.Title>
-        {authorName && (
-          <S.Author>
-            <S.AuthorAvatar
-              src={post.authorImageUrl ?? fallbackProfileImage}
-              alt={`${authorName} 프로필`}
-              loading="lazy"
-              decoding="async"
-              onError={handleProfileImageError}
-            />
-            <S.AuthorName>{authorName}</S.AuthorName>
-          </S.Author>
-        )}
-        <S.DateText>{formatCommunityListRecentDate(post.createdAt)}</S.DateText>
         <S.Metrics>
           <S.Metric>
+            <S.MetricIcon src={eyeIcon} alt="" aria-hidden="true" />
+            {post.views.toLocaleString()}
+          </S.Metric>
+          <S.Metric $tone="red">
             <S.MetricIcon
               src={isLiked ? activeHeartIcon : heartIcon}
               alt=""
               aria-hidden="true"
             />
-            {formatCommunityCount(post.likes)}
+            {post.likes.toLocaleString()}
           </S.Metric>
-          <S.Metric>
+          <S.Metric $tone="yellow">
             <S.MetricIcon src={commentIcon} alt="" aria-hidden="true" />
-            {formatCommunityCount(post.comments)}
-          </S.Metric>
-          <S.Metric>
-            <S.MetricIcon src={eyeIcon} alt="" aria-hidden="true" />
-            {formatCommunityCount(post.views)}
+            {post.comments.toLocaleString()}
           </S.Metric>
         </S.Metrics>
+        <S.DateText>{dateText}</S.DateText>
       </S.MainLine>
 
       {post.commentPreview && (

@@ -6,7 +6,7 @@ export const Menu = styled.div`
   ${token.flexColumn}
   position: absolute;
   z-index: 2;
-  top: 36px;
+  top: 0;
   right: 0;
   box-sizing: border-box;
   width: 165px;

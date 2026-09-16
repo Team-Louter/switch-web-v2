@@ -5,7 +5,7 @@ import * as token from '@/shared/styles/values/token'
 export const Overlay = styled.div`
   ${token.flexCenter}
   position: fixed;
-  z-index: 20;
+  z-index: 40;
   inset: 0;
   background: rgb(14 13 12 / 70%);
 `

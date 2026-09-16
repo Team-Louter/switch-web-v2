@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   changeAdminMemberRole,
@@ -6,17 +7,18 @@ import {
   getAdminMembers,
   quitAdminMembers,
 } from '@/entities/member'
+import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
 
-import memberCheckboxIcon from '../assets/member-checkbox.svg'
-import memberCloseIcon from '../assets/member-close.svg'
-import memberKebabIcon from '../assets/member-kebab.svg'
-import memberSearchIcon from '../assets/member-search.svg'
 import {
   formatManagedMember,
   memberActionCompleteText,
   memberActionRoleMap,
   memberRoleLabel,
 } from '../../model/memberManagementModel'
+import memberCloseIcon from '../assets/member-close.svg'
+import memberCrownIcon from '../assets/member-crown.svg'
+import memberKebabIcon from '../assets/member-kebab.svg'
+import memberSearchIcon from '../assets/member-search.svg'
 import { MemberConfirmModal } from './MemberConfirmModal'
 import { MemberKebabMenu } from './MemberKebabMenu'
 import * as S from './MemberManagementModal.style'
@@ -26,12 +28,17 @@ import type {
   MemberConfirmAction,
 } from '../../model/memberManagementModel'
 
-type PendingAction = {
+interface PendingAction {
   member: ManagedMember
   action: MemberConfirmAction
 }
 
-type MemberManagementModalProps = {
+interface MenuPosition {
+  right: number
+  top: number
+}
+
+interface MemberManagementModalProps {
   onClose: () => void
   onComplete: (message: string) => void
 }
@@ -40,43 +47,45 @@ export function MemberManagementModal({
   onClose,
   onComplete,
 }: MemberManagementModalProps) {
+  const menuRef = useRef<HTMLDivElement>(null)
   const [members, setMembers] = useState<ManagedMember[]>([])
-  const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([])
   const [openedMenuMemberId, setOpenedMenuMemberId] = useState<number | null>(
     null,
   )
+  const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null)
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [keyword, setKeyword] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose()
-      }
+  const filteredMembers = useMemo(() => {
+    const normalizedKeyword = keyword.trim().toLowerCase()
+
+    if (!normalizedKeyword) {
+      return members
     }
 
-    window.addEventListener('keydown', handleKeyDown)
-
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
+    return members.filter(
+      (member) =>
+        member.name.toLowerCase().includes(normalizedKeyword) ||
+        member.classInfo.replace(/\D/g, '').includes(normalizedKeyword),
+    )
+  }, [keyword, members])
+  const openedMenuMember =
+    members.find((member) => member.id === openedMenuMemberId) ?? null
 
   useEffect(() => {
     let shouldIgnore = false
-    const timerId = window.setTimeout(async () => {
+
+    const fetchMembers = async () => {
       try {
         setIsLoading(true)
-        const response = await getAdminMembers({
-          keyword: keyword.trim() || undefined,
-        })
+        const response = await getAdminMembers()
 
-        if (shouldIgnore) {
-          return
+        if (!shouldIgnore) {
+          setMembers(response.map(formatManagedMember))
+          setErrorMessage('')
         }
-
-        setMembers(response.map(formatManagedMember))
-        setErrorMessage('')
       } catch {
         if (!shouldIgnore) {
           setErrorMessage('멤버 목록을 불러오지 못했어요')
@@ -86,24 +95,102 @@ export function MemberManagementModal({
           setIsLoading(false)
         }
       }
-    }, 250)
+    }
+
+    void fetchMembers()
 
     return () => {
       shouldIgnore = true
-      window.clearTimeout(timerId)
     }
-  }, [keyword])
+  }, [])
 
-  const handleToggleMember = (memberId: number) => {
-    setSelectedMemberIds((prevSelectedMemberIds) =>
-      prevSelectedMemberIds.includes(memberId)
-        ? prevSelectedMemberIds.filter((selectedId) => selectedId !== memberId)
-        : [...prevSelectedMemberIds, memberId],
-    )
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') {
+        return
+      }
+
+      if (pendingAction) {
+        setPendingAction(null)
+        return
+      }
+
+      if (openedMenuMemberId !== null) {
+        setOpenedMenuMemberId(null)
+        setMenuPosition(null)
+        return
+      }
+
+      onClose()
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose, openedMenuMemberId, pendingAction])
+
+  useEffect(() => {
+    if (openedMenuMemberId === null) {
+      return
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+
+      if (target.closest(`[data-member-menu-id="${openedMenuMemberId}"]`)) {
+        return
+      }
+
+      if (!menuRef.current?.contains(target)) {
+        setOpenedMenuMemberId(null)
+        setMenuPosition(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+
+    return () => document.removeEventListener('mousedown', handlePointerDown)
+  }, [openedMenuMemberId])
+
+  useEffect(() => {
+    if (openedMenuMemberId === null) {
+      return
+    }
+
+    const closeMenu = () => {
+      setOpenedMenuMemberId(null)
+      setMenuPosition(null)
+    }
+
+    window.addEventListener('scroll', closeMenu, true)
+
+    return () => window.removeEventListener('scroll', closeMenu, true)
+  }, [openedMenuMemberId])
+
+  const handleToggleMenu = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    memberId: number,
+  ) => {
+    event.stopPropagation()
+
+    if (openedMenuMemberId === memberId) {
+      setOpenedMenuMemberId(null)
+      setMenuPosition(null)
+      return
+    }
+
+    const buttonRect = event.currentTarget.getBoundingClientRect()
+
+    setOpenedMenuMemberId(memberId)
+    setMenuPosition({
+      right: window.innerWidth - buttonRect.right,
+      top: buttonRect.bottom + 4,
+    })
   }
 
   const handleCopyEmail = async (member: ManagedMember) => {
     setOpenedMenuMemberId(null)
+    setMenuPosition(null)
 
     try {
       const email = await getAdminMemberEmail(member.id)
@@ -120,6 +207,7 @@ export function MemberManagementModal({
     action: MemberConfirmAction,
   ) => {
     setOpenedMenuMemberId(null)
+    setMenuPosition(null)
     setPendingAction({ member, action })
   }
 
@@ -132,14 +220,11 @@ export function MemberManagementModal({
 
     try {
       if (action === 'remove') {
-        await quitAdminMembers({
-          userIds: [member.id],
-        })
-        setMembers((prevMembers) =>
-          prevMembers.filter((prevMember) => prevMember.id !== member.id),
-        )
-        setSelectedMemberIds((prevSelectedMemberIds) =>
-          prevSelectedMemberIds.filter((selectedId) => selectedId !== member.id),
+        await quitAdminMembers({ userIds: [member.id] })
+        setMembers((currentMembers) =>
+          currentMembers.filter(
+            (currentMember) => currentMember.id !== member.id,
+          ),
         )
       } else {
         const updatedMember = await changeAdminMemberRole({
@@ -147,11 +232,11 @@ export function MemberManagementModal({
           userId: member.id,
         })
 
-        setMembers((prevMembers) =>
-          prevMembers.map((prevMember) =>
-            prevMember.id === member.id
+        setMembers((currentMembers) =>
+          currentMembers.map((currentMember) =>
+            currentMember.id === member.id
               ? formatManagedMember(updatedMember)
-              : prevMember,
+              : currentMember,
           ),
         )
       }
@@ -164,96 +249,118 @@ export function MemberManagementModal({
   }
 
   return (
-    <S.Overlay>
-      <S.Modal role="dialog" aria-modal="true" aria-label="멤버 관리">
-        <S.SearchBar>
-          <S.SearchIcon src={memberSearchIcon} alt="" />
-          <S.SearchInput
-            value={keyword}
-            placeholder="이름이나 학번을 입력하세요"
-            autoFocus
-            onChange={(event) => setKeyword(event.target.value)}
-          />
-          <S.CloseButton type="button" aria-label="닫기" onClick={onClose}>
-            <S.CloseIcon src={memberCloseIcon} alt="" />
-          </S.CloseButton>
-        </S.SearchBar>
+    <>
+      <S.Overlay onClick={onClose}>
+        <S.Modal
+          role="dialog"
+          aria-modal="true"
+          aria-label="멤버 관리"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <S.SearchBar>
+            <S.SearchIcon src={memberSearchIcon} alt="" />
+            <S.SearchInput
+              value={keyword}
+              placeholder="이름이나 학번을 입력하세요"
+              autoFocus
+              onChange={(event) => setKeyword(event.target.value)}
+            />
+            <S.CloseButton type="button" aria-label="닫기" onClick={onClose}>
+              <S.CloseIcon src={memberCloseIcon} alt="" />
+            </S.CloseButton>
+          </S.SearchBar>
 
-        <S.List>
-          {isLoading ? (
-            <S.Empty>불러오는 중이에요</S.Empty>
-          ) : errorMessage ? (
-            <S.Empty>{errorMessage}</S.Empty>
-          ) : members.length > 0 ? (
-            members.map((member) => {
-              const isSelected = selectedMemberIds.includes(member.id)
-              const isMenuOpen = openedMenuMemberId === member.id
-
-              return (
+          <S.List>
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, index) => (
+                <S.SkeletonRow key={index} aria-hidden="true">
+                  <S.SkeletonAvatar />
+                  <S.SkeletonTextGroup>
+                    <S.SkeletonLine $width="70px" />
+                    <S.SkeletonLine $width="95px" />
+                  </S.SkeletonTextGroup>
+                  <S.SkeletonLine $width="80px" />
+                </S.SkeletonRow>
+              ))
+            ) : errorMessage ? (
+              <S.Empty>{errorMessage}</S.Empty>
+            ) : filteredMembers.length > 0 ? (
+              filteredMembers.map((member) => (
                 <S.Row key={member.id}>
-                  <S.Checkbox
-                    type="button"
-                    $checked={isSelected}
-                    aria-label={`${member.name} 선택`}
-                    onClick={() => handleToggleMember(member.id)}
-                  >
-                    {isSelected && (
-                      <S.CheckboxIcon src={memberCheckboxIcon} alt="" />
-                    )}
-                  </S.Checkbox>
                   <S.MemberInfo>
+                    <S.Avatar
+                      src={member.profileImageUrl || fallbackProfileImage}
+                      alt=""
+                    />
                     <S.TextGroup>
                       <S.Name>{member.name}</S.Name>
                       <S.ClassInfo>{member.classInfo}</S.ClassInfo>
                     </S.TextGroup>
                   </S.MemberInfo>
-                  <S.Role>{memberRoleLabel[member.role]}</S.Role>
+                  <S.Role>
+                    {member.role === 'LEADER' && (
+                      <S.CrownIcon src={memberCrownIcon} alt="" />
+                    )}
+                    <span>{memberRoleLabel[member.role]}</span>
+                    {member.role === 'LEADER' && <S.CrownSpacer />}
+                  </S.Role>
                   <S.MoreButton
                     type="button"
+                    data-member-menu-id={member.id}
                     aria-label={`${member.name} 메뉴 열기`}
-                    onClick={() =>
-                      setOpenedMenuMemberId((prevOpenedMemberId) =>
-                        prevOpenedMemberId === member.id ? null : member.id,
-                      )
-                    }
+                    onClick={(event) => handleToggleMenu(event, member.id)}
                   >
                     <S.MoreIcon src={memberKebabIcon} alt="" />
                   </S.MoreButton>
-                  {isMenuOpen && (
-                    <MemberKebabMenu
-                      onCopyEmail={() => handleCopyEmail(member)}
-                      onSelectAction={(action) =>
-                        handleOpenConfirm(member, action)
-                      }
-                    />
-                  )}
                 </S.Row>
-              )
-            })
-          ) : (
-            <S.Empty>검색 결과가 없습니다</S.Empty>
+              ))
+            ) : (
+              <S.Empty>검색 결과가 없습니다</S.Empty>
+            )}
+          </S.List>
+
+          <S.Footer>
+            <S.MemberCount>
+              {isLoading
+                ? '멤버 목록 불러오는 중'
+                : `멤버 ${filteredMembers.length}명 표시 중`}
+            </S.MemberCount>
+            <S.ShortcutGroup type="button" onClick={onClose}>
+              <S.ShortcutKey>ESC</S.ShortcutKey>
+              닫기
+            </S.ShortcutGroup>
+          </S.Footer>
+
+          {pendingAction && (
+            <MemberConfirmModal
+              action={pendingAction.action}
+              member={pendingAction.member}
+              onCancel={() => setPendingAction(null)}
+              onConfirm={handleConfirmAction}
+            />
           )}
-        </S.List>
+        </S.Modal>
+      </S.Overlay>
 
-        <S.Footer>
-          <S.SelectedText>
-            멤버 {selectedMemberIds.length}명 선택됨
-          </S.SelectedText>
-          <S.ShortcutGroup type="button" onClick={onClose}>
-            <S.ShortcutKey>ESC</S.ShortcutKey>
-            닫기
-          </S.ShortcutGroup>
-        </S.Footer>
-
-        {pendingAction && (
-          <MemberConfirmModal
-            action={pendingAction.action}
-            member={pendingAction.member}
-            onCancel={() => setPendingAction(null)}
-            onConfirm={handleConfirmAction}
-          />
+      {openedMenuMember &&
+        menuPosition &&
+        createPortal(
+          <S.MenuPositioner
+            ref={menuRef}
+            $right={menuPosition.right}
+            $top={menuPosition.top}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <MemberKebabMenu
+              memberRole={openedMenuMember.role}
+              onCopyEmail={() => handleCopyEmail(openedMenuMember)}
+              onSelectAction={(action) =>
+                handleOpenConfirm(openedMenuMember, action)
+              }
+            />
+          </S.MenuPositioner>,
+          document.body,
         )}
-      </S.Modal>
-    </S.Overlay>
+    </>
   )
 }

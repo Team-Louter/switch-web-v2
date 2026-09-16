@@ -14,23 +14,24 @@ export const Page = styled.section`
   justify-content: flex-start;
   box-sizing: border-box;
   width: 100%;
+  height: 100dvh;
   min-height: 100dvh;
   padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px)
     clamp(20px, 2vw, 30px) 0;
-  overflow-y: auto;
+  overflow: hidden;
   background: ${token.colors.white};
 `
 
 export const Content = styled.div`
   ${token.flexColumn}
-  flex: 1 1 auto;
+  flex: 1 1 0;
   width: 100%;
   min-height: 0;
 `
 
 export const Card = styled.div`
   ${token.flexColumn}
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-height: 0;
   box-sizing: border-box;
   width: 100%;
@@ -44,11 +45,52 @@ export const Card = styled.div`
 `
 
 export const CardTop = styled.section`
+  position: relative;
   display: flex;
   align-items: center;
   box-sizing: border-box;
   width: 100%;
   padding: 48px 64px 32px;
+`
+
+export const QuickStats = styled.div`
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+`
+
+export const QuickStat = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: ${color.coolText};
+  line-height: 1;
+  white-space: nowrap;
+  ${token.typography('caption', 'sm', 'medium')}
+`
+
+export const QuickStatIcon = styled.span<{
+  $kind: 'point' | 'badge'
+}>`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  color: ${({ $kind }) =>
+    $kind === 'point' ? color.gold : color.coolText};
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+`
+
+export const QuickStatValue = styled.span`
+  font-variant-numeric: tabular-nums;
 `
 
 export const ProfileGroup = styled.div`
@@ -245,13 +287,13 @@ export const InfoValue = styled.span<{ $accent?: boolean }>`
 
 export const ActivitySection = styled.section`
   ${token.flexColumn}
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-height: 0;
   width: 100%;
 `
 
 export const TabContent = styled.div`
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-height: 0;
   padding: 8px 32px 32px;
   overflow-y: auto;
