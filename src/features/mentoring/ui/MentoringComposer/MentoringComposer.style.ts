@@ -8,7 +8,7 @@ export const Wrapper = styled.div`
   overflow: hidden;
   border: 1px solid ${token.colors.gray.gray20};
   border-radius: ${token.shapes.medium};
-  background: ${token.colors.gray.gray0};
+  background: ${token.colors.white};
 `
 
 export const TextareaWrap = styled.div`
