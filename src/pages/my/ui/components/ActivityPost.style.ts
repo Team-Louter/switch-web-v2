@@ -32,8 +32,8 @@ export const MainLine = styled.div<{ $hasComment: boolean }>`
   box-sizing: border-box;
   width: 100%;
   min-height: ${({ $hasComment }) => ($hasComment ? '70px' : '55px')};
-  gap: 16px;
-  padding: 10px 28px;
+  gap: clamp(8px, 1.06vw, 16px);
+  padding: 10px clamp(8px, calc(2.69vw - 12.6px), 28px);
 `
 
 export const CategoryBadge = styled.span`
@@ -84,7 +84,7 @@ export const Metrics = styled.div`
   display: flex;
   align-items: center;
   flex: 0 0 auto;
-  gap: 20px;
+  gap: clamp(8px, calc(1.62vw - 4.4px), 20px);
 `
 
 export const Metric = styled.span<{ $tone?: 'red' | 'yellow' }>`

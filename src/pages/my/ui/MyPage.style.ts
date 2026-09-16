@@ -9,6 +9,7 @@ const shimmer = keyframes`
 `
 
 export const Page = styled.section`
+  --my-content-inset: clamp(12px, calc(2.69vw - 8.6px), 32px);
   ${token.flexColumn}
   align-items: flex-start;
   justify-content: flex-start;
@@ -50,7 +51,11 @@ export const CardTop = styled.section`
   align-items: center;
   box-sizing: border-box;
   width: 100%;
-  padding: 48px 64px 32px;
+  flex-wrap: wrap;
+  gap: clamp(12px, calc(3vw - 18px), 28px);
+  padding: clamp(32px, 3.2vw, 48px)
+    clamp(16px, calc(6.45vw - 33.5px), 64px)
+    clamp(20px, 2.12vw, 32px);
 `
 
 export const QuickStats = styled.div`
@@ -97,7 +102,8 @@ export const ProfileGroup = styled.div`
   display: flex;
   align-items: center;
   flex: 0 0 auto;
-  gap: 24px;
+  gap: clamp(12px, calc(1.62vw - 0.5px), 24px);
+  min-width: 0;
 `
 
 export const ProfileImageWrapper = styled.div<{
@@ -165,8 +171,9 @@ export const EditButton = styled.button`
 export const StatsGroup = styled.div`
   display: flex;
   align-items: center;
-  gap: 40px;
-  margin-left: 112px;
+  flex: 0 0 auto;
+  gap: clamp(12px, calc(3.76vw - 16.9px), 40px);
+  margin-left: clamp(0px, calc(11.3vw - 86.8px), 84px);
 `
 
 export const StatItem = styled.div`
@@ -182,7 +189,7 @@ export const StatValue = styled.span`
 `
 
 export const StatLabel = styled.span`
-  min-width: 80px;
+  min-width: clamp(64px, calc(2.16vw + 47.4px), 80px);
   margin-top: 8px;
   color: ${color.text};
   line-height: 1.2;
@@ -197,6 +204,12 @@ export const ActionGroup = styled.div`
   margin-left: auto;
   align-self: flex-end;
   padding-bottom: 4px;
+  min-width: 0;
+  max-width: 100%;
+
+  @media (max-width: 1100px) {
+    flex-basis: 100%;
+  }
 `
 
 export const SocialRow = styled.div`
@@ -212,6 +225,10 @@ export const SocialLink = styled.a`
   gap: 4px;
   color: ${color.socialText};
   text-decoration: none;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   ${token.typography('body', 'sm', 'semibold')}
 
   &:hover {
@@ -241,7 +258,7 @@ export const ActionButton = styled.button<{
   $danger?: boolean
   $variant?: 'admin' | 'mentor'
 }>`
-  padding: 6px 18px;
+  padding: 6px clamp(10px, calc(1.08vw + 1.7px), 18px);
   border: ${({ $variant }) =>
     $variant === 'admin' ? 'none' : `1px solid ${color.line}`};
   border-radius: 4px;
@@ -269,15 +286,18 @@ export const ActionButton = styled.button<{
 
 export const Divider = styled.hr`
   height: 2px;
-  margin: 0 32px;
+  flex-shrink: 0;
+  margin: 0 var(--my-content-inset);
   border: 0;
   background: ${color.lightLine};
 `
 
 export const InfoSection = styled.section`
   ${token.flexColumn}
-  gap: 24px;
-  padding: 32px 48px 64px;
+  gap: clamp(16px, calc(1.08vw + 7.7px), 24px);
+  padding: clamp(20px, 2.12vw, 32px)
+    clamp(16px, calc(4.3vw - 17px), 48px)
+    clamp(28px, calc(4.84vw - 9.2px), 64px);
 `
 
 export const InfoRow = styled.div`
@@ -286,13 +306,16 @@ export const InfoRow = styled.div`
 `
 
 export const InfoLabel = styled.span`
-  margin-right: 16px;
+  flex-shrink: 0;
+  margin-right: clamp(8px, 1.06vw, 16px);
   color: ${color.text};
   line-height: 1.2;
   ${token.typography('body', 'lg', 'medium')}
 `
 
 export const InfoValue = styled.span<{ $accent?: boolean }>`
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: ${({ $accent }) =>
     $accent ? color.gold : color.coolText};
   line-height: 1.2;
@@ -310,7 +333,7 @@ export const ActivitySection = styled.section`
 export const TabContent = styled.div`
   flex: 1 1 0;
   min-height: 0;
-  padding: 8px 32px 32px;
+  padding: 8px var(--my-content-inset) var(--my-content-inset);
   overflow-y: auto;
   scrollbar-width: none;
 
@@ -378,13 +401,13 @@ export const SkeletonPostItem = styled.div`
   gap: 16px;
   box-sizing: border-box;
   min-height: 56px;
-  padding: 15px 28px;
+  padding: 15px clamp(8px, calc(2.69vw - 12.6px), 28px);
   border-bottom: 1px solid ${color.line};
 `
 
 export const SkeletonMeta = styled.div`
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: clamp(8px, calc(1.62vw - 4.4px), 20px);
   margin-left: auto;
 `
