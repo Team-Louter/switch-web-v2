@@ -101,6 +101,7 @@ export const MetricIcon = styled.img`
 `
 
 export const CommentPreview = styled.div`
+  position: relative;
   box-sizing: border-box;
   width: 100%;
   min-height: 16px;
@@ -108,10 +109,21 @@ export const CommentPreview = styled.div`
   color: ${color.coolText};
   line-height: 1;
   ${token.typography('caption', 'lg', 'medium')}
+
+  &::before {
+    position: absolute;
+    top: 0;
+    left: 100px;
+    color: ${color.coolText};
+    content: '└';
+  }
 `
 
 export const CommentText = styled.span`
   display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
