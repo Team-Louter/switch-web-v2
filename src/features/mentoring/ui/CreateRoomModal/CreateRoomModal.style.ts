@@ -1,5 +1,6 @@
 import styled, { css, keyframes } from 'styled-components'
 
+import { contentReveal } from '@/shared/styles/animations'
 import * as token from '@/shared/styles/values/token'
 
 const backdropEnter = keyframes`
@@ -224,10 +225,16 @@ export const ClearSearchButton = styled.button`
   }
 `
 
-export const MemberListBody = styled.div`
+export const MemberListBody = styled.div<{ $loaded: boolean }>`
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  animation: ${({ $loaded }) =>
+    $loaded && css`${contentReveal} 360ms ease-out both`};
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 export const MemberSkeletonList = styled.div`
@@ -289,8 +296,8 @@ export const MemberSkeletonRole = styled.span`
 export const MemberSkeletonAction = styled.span`
   ${skeletonSurface}
   display: block;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: ${token.shapes.xsmall};
 `
 
@@ -391,8 +398,8 @@ export const RoleText = styled.span`
 
 export const CheckBox = styled.button<{ $isChecked: boolean }>`
   ${token.flexCenter}
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
   padding: 0;
   border: ${({ $isChecked }) =>
@@ -406,6 +413,38 @@ export const CheckBox = styled.button<{ $isChecked: boolean }>`
   svg {
     width: 18px;
     height: 18px;
+  }
+`
+
+export const CheckMark = styled.span`
+  position: relative;
+  display: block;
+  width: 18px;
+  height: 18px;
+
+  &::before,
+  &::after {
+    position: absolute;
+    display: block;
+    height: 3px;
+    border-radius: ${token.shapes.circle};
+    background-color: ${token.colors.white};
+    content: '';
+    transform-origin: left center;
+  }
+
+  &::before {
+    top: 9px;
+    left: 2px;
+    width: 8px;
+    transform: rotate(45deg);
+  }
+
+  &::after {
+    top: 13px;
+    left: 7px;
+    width: 12px;
+    transform: rotate(-48deg);
   }
 `
 

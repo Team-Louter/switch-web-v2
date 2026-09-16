@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   PiCaretDown,
   PiCaretUp,
-  PiCheck,
   PiMagnifyingGlass,
   PiSpinnerGap,
   PiX,
@@ -207,7 +206,7 @@ function CreateRoomModalContent({
           $isChecked={isSelected}
           onClick={() => toggleMember(member.userId)}
         >
-          {isSelected && <PiCheck aria-hidden="true" />}
+          {isSelected && <S.CheckMark aria-hidden="true" />}
         </S.CheckBox>
       </S.MemberRow>
     )
@@ -261,7 +260,9 @@ function CreateRoomModalContent({
             )}
           </S.SearchField>
 
-          <S.MemberListBody>
+          <S.MemberListBody
+            $loaded={!isMembersLoading && !hasMemberLoadError}
+          >
             {isMembersLoading ? (
               <S.MemberSkeletonList
                 role="status"
@@ -313,7 +314,7 @@ function CreateRoomModalContent({
                           $isChecked={isAllSelected}
                           onClick={() => toggleGradeMembers(gradeMembers)}
                         >
-                          {isAllSelected && <PiCheck aria-hidden="true" />}
+                          {isAllSelected && <S.CheckMark aria-hidden="true" />}
                         </S.CheckBox>
                         <S.CaretButton
                           type="button"
