@@ -102,26 +102,84 @@ export function QuestionDetailPanel({
   onStatusChange,
 }: QuestionDetailPanelProps) {
   const [messages, setMessages] = useState<MentoringMessage[]>([])
+  const [loadedMessagesQuestionId, setLoadedMessagesQuestionId] = useState<
+    number | null
+  >(null)
   const [isSending, setIsSending] = useState(false)
   const messageListRef = useRef<HTMLDivElement>(null)
+  const messagesCacheRef = useRef(new Map<number, MentoringMessage[]>())
+  const allMessagesPromiseRef = useRef<Promise<MentoringMessage[]> | null>(null)
+  const hasLoadedAllMessagesRef = useRef(false)
+  const activeQuestionIdRef = useRef(question.questionId)
 
   const loadMessages = async (questionId: number) => {
-    // 서버에 질문 단위 조회가 없어 전체 메시지에서 해당 질문만 추린다.
-    const allMessages = await getMessages()
+    const cachedMessages = messagesCacheRef.current.get(questionId)
 
-    return allMessages
-      .filter((message) => message.questionId === questionId)
-      .sort((first, second) => first.createdAt.localeCompare(second.createdAt))
+    if (cachedMessages) {
+      return cachedMessages
+    }
+
+    if (hasLoadedAllMessagesRef.current) {
+      const emptyMessages: MentoringMessage[] = []
+      messagesCacheRef.current.set(questionId, emptyMessages)
+      return emptyMessages
+    }
+
+    // 서버에 질문 단위 조회가 없어 전체 메시지에서 해당 질문만 추린다.
+    const request =
+      allMessagesPromiseRef.current ??
+      (allMessagesPromiseRef.current = getMessages())
+
+    try {
+      const allMessages = await request
+      const groupedMessages = new Map<number, MentoringMessage[]>()
+
+      allMessages.forEach((message) => {
+        const questionMessages = groupedMessages.get(message.questionId) ?? []
+        questionMessages.push(message)
+        groupedMessages.set(message.questionId, questionMessages)
+      })
+
+      groupedMessages.forEach((questionMessages, cachedQuestionId) => {
+        messagesCacheRef.current.set(
+          cachedQuestionId,
+          questionMessages.sort((first, second) =>
+            first.createdAt.localeCompare(second.createdAt),
+          ),
+        )
+      })
+      hasLoadedAllMessagesRef.current = true
+
+      const questionMessages = messagesCacheRef.current.get(questionId) ?? []
+      messagesCacheRef.current.set(questionId, questionMessages)
+
+      return questionMessages
+    } finally {
+      if (allMessagesPromiseRef.current === request) {
+        allMessagesPromiseRef.current = null
+      }
+    }
   }
 
   useEffect(() => {
     let isCancelled = false
 
+    activeQuestionIdRef.current = question.questionId
+
     loadMessages(question.questionId)
       .then((questionMessages) => {
-        if (!isCancelled) setMessages(questionMessages)
+        if (!isCancelled) {
+          setMessages(questionMessages)
+          setLoadedMessagesQuestionId(question.questionId)
+        }
       })
-      .catch(() => {})
+      .catch(() => {
+        messagesCacheRef.current.set(question.questionId, [])
+        if (!isCancelled) {
+          setMessages([])
+          setLoadedMessagesQuestionId(question.questionId)
+        }
+      })
 
     return () => {
       isCancelled = true
@@ -145,13 +203,22 @@ export function QuestionDetailPanel({
         nextFiles.map((file) => uploadMentoringFile(file)),
       )
 
-      await createMessage({
+      const createdMessage = await createMessage({
         questionId: question.questionId,
         content: nextContent.trim(),
         files: uploadedFiles,
       })
 
-      setMessages(await loadMessages(question.questionId))
+      const nextMessages = [
+        ...(messagesCacheRef.current.get(question.questionId) ?? messages),
+        createdMessage,
+      ].sort((first, second) => first.createdAt.localeCompare(second.createdAt))
+
+      messagesCacheRef.current.set(question.questionId, nextMessages)
+
+      if (activeQuestionIdRef.current === question.questionId) {
+        setMessages(nextMessages)
+      }
     } finally {
       setIsSending(false)
     }
@@ -168,7 +235,11 @@ export function QuestionDetailPanel({
     }
   }
 
-  const messageGroups = useMemo(() => groupMessages(messages), [messages])
+  const isLoadingMessages = loadedMessagesQuestionId !== question.questionId
+  const messageGroups = useMemo(
+    () => groupMessages(isLoadingMessages ? [] : messages),
+    [isLoadingMessages, messages],
+  )
   const questionAuthor = membersByUserId[question.userId]
 
   return (
@@ -258,64 +329,85 @@ export function QuestionDetailPanel({
             </S.MessageBody>
           </S.MessageGroup>
 
-          {messageGroups.map((group) => {
-            const isMine = group.userId === currentUserId
-            const sender = membersByUserId[group.userId]
+          {isLoadingMessages ? (
+            <S.MessageLoading aria-label="답변을 불러오는 중입니다.">
+              <S.MessageLoadingGroup aria-hidden="true">
+                <S.MessageLoadingAvatar />
+                <S.MessageLoadingBody>
+                  <S.MessageLoadingLine $width="56px" />
+                  <S.MessageLoadingBubble $width="220px" />
+                  <S.MessageLoadingLine $width="82px" />
+                </S.MessageLoadingBody>
+              </S.MessageLoadingGroup>
+              <S.MessageLoadingGroup aria-hidden="true">
+                <S.MessageLoadingAvatar />
+                <S.MessageLoadingBody>
+                  <S.MessageLoadingLine $width="64px" />
+                  <S.MessageLoadingBubble $width="320px" />
+                  <S.MessageLoadingLine $width="82px" />
+                </S.MessageLoadingBody>
+              </S.MessageLoadingGroup>
+            </S.MessageLoading>
+          ) : (
+            messageGroups.map((group) => {
+              const isMine = group.userId === currentUserId
+              const sender = membersByUserId[group.userId]
 
-            return (
-              <S.MessageGroup
-                key={group.groupId}
-                $isMine={embedded ? false : isMine}
-              >
-                {(!isMine || embedded) && (
-                  <MemberAvatar
-                    userName={sender?.userName}
-                    profileImageUrl={sender?.profileImageUrl}
-                  />
-                )}
-                <S.MessageBody>
+              return (
+                <S.MessageGroup
+                  key={group.groupId}
+                  $isMine={embedded ? false : isMine}
+                >
                   {(!isMine || embedded) && (
-                    <S.SenderName>{sender?.userName ?? '멤버'}</S.SenderName>
+                    <MemberAvatar
+                      userName={sender?.userName}
+                      profileImageUrl={sender?.profileImageUrl}
+                    />
                   )}
-                  <S.Bubbles $isMine={embedded ? false : isMine}>
-                    {group.messages.map((message) => (
-                      <S.Bubble
-                        key={message.messageId}
+                  <S.MessageBody>
+                    {(!isMine || embedded) && (
+                      <S.SenderName>{sender?.userName ?? '멤버'}</S.SenderName>
+                    )}
+                    <S.Bubbles $isMine={embedded ? false : isMine}>
+                      {group.messages.map((message) => (
+                        <S.Bubble
+                          key={message.messageId}
+                          $isMine={embedded ? false : isMine}
+                          $embedded={embedded}
+                        >
+                          {message.content}
+                          {message.files?.map((file) =>
+                            isImageFile(file) ? (
+                              <S.AttachedImage
+                                key={file.fileId}
+                                src={file.fileUrl}
+                                alt={file.fileName}
+                              />
+                            ) : (
+                              <S.AttachedFile
+                                key={file.fileId}
+                                href={file.fileUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {file.fileName}
+                              </S.AttachedFile>
+                            ),
+                          )}
+                        </S.Bubble>
+                      ))}
+                      <S.MessageTime
                         $isMine={embedded ? false : isMine}
                         $embedded={embedded}
                       >
-                        {message.content}
-                        {message.files?.map((file) =>
-                          isImageFile(file) ? (
-                            <S.AttachedImage
-                              key={file.fileId}
-                              src={file.fileUrl}
-                              alt={file.fileName}
-                            />
-                          ) : (
-                            <S.AttachedFile
-                              key={file.fileId}
-                              href={file.fileUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              {file.fileName}
-                            </S.AttachedFile>
-                          ),
-                        )}
-                      </S.Bubble>
-                    ))}
-                    <S.MessageTime
-                      $isMine={embedded ? false : isMine}
-                      $embedded={embedded}
-                    >
-                      {formatQuestionDate(group.createdAt)}
-                    </S.MessageTime>
-                  </S.Bubbles>
-                </S.MessageBody>
-              </S.MessageGroup>
-            )
-          })}
+                        {formatQuestionDate(group.createdAt)}
+                      </S.MessageTime>
+                    </S.Bubbles>
+                  </S.MessageBody>
+                </S.MessageGroup>
+              )
+            })
+          )}
         </S.MessageList>
         {question.status !== 'DONE' && (
           <MentoringComposer

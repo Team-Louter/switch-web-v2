@@ -1,4 +1,4 @@
-import styled, { css } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
@@ -277,4 +277,72 @@ export const MessageTime = styled.span<{
   max-width: ${({ $embedded }) => ($embedded ? 'min(100%, 705px)' : '296px')};
   color: ${token.colors.gray.gray40};
   text-align: ${({ $isMine }) => ($isMine ? 'right' : 'left')};
+`
+
+const messageSkeletonShimmer = keyframes`
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: -100% 0;
+  }
+`
+
+const messageSkeletonSurface = css`
+  border-radius: ${token.shapes.xsmall};
+  background: linear-gradient(
+    90deg,
+    ${token.colors.gray.gray0} 20%,
+    ${token.colors.gray.gray10} 50%,
+    ${token.colors.gray.gray0} 80%
+  );
+  background-size: 200% 100%;
+  animation: ${messageSkeletonShimmer} 1.4s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
+export const MessageLoading = styled.div`
+  ${token.flexColumnStart}
+  width: 100%;
+  gap: 16px;
+`
+
+export const MessageLoadingGroup = styled.div`
+  ${token.flexRow}
+  align-items: flex-start;
+  width: 100%;
+  gap: 6px;
+`
+
+export const MessageLoadingAvatar = styled.span`
+  ${messageSkeletonSurface}
+  display: block;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: ${token.shapes.circle};
+`
+
+export const MessageLoadingBody = styled.div`
+  ${token.flexColumnStart}
+  gap: 6px;
+`
+
+export const MessageLoadingLine = styled.span<{ $width: string }>`
+  ${messageSkeletonSurface}
+  display: block;
+  width: ${({ $width }) => $width};
+  height: 12px;
+`
+
+export const MessageLoadingBubble = styled.span<{ $width: string }>`
+  ${messageSkeletonSurface}
+  display: block;
+  width: ${({ $width }) => $width};
+  height: 40px;
+  border-radius: ${token.shapes.medium};
 `
