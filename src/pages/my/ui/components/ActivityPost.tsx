@@ -25,7 +25,7 @@ export function ActivityPost({
   onClick,
   post,
 }: ActivityPostProps) {
-  const authorName = post.author || '작성자'
+  const authorName = post.author
 
   const handleProfileImageError = (event: SyntheticEvent<HTMLImageElement>) => {
     event.currentTarget.onerror = null
@@ -51,16 +51,18 @@ export function ActivityPost({
       <S.MainLine $hasComment={Boolean(post.commentPreview)}>
         <S.CategoryBadge>{post.category}</S.CategoryBadge>
         <S.Title>{post.title}</S.Title>
-        <S.Author>
-          <S.AuthorAvatar
-            src={post.authorImageUrl ?? fallbackProfileImage}
-            alt={`${authorName} 프로필`}
-            loading="lazy"
-            decoding="async"
-            onError={handleProfileImageError}
-          />
-          <S.AuthorName>{authorName}</S.AuthorName>
-        </S.Author>
+        {authorName && (
+          <S.Author>
+            <S.AuthorAvatar
+              src={post.authorImageUrl ?? fallbackProfileImage}
+              alt={`${authorName} 프로필`}
+              loading="lazy"
+              decoding="async"
+              onError={handleProfileImageError}
+            />
+            <S.AuthorName>{authorName}</S.AuthorName>
+          </S.Author>
+        )}
         <S.DateText>{formatCommunityListRecentDate(post.createdAt)}</S.DateText>
         <S.Metrics>
           <S.Metric>

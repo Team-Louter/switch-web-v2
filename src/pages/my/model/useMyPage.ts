@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import {
-  POST_CATEGORY_OPTIONS,
-  resolveCommunityAssetUrl,
-} from '@/entities/community'
+import { getPostCategoryLabel } from '@/entities/community'
 import { formatProfileClassInfo, useUserStore } from '@/entities/profile'
 import { mergeSyncedEquippedItems } from '@/shared/lib/profileSync'
 
@@ -23,6 +20,7 @@ import type {
   ProfileMajor,
 } from '../types'
 import type {
+  MyCommentResponse,
   MyPostResponse,
   ProfileResponse,
 } from '../api'
@@ -38,10 +36,6 @@ const majorLabelMap: Record<ProfileMajor, string> = {
   IOS: 'ios',
   SECURITY: '보안',
 }
-
-const postCategoryLabelMap = new Map(
-  POST_CATEGORY_OPTIONS.map(({ label, value }) => [value, label]),
-)
 
 const initialProfile: MyProfile = {
   name: '',
@@ -74,89 +68,18 @@ const initialLoadedTabs: Record<MyActivityTabId, boolean> = {
   likes: false,
 }
 
-const getNestedStringValue = (
-  record: MyPostResponse,
-  keys: string[],
-  nestedKeys: string[],
-) => {
-  const value = keys.map((key) => record[key]).find(Boolean)
-
-  if (typeof value === 'string') {
-    return value
-  }
-
-  if (value && typeof value === 'object') {
-    const objectValue = value as Record<string, unknown>
-    const nestedValue = nestedKeys
-      .map((key) => objectValue[key])
-      .find((item) => typeof item === 'string' && item)
-
-    return typeof nestedValue === 'string' ? nestedValue : ''
-  }
-
-  return ''
-}
-
-const getStringValue = (
-  record: MyPostResponse,
-  keys: string[],
-) =>
-  getNestedStringValue(record, keys, [
-    'label',
-    'name',
-    'value',
-    'userName',
-    'authorName',
-    'writerName',
-  ])
-
-const getImageValue = (
-  record: MyPostResponse,
-  keys: string[],
-) =>
-  getNestedStringValue(record, keys, [
-    'profileImageUrl',
-    'userProfileImageUrl',
-    'authorProfileImageUrl',
-    'writerProfileImageUrl',
-    'imageUrl',
-    'thumbnailUrl',
-    'url',
-  ])
-
 const getNumberValue = (
-  record: MyPostResponse | ProfileResponse,
-  keys: string[],
-) => {
-  const value = keys.map((key) => record[key as keyof typeof record]).find(
-    (item) => item !== undefined && item !== null,
-  )
-
-  return typeof value === 'number' ? value : undefined
-}
-
-const getBooleanValue = (
-  record: MyPostResponse,
-  keys: string[],
+  record: ProfileResponse,
+  keys: (keyof ProfileResponse)[],
 ) => {
   const value = keys
     .map((key) => record[key])
     .find((item) => item !== undefined && item !== null)
 
-  return typeof value === 'boolean' ? value : undefined
+  return typeof value === 'number' ? value : undefined
 }
 
-const getPostId = (record: MyPostResponse, fallback: number) => {
-  const value = ['postId', 'id', 'commentId']
-    .map((key) => record[key])
-    .find((item) => item !== undefined && item !== null)
-
-  return typeof value === 'number' || typeof value === 'string'
-    ? String(value)
-    : `post-${fallback}`
-}
-
-const getPageItems = (response: { content?: MyPostResponse[] }) =>
+const getPageItems = <T>(response: { content?: T[] }): T[] =>
   Array.isArray(response.content) ? response.content : []
 
 const formatMajorText = (majors?: ProfileMajor[]) =>
@@ -187,111 +110,57 @@ const formatProfile = (profile: ProfileResponse): MyProfile => {
   return nextProfile
 }
 
-const formatCategoryText = (category: string) =>
-  postCategoryLabelMap.get(category) ?? category
+type MyActivityAuthor = {
+  name: string
+  imageUrl?: string
+}
 
-const formatPost = (
+// '작성한 글' 탭은 항상 로그인한 본인 글이라 프로필 정보로 작성자를 채운다.
+// '댓글'/'좋아요' 탭은 다른 사람 글일 수 있지만, 백엔드 응답(MyCommentResponse/
+// MyPostResponse)에 원글 작성자 정보가 아예 내려오지 않아 프론트에서 복원할 수 없다.
+const formatMyPost = (
   post: MyPostResponse,
-  index: number,
-  shouldShowComment = false,
+  currentUser: MyActivityAuthor,
 ): MyPost => ({
-  id: getPostId(post, index + 1),
-  category: formatCategoryText(
-    getStringValue(post, [
-      'categoryLabel',
-      'categoryName',
-      'postCategoryLabel',
-      'postCategoryName',
-      'category',
-      'postCategory',
-      'boardCategory',
-    ]),
-  ),
-  title: getStringValue(post, ['title', 'postTitle']),
-  author: getStringValue(post, [
-    'postAuthorName',
-    'postWriterName',
-    'postUserName',
-    'originalAuthorName',
-    'originalWriterName',
-    'authorName',
-    'writerName',
-    'memberName',
-    'createdByName',
-    'authorNickname',
-    'writerNickname',
-    'userNickname',
-    'nickname',
-    'userName',
-    'author',
-    'writer',
-    'user',
-    'member',
-    'createdBy',
-  ]),
-  authorImageUrl: resolveCommunityAssetUrl(
-    getImageValue(post, [
-      'postAuthorProfileImageUrl',
-      'postWriterProfileImageUrl',
-      'postUserProfileImageUrl',
-      'originalAuthorProfileImageUrl',
-      'originalWriterProfileImageUrl',
-      'authorProfileImageUrl',
-      'writerProfileImageUrl',
-      'userProfileImageUrl',
-      'profileImageUrl',
-      'authorImageUrl',
-      'writerImageUrl',
-      'imageUrl',
-      'author',
-      'writer',
-      'user',
-      'member',
-    ]),
-  ),
-  createdAt: getStringValue(post, [
-    'createdAt',
-    'createdDate',
-    'createdDateTime',
-  ]),
-  likes: getNumberValue(post, ['likes', 'likeCount', 'heartCount']) ?? 0,
-  isLiked: getBooleanValue(post, [
-    'isHearted',
-    'hearted',
-    'isLiked',
-    'liked',
-    'hasHearted',
-    'hasLiked',
-  ]),
-  comments: getNumberValue(post, ['comments', 'commentCount']) ?? 0,
-  views: getNumberValue(post, ['views', 'viewCount']) ?? 0,
-  commentPreview: shouldShowComment
-    ? getStringValue(post, ['comment', 'commentContent', 'content'])
-    : undefined,
+  id: String(post.postId),
+  category: getPostCategoryLabel(post.postCategory),
+  title: post.postTitle,
+  author: currentUser.name,
+  authorImageUrl: currentUser.imageUrl,
+  createdAt: post.createdAt,
+  likes: post.likeCount,
+  isLiked: post.isHearted,
+  comments: post.commentCount,
+  views: post.viewers,
+})
+
+const formatMyLikedPost = (post: MyPostResponse): MyPost => ({
+  id: String(post.postId),
+  category: getPostCategoryLabel(post.postCategory),
+  title: post.postTitle,
+  author: '',
+  createdAt: post.createdAt,
+  likes: post.likeCount,
+  isLiked: post.isHearted,
+  comments: post.commentCount,
+  views: post.viewers,
+})
+
+const formatMyComment = (comment: MyCommentResponse): MyPost => ({
+  id: String(comment.postId),
+  category: getPostCategoryLabel(comment.postCategory),
+  title: comment.postTitle,
+  author: '',
+  createdAt: comment.commentCreatedAt,
+  likes: comment.likeCount,
+  isLiked: comment.isHearted,
+  comments: comment.commentCount,
+  views: comment.viewers,
+  commentPreview: comment.commentContent,
 })
 
 const formatOptionalStatValue = (value?: number) =>
   typeof value === 'number' ? value.toLocaleString() : '-'
-
-const formatActivityPosts = (
-  tabId: MyActivityTabId,
-  response: { content?: MyPostResponse[] },
-) =>
-  getPageItems(response).map((post, index) =>
-    formatPost(post, index, tabId === 'comments'),
-  )
-
-const getActivityTabPosts = (tabId: MyActivityTabId) => {
-  if (tabId === 'comments') {
-    return getMyComments()
-  }
-
-  if (tabId === 'likes') {
-    return getMyLikedPosts()
-  }
-
-  return getMyPosts()
-}
 
 // 마이 페이지의 프로필과 활동 데이터를 서버 응답 기준으로 구성한다.
 export function useMyPage() {
@@ -312,11 +181,21 @@ export function useMyPage() {
     setIsLoading(true)
 
     try {
-      const response = await getActivityTabPosts(tabId)
+      let posts: MyPost[]
+
+      if (tabId === 'comments') {
+        posts = getPageItems(await getMyComments()).map(formatMyComment)
+      } else if (tabId === 'likes') {
+        posts = getPageItems(await getMyLikedPosts()).map(formatMyLikedPost)
+      } else {
+        posts = getPageItems(await getMyPosts()).map((post) =>
+          formatMyPost(post, profile),
+        )
+      }
 
       setPostsByTab((currentPostsByTab) => ({
         ...currentPostsByTab,
-        [tabId]: formatActivityPosts(tabId, response),
+        [tabId]: posts,
       }))
       setLoadedTabs((currentLoadedTabs) => ({
         ...currentLoadedTabs,
@@ -328,7 +207,7 @@ export function useMyPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [profile])
 
   useEffect(() => {
     let shouldIgnore = false
@@ -352,7 +231,9 @@ export function useMyPage() {
           return
         }
 
-        setProfile(formatProfile(profileResponse))
+        const nextProfile = formatProfile(profileResponse)
+
+        setProfile(nextProfile)
         setActivityTabs([
           { id: 'posts', label: '작성한 글', count: profileResponse.postCount },
           { id: 'comments', label: '댓글', count: profileResponse.commentCount },
@@ -385,7 +266,9 @@ export function useMyPage() {
         ])
         setPostsByTab({
           ...initialPostsByTab,
-          posts: formatActivityPosts('posts', postsResponse),
+          posts: getPageItems(postsResponse).map((post) =>
+            formatMyPost(post, nextProfile),
+          ),
         })
         setLoadedTabs({
           ...initialLoadedTabs,

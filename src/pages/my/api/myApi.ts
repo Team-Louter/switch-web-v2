@@ -1,5 +1,7 @@
 import { apiClient } from '@/shared/api'
 
+import type { PostCategory } from '@/entities/community'
+
 export {
   getMyProfile,
   sendWithdrawalVerificationCode,
@@ -18,7 +20,31 @@ type PageableQuery = {
   sort?: string[]
 }
 
-export type MyPostResponse = Record<string, unknown>
+// 백엔드 OpenAPI 스펙(MyPostResponse/MyCommentResponse) 기준 응답 타입.
+// 두 응답 모두 작성자 정보는 내려오지 않는다.
+export interface MyPostResponse {
+  postId: number
+  postTitle: string
+  postCategory: PostCategory
+  viewers: number
+  likeCount: number
+  commentCount: number
+  isHearted: boolean
+  createdAt: string
+}
+
+export interface MyCommentResponse {
+  commentId: number
+  commentContent: string
+  commentCreatedAt: string
+  postId: number
+  postTitle: string
+  postCategory: PostCategory
+  viewers: number
+  likeCount: number
+  isHearted: boolean
+  commentCount: number
+}
 
 export type PageResponse<T> = {
   content?: T[]
@@ -66,7 +92,7 @@ export const getMyLikedPosts = async (
 export const getMyComments = async (
   pageable: PageableQuery = defaultPageable,
 ) => {
-  const response = await apiClient.get<PageResponse<MyPostResponse>>(
+  const response = await apiClient.get<PageResponse<MyCommentResponse>>(
     '/me/comments',
     {
       params: {
