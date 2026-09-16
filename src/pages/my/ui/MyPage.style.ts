@@ -100,14 +100,17 @@ export const ProfileGroup = styled.div`
   gap: 24px;
 `
 
-export const ProfileImageWrapper = styled.div`
+export const ProfileImageWrapper = styled.div<{
+  $hasCustomBorder: boolean
+}>`
   display: flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 116px;
   width: 116px;
   height: 116px;
-  border: 4px solid ${color.avatarBorder};
+  border: ${({ $hasCustomBorder }) =>
+    $hasCustomBorder ? '0' : `4px solid ${color.avatarBorder}`};
   border-radius: ${token.shapes.circle};
   background: ${token.colors.white};
   box-shadow: 0 2px 6px rgb(0 0 0 / 8%);
@@ -117,6 +120,18 @@ export const ProfileInfo = styled.div`
   ${token.flexColumn}
   align-items: flex-start;
   gap: 8px;
+  min-width: 0;
+  max-width: 220px;
+`
+
+export const ProfileTitle = styled.span`
+  max-width: 100%;
+  overflow: hidden;
+  color: ${color.gold};
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  ${token.typography('caption', 'sm', 'medium')}
 `
 
 export const ProfileName = styled.h1`

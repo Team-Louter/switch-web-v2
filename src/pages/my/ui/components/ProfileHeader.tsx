@@ -4,7 +4,9 @@ import {
   normalizeGithubUrl,
   normalizeLinkedinUrl,
 } from '../../model/profileUrlUtils'
+import { UserName } from '@/entities/user'
 import { ProfileAvatar } from '@/shared/ui'
+import { getNameStyleKey } from '@/shared/styles'
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
 
 import * as S from '../MyPage.style'
@@ -95,6 +97,25 @@ export function ProfileHeader({
   const likedPostCount =
     activityTabs.find((tab) => tab.id === 'likes')?.count ?? 0
   const profileImageUrl = profile.imageUrl ?? fallbackProfileImage
+  const profileTitle = profile.equippedItems?.title
+  const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName
+  const profileNameColor = profile.equippedItems?.nameColor
+  const profileNameStyleKey = getNameStyleKey(
+    profileNameColor?.styleKey ??
+      profileNameColor?.valueColor ??
+      profileNameColor?.value_color ??
+      profileNameColor?.valueText ??
+      profileNameColor?.itemName,
+  )
+  const profileBorder = profile.equippedItems?.border
+  const profileBorderImageUrl =
+    profileBorder?.valueImageUrl ??
+    profileBorder?.imageUrl ??
+    profileBorder?.itemImageUrl ??
+    profileBorder?.originalImageUrl ??
+    profileBorder?.previewImageUrl ??
+    profileBorder?.thumbnailUrl
+  const hasCustomBorder = Boolean(profileBorderImageUrl?.trim())
 
   return (
     <>
@@ -120,16 +141,22 @@ export function ProfileHeader({
           </S.QuickStat>
         </S.QuickStats>
         <S.ProfileGroup>
-          <S.ProfileImageWrapper>
+          <S.ProfileImageWrapper $hasCustomBorder={hasCustomBorder}>
             <ProfileAvatar
               alt={`${profile.name} 프로필 이미지`}
+              equippedItems={profile.equippedItems}
               imageUrl={profileImageUrl}
               loading="eager"
               size={116}
             />
           </S.ProfileImageWrapper>
           <S.ProfileInfo>
-            <S.ProfileName>{profile.name}</S.ProfileName>
+            {profileTitleText && (
+              <S.ProfileTitle>{profileTitleText}</S.ProfileTitle>
+            )}
+            <S.ProfileName>
+              <UserName styleKey={profileNameStyleKey}>{profile.name}</UserName>
+            </S.ProfileName>
             <S.ProfileSubInfo>{profile.classInfo}</S.ProfileSubInfo>
             <S.EditButton type="button" onClick={onEdit}>
               프로필 수정
