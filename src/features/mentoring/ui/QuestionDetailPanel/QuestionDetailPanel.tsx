@@ -157,11 +157,10 @@ export function QuestionDetailPanel({
   const scrollToBottomQuestionIdRef = useRef<number | null>(null)
 
   const mergePendingMessages = useCallback(
-    (questionId: number, messages: MentoringMessage[]) =>
-      sortMessages([
-        ...messages,
-        ...(pendingMessagesRef.current.get(questionId) ?? []),
-      ]),
+    (questionId: number, messages: MentoringMessage[]) => [
+      ...sortMessages(messages),
+      ...(pendingMessagesRef.current.get(questionId) ?? []),
+    ],
     [],
   )
 
@@ -319,10 +318,8 @@ export function QuestionDetailPanel({
     const currentMessages =
       messagesCacheRef.current.get(questionId) ??
       (loadedMessages?.questionId === questionId ? loadedMessages.messages : [])
-    const optimisticMessages = sortMessages([
-      ...currentMessages,
-      optimisticMessage,
-    ])
+    // 임시 메시지는 서버 시간 형식과 무관하게 대화의 마지막에 표시한다.
+    const optimisticMessages = [...currentMessages, optimisticMessage]
 
     setIsSending(true)
     updateQuestionMessages(questionId, optimisticMessages)
@@ -348,14 +345,14 @@ export function QuestionDetailPanel({
         pendingMessagesRef.current.delete(questionId)
       }
 
-      const nextMessages = sortMessages([
+      const nextMessages = [
         ...(messagesCacheRef.current.get(questionId) ?? []).filter(
           ({ messageId }) =>
             messageId !== optimisticMessageId &&
             messageId !== createdMessage.messageId,
         ),
         createdMessage,
-      ])
+      ]
 
       updateQuestionMessages(questionId, nextMessages)
     } catch (error) {
