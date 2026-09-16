@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { PiPlus } from 'react-icons/pi'
+import { useLocation, useSearchParams } from 'react-router-dom'
 
 import { getMember } from '@/entities/member'
 import { getProfile } from '@/entities/member/getProfile'
@@ -52,6 +53,22 @@ interface MentoringBaseData {
 const INITIAL_SKELETON_MIN_DURATION_MS = 180
 // 외부 프로필 이미지가 응답하지 않아도 전체 화면 로딩이 멈추지 않도록 제한한다.
 const MEMBER_IMAGE_PRELOAD_TIMEOUT_MS = 1_500
+
+function parsePositiveId(value: string | null): number | null {
+  if (!value) {
+    return null
+  }
+
+  const id = Number(value)
+
+  return Number.isSafeInteger(id) && id > 0 ? id : null
+}
+
+function getTargetMessageId(hash: string): number | null {
+  const match = /^#message-(\d+)$/.exec(hash)
+
+  return match ? parsePositiveId(match[1]) : null
+}
 
 const wait = (durationMs: number) =>
   new Promise<void>((resolve) => {
@@ -174,6 +191,10 @@ function applyMentoringData(
 }
 
 export function MentoringEntryPage() {
+  const { hash } = useLocation()
+  const [searchParams] = useSearchParams()
+  const targetQuestionId = parsePositiveId(searchParams.get('questionId'))
+  const targetMessageId = getTargetMessageId(hash)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [members, setMembers] = useState<Member[]>([])
   const [rooms, setRooms] = useState<MentoringRoomView[]>([])
@@ -184,7 +205,7 @@ export function MentoringEntryPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null)
   const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(
-    null,
+    targetQuestionId,
   )
   const [isWritingNew, setIsWritingNew] = useState(false)
   const [pendingQuestionId, setPendingQuestionId] = useState<number | null>(
@@ -278,7 +299,10 @@ export function MentoringEntryPage() {
     selectedRoomId !== null &&
     rooms.some((room) => room.mentoringId === selectedRoomId)
       ? selectedRoomId
-      : (rooms[0]?.mentoringId ?? null)
+      : (questions.find(({ questionId }) => questionId === targetQuestionId)
+          ?.mentoringId ??
+        rooms[0]?.mentoringId ??
+        null)
 
   const roomQuestions = useMemo(() => {
     return questions
@@ -573,6 +597,11 @@ export function MentoringEntryPage() {
                 canChangeStatus={false}
                 membersByUserId={membersByUserId}
                 messagesPromise={initialMessagesPromise ?? undefined}
+                targetMessageId={
+                  activeQuestionId === targetQuestionId
+                    ? targetMessageId
+                    : null
+                }
                 showCompleteAction={shouldShowCompleteAction}
                 isCompleting={isStatusUpdating}
                 onClose={() => setSelectedQuestionId(null)}

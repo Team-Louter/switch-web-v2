@@ -125,6 +125,7 @@ interface QuestionDetailPanelProps {
   canChangeStatus: boolean
   membersByUserId: Record<number, Member>
   messagesPromise?: Promise<MentoringMessage[]>
+  targetMessageId?: number | null
   embedded?: boolean
   showCompleteAction?: boolean
   isCompleting?: boolean
@@ -140,6 +141,7 @@ export function QuestionDetailPanel({
   canChangeStatus,
   membersByUserId,
   messagesPromise,
+  targetMessageId = null,
   embedded = false,
   showCompleteAction = false,
   isCompleting = false,
@@ -160,6 +162,7 @@ export function QuestionDetailPanel({
   const pollingRequestRef = useRef<Promise<MentoringMessage[]> | null>(null)
   const hasLoadedAllMessagesRef = useRef(false)
   const scrollToBottomQuestionIdRef = useRef<number | null>(null)
+  const targetMessageScrollKeyRef = useRef<string | null>(null)
 
   const mergePendingMessages = useCallback(
     (questionId: number, messages: MentoringMessage[]) => [
@@ -410,6 +413,34 @@ export function QuestionDetailPanel({
     })
   }, [loadedMessages, question.questionId])
 
+  useEffect(() => {
+    targetMessageScrollKeyRef.current = null
+  }, [question.questionId, targetMessageId])
+
+  useEffect(() => {
+    if (
+      targetMessageId === null ||
+      loadedMessages?.questionId !== question.questionId
+    ) {
+      return
+    }
+
+    const targetMessageKey = `${question.questionId}:${targetMessageId}`
+
+    if (targetMessageScrollKeyRef.current === targetMessageKey) {
+      return
+    }
+
+    const targetMessage = document.getElementById(`message-${targetMessageId}`)
+
+    if (!targetMessage) {
+      return
+    }
+
+    targetMessage.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    targetMessageScrollKeyRef.current = targetMessageKey
+  }, [loadedMessages, question.questionId, targetMessageId])
+
   const handleSend = async (nextContent: string, nextFiles: File[]) => {
     // 전송 중에는 버튼/엔터 어느 쪽으로도 중복 전송되지 않게 막는다.
     if (isSending) return
@@ -647,9 +678,11 @@ export function QuestionDetailPanel({
                       <S.Bubbles $isMine={embedded ? false : isMine}>
                         {group.messages.map((message) => (
                           <S.Bubble
+                            id={`message-${message.messageId}`}
                             key={message.messageId}
                             $isMine={embedded ? false : isMine}
                             $embedded={embedded}
+                            $isTarget={message.messageId === targetMessageId}
                           >
                             <MessageMarkdown content={message.content} />
                             {message.files?.map((file) =>

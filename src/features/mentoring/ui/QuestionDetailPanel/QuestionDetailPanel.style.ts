@@ -224,9 +224,27 @@ export const Bubbles = styled.div<{ $isMine: boolean }>`
   align-items: ${({ $isMine }) => ($isMine ? 'flex-end' : 'flex-start')};
 `
 
+const targetMessageHighlight = keyframes`
+  0% {
+    background: ${token.colors.primary.primary20};
+    box-shadow: 0 0 0 4px ${token.colors.primary.primary40};
+  }
+
+  55% {
+    background: ${token.colors.primary.primary10};
+    box-shadow: 0 0 0 3px ${token.colors.primary.primary30};
+  }
+
+  100% {
+    background: ${token.colors.white};
+    box-shadow: 0 0 0 0 transparent;
+  }
+`
+
 export const Bubble = styled.div<{
   $embedded?: boolean
   $isMine: boolean
+  $isTarget?: boolean
   $isRoot?: boolean
 }>`
   ${token.typography('body', 'sm', 'medium')}
@@ -253,6 +271,16 @@ export const Bubble = styled.div<{
   line-height: 1.45;
   word-break: break-word;
   white-space: pre-wrap;
+
+  ${({ $isTarget }) =>
+    $isTarget &&
+    css`
+      animation: ${targetMessageHighlight} 1.2s ease-out both;
+
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
+    `}
 `
 
 export const MessageMarkdown = styled.div`
