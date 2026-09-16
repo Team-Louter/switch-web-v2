@@ -87,14 +87,12 @@ function CodeEditor({
 
     updateErrorDecorations()
     editor.onDidChangeModelContent(updateErrorDecorations)
+    if (editable) editor.getDomNode()?.addEventListener('paste', event => event.preventDefault(), { capture: true })
+    if (editable) editor.onDidPaste(() => model.undo())
     editor.onDidChangeCursorSelection(event => {
-      if (!editable || (event.source !== 'mouse' && event.source !== 'keyboard')) return
+      if (editable || event.selection.isEmpty()) return
 
-      const endPosition = model.getPositionAt(model.getValueLength())
-
-      if (!event.selection.isEmpty() || !event.selection.getPosition().equals(endPosition)) {
-        editor.setPosition(endPosition)
-      }
+      editor.setPosition(event.selection.getPosition())
     })
     onReady?.(editor)
     if (editable) editor.focus()
@@ -261,7 +259,7 @@ export function CodeTypingPage() {
   return (
     <S.Page>
       <TypingCountdown onComplete={handleCountdownComplete} />
-      <S.PracticeFrame onCopy={event => event.preventDefault()}>
+      <S.PracticeFrame onCopy={event => event.preventDefault()} onPaste={event => event.preventDefault()}>
         <TypingPracticeHeader category={languageName} time={formattedTime} typingSpeed={`${typingSpeed}타`} accuracy={`${accuracy}%`} />
         <S.Workspace>
           <S.Monitor>

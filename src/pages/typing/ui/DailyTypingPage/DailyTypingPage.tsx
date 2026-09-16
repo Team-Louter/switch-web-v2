@@ -115,7 +115,7 @@ export function DailyTypingPage() {
   return (
     <S.Page>
       <TypingCountdown onComplete={handleCountdownComplete} />
-      <S.PracticeFrame onCopy={event => event.preventDefault()}>
+      <S.PracticeFrame onCopy={event => event.preventDefault()} onPaste={event => event.preventDefault()}>
         <TypingPracticeHeader category="일상 영어" time={formattedTime} typingSpeed={`${typingSpeed}타`} accuracy={`${accuracy}%`} />
 
         <S.Workspace>
@@ -151,6 +151,7 @@ export function DailyTypingPage() {
                     value={typedSentence}
                     onChange={event => setTypedSentence(event.target.value)}
                     onKeyDown={handleKeyDown}
+                    onPaste={event => event.preventDefault()}
                   />
                 </S.TypingInputWrapper>
               </S.SentenceBlock>
