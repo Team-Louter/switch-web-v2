@@ -116,13 +116,25 @@ export const MemberInfo = styled.div`
   gap: 14px;
 `
 
-export const Avatar = styled.img`
+export const Avatar = styled.div`
+  ${token.flexCenter}
   width: 30px;
   height: 30px;
   flex: 0 0 auto;
+  overflow: hidden;
   border-radius: ${token.shapes.circle};
   background: ${token.colors.gray.gray0};
+`
+
+export const AvatarImage = styled.img`
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+`
+
+export const AvatarFallback = styled.span`
+  color: ${token.colors.gray.gray80};
+  ${token.typography('body', 'sm', 'bold')}
 `
 
 export const TextGroup = styled.div`

@@ -4,10 +4,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   changeAdminMemberRole,
   getAdminMemberEmail,
-  getAdminMembers,
+  getMember,
   quitAdminMembers,
 } from '@/entities/member'
-import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
 
 import {
   formatManagedMember,
@@ -80,7 +79,7 @@ export function MemberManagementModal({
     const fetchMembers = async () => {
       try {
         setIsLoading(true)
-        const response = await getAdminMembers()
+        const response = await getMember()
 
         if (!shouldIgnore) {
           setMembers(response.map(formatManagedMember))
@@ -235,7 +234,12 @@ export function MemberManagementModal({
         setMembers((currentMembers) =>
           currentMembers.map((currentMember) =>
             currentMember.id === member.id
-              ? formatManagedMember(updatedMember)
+              ? {
+                  ...formatManagedMember(updatedMember),
+                  profileImageUrl:
+                    updatedMember.profileImageUrl ??
+                    currentMember.profileImageUrl,
+                }
               : currentMember,
           ),
         )
@@ -288,10 +292,18 @@ export function MemberManagementModal({
               filteredMembers.map((member) => (
                 <S.Row key={member.id}>
                   <S.MemberInfo>
-                    <S.Avatar
-                      src={member.profileImageUrl || fallbackProfileImage}
-                      alt=""
-                    />
+                    <S.Avatar>
+                      {member.profileImageUrl ? (
+                        <S.AvatarImage
+                          src={member.profileImageUrl}
+                          alt={`${member.name} 프로필`}
+                        />
+                      ) : (
+                        <S.AvatarFallback aria-hidden="true">
+                          {member.name.charAt(0)}
+                        </S.AvatarFallback>
+                      )}
+                    </S.Avatar>
                     <S.TextGroup>
                       <S.Name>{member.name}</S.Name>
                       <S.ClassInfo>{member.classInfo}</S.ClassInfo>

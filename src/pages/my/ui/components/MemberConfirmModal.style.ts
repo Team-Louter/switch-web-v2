@@ -12,12 +12,12 @@ export const Scrim = styled.div`
 
 export const Card = styled.div`
   ${token.flexColumn}
-  align-items: flex-start;
+  align-items: center;
   box-sizing: border-box;
-  width: 500px;
-  gap: 20px;
-  padding: 30px;
-  border-radius: ${token.shapes.medium};
+  width: 460px;
+  gap: 32px;
+  padding: 40px 56px;
+  border-radius: ${token.shapes.large};
   background: ${token.colors.white};
 `
 
@@ -29,18 +29,14 @@ export const Title = styled.h3`
 `
 
 export const Actions = styled.div`
-  ${token.flexLeft}
-  width: 100%;
-  height: 39px;
-  gap: 10px;
+  ${token.flexCenter}
+  gap: 20px;
 `
 
 export const Button = styled.button<{ $variant?: 'primary' | 'danger' }>`
   ${token.flexCenter}
-  flex: 1 1 0;
-  min-width: 0;
-  height: 100%;
-  padding: 10px 20px;
+  width: 100px;
+  padding: 10px 0;
   border-radius: ${token.shapes.small};
   background: ${token.colors.gray.gray10};
   color: ${token.colors.gray.gray100};

@@ -1,54 +1,15 @@
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
-export const Overlay = styled.div`
-  ${token.flexCenter}
-  position: fixed;
-  z-index: 40;
-  inset: 0;
-  background: rgb(14 13 12 / 70%);
-`
-
-export const Modal = styled.div`
-  ${token.flexColumn}
-  align-items: flex-start;
-  width: 700px;
-  box-sizing: border-box;
-  gap: 20px;
-  padding: 30px;
-  border-radius: ${token.shapes.large};
-  background: ${token.colors.white};
-`
-
-export const Title = styled.h2`
-  margin: 0;
-  color: ${token.colors.gray.gray80};
-  line-height: 1;
-  ${token.typography('heading', 'md', 'medium')}
-`
-
-export const CropArea = styled.div`
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  overflow: hidden;
-  border-radius: ${token.shapes.small};
-  background: ${token.colors.gray.gray10};
-  cursor: grab;
-  touch-action: none;
-
-  &:active {
-    cursor: grabbing;
-  }
-`
-
-export const CropImage = styled.img<{
+interface PositionedImageProps {
   $height: number
   $left: number
   $top: number
   $width: number
-}>`
+}
+
+const positionedImageStyle = css<PositionedImageProps>`
   position: absolute;
   top: ${({ $top }) => $top}px;
   left: ${({ $left }) => $left}px;
@@ -61,77 +22,148 @@ export const CropImage = styled.img<{
   user-select: none;
 `
 
-export const CropFrame = styled.div`
-  position: absolute;
+export const Overlay = styled.div`
+  ${token.flexCenter}
+  position: fixed;
+  z-index: 40;
   inset: 0;
-  box-sizing: border-box;
-  border: 1px solid ${token.colors.white};
-  pointer-events: none;
-
-  &::before {
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(to right, rgb(255 255 255 / 24%) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(255 255 255 / 24%) 1px, transparent 1px);
-    background-size: calc(100% / 3) calc(100% / 3);
-    content: '';
-    pointer-events: none;
-  }
+  background: rgb(14 13 12 / 70%);
 `
 
-export const SliderTrack = styled.div`
+export const Modal = styled.div`
+  ${token.flexColumn}
+  box-sizing: border-box;
+  width: 520px;
+  padding: 28px 28px 24px;
+  border-radius: 12px;
+  background: ${token.colors.white};
+  box-shadow: 0 8px 28px rgb(14 13 12 / 14%);
+`
+
+export const Title = styled.h3`
+  margin: 0 0 16px;
+  color: ${token.colors.gray.gray80};
+  ${token.typography('heading', 'sm', 'semibold')}
+`
+
+export const CropArea = styled.div`
   position: relative;
   width: 100%;
-  height: 8px;
-  border-radius: ${token.shapes.circle};
-  background: ${token.colors.gray.gray80};
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  background: ${token.colors.gray.gray90};
+  cursor: grab;
+  touch-action: none;
+
+  &:active {
+    cursor: grabbing;
+  }
 `
 
-export const SliderInput = styled.input`
+export const CropImage = styled.img<PositionedImageProps>`
+  ${positionedImageStyle}
+`
+
+export const CropGrid = styled.div`
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  appearance: none;
-  background: transparent;
-  cursor: pointer;
-
-  &::-webkit-slider-thumb {
-    width: 16px;
-    height: 16px;
-    appearance: none;
-    border: 0;
-    border-radius: ${token.shapes.circle};
-    background: ${token.colors.primary.primary40};
-  }
-
-  &::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    border: 0;
-    border-radius: ${token.shapes.circle};
-    background: ${token.colors.primary.primary40};
-  }
+  border: 1px solid rgb(255 255 255 / 70%);
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 32%) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 32%) 1px, transparent 1px);
+  background-size: calc(100% / 3) calc(100% / 3);
+  pointer-events: none;
 `
 
-export const Actions = styled.div`
+export const ZoomRow = styled.div`
   ${token.flexLeft}
-  width: 100%;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
 `
 
-export const ActionWrap = styled.div`
-  flex: 1 1 0;
-  min-width: 0;
+export const ZoomLabel = styled.label`
+  flex-shrink: 0;
+  color: ${token.colors.gray.gray50};
+  ${token.typography('body', 'sm', 'medium')}
+`
 
-  button {
-    width: 100%;
-    background: ${token.colors.gray.gray10};
+export const ZoomSlider = styled.input`
+  flex: 1;
+  accent-color: ${token.colors.primary.primary50};
+  cursor: pointer;
+`
+
+export const BottomRow = styled.div`
+  ${token.flexBetween}
+  align-items: center;
+  gap: 12px;
+`
+
+export const PreviewButton = styled.button`
+  position: relative;
+  width: 80px;
+  height: 80px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: ${token.shapes.circle};
+  background: ${token.colors.gray.gray0};
+`
+
+export const PreviewImage = styled.img<PositionedImageProps>`
+  ${positionedImageStyle}
+`
+
+export const ButtonGroup = styled.div`
+  ${token.flexLeft}
+  justify-content: flex-end;
+  gap: 12px;
+`
+
+const actionButtonStyle = css`
+  width: 100px;
+  padding: 10px 0;
+  border-radius: 4px;
+  ${token.typography('body', 'sm', 'bold')}
+`
+
+export const CancelButton = styled.button`
+  ${actionButtonStyle}
+  border: 1px solid ${token.colors.gray.gray20};
+  color: ${token.colors.gray.gray80};
+  background: ${token.colors.white};
+
+  &:hover {
+    background: ${token.colors.gray.gray0};
   }
+`
 
-  &:last-child button {
+export const ApplyButton = styled.button`
+  ${actionButtonStyle}
+  border: 0;
+  color: ${token.colors.gray.gray90};
+  background: ${token.colors.primary.primary40};
+
+  &:hover {
     background: ${token.colors.primary.primary50};
   }
+`
+
+export const PreviewOverlay = styled.div`
+  ${token.flexCenter}
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  background: rgb(14 13 12 / 80%);
+`
+
+export const LargePreview = styled.div`
+  position: relative;
+  width: 240px;
+  height: 240px;
+  overflow: hidden;
+  border-radius: ${token.shapes.circle};
+  box-shadow: 0 8px 32px rgb(0 0 0 / 30%);
 `

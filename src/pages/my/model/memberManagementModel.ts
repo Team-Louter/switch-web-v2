@@ -1,6 +1,7 @@
 import type {
   AdminMemberResponse,
   AdminMemberRole,
+  Member,
 } from '@/entities/member'
 
 export type ManagedMemberRole = AdminMemberRole
@@ -47,7 +48,7 @@ export const memberActionRoleMap: Record<
 }
 
 export const formatManagedMember = (
-  member: AdminMemberResponse,
+  member: AdminMemberResponse | Member,
 ): ManagedMember => ({
   id: member.userId,
   name: member.userName,
