@@ -28,6 +28,11 @@ import type { MentoringRoomView } from '@/features/mentoring'
 
 import { MentoringQuestionList } from './components/MentoringQuestionList'
 import { MentoringRoomList } from './components/MentoringRoomList'
+import {
+  MentoringDetailSkeleton,
+  MentoringQuestionListSkeleton,
+  MentoringRoomListSkeleton,
+} from './MentoringEntryPageSkeleton'
 import * as S from './MentoringEntryPage.style'
 
 interface MentoringData {
@@ -282,30 +287,38 @@ export function MentoringEntryPage() {
   return (
     <S.Page>
       <S.Container>
-        <S.LeftArea>
+        <S.LeftArea aria-busy={isLoading}>
           <S.RoomContainer>
             <S.SectionHeader>
               <S.SectionHeading>
                 <S.SectionTitle>방</S.SectionTitle>
-                {!isLoading && <S.SectionCount>{rooms.length}</S.SectionCount>}
+                {isLoading ? (
+                  <S.SkeletonCount aria-hidden="true" />
+                ) : (
+                  <S.SectionCount>{rooms.length}</S.SectionCount>
+                )}
               </S.SectionHeading>
-              {isMentor && (
-                <S.AddButton
-                  type="button"
-                  aria-label="멘토링 방 추가"
-                  onClick={() => {
-                    setEditingRoom(undefined)
-                    setIsRoomModalOpen(true)
-                  }}
-                >
-                  <PiPlus aria-hidden="true" />
-                  <span>새 방</span>
-                </S.AddButton>
+              {isLoading ? (
+                <S.SkeletonAction aria-hidden="true" />
+              ) : (
+                isMentor && (
+                  <S.AddButton
+                    type="button"
+                    aria-label="멘토링 방 추가"
+                    onClick={() => {
+                      setEditingRoom(undefined)
+                      setIsRoomModalOpen(true)
+                    }}
+                  >
+                    <PiPlus aria-hidden="true" />
+                    <span>새 방</span>
+                  </S.AddButton>
+                )
               )}
             </S.SectionHeader>
             <S.ListScroll>
               {isLoading ? (
-                <S.DetailEmpty>방을 불러오는 중이에요.</S.DetailEmpty>
+                <MentoringRoomListSkeleton />
               ) : (
                 <MentoringRoomList
                   rooms={rooms}
@@ -326,24 +339,30 @@ export function MentoringEntryPage() {
             <S.SectionHeader>
               <S.SectionHeading>
                 <S.SectionTitle>질문</S.SectionTitle>
-                {!isLoading && (
+                {isLoading ? (
+                  <S.SkeletonCount aria-hidden="true" />
+                ) : (
                   <S.SectionCount>{roomQuestions.length}</S.SectionCount>
                 )}
               </S.SectionHeading>
-              {shouldShowAddQuestion && (
-                <S.AddButton
-                  type="button"
-                  aria-label="질문 추가"
-                  onClick={handleAddQuestion}
-                >
-                  <PiPlus aria-hidden="true" />
-                  <span>새 질문</span>
-                </S.AddButton>
+              {isLoading ? (
+                <S.SkeletonAction aria-hidden="true" />
+              ) : (
+                shouldShowAddQuestion && (
+                  <S.AddButton
+                    type="button"
+                    aria-label="질문 추가"
+                    onClick={handleAddQuestion}
+                  >
+                    <PiPlus aria-hidden="true" />
+                    <span>새 질문</span>
+                  </S.AddButton>
+                )
               )}
             </S.SectionHeader>
             <S.ListScroll>
               {isLoading ? (
-                <S.DetailEmpty>질문을 불러오는 중이에요.</S.DetailEmpty>
+                <MentoringQuestionListSkeleton />
               ) : selectedRoom ? (
                 <MentoringQuestionList
                   questions={roomQuestions}
@@ -361,10 +380,10 @@ export function MentoringEntryPage() {
           </S.QuestionContainer>
         </S.LeftArea>
 
-        <S.RightContainer>
+        <S.RightContainer aria-busy={isLoading}>
           <S.DetailWrapper>
             {isLoading ? (
-              <S.DetailEmpty>멘토링 정보를 불러오는 중이에요.</S.DetailEmpty>
+              <MentoringDetailSkeleton />
             ) : isWritingNew ? (
               <>
                 <S.DetailEmpty>질문을 시작해보세요.</S.DetailEmpty>
