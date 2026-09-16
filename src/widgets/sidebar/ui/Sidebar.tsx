@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
+import profileFallbackImage from '@/shared/assets/sidebar/profile.png'
 import switchLogo from '@/shared/assets/sidebar/switch-logo.svg'
 import {
   MY_SIDEBAR_ITEM,
@@ -153,7 +154,13 @@ export function Sidebar({
       <ProfileButton
         type="button"
         aria-current={activeItemId === MY_SIDEBAR_ITEM.id ? 'page' : undefined}
-        aria-label={isProfileLoading ? '프로필 불러오는 중' : undefined}
+        aria-label={
+          isProfileLoading
+            ? '프로필 불러오는 중'
+            : profile
+              ? undefined
+              : '프로필 정보로 이동'
+        }
         aria-busy={isProfileLoading}
         onClick={() => onItemSelect?.(MY_SIDEBAR_ITEM.id)}
       >
@@ -181,7 +188,15 @@ export function Sidebar({
               <ProfileMeta>{profile.classInfo}</ProfileMeta>
             </ProfileText>
           </>
-        ) : null}
+        ) : (
+          <>
+            <ProfileAvatar imageUrl={profileFallbackImage} size={50} />
+            <ProfileText>
+              <ProfileName>프로필</ProfileName>
+              <ProfileMeta>정보를 불러오지 못했습니다</ProfileMeta>
+            </ProfileText>
+          </>
+        )}
       </ProfileButton>
     </Aside>
   )
