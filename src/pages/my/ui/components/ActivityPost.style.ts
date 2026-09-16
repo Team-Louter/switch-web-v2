@@ -31,10 +31,9 @@ export const MainLine = styled.div<{ $hasComment: boolean }>`
   align-items: center;
   box-sizing: border-box;
   width: 100%;
-  min-height: ${({ $hasComment }) => ($hasComment ? '48px' : '55px')};
+  min-height: ${({ $hasComment }) => ($hasComment ? '70px' : '55px')};
   gap: 16px;
-  padding: ${({ $hasComment }) =>
-    $hasComment ? '10px 28px 2px' : '10px 28px'};
+  padding: 10px 28px;
 `
 
 export const CategoryBadge = styled.span`
@@ -51,7 +50,8 @@ export const CategoryBadge = styled.span`
 `
 
 export const Title = styled.strong`
-  flex: 1 1 0;
+  display: block;
+  width: 100%;
   min-width: 0;
   box-sizing: border-box;
   overflow: hidden;
@@ -60,6 +60,15 @@ export const Title = styled.strong`
   text-overflow: ellipsis;
   white-space: nowrap;
   ${token.typography('body', 'sm', 'semibold')}
+`
+
+export const PostContent = styled.div`
+  ${token.flexColumn}
+  flex: 1 1 0;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  gap: 4px;
 `
 
 export const DateText = styled.span`
@@ -105,7 +114,7 @@ export const CommentPreview = styled.div`
   box-sizing: border-box;
   width: 100%;
   min-height: 16px;
-  padding: 0 28px 8px 110px;
+  padding: 0 0 0 16px;
   color: ${color.coolText};
   line-height: 1;
   ${token.typography('caption', 'lg', 'medium')}
@@ -113,7 +122,7 @@ export const CommentPreview = styled.div`
   &::before {
     position: absolute;
     top: 0;
-    left: 100px;
+    left: 0;
     color: ${color.coolText};
     content: '└';
   }

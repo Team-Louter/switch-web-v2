@@ -45,7 +45,14 @@ export function ActivityPost({
     >
       <S.MainLine $hasComment={Boolean(post.commentPreview)}>
         <S.CategoryBadge>{post.category}</S.CategoryBadge>
-        <S.Title>{post.title}</S.Title>
+        <S.PostContent>
+          <S.Title>{post.title}</S.Title>
+          {post.commentPreview && (
+            <S.CommentPreview>
+              <S.CommentText>{post.commentPreview}</S.CommentText>
+            </S.CommentPreview>
+          )}
+        </S.PostContent>
         <S.Metrics>
           <S.Metric>
             <S.MetricIcon src={eyeIcon} alt="" aria-hidden="true" />
@@ -66,12 +73,6 @@ export function ActivityPost({
         </S.Metrics>
         <S.DateText>{dateText}</S.DateText>
       </S.MainLine>
-
-      {post.commentPreview && (
-        <S.CommentPreview>
-          <S.CommentText>{post.commentPreview}</S.CommentText>
-        </S.CommentPreview>
-      )}
     </S.Row>
   )
 }
