@@ -10,6 +10,7 @@ import { BlockNoteView } from '@blocknote/mantine';
 import {
   AddBlockButton,
   DragHandleMenu,
+  FormattingToolbarController,
   SideMenu,
   SideMenuController,
   useBlockNoteEditor,
@@ -1250,8 +1251,18 @@ export function CommunityWritePage() {
                 );
               }}
               sideMenu={false}
+              formattingToolbar={false}
               portalElements={{ default: null }}
             >
+              <FormattingToolbarController
+                floatingUIOptions={{
+                  useTransitionStylesProps: {
+                    common: {
+                      transitionProperty: 'opacity, transform',
+                    },
+                  },
+                }}
+              />
               <SideMenuController sideMenu={communityBlockSideMenu} />
             </BlockNoteView>
             {isUploadingFile && (
