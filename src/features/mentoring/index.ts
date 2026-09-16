@@ -15,6 +15,7 @@ export { MemberAvatar } from './ui/MemberAvatar'
 export { MyMentorChip } from './ui/MyMentorChip'
 export { QuestionDetailPanel } from './ui/QuestionDetailPanel'
 export {
+  formatQuestionCreatedAt,
   formatQuestionDate,
   QUESTION_STATUS_COLOR,
   QUESTION_STATUS_LABEL,

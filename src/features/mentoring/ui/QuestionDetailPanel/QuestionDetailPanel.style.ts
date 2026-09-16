@@ -76,28 +76,27 @@ export const Status = styled.span<{ $color: string }>`
 `
 
 export const QuestionInfo = styled.div`
-  ${token.flexColumnStart}
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
   width: 100%;
-  gap: 6px;
+  min-width: 0;
 `
 
 export const RoomName = styled.p`
+  grid-column: 1;
+  grid-row: 1;
   ${token.typography('caption', 'md', 'medium')}
   margin: 0;
   color: ${token.colors.gray.gray50};
 `
 
 export const TitleRow = styled.div`
-  ${token.flexBetween}
+  display: flex;
+  grid-column: 1;
+  grid-row: 2;
   width: 100%;
   min-width: 0;
-  gap: 16px;
-
-  @media (max-width: 760px) {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 10px;
-  }
 `
 
 export const Title = styled.h2`
@@ -112,21 +111,20 @@ export const Title = styled.h2`
 
 export const CompletionAction = styled.div`
   ${token.flexRow}
-  flex: 0 0 auto;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
   align-items: center;
-  gap: 10px;
+  gap: 4px;
   max-width: 100%;
-  padding: 6px 8px;
-  border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.medium};
-  background: ${token.colors.gray.gray0};
   color: ${token.colors.gray.gray60};
   white-space: nowrap;
-  ${token.typography('body', 'sm', 'medium')}
+  ${token.typography('caption', 'sm', 'medium')}
 
   @media (max-width: 760px) {
-    align-self: stretch;
-    justify-content: space-between;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: end;
     white-space: normal;
   }
 `
@@ -137,14 +135,14 @@ export const CompletionPrompt = styled.span`
 
 export const CompletionButton = styled.button`
   flex-shrink: 0;
-  padding: 7px 12px;
+  padding: 4px 8px;
   border: 0;
   border-radius: ${token.shapes.xsmall};
   background: ${token.colors.gray.gray90};
   color: ${token.colors.white};
   white-space: nowrap;
   cursor: pointer;
-  ${token.typography('body', 'sm', 'semibold')}
+  ${token.typography('caption', 'sm', 'semibold')}
 
   &:hover {
     background: ${token.colors.gray.gray100};

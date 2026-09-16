@@ -15,6 +15,7 @@ import { createMessage } from '../../api/createMessage'
 import { changeQuestionStatus } from '../../api/createQuestion'
 import { uploadMentoringFile } from '../../api/uploadMentoringFile'
 import {
+  formatQuestionCreatedAt,
   formatQuestionDate,
   QUESTION_STATUS_COLOR,
   QUESTION_STATUS_LABEL,
@@ -202,23 +203,23 @@ export function QuestionDetailPanel({
           <S.RoomName>{roomName}</S.RoomName>
           <S.TitleRow>
             <S.Title>{question.title}</S.Title>
-            {showCompleteAction && (
-              <S.CompletionAction>
-                <S.CompletionPrompt>질문에 대한 답변이 끝났나요?</S.CompletionPrompt>
-                <S.CompletionButton
-                  type="button"
-                  disabled={isCompleting}
-                  onClick={() => void onComplete?.()}
-                >
-                  답변 완료
-                </S.CompletionButton>
-              </S.CompletionAction>
-            )}
           </S.TitleRow>
+          {showCompleteAction && (
+            <S.CompletionAction>
+              <S.CompletionPrompt>질문에 대한 답변이 끝났나요?</S.CompletionPrompt>
+              <S.CompletionButton
+                type="button"
+                disabled={isCompleting}
+                onClick={() => void onComplete?.()}
+              >
+                답변 완료
+              </S.CompletionButton>
+            </S.CompletionAction>
+          )}
         </S.QuestionInfo>
       </S.Header>
       <S.CreatedAt $embedded={embedded}>
-        {formatQuestionDate(question.createdAt)}
+        {formatQuestionCreatedAt(question.createdAt)}
       </S.CreatedAt>
       <S.Chat $embedded={embedded}>
         <S.MessageList ref={messageListRef}>
