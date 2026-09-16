@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
+import profileFallbackImage from '@/shared/assets/sidebar/profile.png'
 import switchLogo from '@/shared/assets/sidebar/switch-logo.svg'
 import {
   MY_SIDEBAR_ITEM,
@@ -24,10 +25,16 @@ import {
   MenuList,
   NotificationCount,
   ProfileButton,
+  ProfileAvatarSkeleton,
   ProfileMeta,
+  ProfileMetaSkeleton,
   ProfileName,
+  ProfileNameSkeleton,
   ProfileText,
+  ProfileTextSkeleton,
   ProfileTitle,
+  ProfileTitleSkeleton,
+  ProfileSkeleton,
   Spacer,
   type NotificationCountAnimationDirection,
 } from './Sidebar.style'
@@ -35,6 +42,7 @@ import { SidebarIcon } from './SidebarIcon'
 
 interface SidebarProps {
   activeItemId?: SidebarItemId
+  isProfileLoading?: boolean
   notificationCount?: number
   onItemSelect?: (itemId: SidebarItemId) => void
   profile?: {
@@ -47,6 +55,7 @@ interface SidebarProps {
 
 export function Sidebar({
   activeItemId = 'home',
+  isProfileLoading = false,
   notificationCount = 0,
   onItemSelect,
   profile,
@@ -145,22 +154,49 @@ export function Sidebar({
       <ProfileButton
         type="button"
         aria-current={activeItemId === MY_SIDEBAR_ITEM.id ? 'page' : undefined}
+        aria-label={
+          isProfileLoading
+            ? '프로필 불러오는 중'
+            : profile
+              ? undefined
+              : '프로필 정보로 이동'
+        }
+        aria-busy={isProfileLoading}
         onClick={() => onItemSelect?.(MY_SIDEBAR_ITEM.id)}
       >
-        <ProfileAvatar
-          imageUrl={profile?.imageUrl}
-          equippedItems={profile?.equippedItems}
-          size={50}
-        />
-        <ProfileText>
-          {profileTitleText && <ProfileTitle>{profileTitleText}</ProfileTitle>}
-          <ProfileName>
-            <UserName styleKey={profileNameStyleKey}>
-              {profile?.name ?? ''}
-            </UserName>
-          </ProfileName>
-          <ProfileMeta>{profile?.classInfo ?? ''}</ProfileMeta>
-        </ProfileText>
+        {isProfileLoading ? (
+          <ProfileSkeleton aria-hidden="true">
+            <ProfileAvatarSkeleton />
+            <ProfileTextSkeleton>
+              <ProfileTitleSkeleton />
+              <ProfileNameSkeleton />
+              <ProfileMetaSkeleton />
+            </ProfileTextSkeleton>
+          </ProfileSkeleton>
+        ) : profile ? (
+          <>
+            <ProfileAvatar
+              imageUrl={profile.imageUrl}
+              equippedItems={profile.equippedItems}
+              size={50}
+            />
+            <ProfileText>
+              {profileTitleText && <ProfileTitle>{profileTitleText}</ProfileTitle>}
+              <ProfileName>
+                <UserName styleKey={profileNameStyleKey}>{profile.name}</UserName>
+              </ProfileName>
+              <ProfileMeta>{profile.classInfo}</ProfileMeta>
+            </ProfileText>
+          </>
+        ) : (
+          <>
+            <ProfileAvatar imageUrl={profileFallbackImage} size={50} />
+            <ProfileText>
+              <ProfileName>프로필</ProfileName>
+              <ProfileMeta>정보를 불러오지 못했습니다</ProfileMeta>
+            </ProfileText>
+          </>
+        )}
       </ProfileButton>
     </Aside>
   )

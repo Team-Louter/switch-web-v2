@@ -62,6 +62,7 @@ export function AppLayout() {
   const [notificationCount, setNotificationCount] = useState(
     getStoredUnreadNotificationCount,
   )
+  const [isSidebarProfileLoading, setIsSidebarProfileLoading] = useState(true)
   const [sidebarProfile, setSidebarProfile] = useState<SidebarProfile | null>(
     null,
   )
@@ -132,10 +133,12 @@ export function AppLayout() {
 
         if (!isCancelled) {
           setSidebarProfile(nextProfile)
+          setIsSidebarProfileLoading(false)
         }
       } catch {
         if (!isCancelled) {
           setSidebarProfile(null)
+          setIsSidebarProfileLoading(false)
         }
       }
     }
@@ -210,6 +213,7 @@ export function AppLayout() {
             <Sidebar
               activeItemId={activeSidebarItemId}
               notificationCount={notificationCount}
+              isProfileLoading={isSidebarProfileLoading}
               profile={sidebarProfile}
               onItemSelect={handleSidebarItemSelect}
             />
