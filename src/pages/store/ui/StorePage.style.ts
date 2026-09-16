@@ -438,6 +438,18 @@ export const PreviewImage = styled(StoreItemImage)`
   object-fit: contain;
 `
 
+export const PreviewTextGroup = styled.div`
+  ${token.flexColumn}
+  align-items: center;
+  gap: 4px;
+`
+
+export const PreviewTitle = styled.p`
+  margin: 0;
+  color: #FFA20A;
+  ${token.typography('body', 'lg', 'regular')}
+`
+
 export const PreviewName = styled(UserName)`
   font-family: ${token.fontFamily.system};
   font-size: ${token.fontSize.heading.xl};
