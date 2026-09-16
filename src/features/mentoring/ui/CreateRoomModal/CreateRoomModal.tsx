@@ -31,6 +31,8 @@ function CreateRoomModalContent({
   room,
 }: CreateRoomModalProps) {
   const [members, setMembers] = useState<Member[]>([])
+  const [isMembersLoading, setIsMembersLoading] = useState(true)
+  const [hasMemberLoadError, setHasMemberLoadError] = useState(false)
   const [mentoringName, setMentoringName] = useState(room?.mentoringName ?? '')
   const [keyword, setKeyword] = useState('')
   const [selectedUserIds, setSelectedUserIds] = useState<number[]>(
@@ -44,9 +46,20 @@ function CreateRoomModalContent({
 
     getMember()
       .then((allMembers) => {
-        if (!isCancelled) setMembers(allMembers)
+        if (!isCancelled) {
+          setMembers(allMembers)
+        }
       })
-      .catch(() => {})
+      .catch(() => {
+        if (!isCancelled) {
+          setHasMemberLoadError(true)
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsMembersLoading(false)
+        }
+      })
 
     return () => {
       isCancelled = true
@@ -154,9 +167,26 @@ function CreateRoomModalContent({
             />
             <PiMagnifyingGlass aria-hidden="true" />
           </S.SearchField>
-          <S.MemberList>
-            {/* 검색 결과가 없는 경우 안내 문구를 보여준다 */}
-            {searchedMembers.length === 0 ? (
+          <S.MemberList
+            key={isMembersLoading ? 'member-list-loading' : 'member-list-ready'}
+            aria-busy={isMembersLoading}
+          >
+            {isMembersLoading ? (
+              <S.MemberSkeletonList
+                role="status"
+                aria-label="멤버 목록을 불러오는 중입니다."
+              >
+                {GRADES.map((grade) => (
+                  <S.MemberSkeletonRow key={grade} aria-hidden="true">
+                    <S.MemberSkeletonLabel />
+                    <S.MemberSkeletonAction />
+                  </S.MemberSkeletonRow>
+                ))}
+              </S.MemberSkeletonList>
+            ) : hasMemberLoadError ? (
+              <S.EmptyText>멤버 목록을 불러오지 못했어요.</S.EmptyText>
+            ) : searchedMembers.length === 0 ? (
+              /* 검색 결과가 없는 경우 안내 문구를 보여준다. */
               <S.EmptyText>검색된 멤버가 없어요.</S.EmptyText>
             ) : (
               membersByGrade.map(({ grade, gradeMembers }) => {
@@ -259,7 +289,9 @@ function CreateRoomModalContent({
             type="button"
             size="md"
             variant="primary"
-            disabled={isSubmitting || !mentoringName.trim()}
+            disabled={
+              isSubmitting || isMembersLoading || !mentoringName.trim()
+            }
             onClick={() => void handleSubmit()}
           >
             {room ? '수정' : '생성'}

@@ -1,6 +1,32 @@
-import styled from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
+
+const skeletonShimmer = keyframes`
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+`
+
+const skeletonSurface = css`
+  border-radius: ${token.shapes.xsmall};
+  background: linear-gradient(
+    90deg,
+    ${token.colors.gray.gray0} 25%,
+    ${token.colors.gray.gray10} 50%,
+    ${token.colors.gray.gray0} 75%
+  );
+  background-size: 200% 100%;
+  animation: ${skeletonShimmer} 1.4s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
 
 export const MemberSection = styled.div`
   ${token.flexColumnStart}
@@ -48,6 +74,33 @@ export const MemberList = styled.div`
   overflow-y: auto;
   border-radius: ${token.shapes.small};
   background-color: ${token.colors.gray.gray0};
+`
+
+export const MemberSkeletonList = styled.div`
+  ${token.flexColumnStart}
+  width: 100%;
+`
+
+export const MemberSkeletonRow = styled.div`
+  ${token.flexBetween}
+  box-sizing: border-box;
+  width: 100%;
+  height: 44px;
+  padding: 10px 12px;
+`
+
+export const MemberSkeletonLabel = styled.span`
+  ${skeletonSurface}
+  display: block;
+  width: 52px;
+  height: 14px;
+`
+
+export const MemberSkeletonAction = styled.span`
+  ${skeletonSurface}
+  display: block;
+  width: 20px;
+  height: 20px;
 `
 
 export const GradeGroup = styled.div`
