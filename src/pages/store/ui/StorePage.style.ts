@@ -256,6 +256,13 @@ export const EffectTextGroup = styled.div`
   width: 100%;
 `
 
+export const EffectTitleGroup = styled.div`
+  ${token.flexColumn}
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+`
+
 export const EffectTitle = styled.p`
   margin: 0;
   color: ${token.colors.gray.gray100};

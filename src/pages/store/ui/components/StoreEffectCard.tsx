@@ -75,10 +75,12 @@ export function StoreEffectCard({
         )}
       </S.EffectPreview>
       <S.EffectTextGroup>
-        <S.EffectTitle>{effect.title}</S.EffectTitle>
-        {isRecommended && conditionText && (
-          <S.EffectConditionText>{conditionText}</S.EffectConditionText>
-        )}
+        <S.EffectTitleGroup>
+          <S.EffectTitle>{effect.title}</S.EffectTitle>
+          {isRecommended && conditionText && (
+            <S.EffectConditionText>{conditionText}</S.EffectConditionText>
+          )}
+        </S.EffectTitleGroup>
         <S.CardActionArea>
           {isRecommended ? (
             <S.PriceRow>
