@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -86,6 +87,14 @@ function groupMessages(messages: MentoringMessage[]): MessageGroup[] {
   }, [])
 }
 
+function sortMessages(messages: MentoringMessage[]) {
+  return [...messages].sort(
+    (first, second) =>
+      first.createdAt.localeCompare(second.createdAt) ||
+      first.messageId - second.messageId,
+  )
+}
+
 const isImageFile = (file: MentoringFile) => file.fileType?.startsWith('image/')
 
 interface MessageMarkdownProps {
@@ -139,60 +148,95 @@ export function QuestionDetailPanel({
   const [isSending, setIsSending] = useState(false)
   const messageListRef = useRef<HTMLDivElement>(null)
   const messagesCacheRef = useRef(new Map<number, MentoringMessage[]>())
+  const pendingMessagesRef = useRef(new Map<number, MentoringMessage[]>())
+  const optimisticMessageIdRef = useRef(-1)
   const allMessagesPromiseRef = useRef<Promise<MentoringMessage[]> | null>(
     messagesPromise ?? null,
   )
   const hasLoadedAllMessagesRef = useRef(false)
   const scrollToBottomQuestionIdRef = useRef<number | null>(null)
 
-  const loadMessages = async (questionId: number) => {
-    const cachedMessages = messagesCacheRef.current.get(questionId)
+  const mergePendingMessages = useCallback(
+    (questionId: number, messages: MentoringMessage[]) =>
+      sortMessages([
+        ...messages,
+        ...(pendingMessagesRef.current.get(questionId) ?? []),
+      ]),
+    [],
+  )
 
-    if (cachedMessages) {
-      return cachedMessages
-    }
-
-    if (hasLoadedAllMessagesRef.current) {
-      const emptyMessages: MentoringMessage[] = []
-      messagesCacheRef.current.set(questionId, emptyMessages)
-      return emptyMessages
-    }
-
-    // 서버에 질문 단위 조회가 없어 전체 메시지에서 해당 질문만 추린다.
-    const request =
-      allMessagesPromiseRef.current ??
-      (allMessagesPromiseRef.current = getMessages())
-
-    try {
-      const allMessages = await request
-      const groupedMessages = new Map<number, MentoringMessage[]>()
-
-      allMessages.forEach((message) => {
-        const questionMessages = groupedMessages.get(message.questionId) ?? []
-        questionMessages.push(message)
-        groupedMessages.set(message.questionId, questionMessages)
-      })
-
-      groupedMessages.forEach((questionMessages, cachedQuestionId) => {
-        messagesCacheRef.current.set(
-          cachedQuestionId,
-          questionMessages.sort((first, second) =>
-            first.createdAt.localeCompare(second.createdAt),
-          ),
-        )
-      })
-      hasLoadedAllMessagesRef.current = true
-
-      const questionMessages = messagesCacheRef.current.get(questionId) ?? []
-      messagesCacheRef.current.set(questionId, questionMessages)
-
-      return questionMessages
-    } finally {
-      if (allMessagesPromiseRef.current === request) {
-        allMessagesPromiseRef.current = null
+  const updateQuestionMessages = (
+    questionId: number,
+    messages: MentoringMessage[],
+  ) => {
+    messagesCacheRef.current.set(questionId, messages)
+    setLoadedMessages((currentMessages) => {
+      if (currentMessages && currentMessages.questionId !== questionId) {
+        return currentMessages
       }
-    }
+
+      return { questionId, messages }
+    })
   }
+
+  const loadMessages = useCallback(
+    async (questionId: number) => {
+      const cachedMessages = messagesCacheRef.current.get(questionId)
+
+      if (
+        cachedMessages &&
+        !pendingMessagesRef.current.has(questionId)
+      ) {
+        return cachedMessages
+      }
+
+      if (hasLoadedAllMessagesRef.current) {
+        const emptyMessages = mergePendingMessages(questionId, [])
+        messagesCacheRef.current.set(questionId, emptyMessages)
+        return emptyMessages
+      }
+
+      // 서버에 질문 단위 조회가 없어 전체 메시지에서 해당 질문만 추린다.
+      const request =
+        allMessagesPromiseRef.current ??
+        (allMessagesPromiseRef.current = getMessages())
+
+      try {
+        const allMessages = await request
+        const groupedMessages = new Map<number, MentoringMessage[]>()
+
+        allMessages.forEach((message) => {
+          const questionMessages =
+            groupedMessages.get(message.questionId) ?? []
+          questionMessages.push(message)
+          groupedMessages.set(message.questionId, questionMessages)
+        })
+
+        groupedMessages.forEach((questionMessages, cachedQuestionId) => {
+          messagesCacheRef.current.set(
+            cachedQuestionId,
+            mergePendingMessages(
+              cachedQuestionId,
+              sortMessages(questionMessages),
+            ),
+          )
+        })
+        hasLoadedAllMessagesRef.current = true
+
+        const questionMessages =
+          messagesCacheRef.current.get(questionId) ??
+          mergePendingMessages(questionId, [])
+        messagesCacheRef.current.set(questionId, questionMessages)
+
+        return questionMessages
+      } finally {
+        if (allMessagesPromiseRef.current === request) {
+          allMessagesPromiseRef.current = null
+        }
+      }
+    },
+    [mergePendingMessages],
+  )
 
   useEffect(() => {
     let isCancelled = false
@@ -207,16 +251,22 @@ export function QuestionDetailPanel({
         }
       })
       .catch(() => {
-        messagesCacheRef.current.set(question.questionId, [])
+        const questionMessages =
+          messagesCacheRef.current.get(question.questionId) ??
+          mergePendingMessages(question.questionId, [])
+        messagesCacheRef.current.set(question.questionId, questionMessages)
         if (!isCancelled) {
-          setLoadedMessages({ questionId: question.questionId, messages: [] })
+          setLoadedMessages({
+            questionId: question.questionId,
+            messages: questionMessages,
+          })
         }
       })
 
     return () => {
       isCancelled = true
     }
-  }, [question.questionId])
+  }, [loadMessages, mergePendingMessages, question.questionId])
 
   useLayoutEffect(() => {
     scrollToBottomQuestionIdRef.current = null
@@ -247,38 +297,82 @@ export function QuestionDetailPanel({
     if (isSending) return
     if (!nextContent.trim() && nextFiles.length === 0) return
 
+    const questionId = question.questionId
+    const optimisticMessageId = optimisticMessageIdRef.current
+    optimisticMessageIdRef.current -= 1
+    // 서버 응답을 기다리는 동안에도 답변 흐름을 끊지 않도록 임시 메시지를 먼저 표시한다.
+    // 업로드 또는 저장에 실패하면 catch에서 임시 메시지를 제거하고 입력 내용을 유지한다.
+    const optimisticMessage: MentoringMessage = {
+      messageId: optimisticMessageId,
+      questionId,
+      userId: currentUserId ?? 0,
+      content: nextContent.trim(),
+      files: [],
+      createdAt: new Date().toISOString(),
+    }
+    const pendingMessages = pendingMessagesRef.current.get(questionId) ?? []
+    pendingMessagesRef.current.set(questionId, [
+      ...pendingMessages,
+      optimisticMessage,
+    ])
+
+    const currentMessages =
+      messagesCacheRef.current.get(questionId) ??
+      (loadedMessages?.questionId === questionId ? loadedMessages.messages : [])
+    const optimisticMessages = sortMessages([
+      ...currentMessages,
+      optimisticMessage,
+    ])
+
+    setIsSending(true)
+    updateQuestionMessages(questionId, optimisticMessages)
+    scrollToBottomQuestionIdRef.current = questionId
+
     try {
-      setIsSending(true)
       const uploadedFiles = await Promise.all(
         nextFiles.map((file) => uploadMentoringFile(file)),
       )
 
       const createdMessage = await createMessage({
-        questionId: question.questionId,
+        questionId,
         content: nextContent.trim(),
         files: uploadedFiles,
       })
 
-      const nextMessages = [
-        ...(messagesCacheRef.current.get(question.questionId) ??
-          (loadedMessages?.questionId === question.questionId
-            ? loadedMessages.messages
-            : [])),
+      const remainingPendingMessages = (
+        pendingMessagesRef.current.get(questionId) ?? []
+      ).filter(({ messageId }) => messageId !== optimisticMessageId)
+      if (remainingPendingMessages.length > 0) {
+        pendingMessagesRef.current.set(questionId, remainingPendingMessages)
+      } else {
+        pendingMessagesRef.current.delete(questionId)
+      }
+
+      const nextMessages = sortMessages([
+        ...(messagesCacheRef.current.get(questionId) ?? []).filter(
+          ({ messageId }) =>
+            messageId !== optimisticMessageId &&
+            messageId !== createdMessage.messageId,
+        ),
         createdMessage,
-      ].sort((first, second) => first.createdAt.localeCompare(second.createdAt))
+      ])
 
-      messagesCacheRef.current.set(question.questionId, nextMessages)
-      scrollToBottomQuestionIdRef.current = question.questionId
-      setLoadedMessages((currentMessages) => {
-        if (
-          currentMessages &&
-          currentMessages.questionId !== question.questionId
-        ) {
-          return currentMessages
-        }
+      updateQuestionMessages(questionId, nextMessages)
+    } catch (error) {
+      const remainingPendingMessages = (
+        pendingMessagesRef.current.get(questionId) ?? []
+      ).filter(({ messageId }) => messageId !== optimisticMessageId)
+      if (remainingPendingMessages.length > 0) {
+        pendingMessagesRef.current.set(questionId, remainingPendingMessages)
+      } else {
+        pendingMessagesRef.current.delete(questionId)
+      }
 
-        return { questionId: question.questionId, messages: nextMessages }
-      })
+      const nextMessages = (
+        messagesCacheRef.current.get(questionId) ?? []
+      ).filter(({ messageId }) => messageId !== optimisticMessageId)
+      updateQuestionMessages(questionId, nextMessages)
+      throw error
     } finally {
       setIsSending(false)
     }
