@@ -603,15 +603,22 @@ export const CustomizeSectionTitle = styled.p`
   ${token.typography('body', 'lg', 'medium')}
 `
 
+const CUSTOMIZE_OPTION_SIZE = 110
+const CUSTOMIZE_OPTION_GAP = 10
+const CUSTOMIZE_OPTION_COLUMNS = 3
+const CUSTOMIZE_OPTION_GRID_WIDTH =
+  CUSTOMIZE_OPTION_SIZE * CUSTOMIZE_OPTION_COLUMNS +
+  CUSTOMIZE_OPTION_GAP * (CUSTOMIZE_OPTION_COLUMNS - 1)
+
 export const CustomizeOptionGrid = styled.div`
   display: flex;
   flex-shrink: 0;
   flex-wrap: wrap;
   align-content: flex-start;
   align-items: flex-start;
-  gap: 10px;
-  width: 350px;
-  min-height: 110px;
+  gap: ${CUSTOMIZE_OPTION_GAP}px;
+  width: ${CUSTOMIZE_OPTION_GRID_WIDTH}px;
+  min-height: ${CUSTOMIZE_OPTION_SIZE}px;
 `
 
 export const CustomizeEffectOption = styled.button<{
@@ -621,9 +628,9 @@ export const CustomizeEffectOption = styled.button<{
   ${token.flexCenter}
   position: relative;
   flex-direction: column;
-  flex: 0 0 110px;
-  width: 110px;
-  height: 110px;
+  flex: 0 0 ${CUSTOMIZE_OPTION_SIZE}px;
+  width: ${CUSTOMIZE_OPTION_SIZE}px;
+  height: ${CUSTOMIZE_OPTION_SIZE}px;
   padding: 12px;
   overflow: hidden;
   border: ${({ $isSelected }) =>
