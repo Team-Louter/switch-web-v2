@@ -13,7 +13,6 @@ import { formatProfileClassInfo, useUserStore } from '@/entities/profile'
 import { SIDEBAR_MENU } from '@/shared/constants/sidebar'
 import {
   getProfileSyncPayload,
-  mergeSyncedEquippedItems,
   PROFILE_SYNC_EVENT_NAME,
 } from '@/shared/lib/profileSync'
 import * as token from '@/shared/styles/values/token'
@@ -124,10 +123,8 @@ export function AppLayout() {
           nextProfile.imageUrl = profile.profileImageUrl
         }
 
-        const equippedItems = mergeSyncedEquippedItems(profile.equippedItems)
-
-        if (equippedItems) {
-          nextProfile.equippedItems = equippedItems
+        if (profile.equippedItems) {
+          nextProfile.equippedItems = profile.equippedItems
         }
 
         if (!isCancelled) {

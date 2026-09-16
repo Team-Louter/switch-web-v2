@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { getPostCategoryLabel, resolveCommunityAssetUrl } from '@/entities/community'
 import { formatProfileClassInfo, useUserStore } from '@/entities/profile'
-import { mergeSyncedEquippedItems } from '@/shared/lib/profileSync'
 
 import {
   getMyComments,
@@ -94,10 +93,8 @@ const formatProfile = (profile: ProfileResponse): MyProfile => {
     role: profile.role,
   }
 
-  const equippedItems = mergeSyncedEquippedItems(profile.equippedItems)
-
-  if (equippedItems) {
-    nextProfile.equippedItems = equippedItems
+  if (profile.equippedItems) {
+    nextProfile.equippedItems = profile.equippedItems
   }
 
   if (profile.profileImageUrl) {
