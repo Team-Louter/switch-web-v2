@@ -48,6 +48,10 @@ const STATUS_CHANGE_LABEL: Record<QuestionStatus, string> = {
   DONE: '진행으로 변경',
 }
 
+// 상세 화면이 열려 있을 때 새 답변을 빠르게 확인하되, 요청을 과도하게 만들지 않는다.
+const MESSAGE_POLLING_INTERVAL_MS = 3_000
+const MESSAGE_LIST_BOTTOM_THRESHOLD_PX = 24
+
 interface MessageGroup {
   groupId: number
   userId: number
@@ -153,6 +157,7 @@ export function QuestionDetailPanel({
   const allMessagesPromiseRef = useRef<Promise<MentoringMessage[]> | null>(
     messagesPromise ?? null,
   )
+  const pollingRequestRef = useRef<Promise<MentoringMessage[]> | null>(null)
   const hasLoadedAllMessagesRef = useRef(false)
   const scrollToBottomQuestionIdRef = useRef<number | null>(null)
 
@@ -164,19 +169,58 @@ export function QuestionDetailPanel({
     [],
   )
 
-  const updateQuestionMessages = (
-    questionId: number,
-    messages: MentoringMessage[],
-  ) => {
-    messagesCacheRef.current.set(questionId, messages)
-    setLoadedMessages((currentMessages) => {
-      if (currentMessages && currentMessages.questionId !== questionId) {
-        return currentMessages
+  const updateQuestionMessages = useCallback(
+    (questionId: number, messages: MentoringMessage[]) => {
+      messagesCacheRef.current.set(questionId, messages)
+      setLoadedMessages((currentMessages) => {
+        if (currentMessages && currentMessages.questionId !== questionId) {
+          return currentMessages
+        }
+
+        return { questionId, messages }
+      })
+    },
+    [],
+  )
+
+  const appendNewQuestionMessages = useCallback(
+    (questionId: number, incomingMessages: MentoringMessage[]) => {
+      const currentMessages = messagesCacheRef.current.get(questionId) ?? []
+      const knownMessageIds = new Set(
+        currentMessages.map(({ messageId }) => messageId),
+      )
+      const newMessages = incomingMessages.filter(({ messageId }) => {
+        if (knownMessageIds.has(messageId)) {
+          return false
+        }
+
+        knownMessageIds.add(messageId)
+        return true
+      })
+
+      if (newMessages.length === 0) {
+        return false
       }
 
-      return { questionId, messages }
-    })
-  }
+      const pendingMessages = pendingMessagesRef.current.get(questionId) ?? []
+      const pendingMessageIds = new Set(
+        pendingMessages.map(({ messageId }) => messageId),
+      )
+      const messagesWithoutPending = currentMessages.filter(
+        ({ messageId }) => !pendingMessageIds.has(messageId),
+      )
+
+      // 서버 메시지만 새로 붙이고, 전송 중인 임시 메시지는 항상 대화의 마지막에 둔다.
+      updateQuestionMessages(questionId, [
+        ...messagesWithoutPending,
+        ...sortMessages(newMessages),
+        ...pendingMessages,
+      ])
+
+      return true
+    },
+    [updateQuestionMessages],
+  )
 
   const loadMessages = useCallback(
     async (questionId: number) => {
@@ -266,6 +310,81 @@ export function QuestionDetailPanel({
       isCancelled = true
     }
   }, [loadMessages, mergePendingMessages, question.questionId])
+
+  useEffect(() => {
+    if (loadedMessages?.questionId !== question.questionId) {
+      return
+    }
+
+    let isCancelled = false
+    let isPolling = false
+
+    const refreshMessages = async () => {
+      if (
+        isCancelled ||
+        document.hidden ||
+        isPolling ||
+        pollingRequestRef.current
+      ) {
+        return
+      }
+
+      isPolling = true
+      const request = getMessages()
+      pollingRequestRef.current = request
+
+      try {
+        const allMessages = await request
+
+        if (isCancelled) {
+          return
+        }
+
+        const currentQuestionMessages = allMessages.filter(
+          ({ questionId }) => questionId === question.questionId,
+        )
+        const messageList = messageListRef.current
+        const isNearBottom =
+          !messageList ||
+          messageList.scrollHeight -
+            messageList.scrollTop -
+            messageList.clientHeight <=
+            MESSAGE_LIST_BOTTOM_THRESHOLD_PX
+        const hasNewMessages = appendNewQuestionMessages(
+          question.questionId,
+          currentQuestionMessages,
+        )
+
+        if (hasNewMessages && isNearBottom) {
+          scrollToBottomQuestionIdRef.current = question.questionId
+        }
+      } catch {
+        // 실시간 갱신 실패는 현재 대화 화면을 방해하지 않고 다음 주기에 재시도한다.
+      } finally {
+        if (pollingRequestRef.current === request) {
+          pollingRequestRef.current = null
+        }
+        isPolling = false
+      }
+    }
+
+    const pollingTimer = window.setInterval(() => {
+      void refreshMessages()
+    }, MESSAGE_POLLING_INTERVAL_MS)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        void refreshMessages()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      isCancelled = true
+      window.clearInterval(pollingTimer)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [appendNewQuestionMessages, loadedMessages?.questionId, question.questionId])
 
   useLayoutEffect(() => {
     scrollToBottomQuestionIdRef.current = null
