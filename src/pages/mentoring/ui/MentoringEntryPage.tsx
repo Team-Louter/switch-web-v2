@@ -109,7 +109,6 @@ export function MentoringEntryPage() {
   const [isStatusUpdating, setIsStatusUpdating] = useState(false)
 
   const isMentor = profile?.role === 'MENTOR' || profile?.role === 'LEADER'
-  const isMentee = profile?.role === 'MENTEE' || profile?.role === 'STUDENT'
 
   const reloadMentoring = useCallback(async () => {
     try {
@@ -196,7 +195,7 @@ export function MentoringEntryPage() {
   const shouldShowCompleteAction = Boolean(
     isMentor && selectedQuestion && selectedQuestion.status !== 'DONE',
   )
-  const shouldShowAddQuestion = Boolean(selectedRoom && isMentee)
+  const shouldShowAddQuestion = Boolean(selectedRoom)
 
   const handleSelectRoom = (room: MentoringRoomView) => {
     setSelectedRoomId(room.mentoringId)
@@ -272,7 +271,7 @@ export function MentoringEntryPage() {
   }
 
   const handleAddQuestion = () => {
-    if (!selectedRoom || !isMentee) {
+    if (!selectedRoom) {
       return
     }
 
