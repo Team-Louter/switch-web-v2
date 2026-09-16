@@ -362,23 +362,6 @@ export function MentoringEntryPage() {
         </S.LeftArea>
 
         <S.RightContainer>
-          {shouldShowCompleteAction && (
-            <S.TopActionRow>
-              <S.EndContainer>
-                <S.EndWrap>
-                  질문에 대한 답변이 끝났나요?
-                  <S.EndButton
-                    type="button"
-                    disabled={isStatusUpdating}
-                    onClick={() => void handleCompleteQuestion()}
-                  >
-                    답변 완료
-                  </S.EndButton>
-                </S.EndWrap>
-              </S.EndContainer>
-            </S.TopActionRow>
-          )}
-
           <S.DetailWrapper>
             {isLoading ? (
               <S.DetailEmpty>멘토링 정보를 불러오는 중이에요.</S.DetailEmpty>
@@ -398,7 +381,10 @@ export function MentoringEntryPage() {
                 currentUserId={profile?.userId}
                 canChangeStatus={false}
                 membersByUserId={membersByUserId}
+                showCompleteAction={shouldShowCompleteAction}
+                isCompleting={isStatusUpdating}
                 onClose={() => setSelectedQuestionId(null)}
+                onComplete={() => void handleCompleteQuestion()}
                 onStatusChange={async () => {
                   await reloadMentoring()
                 }}

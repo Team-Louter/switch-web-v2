@@ -87,12 +87,73 @@ export const RoomName = styled.p`
   color: ${token.colors.gray.gray50};
 `
 
+export const TitleRow = styled.div`
+  ${token.flexBetween}
+  width: 100%;
+  min-width: 0;
+  gap: 16px;
+
+  @media (max-width: 760px) {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+`
+
 export const Title = styled.h2`
   ${token.typography('body', 'lg', 'semibold')}
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
   color: ${token.colors.gray.gray100};
   line-height: 1.3;
   word-break: break-word;
+`
+
+export const CompletionAction = styled.div`
+  ${token.flexRow}
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  padding: 6px 8px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.medium};
+  background: ${token.colors.gray.gray0};
+  color: ${token.colors.gray.gray60};
+  white-space: nowrap;
+  ${token.typography('body', 'sm', 'medium')}
+
+  @media (max-width: 760px) {
+    align-self: stretch;
+    justify-content: space-between;
+    white-space: normal;
+  }
+`
+
+export const CompletionPrompt = styled.span`
+  min-width: 0;
+`
+
+export const CompletionButton = styled.button`
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: ${token.shapes.xsmall};
+  background: ${token.colors.gray.gray90};
+  color: ${token.colors.white};
+  white-space: nowrap;
+  cursor: pointer;
+  ${token.typography('body', 'sm', 'semibold')}
+
+  &:hover {
+    background: ${token.colors.gray.gray100};
+  }
+
+  &:disabled {
+    background: ${token.colors.gray.gray30};
+    cursor: not-allowed;
+  }
 `
 
 export const CreatedAt = styled.span<{ $embedded?: boolean }>`

@@ -80,7 +80,10 @@ interface QuestionDetailPanelProps {
   canChangeStatus: boolean
   membersByUserId: Record<number, Member>
   embedded?: boolean
+  showCompleteAction?: boolean
+  isCompleting?: boolean
   onClose: () => void
+  onComplete?: () => void | Promise<void>
   onStatusChange?: (status: QuestionStatus) => void | Promise<void>
 }
 
@@ -91,7 +94,10 @@ export function QuestionDetailPanel({
   canChangeStatus,
   membersByUserId,
   embedded = false,
+  showCompleteAction = false,
+  isCompleting = false,
   onClose,
+  onComplete,
   onStatusChange,
 }: QuestionDetailPanelProps) {
   const [messages, setMessages] = useState<MentoringMessage[]>([])
@@ -194,7 +200,21 @@ export function QuestionDetailPanel({
         </S.StatusRow>
         <S.QuestionInfo>
           <S.RoomName>{roomName}</S.RoomName>
-          <S.Title>{question.title}</S.Title>
+          <S.TitleRow>
+            <S.Title>{question.title}</S.Title>
+            {showCompleteAction && (
+              <S.CompletionAction>
+                <S.CompletionPrompt>질문에 대한 답변이 끝났나요?</S.CompletionPrompt>
+                <S.CompletionButton
+                  type="button"
+                  disabled={isCompleting}
+                  onClick={() => void onComplete?.()}
+                >
+                  답변 완료
+                </S.CompletionButton>
+              </S.CompletionAction>
+            )}
+          </S.TitleRow>
         </S.QuestionInfo>
       </S.Header>
       <S.CreatedAt $embedded={embedded}>

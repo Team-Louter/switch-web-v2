@@ -176,59 +176,6 @@ export const RightContainer = styled.section`
   }
 `
 
-export const TopActionRow = styled.div`
-  ${token.flexBetween}
-  flex: 0 0 auto;
-  width: 100%;
-  min-height: 40px;
-  gap: 12px;
-`
-
-export const EndContainer = styled.div`
-  ${token.flexCenter}
-  min-width: 0;
-  flex: 1 1 auto;
-`
-
-export const EndWrap = styled.div`
-  ${token.flexRow}
-  align-items: center;
-  max-width: 100%;
-  gap: 10px;
-  padding: 8px 14px;
-  border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.medium};
-  background: ${token.colors.gray.gray0};
-  color: ${token.colors.gray.gray60};
-  white-space: nowrap;
-  ${token.typography('body', 'sm', 'medium')}
-
-  @media (max-width: 600px) {
-    white-space: normal;
-  }
-`
-
-export const EndButton = styled.button`
-  flex-shrink: 0;
-  padding: 7px 12px;
-  border: 0;
-  border-radius: ${token.shapes.xsmall};
-  background: ${token.colors.gray.gray90};
-  color: ${token.colors.white};
-  white-space: nowrap;
-  cursor: pointer;
-  ${token.typography('body', 'sm', 'semibold')}
-
-  &:hover {
-    background: ${token.colors.gray.gray100};
-  }
-
-  &:disabled {
-    background: ${token.colors.gray.gray30};
-    cursor: not-allowed;
-  }
-`
-
 export const DetailWrapper = styled.div`
   ${token.flexColumn}
   width: 100%;
