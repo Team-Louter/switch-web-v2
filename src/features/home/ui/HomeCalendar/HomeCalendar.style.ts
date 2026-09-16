@@ -159,7 +159,14 @@ export const CalendarWrapper = styled.div<{
 
   .fc .fc-daygrid-day {
     background: #ffffff;
-    border: 1px solid #eeeeee;
+    border: 0;
+    border-top: 1px solid #eeeeee;
+    border-left: 1px solid #eeeeee;
+  }
+
+  /* 첫 번째 열의 외곽선은 scrollgrid가 담당합니다. */
+  .fc .fc-daygrid-body tr > .fc-daygrid-day:first-child {
+    border-left: 0;
   }
 
   .fc .fc-daygrid-day-frame {

@@ -7,7 +7,11 @@ export {
   getPosts,
 } from './api/getCommunity'
 export {
+  formatCommunityCount,
   formatCommunityDate,
+  formatCommunityRelativeDate,
+  formatCommunityListDate,
+  formatCommunityListRecentDate,
   getCommunityFileKey,
   getCommunityFileDownloadUrl,
   getPostCategoryLabel,

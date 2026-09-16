@@ -1,144 +1,187 @@
-import styled, { css, keyframes } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components';
 
-import * as token from '@/shared/styles/values/token'
+import * as token from '@/shared/styles/values/token';
+import { Button } from '@/shared/ui';
 
-type StatIconKind = 'heart' | 'comment' | 'view'
+type StatIconKind = 'heart' | 'comment' | 'view';
 
 export const Page = styled.section`
   ${token.flexColumn}
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-start;
   box-sizing: border-box;
   min-height: 100dvh;
-  padding: clamp(24px, 3.2dvh, 32px) clamp(20px, 4%, 48px);
+  padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px)
+    0;
   container-name: community-page;
   container-type: inline-size;
   background: ${token.colors.white};
-`
+`;
 
 export const Content = styled.div`
   ${token.flexColumn}
   gap: 28px;
   width: 100%;
-  max-width: calc(1003px / 0.9);
-  zoom: 0.9;
 
   @container community-page (max-width: 760px) {
     gap: 24px;
   }
-`
+`;
 
 export const Header = styled.header`
   ${token.flexColumn}
-  gap: 16px;
-`
+  position: sticky;
+  top: clamp(20px, 2vw, 30px);
+  z-index: 10;
+  gap: 10px;
+  width: 100%;
+  background: ${token.colors.white};
 
-export const HeadingRow = styled.div`
-  ${token.flexBetween}
-  gap: 16px;
-
-  @container community-page (max-width: 600px) {
-    align-items: flex-start;
-  }
-`
-
-export const Heading = styled.h1`
-  margin: 0;
-  color: ${token.colors.gray.gray100};
-  ${token.typography('heading', 'lg', 'semibold')}
-  line-height: 1.18;
-`
-
-export const HeadingDescription = styled.p`
-  margin: 0 0 0 16px;
-  color: ${token.colors.gray.gray50};
-  ${token.typography('body', 'lg', 'medium')}
-  line-height: 1.17;
-
-  @container community-page (max-width: 700px) {
-    margin: 8px 0 0;
+  &::before {
+    position: absolute;
+    top: -30px;
+    right: 0;
+    left: 0;
+    height: 30px;
+    background: ${token.colors.white};
+    content: '';
   }
 
-  @container community-page (max-width: 430px) {
-    display: none;
+  > * {
+    position: relative;
   }
-`
+`;
 
-export const HeadingGroup = styled.div`
+export const TabActionRow = styled.div`
   ${token.flexLeft}
+  gap: 16px;
   min-width: 0;
 
-  @container community-page (max-width: 700px) {
-    display: block;
+  > button {
+    flex: 0 0 auto;
   }
-`
+
+  @container community-page (max-width: 600px) {
+    gap: 8px;
+  }
+`;
+
+export const WriteButton = styled(Button)`
+  gap: 6px;
+  color: ${token.colors.gray.gray100};
+  ${token.typography('body', 'sm', 'bold')}
+
+  svg {
+    flex: 0 0 auto;
+    color: currentColor;
+  }
+`;
 
 export const CategoryTabs = styled.div`
-  ${token.flexBetween}
+  display: flex;
+  justify-content: flex-start;
   box-sizing: border-box;
-  width: min(calc(1000px / 0.9), 100%);
-  min-height: 56px;
-  padding: 4px;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 4px;
   overflow-x: auto;
-  border-radius: ${token.shapes.xlarge};
-  background: ${token.colors.gray.gray0};
+  border-bottom: 1px solid ${token.colors.gray.gray10};
   scrollbar-width: none;
 
   &::-webkit-scrollbar {
     display: none;
   }
-
-  @container community-page (max-width: 930px) {
-    justify-content: flex-start;
-  }
-`
+`;
 
 export const CategoryTab = styled.button<{ $active: boolean }>`
-  flex: 0 0 116px;
-  min-height: 48px;
+  position: relative;
+  flex: 1 0 112px;
+  min-height: 44px;
   border: 0;
-  border-radius: ${token.shapes.large};
   color: ${({ $active }) =>
-    $active ? token.colors.gray.gray100 : token.colors.gray.gray50};
-  background: ${({ $active }) =>
-    $active ? token.colors.white : 'transparent'};
-  ${token.typography('heading', 'sm', 'medium')}
+    $active ? token.colors.gray.gray100 : token.colors.gray.gray60};
+  background: transparent;
+  ${token.typography('body', 'md', 'medium')}
   line-height: 1;
   cursor: pointer;
 
-  @container community-page (max-width: 600px) {
-    flex-basis: 104px;
+  &::after {
+    position: absolute;
+    right: 12px;
+    bottom: -1px;
+    left: 12px;
+    height: 3px;
+    background: ${({ $active }) =>
+      $active ? token.colors.primary.primary40 : 'transparent'};
+    content: '';
   }
-`
+
+  @container community-page (max-width: 600px) {
+    flex-basis: 96px;
+  }
+`;
 
 export const PostList = styled.section`
   overflow: hidden;
   width: 100%;
   background: ${token.colors.white};
-`
+`;
 
 export const StatusState = styled.div`
   ${token.flexColumnCenter}
   gap: 16px;
-  width: min(calc(1000px / 0.9), 100%);
+  width: 100%;
   min-height: 240px;
-  color: ${token.colors.gray.gray50};
+  color: ${token.colors.gray.gray60};
   ${token.typography('body', 'lg', 'medium')}
-`
+`;
 
 export const StatusMessage = styled.p`
   margin: 0;
-`
+`;
+
+export const EmptyState = styled.div`
+  ${token.flexColumnCenter}
+  gap: 6px;
+  box-sizing: border-box;
+  min-height: calc(100dvh - 204px);
+  padding: 24px;
+  border-bottom: 1px solid ${token.colors.gray.gray10};
+`;
+
+export const EmptyIcon = styled.div`
+  ${token.flexCenter}
+  width: 32px;
+  height: 32px;
+  margin-bottom: 2px;
+  border-radius: ${token.shapes.circle};
+  color: ${token.colors.gray.gray40};
+  background: ${token.colors.gray.gray0};
+`;
+
+export const EmptyTitle = styled.p`
+  margin: 0;
+  color: ${token.colors.gray.gray60};
+  ${token.typography('body', 'sm', 'semibold')}
+`;
+
+export const EmptyDescription = styled.p`
+  margin: 0;
+  color: ${token.colors.gray.gray60};
+  ${token.typography('caption', 'lg', 'regular')}
+`;
 
 export const PostRow = styled.article`
   display: flex;
   gap: 10px;
   align-items: center;
   box-sizing: border-box;
-  width: min(calc(1000px / 0.9), 100%);
-  height: 72px;
-  padding: 10px;
+  width: 100%;
+  height: 56px;
+  padding: 6px 10px;
   overflow: hidden;
+  border-bottom: 1px solid ${token.colors.gray.gray10};
   background: ${token.colors.white};
   cursor: pointer;
   transition: background-color 120ms ease;
@@ -151,7 +194,7 @@ export const PostRow = styled.article`
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: -2px;
   }
-`
+`;
 
 const skeletonShimmer = keyframes`
   from {
@@ -161,7 +204,7 @@ const skeletonShimmer = keyframes`
   to {
     background-position: -200% 0;
   }
-`
+`;
 
 const skeletonSurface = css`
   border-radius: ${token.shapes.small};
@@ -177,17 +220,18 @@ const skeletonSurface = css`
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
-`
+`;
 
 export const SkeletonRow = styled.div`
   display: flex;
   gap: 10px;
   align-items: center;
   box-sizing: border-box;
-  width: min(calc(1000px / 0.9), 100%);
-  height: 72px;
-  padding: 10px;
-`
+  width: 100%;
+  height: 56px;
+  padding: 6px 10px;
+  border-bottom: 1px solid ${token.colors.gray.gray10};
+`;
 
 export const SkeletonCategory = styled.span`
   ${skeletonSurface}
@@ -197,44 +241,44 @@ export const SkeletonCategory = styled.span`
   @container community-page (max-width: 430px) {
     flex-basis: 72px;
   }
-`
+`;
 
 export const SkeletonTitle = styled.span`
   ${skeletonSurface}
   flex: 1 1 0;
   min-width: 0;
   height: 20px;
-`
+`;
 
 export const SkeletonAuthor = styled.span`
   ${skeletonSurface}
-  flex: 0 0 120px;
-  height: 32px;
+  flex: 0 0 180px;
+  height: 28px;
 
   @container community-page (max-width: 900px) {
-    flex-basis: 110px;
+    flex-basis: 140px;
   }
 
   @container community-page (max-width: 600px) {
     display: none;
   }
-`
+`;
 
 export const SkeletonDate = styled.span`
   ${skeletonSurface}
-  flex: 0 0 156px;
+  flex: 0 0 88px;
   height: 20px;
   margin: 0 10px;
 
   @container community-page (max-width: 900px) {
-    flex-basis: 142px;
+    flex-basis: 76px;
     margin-inline: 4px;
   }
 
   @container community-page (max-width: 760px) {
     display: none;
   }
-`
+`;
 
 export const SkeletonStats = styled.span`
   ${skeletonSurface}
@@ -259,215 +303,228 @@ export const SkeletonStats = styled.span`
   @container community-page (max-width: 300px) {
     display: none;
   }
-`
+`;
 
 export const CategoryCell = styled.div`
   ${token.flexCenter}
-  flex: 0 0 80px;
+  flex: 0 0 96px;
   height: 100%;
   overflow: hidden;
 
   @container community-page (max-width: 430px) {
-    flex-basis: 72px;
+    flex-basis: 84px;
   }
-`
+`;
 
 export const PostCategory = styled.span`
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  min-width: 80px;
-  min-height: 29px;
-  padding: 6px 12px;
-  border-radius: ${token.shapes.small};
-  color: ${token.colors.gray.gray100};
-  background: ${token.colors.primary.primary40};
-  ${token.typography('body', 'sm', 'bold')}
-  line-height: 1.2;
+  min-height: 26px;
+  padding: 3px 10px;
+  border: 1px solid ${token.colors.primary.text};
+  border-radius: 999px;
+  color: ${token.colors.primary.primary80};
+  background: transparent;
+  ${token.typography('caption', 'lg', 'semibold')}
+  line-height: 1;
   white-space: nowrap;
-
-  @container community-page (max-width: 430px) {
-    min-width: 72px;
-    padding-inline: 8px;
-    font-size: ${token.fontSize.caption.lg};
-  }
-`
+`;
 
 export const PinnedIcon = styled.img`
-  flex: 0 0 28px;
-  width: 28px;
-  height: 28px;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
 
   @container community-page (max-width: 430px) {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
   }
-`
+`;
 
 export const PostTitle = styled.p<{ $pinned: boolean }>`
   display: flex;
   flex: 1 1 0;
+  gap: 4px;
   min-width: 0;
   align-items: center;
   box-sizing: border-box;
   height: 100%;
   overflow: hidden;
   margin: 0;
-  padding: 12px 0;
+  padding: 8px 0;
   color: ${token.colors.gray.gray100};
-  ${token.typography('body', 'lg', 'semibold')}
+  ${({ $pinned }) =>
+    token.typography('body', 'md', $pinned ? 'bold' : 'medium')}
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
-`
+`;
+
+export const PostTitleText = styled.span`
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+export const ImageAttachmentIcon = styled.img`
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+`;
 
 export const Author = styled.div`
   ${token.flexCenter}
-  flex: 0 0 120px;
+  flex: 0 0 180px;
   gap: 8px;
   box-sizing: border-box;
   height: 100%;
-  padding: 12px 4px;
+  padding: 6px 4px;
   overflow: hidden;
 
   @container community-page (max-width: 900px) {
-    flex-basis: 110px;
+    flex-basis: 140px;
   }
 
   @container community-page (max-width: 600px) {
     display: none;
   }
-`
+`;
 
 export const AuthorImage = styled.img`
   flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.circle};
   object-fit: cover;
-`
+`;
 
-export const AuthorName = styled.p`
-  flex: 0 0 72px;
+export const AuthorName = styled.p<{ $pinned: boolean }>`
+  flex: 0 0 136px;
   overflow: hidden;
   margin: 0;
   color: ${token.colors.gray.gray80};
-  ${token.typography('body', 'lg', 'medium')}
+  ${({ $pinned }) =>
+    token.typography('body', 'sm', $pinned ? 'bold' : 'medium')}
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
-`
+`;
 
 export const Date = styled.time`
   ${token.flexCenter}
-  flex: 0 0 176px;
+  flex: 0 0 88px;
   box-sizing: border-box;
   height: 100%;
-  padding: 10px;
+  padding: 6px;
   color: ${token.colors.gray.gray80};
-  ${token.typography('body', 'lg', 'medium')}
+  ${token.typography('body', 'sm', 'medium')}
   line-height: 1.2;
   white-space: nowrap;
 
   @container community-page (max-width: 900px) {
-    flex-basis: 150px;
+    flex-basis: 76px;
     padding-inline: 4px;
   }
 
   @container community-page (max-width: 760px) {
     display: none;
   }
-`
+`;
 
 export const Stats = styled.div`
-  ${token.flexCenter}
-  flex: 0 0 214px;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  flex: 0 0 180px;
   box-sizing: border-box;
   height: 100%;
-  padding: 12px 15.5px;
+  padding: 8px 12px;
   overflow: hidden;
 
   @container community-page (max-width: 900px) {
-    flex-basis: 174px;
-    gap: 8px;
+    flex-basis: 150px;
     padding-inline: 8px;
   }
 
   @container community-page (max-width: 600px) {
-    flex-basis: 150px;
+    flex-basis: 130px;
     padding-inline: 4px;
   }
 
   @container community-page (max-width: 430px) {
-    flex-basis: 128px;
-    gap: 4px;
+    flex-basis: 114px;
   }
 
   @container community-page (max-width: 300px) {
     display: none;
   }
-`
+`;
 
 export const Stat = styled.span`
   ${token.flexLeft}
-  flex: 0 0 53px;
-  gap: 4px;
-  width: 53px;
+  justify-content: flex-start;
+  min-width: 0;
+  gap: 3px;
   color: ${token.colors.gray.gray80};
-  ${token.typography('body', 'lg', 'medium')}
+  ${token.typography('body', 'sm', 'medium')}
+  font-variant-numeric: tabular-nums;
   line-height: 1;
 
   @container community-page (max-width: 600px) {
-    flex: 1 1 0;
-    width: auto;
+    gap: 2px;
   }
 
   @container community-page (max-width: 430px) {
     gap: 2px;
     font-size: ${token.fontSize.body.sm};
   }
-`
+`;
+
+export const StatValue = styled.span`
+  min-width: 3ch;
+`;
 
 export const StatIcon = styled.img<{ $kind: StatIconKind }>`
   flex: 0 0 auto;
-  width: 24px;
-  height: 24px;
-  object-fit: none;
+  width: ${({ $kind }) => ($kind === 'comment' ? '13px' : '16px')};
+  height: ${({ $kind }) => ($kind === 'comment' ? '13px' : '16px')};
+  object-fit: contain;
 
   @container community-page (max-width: 600px) {
-    width: 20px;
-    height: 20px;
+    width: ${({ $kind }) => ($kind === 'comment' ? '12px' : '14px')};
+    height: ${({ $kind }) => ($kind === 'comment' ? '12px' : '14px')};
   }
-`
+`;
 
 export const Pagination = styled.nav`
   ${token.flexCenter}
-  gap: 12px;
+  gap: 8px;
 
   @container community-page (max-width: 430px) {
     gap: 6px;
   }
-`
+`;
 
 export const PageButton = styled.button<{ $active: boolean }>`
   ${token.flexCenter}
   box-sizing: border-box;
-  width: 36px;
-  height: 36px;
-  padding: 7px 12px;
+  width: 28px;
+  height: 28px;
+  padding: 4px;
   border: 0;
-  border-radius: ${token.shapes.large};
+  border-radius: 8px;
   color: ${token.colors.gray.gray100};
   background: ${({ $active }) =>
-    $active ? token.colors.primary.primary30 : 'transparent'};
-  ${token.typography('heading', 'sm', 'semibold')}
+    $active ? token.colors.primary.primary20 : 'transparent'};
+  ${token.typography('body', 'sm', 'medium')}
   line-height: 1;
   cursor: pointer;
 
   &:disabled {
     cursor: default;
   }
-`
+`;

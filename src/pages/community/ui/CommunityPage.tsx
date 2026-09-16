@@ -2,27 +2,32 @@ import {
   type KeyboardEvent,
   type SyntheticEvent,
   useEffect,
+  useLayoutEffect,
   useState,
-} from 'react'
-import { useNavigate } from 'react-router-dom'
+} from 'react';
+import { PiNoteBlank, PiPencilSimpleLineBold } from 'react-icons/pi';
+import { useNavigate } from 'react-router-dom';
 
 import {
-  formatCommunityDate,
+  formatCommunityCount,
+  formatCommunityListRecentDate,
   getPostCategoryLabel,
   getPosts,
   POST_CATEGORY_OPTIONS,
   resolveCommunityAssetUrl,
   type PostCategory,
   type PostResponse,
-} from '@/entities/community'
-import fallbackProfileImage from '@/shared/assets/sidebar/profile.png'
-import commentIcon from '@/shared/assets/my/comment-icon.svg'
-import eyeIcon from '@/shared/assets/my/eye-icon.svg'
-import heartIcon from '@/shared/assets/my/heart-icon.svg'
-import { Button } from '@/shared/ui'
+} from '@/entities/community';
+import fallbackProfileImage from '@/shared/assets/sidebar/profile.png';
+import eyeIcon from '@/shared/assets/my/eye-icon.svg';
+import { Button } from '@/shared/ui';
 
-import heartColoredIcon from '../assets/svg/heart-colored.svg'
-import pinIcon from '../assets/svg/pin-solid.svg'
+import commentOutlineIcon from '../assets/svg/comment-outline.svg';
+import heartColoredIcon from '../assets/svg/heart-colored.svg';
+import heartOutlineIcon from '../assets/svg/heart-outline.svg';
+import fileAttachmentIcon from '../assets/svg/file-attachment.svg';
+import imageAttachmentIcon from '../assets/svg/image-attachment.svg';
+import pinIcon from '../assets/svg/pin-solid.svg';
 import {
   Author,
   AuthorImage,
@@ -32,11 +37,12 @@ import {
   CategoryTabs,
   Content,
   Date,
+  EmptyDescription,
+  EmptyIcon,
+  EmptyState,
+  EmptyTitle,
   Header,
-  Heading,
-  HeadingDescription,
-  HeadingGroup,
-  HeadingRow,
+  ImageAttachmentIcon,
   Page,
   PageButton,
   Pagination,
@@ -45,6 +51,7 @@ import {
   PostList,
   PostRow,
   PostTitle,
+  PostTitleText,
   SkeletonAuthor,
   SkeletonCategory,
   SkeletonDate,
@@ -53,144 +60,166 @@ import {
   SkeletonTitle,
   Stat,
   StatIcon,
+  StatValue,
   Stats,
   StatusMessage,
   StatusState,
-} from './CommunityPage.style'
+  TabActionRow,
+  WriteButton,
+} from './CommunityPage.style';
 
 interface CategoryTabItem {
-  value: PostCategory | null
-  label: string
+  value: PostCategory | null;
+  label: string;
 }
 
 const CATEGORY_TABS: readonly CategoryTabItem[] = [
-  { value: null, label: '전체 글' },
+  { value: null, label: '전체글' },
   ...POST_CATEGORY_OPTIONS,
-]
+];
 
-const MAX_VISIBLE_PAGE_COUNT = 5
-const SKELETON_ROW_COUNT = 16
+const MAX_VISIBLE_PAGE_COUNT = 5;
+const SKELETON_ROW_COUNT = 16;
+const RELATIVE_TIME_REFRESH_INTERVAL_MS = 30_000;
 
 export function CommunityPage() {
-  const navigate = useNavigate()
-  const [selectedCategory, setSelectedCategory] =
-    useState<PostCategory | null>(null)
-  const [currentPage, setCurrentPage] = useState(0)
-  const [posts, setPosts] = useState<PostResponse[]>([])
-  const [totalPages, setTotalPages] = useState(0)
-  const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState<string | null>(null)
-  const [reloadKey, setReloadKey] = useState(0)
+  const navigate = useNavigate();
+  const [selectedCategory, setSelectedCategory] = useState<PostCategory | null>(
+    null,
+  );
+  const [currentPage, setCurrentPage] = useState(0);
+  const [posts, setPosts] = useState<PostResponse[]>([]);
+  const [totalPages, setTotalPages] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [currentTime, setCurrentTime] = useState(globalThis.Date.now);
 
   const firstVisiblePage = Math.min(
     Math.max(currentPage - Math.floor(MAX_VISIBLE_PAGE_COUNT / 2), 0),
     Math.max(totalPages - MAX_VISIBLE_PAGE_COUNT, 0),
-  )
+  );
   const visiblePages = Array.from(
     { length: Math.min(totalPages, MAX_VISIBLE_PAGE_COUNT) },
     (_, index) => firstVisiblePage + index,
-  )
+  );
 
   const handleCategorySelect = (category: PostCategory | null) => {
-    setSelectedCategory(category)
-    setCurrentPage(0)
-  }
+    setSelectedCategory(category);
+    setCurrentPage(0);
+  };
 
   const handleWritePost = () => {
-    navigate('/community/write')
-  }
+    navigate('/community/write');
+  };
 
   const handlePostSelect = (postId: number) => {
-    navigate(`/community/${postId}`, { viewTransition: true })
-  }
+    navigate(`/community/${postId}`, { viewTransition: true });
+  };
 
   const handlePostKeyDown = (
     event: KeyboardEvent<HTMLElement>,
     postId: number,
   ) => {
     if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      handlePostSelect(postId)
+      event.preventDefault();
+      handlePostSelect(postId);
     }
-  }
+  };
 
-  const handleProfileImageError = (
-    event: SyntheticEvent<HTMLImageElement>,
-  ) => {
-    event.currentTarget.onerror = null
-    event.currentTarget.src = fallbackProfileImage
-  }
+  const handleProfileImageError = (event: SyntheticEvent<HTMLImageElement>) => {
+    event.currentTarget.onerror = null;
+    event.currentTarget.src = fallbackProfileImage;
+  };
 
   const handleRetry = () => {
-    setReloadKey((currentKey) => currentKey + 1)
-  }
+    setReloadKey((currentKey) => currentKey + 1);
+  };
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
-    let isCancelled = false
+    const refreshIntervalId = window.setInterval(
+      () => setCurrentTime(globalThis.Date.now()),
+      RELATIVE_TIME_REFRESH_INTERVAL_MS,
+    );
+
+    return () => {
+      window.clearInterval(refreshIntervalId);
+    };
+  }, []);
+
+  useEffect(() => {
+    let isCancelled = false;
 
     async function loadPosts() {
-      setIsLoading(true)
-      setLoadError(null)
+      setIsLoading(true);
+      setLoadError(null);
 
       try {
-        const response = await getPosts({
-          category: selectedCategory ?? undefined,
-          page: currentPage,
-        })
+        const [response, pinnedResponse] = await Promise.all([
+          getPosts({
+            category: selectedCategory ?? undefined,
+            page: currentPage,
+          }),
+          getPosts({ page: 0 }),
+        ]);
 
         if (!isCancelled) {
-          setPosts(response.content)
-          setTotalPages(response.totalPages)
+          const pinnedPosts = pinnedResponse.content.filter(
+            (post) => post.pinned,
+          );
+          const categoryPosts = response.content.filter((post) => !post.pinned);
+
+          setPosts([...pinnedPosts, ...categoryPosts]);
+          setTotalPages(response.totalPages);
         }
       } catch {
         if (!isCancelled) {
-          setPosts([])
-          setTotalPages(0)
-          setLoadError('게시글을 불러오지 못했습니다.')
+          setPosts([]);
+          setTotalPages(0);
+          setLoadError('게시글을 불러오지 못했습니다.');
         }
       } finally {
         if (!isCancelled) {
-          setIsLoading(false)
+          setIsLoading(false);
         }
       }
     }
 
-    void loadPosts()
+    void loadPosts();
 
     return () => {
-      isCancelled = true
-    }
-  }, [currentPage, reloadKey, selectedCategory])
+      isCancelled = true;
+    };
+  }, [currentPage, reloadKey, selectedCategory]);
 
   return (
     <Page>
       <Content>
         <Header>
-          <HeadingRow>
-            <HeadingGroup>
-              <Heading>커뮤니티</Heading>
-              <HeadingDescription>
-                동아리의 최신 소식을 부원들과 공유해 보세요!
-              </HeadingDescription>
-            </HeadingGroup>
-            <Button size="md" onClick={handleWritePost}>
-              새 글 쓰기
-            </Button>
-          </HeadingRow>
-          <CategoryTabs role="tablist" aria-label="게시글 카테고리">
-            {CATEGORY_TABS.map((category) => (
-              <CategoryTab
-                key={category.label}
-                type="button"
-                role="tab"
-                aria-selected={selectedCategory === category.value}
-                $active={selectedCategory === category.value}
-                onClick={() => handleCategorySelect(category.value)}
-              >
-                {category.label}
-              </CategoryTab>
-            ))}
-          </CategoryTabs>
+          <TabActionRow>
+            <CategoryTabs role="tablist" aria-label="게시글 카테고리">
+              {CATEGORY_TABS.map((category) => (
+                <CategoryTab
+                  key={category.label}
+                  type="button"
+                  role="tab"
+                  aria-selected={selectedCategory === category.value}
+                  $active={selectedCategory === category.value}
+                  onClick={() => handleCategorySelect(category.value)}
+                >
+                  {category.label}
+                </CategoryTab>
+              ))}
+            </CategoryTabs>
+            <WriteButton size="sm" onClick={handleWritePost}>
+              <PiPencilSimpleLineBold size={16} aria-hidden="true" />
+              글쓰기
+            </WriteButton>
+          </TabActionRow>
         </Header>
 
         <PostList aria-label="게시글 목록" aria-busy={isLoading}>
@@ -218,9 +247,13 @@ export function CommunityPage() {
           )}
 
           {!isLoading && !loadError && posts.length === 0 && (
-            <StatusState>
-              <StatusMessage>아직 등록된 게시글이 없습니다.</StatusMessage>
-            </StatusState>
+            <EmptyState>
+              <EmptyIcon>
+                <PiNoteBlank size={18} aria-hidden="true" />
+              </EmptyIcon>
+              <EmptyTitle>등록된 게시글이 없습니다.</EmptyTitle>
+              <EmptyDescription>첫 게시글을 작성해 보세요.</EmptyDescription>
+            </EmptyState>
           )}
 
           {!isLoading &&
@@ -228,7 +261,13 @@ export function CommunityPage() {
             posts.map((post) => {
               const authorImage =
                 resolveCommunityAssetUrl(post.userProfileImageUrl) ??
-                fallbackProfileImage
+                fallbackProfileImage;
+              const hasImageAttachment = post.files?.some((file) =>
+                file.fileType.startsWith('image/'),
+              );
+              const hasFileAttachment = post.files?.some(
+                (file) => !file.fileType.startsWith('image/'),
+              );
 
               return (
                 <PostRow
@@ -236,9 +275,7 @@ export function CommunityPage() {
                   role="link"
                   tabIndex={0}
                   onClick={() => handlePostSelect(post.postId)}
-                  onKeyDown={(event) =>
-                    handlePostKeyDown(event, post.postId)
-                  }
+                  onKeyDown={(event) => handlePostKeyDown(event, post.postId)}
                 >
                   <CategoryCell>
                     <PostCategoryBadge>
@@ -249,41 +286,63 @@ export function CommunityPage() {
                     <PinnedIcon src={pinIcon} alt="고정된 게시글" />
                   )}
                   <PostTitle $pinned={post.pinned}>
-                    {post.postTitle}
+                    <PostTitleText>{post.postTitle}</PostTitleText>
+                    {hasImageAttachment && (
+                      <ImageAttachmentIcon src={imageAttachmentIcon} alt="" />
+                    )}
+                    {hasFileAttachment && (
+                      <ImageAttachmentIcon src={fileAttachmentIcon} alt="" />
+                    )}
                   </PostTitle>
                   <Author>
                     <AuthorImage
                       src={authorImage}
                       alt={`${post.userName} 프로필`}
+                      loading="lazy"
+                      decoding="async"
                       onError={handleProfileImageError}
                     />
-                    <AuthorName>{post.userName}</AuthorName>
+                    <AuthorName $pinned={post.pinned}>
+                      {post.userName}
+                    </AuthorName>
                   </Author>
                   <Date dateTime={post.createdAt}>
-                    {formatCommunityDate(post.createdAt)}
+                    {formatCommunityListRecentDate(post.createdAt, currentTime)}
                   </Date>
                   <Stats
                     aria-label={`좋아요 ${post.likeCount}, 댓글 ${post.commentCount}, 조회 ${post.viewers}`}
                   >
                     <Stat>
                       <StatIcon
-                        src={post.isHearted ? heartColoredIcon : heartIcon}
+                        src={
+                          post.isHearted ? heartColoredIcon : heartOutlineIcon
+                        }
                         alt=""
                         $kind="heart"
                       />
-                      {post.likeCount}
+                      <StatValue>
+                        {formatCommunityCount(post.likeCount)}
+                      </StatValue>
                     </Stat>
                     <Stat>
-                      <StatIcon src={commentIcon} alt="" $kind="comment" />
-                      {post.commentCount}
+                      <StatIcon
+                        src={commentOutlineIcon}
+                        alt=""
+                        $kind="comment"
+                      />
+                      <StatValue>
+                        {formatCommunityCount(post.commentCount)}
+                      </StatValue>
                     </Stat>
                     <Stat>
                       <StatIcon src={eyeIcon} alt="" $kind="view" />
-                      {post.viewers}
+                      <StatValue>
+                        {formatCommunityCount(post.viewers)}
+                      </StatValue>
                     </Stat>
                   </Stats>
                 </PostRow>
-              )
+              );
             })}
         </PostList>
 
@@ -305,5 +364,5 @@ export function CommunityPage() {
         )}
       </Content>
     </Page>
-  )
+  );
 }

@@ -1,5 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type SetStateAction,
+} from 'react'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 
 import {
   getNotificationSettings,
@@ -24,10 +30,9 @@ import {
 
 import notificationAvatar from '../assets/images/notification-avatar.png'
 import notificationCommentIcon from '../assets/svg/notification-comment.svg'
-import notificationModalCloseIcon from '../assets/svg/notification-modal-close.svg'
 import notificationMoreIcon from '../assets/svg/notification-more.svg'
-import notificationReadAllIcon from '../assets/svg/notification-read-all.svg'
 import notificationSettingsIcon from '../assets/svg/notification-settings.svg'
+import { NotificationReadAllIcon } from './icons/NotificationReadAllIcon'
 import {
   ActionError,
   Content,
@@ -41,6 +46,7 @@ import {
   ReadAllButton,
   ReadAllIcon,
   RetryButton,
+  SettingsAnchor,
   SettingsButton,
   SettingsIcon,
   SkeletonAvatar,
@@ -58,7 +64,7 @@ import {
 } from './NotificationPage.style'
 
 interface NotificationOutletContext {
-  setNotificationCount: (count: number) => void
+  setNotificationCount: (count: SetStateAction<number>) => void
 }
 
 const NOTIFICATION_TYPE_ICONS: Partial<Record<NotificationType, string>> = {
@@ -78,12 +84,40 @@ const INITIAL_NOTIFICATION_SETTINGS: NotificationSettings = {
   emailEnabled: true,
 }
 
+function getNotificationTargetPath(notification: Notification): string | null {
+  const target = notification.target
+
+  if (
+    target?.type === 'SCHEDULE' &&
+    Number.isSafeInteger(target.id) &&
+    target.id > 0
+  ) {
+    return `/home?scheduleId=${target.id}`
+  }
+
+  if (
+    target?.type !== 'COMMENT' ||
+    target.parentId === null ||
+    !Number.isSafeInteger(target.parentId)
+  ) {
+    return null
+  }
+
+  const commentHash = Number.isSafeInteger(target.id)
+    ? `#comment-${target.id}`
+    : ''
+
+  return `/community/${target.parentId}${commentHash}`
+}
+
 export function NotificationPage() {
+  const navigate = useNavigate()
   const { setNotificationCount } =
     useOutletContext<NotificationOutletContext>()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const loadMoreTriggerRef = useRef<HTMLDivElement>(null)
   const notificationIdsRef = useRef<Set<number>>(new Set())
+  const readingNotificationIdsRef = useRef<Set<number>>(new Set())
   const hasLoadedNotificationsRef = useRef(false)
   const [newNotificationIds, setNewNotificationIds] = useState<Set<number>>(
     new Set(),
@@ -107,6 +141,48 @@ export function NotificationPage() {
   const [settingsError, setSettingsError] = useState<string | null>(null)
 
   const hasUnreadNotification = unreadNotificationCount > 0
+
+  const handleNotificationClick = useCallback(
+    async (notification: Notification) => {
+      const targetPath = getNotificationTargetPath(notification)
+
+      if (!targetPath) {
+        return
+      }
+
+      const isReadRequestInFlight = readingNotificationIdsRef.current.has(
+        notification.id,
+      )
+
+      if (!notification.isRead && !isReadRequestInFlight) {
+        readingNotificationIdsRef.current.add(notification.id)
+
+        try {
+          await readNotification(notification.id)
+          setNotifications((currentNotifications) =>
+            currentNotifications.map((currentNotification) =>
+              currentNotification.id === notification.id
+                ? { ...currentNotification, isRead: true }
+                : currentNotification,
+            ),
+          )
+
+          const decrementUnreadCount = (currentCount: number) =>
+            Math.max(0, currentCount - 1)
+
+          setUnreadNotificationCount(decrementUnreadCount)
+          setNotificationCount(decrementUnreadCount)
+        } catch {
+          setActionError('알림을 읽음 처리하지 못했습니다.')
+        } finally {
+          readingNotificationIdsRef.current.delete(notification.id)
+        }
+      }
+
+      navigate(targetPath, { viewTransition: true })
+    },
+    [navigate, setNotificationCount],
+  )
 
   const loadNotifications = useCallback(async () => {
     setIsLoading(true)
@@ -295,12 +371,21 @@ export function NotificationPage() {
 
     const nextIsRead = !selectedNotification.isRead
 
+    if (
+      nextIsRead &&
+      readingNotificationIdsRef.current.has(notificationId)
+    ) {
+      setOpenMenuId(null)
+      return
+    }
+
     setIsNotificationMutating(true)
     setActionError(null)
     setOpenMenuId(null)
 
     try {
       if (nextIsRead) {
+        readingNotificationIdsRef.current.add(notificationId)
         await readNotification(notificationId)
       } else {
         await unreadNotification(notificationId)
@@ -314,13 +399,11 @@ export function NotificationPage() {
         ),
       )
 
-      const nextUnreadCount = Math.max(
-        0,
-        unreadNotificationCount + (nextIsRead ? -1 : 1),
-      )
+      const updateUnreadCount = (currentCount: number) =>
+        Math.max(0, currentCount + (nextIsRead ? -1 : 1))
 
-      setUnreadNotificationCount(nextUnreadCount)
-      setNotificationCount(nextUnreadCount)
+      setUnreadNotificationCount(updateUnreadCount)
+      setNotificationCount(updateUnreadCount)
     } catch {
       setActionError(
         nextIsRead
@@ -328,6 +411,9 @@ export function NotificationPage() {
           : '알림을 읽지 않음 처리하지 못했습니다.',
       )
     } finally {
+      if (nextIsRead) {
+        readingNotificationIdsRef.current.delete(notificationId)
+      }
       setIsNotificationMutating(false)
     }
   }
@@ -374,10 +460,11 @@ export function NotificationPage() {
       })
 
       if (selectedNotification && !selectedNotification.isRead) {
-        const nextUnreadCount = Math.max(0, unreadNotificationCount - 1)
+        const decrementUnreadCount = (currentCount: number) =>
+          Math.max(0, currentCount - 1)
 
-        setUnreadNotificationCount(nextUnreadCount)
-        setNotificationCount(nextUnreadCount)
+        setUnreadNotificationCount(decrementUnreadCount)
+        setNotificationCount(decrementUnreadCount)
       }
 
       setPendingDeleteId(null)
@@ -389,7 +476,12 @@ export function NotificationPage() {
     }
   }
 
-  const handleSettingsOpen = () => {
+  const handleSettingsToggle = () => {
+    if (isSettingsOpen) {
+      setIsSettingsOpen(false)
+      return
+    }
+
     setIsSettingsOpen(true)
     setOpenMenuId(null)
 
@@ -562,22 +654,41 @@ export function NotificationPage() {
               }
               onClick={handleReadAll}
             >
-              <ReadAllIcon src={notificationReadAllIcon} alt="" />
+              <ReadAllIcon as={NotificationReadAllIcon} />
               모두 읽음
             </ReadAllButton>
-            <SettingsButton
-              type="button"
-              aria-label="알림 설정"
-              aria-haspopup="dialog"
-              aria-expanded={isSettingsOpen}
-              onClick={handleSettingsOpen}
-            >
-              <SettingsIcon src={notificationSettingsIcon} alt="" />
-            </SettingsButton>
+            <SettingsAnchor>
+              <SettingsButton
+                type="button"
+                aria-label="알림 설정"
+                aria-haspopup="dialog"
+                aria-expanded={isSettingsOpen}
+                onClick={handleSettingsToggle}
+              >
+                <SettingsIcon
+                  $isOpen={isSettingsOpen}
+                  src={notificationSettingsIcon}
+                  alt=""
+                />
+              </SettingsButton>
+              {isSettingsOpen && (
+                <NotificationSettingsModal
+                  settings={notificationSettings}
+                  errorMessage={settingsError ?? undefined}
+                  isUpdating={isSettingsLoading || isSettingsUpdating}
+                  onClose={handleSettingsClose}
+                  onToggle={handleSettingToggle}
+                />
+              )}
+            </SettingsAnchor>
           </HeaderActions>
         </Header>
 
-        <NotificationList aria-busy={isLoading} aria-live="polite">
+        <NotificationList
+          $loaded={!isLoading && !loadError}
+          aria-busy={isLoading}
+          aria-live="polite"
+        >
           {actionError && <ActionError role="alert">{actionError}</ActionError>}
 
           {isLoading ? (
@@ -621,7 +732,9 @@ export function NotificationPage() {
                     typeIconUrl={NOTIFICATION_TYPE_ICONS[notification.type]}
                     moreIconUrl={notificationMoreIcon}
                     fallbackActorImageUrl={notificationAvatar}
+                    isClickable={getNotificationTargetPath(notification) !== null}
                     isMenuOpen={openMenuId === notification.id}
+                    onNotificationClick={handleNotificationClick}
                     onMenuToggle={handleMenuToggle}
                     onReadToggle={handleReadToggle}
                     onDelete={handleDeleteRequest}
@@ -670,16 +783,6 @@ export function NotificationPage() {
         />
       )}
 
-      {isSettingsOpen && (
-        <NotificationSettingsModal
-          closeIconUrl={notificationModalCloseIcon}
-          settings={notificationSettings}
-          errorMessage={settingsError ?? undefined}
-          isUpdating={isSettingsLoading || isSettingsUpdating}
-          onClose={handleSettingsClose}
-          onToggle={handleSettingToggle}
-        />
-      )}
     </Page>
   )
 }

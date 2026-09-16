@@ -1,7 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
+import { flushSync } from 'react-dom'
+import { toast } from 'react-toastify'
 
 import {
   MonthlyStudyWeeks,
+  PercentBar,
   WriteModal,
 } from '@/features/study'
 import type { WeekStatus } from '@/features/study'
@@ -14,15 +23,19 @@ import {
   getMonthWeekNumber,
 } from '@/shared/lib/studyWeek'
 import { tokens } from '@/shared/styles'
-import { PercentBar } from '@/features/study'
 
 import decoImg2 from '../assets/spring.svg'
 import {
-  getCurrentMonth,
   getMonthsFromCurrentMonth,
   getMonthState,
 } from '../lib/getMonthsFromCurrentMonth'
+import { loadWithConcurrency } from '../lib/loadWithConcurrency'
+import { LearningSkeleton } from './LearningSkeleton'
 import * as S from './LearningPage.style'
+
+const STATUS_REQUEST_CONCURRENCY = 3
+const HISTORY_BATCH_SIZE = 4
+const HISTORY_SCROLL_THRESHOLD = 240
 
 export function MenteeLearningPage() {
   const user = useUserStore((state) => state.user)
@@ -30,7 +43,7 @@ export function MenteeLearningPage() {
     ? `${user.grade}${user.classRoom}${String(user.number).padStart(2, '0')}`
     : ''
   const currentDate = useMemo(() => getCurrentKoreaDate(), [])
-  const currentMonth = getCurrentMonth()
+  const currentMonth = currentDate.month
   const months = useMemo(() => getMonthsFromCurrentMonth(), [])
   const currentYear = currentDate.year
   const currentWeekNumber = getMonthWeekNumber(
@@ -41,6 +54,9 @@ export function MenteeLearningPage() {
   const [statusesByMonth, setStatusesByMonth] = useState<
     Record<string, StudyStatus[]>
   >({})
+  const [loadedMonths, setLoadedMonths] = useState<Record<string, true>>({})
+  const [isInitialStatusLoading, setIsInitialStatusLoading] = useState(true)
+  const [loadedHistoryCount, setLoadedHistoryCount] = useState(0)
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false)
   const [modalStudy, setModalStudy] = useState<StudyRecord>()
   const [selectedWeeks, setSelectedWeeks] = useState<
@@ -50,28 +66,141 @@ export function MenteeLearningPage() {
     month: number
     weekNumber: number
   } | null>(null)
+  const currentPeriodRef = useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const currentPeriodTopBeforeLoadRef = useRef<number | null>(null)
+  const historyBatchLoadingRef = useRef(false)
+  const requestedHistoryMonthsRef = useRef(new Set<number>())
+  const modalStudyRequestIdRef = useRef(0)
+  const isMountedRef = useRef(true)
+  const historyMonths = useMemo(
+    () => months.filter((month) => month < currentMonth),
+    [months, currentMonth],
+  )
+  const loadedHistoryMonths = useMemo(
+    () =>
+      loadedHistoryCount > 0
+        ? historyMonths.slice(-loadedHistoryCount)
+        : [],
+    [historyMonths, loadedHistoryCount],
+  )
+  const remainingHistoryCount = historyMonths.length - loadedHistoryCount
+  const visibleMonths = useMemo(
+    () => [
+      ...loadedHistoryMonths,
+      ...months.filter((month) => month >= currentMonth),
+    ],
+    [loadedHistoryMonths, months, currentMonth],
+  )
 
   useEffect(() => {
     let isCancelled = false
 
-    Promise.all(
-      months.map(async (month) => {
-        const statuses = await getMyStatus(currentYear, month)
+    const loadCurrentStatus = async () => {
+      const key = `${currentYear}-${currentMonth}`
 
-        return [`${currentYear}-${month}`, statuses] as const
-      }),
-    )
-      .then((monthStatuses) => {
+      try {
+        const statuses = await getMyStatus(currentYear, currentMonth)
+
         if (!isCancelled) {
-          setStatusesByMonth(Object.fromEntries(monthStatuses))
+          setStatusesByMonth((previous) => ({
+            ...previous,
+            [key]: statuses,
+          }))
         }
-      })
-      .catch(() => {})
+      } catch {
+        // 현재 월 조회 실패가 화면 전체 표시를 막지 않게 한다.
+      } finally {
+        if (!isCancelled) {
+          setLoadedMonths((previous) => ({ ...previous, [key]: true }))
+          setIsInitialStatusLoading(false)
+        }
+      }
+    }
+
+    void loadCurrentStatus()
 
     return () => {
       isCancelled = true
     }
   }, [currentMonth, currentYear, months])
+
+  useEffect(() => {
+    isMountedRef.current = true
+
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
+  useLayoutEffect(() => {
+    const scrollArea = scrollAreaRef.current
+    const currentPeriod = currentPeriodRef.current
+    const currentPeriodTopBeforeLoad = currentPeriodTopBeforeLoadRef.current
+
+    if (
+      scrollArea &&
+      currentPeriod &&
+      currentPeriodTopBeforeLoad !== null
+    ) {
+      scrollArea.scrollTop +=
+        currentPeriod.getBoundingClientRect().top -
+        currentPeriodTopBeforeLoad
+    }
+
+    currentPeriodTopBeforeLoadRef.current = null
+    historyBatchLoadingRef.current = false
+  }, [loadedHistoryCount])
+
+  useEffect(() => {
+    const monthsToLoad = loadedHistoryMonths.filter(
+      (month) => !requestedHistoryMonthsRef.current.has(month),
+    )
+
+    if (monthsToLoad.length === 0) return
+
+    monthsToLoad.forEach((month) => {
+      requestedHistoryMonthsRef.current.add(month)
+    })
+
+    const loadHistoryStatus = async (month: number) => {
+      const key = `${currentYear}-${month}`
+
+      try {
+        const statuses = await getMyStatus(currentYear, month)
+
+        if (isMountedRef.current) {
+          setStatusesByMonth((previous) => ({
+            ...previous,
+            [key]: statuses,
+          }))
+          setLoadedMonths((previous) => ({ ...previous, [key]: true }))
+        }
+      } catch {
+        requestedHistoryMonthsRef.current.delete(month)
+        // 개별 월 조회 실패가 다른 월의 표시를 막지 않게 한다.
+      }
+    }
+
+    void loadWithConcurrency(
+      monthsToLoad,
+      loadHistoryStatus,
+      STATUS_REQUEST_CONCURRENCY,
+    )
+  }, [currentYear, loadedHistoryMonths])
+
+  useLayoutEffect(() => {
+    if (isInitialStatusLoading) return
+
+    const scrollArea = scrollAreaRef.current
+    const currentPeriod = currentPeriodRef.current
+
+    if (!scrollArea || !currentPeriod) return
+
+    scrollArea.scrollTop +=
+      currentPeriod.getBoundingClientRect().top -
+      scrollArea.getBoundingClientRect().top
+  }, [isInitialStatusLoading])
 
   const refreshMonthStatuses = async (month: number) => {
     try {
@@ -91,57 +220,171 @@ export function MenteeLearningPage() {
     }
   }
 
+  const loadPreviousHistory = () => {
+    if (
+      isInitialStatusLoading ||
+      remainingHistoryCount === 0 ||
+      historyBatchLoadingRef.current
+    ) {
+      return
+    }
+
+    currentPeriodTopBeforeLoadRef.current =
+      currentPeriodRef.current?.getBoundingClientRect().top ?? null
+    historyBatchLoadingRef.current = true
+    setLoadedHistoryCount((currentCount) =>
+      Math.min(currentCount + HISTORY_BATCH_SIZE, historyMonths.length),
+    )
+  }
+
+  const handleHistoryScroll = () => {
+    const scrollArea = scrollAreaRef.current
+
+    if (
+      loadedHistoryCount === 0 ||
+      !scrollArea ||
+      scrollArea.scrollTop > HISTORY_SCROLL_THRESHOLD
+    ) {
+      return
+    }
+
+    loadPreviousHistory()
+  }
+
+  const handleHistoryWheel = (event: WheelEvent) => {
+    const scrollArea = scrollAreaRef.current
+
+    if (
+      event.deltaY >= 0 ||
+      isInitialStatusLoading ||
+      remainingHistoryCount === 0 ||
+      historyBatchLoadingRef.current ||
+      !scrollArea ||
+      scrollArea.scrollTop > HISTORY_SCROLL_THRESHOLD
+    ) {
+      return
+    }
+
+    // 최상단에서 소실되는 휠 이동량을 배치 추가와 위치 보정 이후에 적용한다.
+    event.preventDefault()
+    const delta = event.deltaY * (
+      event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? scrollArea.clientHeight : 1
+    )
+    flushSync(() => {
+      loadPreviousHistory()
+    })
+    // 큰 휠 입력은 완만하게 연결하고, 트랙패드의 작은 연속 입력은 즉시 따라간다.
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches
+    scrollArea.scrollBy({
+      top: delta,
+      behavior: !prefersReducedMotion && Math.abs(delta) >= 40 ? 'smooth' : 'instant',
+    })
+  }
+
+  useEffect(() => {
+    const scrollArea = scrollAreaRef.current
+    if (!scrollArea) return
+
+    scrollArea.addEventListener('wheel', handleHistoryWheel, { passive: false })
+    return () => scrollArea.removeEventListener('wheel', handleHistoryWheel)
+  })
+
+  const handleWriteModalClose = () => {
+    modalStudyRequestIdRef.current += 1
+    setIsWriteModalOpen(false)
+  }
+
   return (
     <S.PageContainer>
-      <S.ScrollArea>
-        {months.map((month) => {
+      <S.ScrollArea
+        $loaded={!isInitialStatusLoading}
+        ref={scrollAreaRef}
+        aria-busy={isInitialStatusLoading}
+        onScroll={handleHistoryScroll}
+      >
+        {isInitialStatusLoading && (
+          <LearningSkeleton count={months.length} variant="mentee" />
+        )}
+        {!isInitialStatusLoading && visibleMonths.map((month) => {
           const monthState = getMonthState(month, currentMonth)
           const weekCount = getMonthWeekCount(currentYear, month)
-          const statuses = (
-            statusesByMonth[`${currentYear}-${month}`] ?? []
-          ).slice(
-            0,
-            weekCount,
-          )
-          const submitRate = statuses.length
+          const monthKey = `${currentYear}-${month}`
+          const isMonthStatusLoaded =
+            monthState === 'future' || loadedMonths[monthKey] === true
+
+          if (!isMonthStatusLoaded) {
+            return (
+              <LearningSkeleton
+                key={month}
+                count={1}
+                variant="mentee"
+                showNow={false}
+              />
+            )
+          }
+
+          const statuses = isMonthStatusLoaded
+            ? (statusesByMonth[monthKey] ?? []).slice(0, weekCount)
+            : []
+          const submitRate = isMonthStatusLoaded && statuses.length
             ? Math.round(
                 (statuses.filter(({ status }) => status === 'SUBMITTED')
                   .length /
                   weekCount) *
-                  100,
+                100,
               )
             : 0
-          const items = Array.from({ length: weekCount }, (_, index) => {
-            const status = statuses[index]?.status
-            const weekNumber = index + 1
-            const isFutureWeek =
-              monthState === 'future' ||
-              (monthState === 'current' && weekNumber > currentWeekNumber)
+          const statusLabel =
+            monthState === 'future'
+              ? '잠김'
+              : !isMonthStatusLoaded
+                ? '불러오는 중'
+                : submitRate === 100
+                  ? '진행 완료'
+                  : monthState === 'current'
+                    ? '진행중'
+                    : '실패'
+          const items = isMonthStatusLoaded
+            ? Array.from({ length: weekCount }, (_, index) => {
+                const status = statuses[index]?.status
+                const weekNumber = index + 1
+                const isFutureWeek =
+                  monthState === 'future' ||
+                  (monthState === 'current' && weekNumber > currentWeekNumber)
 
-            return {
-              id: `${currentYear}-${month}-${weekNumber}`,
-              label: `${weekNumber}주차`,
-              status:
-                isFutureWeek || status === undefined
-                  ? ('locked' as const)
-                  : ({
-                      SUBMITTED: 'submitted',
-                      PENDING: 'due',
-                      OVERDUE: 'overdue',
-                    }[status] as 'submitted' | 'due' | 'overdue'),
-            }
-          })
+                return {
+                  id: `${currentYear}-${month}-${weekNumber}`,
+                  label: `${weekNumber}주차`,
+                  status:
+                    isFutureWeek || status === undefined
+                      ? ('locked' as const)
+                      : ({
+                          SUBMITTED: 'submitted',
+                          PENDING: 'due',
+                          OVERDUE: 'overdue',
+                        }[status] as 'submitted' | 'due' | 'overdue'),
+                }
+              })
+            : []
           const defaultWeekNumber =
             monthState === 'current' ? currentWeekNumber : 1
           const selectedWeek =
             selectedWeeks[month] ??
-            {
-              weekNumber: defaultWeekNumber,
-              status: items[defaultWeekNumber - 1].status,
-            }
+            (items[defaultWeekNumber - 1]
+              ? {
+                  weekNumber: defaultWeekNumber,
+                  status: items[defaultWeekNumber - 1].status,
+                }
+              : undefined)
 
           return (
-            <S.Column key={month} $state={monthState}>
+            <S.Column
+              ref={month === currentMonth ? currentPeriodRef : undefined}
+              key={month}
+              $state={monthState}
+            >
               <S.MonthRow style={{ justifyContent: 'flex-start', gap: 10 }}>
                 <S.Month>{month}월</S.Month>
                 {monthState === 'current' && <S.Now>Now</S.Now>}
@@ -149,17 +392,11 @@ export function MenteeLearningPage() {
               <S.Card $state={monthState}>
                 <S.ProgressContent>
                   <S.SubmitLabel>제출</S.SubmitLabel>
-                  <S.SubmitRate>{submitRate}%</S.SubmitRate>
+                  <S.SubmitRate>
+                    {isMonthStatusLoaded ? `${submitRate}%` : '—'}
+                  </S.SubmitRate>
                   <PercentBar value={submitRate} label="과제 제출률" />
-                  <S.Status>
-                    {
-                      {
-                        past: '진행 완료',
-                        current: '진행중',
-                        future: '잠김',
-                      }[monthState]
-                    }
-                  </S.Status>
+                  <S.Status>{statusLabel}</S.Status>
                 </S.ProgressContent>
                 <S.DiaryContent>
                   <MonthlyStudyWeeks
@@ -204,26 +441,47 @@ export function MenteeLearningPage() {
                       onClick={async () => {
                         if (!selectedWeek) return
 
+                        const requestId = modalStudyRequestIdRef.current + 1
+                        modalStudyRequestIdRef.current = requestId
                         setModalWeek({
                           month,
                           weekNumber: selectedWeek.weekNumber,
                         })
                         setModalStudy(undefined)
+                        const isEditMode = selectedWeek.status === 'submitted'
 
-                        if (selectedWeek.status === 'submitted') {
-                          try {
-                            const study = await getStudy(
-                              currentYear,
-                              month,
-                              selectedWeek.weekNumber,
-                            )
-                            setModalStudy(study)
-                          } catch {
-                            return
-                          }
+                        if (!isEditMode) {
+                          setIsWriteModalOpen(true)
+                          return
                         }
 
-                        setIsWriteModalOpen(true)
+                        try {
+                          const study = await getStudy(
+                            currentYear,
+                            month,
+                            selectedWeek.weekNumber,
+                          )
+
+                          if (
+                            !isMountedRef.current ||
+                            requestId !== modalStudyRequestIdRef.current
+                          ) {
+                            return
+                          }
+
+                          setModalStudy(study)
+                          setIsWriteModalOpen(true)
+                        } catch {
+                          if (
+                            !isMountedRef.current ||
+                            requestId !== modalStudyRequestIdRef.current
+                          ) {
+                            return
+                          }
+
+                          setIsWriteModalOpen(false)
+                          toast.error('학습일지를 불러오지 못했습니다.')
+                        }
                       }}
                     >
                       {selectedWeek?.status === 'submitted'
@@ -240,7 +498,7 @@ export function MenteeLearningPage() {
       </S.ScrollArea>
       <WriteModal
         isOpen={isWriteModalOpen}
-        onClose={() => setIsWriteModalOpen(false)}
+        onClose={handleWriteModalClose}
         onCreateSuccess={() => {
           if (!modalWeek) return
           return refreshMonthStatuses(modalWeek.month)

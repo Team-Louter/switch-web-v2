@@ -4,8 +4,11 @@ import { MdOutlineRemoveRedEye } from 'react-icons/md';
 import { getHotPosts, getRecentHomePost } from '@/entities/post';
 import type { Post, RecentHomePost } from '@/entities/post';
 import { useUserStore, formatProfileClassInfo } from '@/entities/profile';
+import { UserName } from '@/entities/user';
 import { getRankingList } from '@/entities/typing';
 import type { Ranking, TypingProblemType } from '@/entities/typing';
+import { mergeSyncedEquippedItems } from '@/shared/lib/profileSync';
+import { getNameStyleKey } from '@/shared/styles';
 import medal1stIcon from '../../assets/medal-1st.svg';
 import medal2ndIcon from '../../assets/medal-2nd.svg';
 import heartFilledIcon from '../../assets/heart-filled.svg';
@@ -16,6 +19,25 @@ import * as S from './HomeSidebar.style';
 export function HomeSidebar() {
   const navigate = useNavigate();
   const user = useUserStore((state) => state.user);
+  const equippedItems = mergeSyncedEquippedItems(user?.equippedItems);
+  const profileNameColor = equippedItems?.nameColor;
+  const profileNameStyleKey = getNameStyleKey(
+    profileNameColor?.styleKey ??
+      profileNameColor?.valueColor ??
+      profileNameColor?.value_color ??
+      profileNameColor?.valueText ??
+      profileNameColor?.itemName,
+  );
+  const profileBorder = equippedItems?.border;
+  const profileBorderImageUrl = profileBorder?.valueImageUrl ??
+    profileBorder?.imageUrl ??
+    profileBorder?.itemImageUrl ??
+    profileBorder?.originalImageUrl ??
+    profileBorder?.previewImageUrl ??
+    profileBorder?.thumbnailUrl;
+  const hasCustomBorder = Boolean(profileBorderImageUrl?.trim());
+  const profileTitle = equippedItems?.title;
+  const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName;
   const [recent, setRecent] = useState<RecentHomePost | null>(null);
   const [popular, setPopular] = useState<Post[]>([]);
   const [rankings, setRankings] = useState<Ranking[]>([]);
@@ -88,9 +110,16 @@ export function HomeSidebar() {
       <S.ProfileCard>
         <S.ProfileHeader>
           {user ? <S.Identity>
-            {user.profileImageUrl ? <S.Avatar src={user.profileImageUrl} alt="" /> : <S.AvatarFallback>{user.userName.slice(0, 1)}</S.AvatarFallback>}
+            {user.profileImageUrl ? <S.SidebarProfileAvatar
+              alt={`${user.userName} 프로필`}
+              $hasBorder={hasCustomBorder}
+              equippedItems={equippedItems}
+              imageUrl={user.profileImageUrl}
+              size={60}
+            /> : <S.AvatarFallback>{user.userName.slice(0, 1)}</S.AvatarFallback>}
             <div>
-              <S.Name>{user.userName}</S.Name>
+              {profileTitleText && <S.ProfileTitle>{profileTitleText}</S.ProfileTitle>}
+              <S.Name><UserName styleKey={profileNameStyleKey}>{user.userName}</UserName></S.Name>
               <S.ClassInfo>{formatProfileClassInfo(user)}</S.ClassInfo>
             </div>
           </S.Identity> : <S.ProfileSkeleton aria-label="프로필 불러오는 중"><S.ProfileAvatarSkeleton /><S.ProfileTextSkeleton><S.ProfileNameSkeleton /><S.ProfileClassSkeleton /></S.ProfileTextSkeleton></S.ProfileSkeleton>}

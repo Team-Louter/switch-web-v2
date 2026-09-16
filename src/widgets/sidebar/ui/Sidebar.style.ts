@@ -108,7 +108,7 @@ export const IconSvg = styled.span<{ $active: boolean; $frame: IconFrame }>`
 
 export const MenuLabel = styled.span<{ $active?: boolean }>`
   color: ${({ $active }) =>
-    $active ? token.colors.gray.gray90 : token.colors.gray.gray50};
+    $active ? token.colors.gray.gray90 : token.colors.gray.gray70};
   line-height: 1;
   white-space: nowrap;
   ${token.typography('body', 'md', 'semibold')}
@@ -146,7 +146,7 @@ export const NotificationCount = styled.span<{
   $direction?: NotificationCountAnimationDirection
 }>`
   margin-left: auto;
-  color: ${token.colors.primary.primary70};
+  color: ${token.colors.primary.primary80};
   line-height: 1;
   white-space: nowrap;
   ${token.typography('body', 'lg', 'medium')}

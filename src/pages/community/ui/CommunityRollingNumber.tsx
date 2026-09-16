@@ -1,49 +1,49 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react';
 
-import * as S from './CommunityDetailPage.style'
+import * as S from './CommunityDetailPage.style';
 
-type NumberChangeDirection = 'increase' | 'decrease'
+type NumberChangeDirection = 'increase' | 'decrease';
 
 interface NumberTransition {
-  current: number
-  direction: NumberChangeDirection
-  previous: number
-  key: number
-  shouldSpinAll: boolean
+  current: number;
+  direction: NumberChangeDirection;
+  previous: number;
+  key: number;
+  shouldSpinAll: boolean;
 }
 
 interface CommunityRollingNumberProps {
-  value: number
+  value: number;
 }
 
 interface NumberCharacter {
-  current: string
-  previous: string
+  current: string;
+  previous: string;
 }
 
 function formatNumber(value: number) {
-  return new Intl.NumberFormat('ko-KR').format(value)
+  return new Intl.NumberFormat('ko-KR').format(value);
 }
 
 function getNumberCharacters(
   previousValue: string,
   currentValue: string,
 ): NumberCharacter[] {
-  const characterCount = Math.max(previousValue.length, currentValue.length)
+  const characterCount = Math.max(previousValue.length, currentValue.length);
 
   return Array.from({ length: characterCount }, (_, index) => {
-    const previousIndex = previousValue.length - characterCount + index
-    const currentIndex = currentValue.length - characterCount + index
+    const previousIndex = previousValue.length - characterCount + index;
+    const currentIndex = currentValue.length - characterCount + index;
 
     return {
       previous: previousValue[previousIndex] ?? '',
       current: currentValue[currentIndex] ?? '',
-    }
-  })
+    };
+  });
 }
 
 function isNumberCharacter(value: string) {
-  return /^[0-9]$/.test(value)
+  return /^[0-9]$/.test(value);
 }
 
 function getIncreasingValues(
@@ -51,15 +51,15 @@ function getIncreasingValues(
   to: number,
   minimumFullRotations: number,
 ) {
-  const values = [from]
-  const distance = (to - from + 10) % 10
-  const totalSteps = distance + minimumFullRotations * 10
+  const values = [from];
+  const distance = (to - from + 10) % 10;
+  const totalSteps = distance + minimumFullRotations * 10;
 
   for (let step = 1; step <= totalSteps; step += 1) {
-    values.push((from + step) % 10)
+    values.push((from + step) % 10);
   }
 
-  return values.map(String)
+  return values.map(String);
 }
 
 function getRollingValues(
@@ -69,76 +69,70 @@ function getRollingValues(
   shouldSpin: boolean,
 ) {
   if (!isNumberCharacter(previous) || !isNumberCharacter(current)) {
-    return [current]
+    return [current];
   }
 
-  const previousNumber = Number(previous)
-  const currentNumber = Number(current)
-  const minimumFullRotations = shouldSpin ? 1 : 0
+  const previousNumber = Number(previous);
+  const currentNumber = Number(current);
+  const minimumFullRotations = shouldSpin ? 1 : 0;
 
   return direction === 'increase'
-    ? getIncreasingValues(
-        previousNumber,
-        currentNumber,
-        minimumFullRotations,
-      )
-    : getIncreasingValues(
-        currentNumber,
-        previousNumber,
-        minimumFullRotations,
-      )
+    ? getIncreasingValues(previousNumber, currentNumber, minimumFullRotations)
+    : getIncreasingValues(currentNumber, previousNumber, minimumFullRotations);
 }
 
-export function CommunityRollingNumber({
-  value,
-}: CommunityRollingNumberProps) {
-  const previousValueRef = useRef(value)
+export function CommunityRollingNumber({ value }: CommunityRollingNumberProps) {
+  const previousValueRef = useRef(value);
   const [transition, setTransition] = useState<NumberTransition>({
     current: value,
     direction: 'increase',
     previous: value,
     key: 0,
     shouldSpinAll: false,
-  })
+  });
 
   useEffect(() => {
-    const previousValue = previousValueRef.current
+    const previousValue = previousValueRef.current;
 
     if (previousValue === value) {
-      return
+      return;
     }
 
-    previousValueRef.current = value
+    previousValueRef.current = value;
     setTransition({
       current: value,
       direction: value > previousValue ? 'increase' : 'decrease',
       previous: previousValue,
       key: Date.now(),
       shouldSpinAll: true,
-    })
-  }, [value])
+    });
+  }, [value]);
 
-  const previousCharacters = formatNumber(transition.previous)
-  const currentCharacters = formatNumber(transition.current)
-  const characters = getNumberCharacters(previousCharacters, currentCharacters)
+  const previousCharacters = formatNumber(transition.previous);
+  const currentCharacters = formatNumber(transition.current);
+  const characters = getNumberCharacters(previousCharacters, currentCharacters);
 
   return (
-    <S.RollingNumber aria-label={`${value}`} aria-live="polite">
+    <S.RollingNumber
+      role="status"
+      aria-label={formatNumber(value)}
+      aria-live="polite"
+    >
       {characters.map((character, index) => {
         const previousDigit = isNumberCharacter(character.previous)
           ? character.previous
-          : '0'
+          : '0';
         const shouldAnimate =
           isNumberCharacter(character.current) &&
           (transition.shouldSpinAll ||
-            character.previous !== character.current)
+            character.previous !== character.current);
         const values = getRollingValues(
           previousDigit,
           character.current,
           transition.direction,
           transition.shouldSpinAll,
-        )
-        const animationDelayMs = (characters.length - index - 1) * 90
+        );
+        const animationDelayMs = (characters.length - index - 1) * 90;
 
         return (
           <S.RollingNumberCharacter
@@ -164,8 +158,8 @@ export function CommunityRollingNumber({
               character.current
             )}
           </S.RollingNumberCharacter>
-        )
+        );
       })}
     </S.RollingNumber>
-  )
+  );
 }

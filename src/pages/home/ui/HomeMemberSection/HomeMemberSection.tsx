@@ -3,6 +3,8 @@ import { FaGithub, FaLinkedin } from 'react-icons/fa'
 
 import { getMember } from '@/entities/member'
 import type { Member } from '@/entities/member'
+import { UserName } from '@/entities/user'
+import { getNameStyleKey } from '@/shared/styles'
 import * as S from './HomeMemberSection.style'
 
 const ALL_GENERATIONS = '전체'
@@ -124,7 +126,7 @@ export function HomeMemberSection() {
           </S.FilterButton>
         ))}
       </S.FilterList>
-      <S.MemberList $loaded={shouldLoad && !isLoading}>
+      <S.MemberList key={selectedGeneration} $loaded={shouldLoad && !isLoading}>
         {isLoading
           ? Array.from({ length: 5 }, (_, index) => <MemberSkeleton key={index} />)
           : shouldLoad && renderedMembers.map((member) => <MemberRow key={member.userId} member={member} />)}
@@ -144,22 +146,65 @@ function MemberRow({ member }: MemberRowProps) {
   const majorText = member.majors.length > 0
     ? `${member.majors.join(' & ')} Developer`
     : 'Developer'
+  const profileNameColor = member.equippedItems?.nameColor
+  const profileNameStyleKey = getNameStyleKey(
+    profileNameColor?.styleKey ??
+      profileNameColor?.valueColor ??
+      profileNameColor?.value_color ??
+      profileNameColor?.valueText ??
+      profileNameColor?.itemName,
+  )
+  const profileBorder = member.equippedItems?.border
+  const profileBorderImageUrl = profileBorder?.valueImageUrl ??
+    profileBorder?.imageUrl ??
+    profileBorder?.itemImageUrl ??
+    profileBorder?.originalImageUrl ??
+    profileBorder?.previewImageUrl ??
+    profileBorder?.thumbnailUrl
+  const hasCustomBorder = Boolean(profileBorderImageUrl?.trim())
+  const profileTitle = member.equippedItems?.title
+  const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName
+  const profileTitleStyleKey = getNameStyleKey(
+    profileTitle?.valueColor ?? profileTitle?.value_color,
+  )
 
   return (
     <S.MemberRow>
       {member.profileImageUrl ? (
-        <S.MemberImage src={member.profileImageUrl} alt={`${member.userName} 프로필`} />
+        <S.MemberProfileAvatar
+          alt={`${member.userName} 프로필`}
+          $hasBorder={hasCustomBorder}
+          equippedItems={member.equippedItems}
+          imageUrl={member.profileImageUrl}
+          size={96}
+        />
       ) : (
         <S.MemberAvatarFallback aria-label={`${member.userName} 프로필`}>{member.userName.slice(0, 1)}</S.MemberAvatarFallback>
       )}
       <S.MemberInfo>
         <S.RoleBadge $leader={member.role === 'LEADER'}>{member.generation}기 {roleLabel}</S.RoleBadge>
-        <S.MemberName>{member.userName} ({majorText})</S.MemberName>
+        <S.MemberName>
+          <UserName styleKey={profileNameStyleKey}>{member.userName}</UserName> ({majorText})
+        </S.MemberName>
         <S.SocialLinks>
           {member.githubUrl && <a href={member.githubUrl} target="_blank" rel="noopener noreferrer" aria-label={`${member.userName} GitHub`}><FaGithub /></a>}
           {member.linkedinUrl && <a href={member.linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label={`${member.userName} LinkedIn`}><FaLinkedin /></a>}
         </S.SocialLinks>
-        <S.Generation>Louter {member.generation}기</S.Generation>
+        <S.Generation>
+          Louter {member.generation}기
+          {profileTitleText && (
+            <>
+              <S.GenerationSeparator aria-hidden="true">·</S.GenerationSeparator>
+              <S.GenerationTitle>
+                {profileTitleStyleKey ? (
+                  <UserName styleKey={profileTitleStyleKey}>{profileTitleText}</UserName>
+                ) : (
+                  profileTitleText
+                )}
+              </S.GenerationTitle>
+            </>
+          )}
+        </S.Generation>
       </S.MemberInfo>
     </S.MemberRow>
   )

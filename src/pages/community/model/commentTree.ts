@@ -1,6 +1,7 @@
 import type { CommentResponse } from '@/entities/community'
 
 export const REPLY_LOAD_DEPTH_INTERVAL = 2
+export const FLATTENED_TREE_DEPTH = 4
 
 export interface CommentTreeNode {
   comment: CommentResponse
@@ -101,6 +102,42 @@ export function appendReplyComment(
     replyWithDepth,
     ...commentsWithReplyCount.slice(insertIndex),
   ]
+}
+
+export function decrementAncestorReplyCounts(
+  comments: CommentResponse[],
+  commentId: number,
+): CommentResponse[] {
+  const commentIndex = comments.findIndex(
+    (comment) => comment.commentId === commentId,
+  )
+
+  if (commentIndex === -1) {
+    return comments
+  }
+
+  const deletedComment = comments[commentIndex]
+  const ancestorCommentIds = new Set<number>()
+  let ancestorDepth = deletedComment.depth - 1
+
+  for (
+    let currentIndex = commentIndex - 1;
+    currentIndex >= 0 && ancestorDepth >= 0;
+    currentIndex -= 1
+  ) {
+    const candidateComment = comments[currentIndex]
+
+    if (candidateComment.depth === ancestorDepth) {
+      ancestorCommentIds.add(candidateComment.commentId)
+      ancestorDepth -= 1
+    }
+  }
+
+  return comments.map((comment) =>
+    ancestorCommentIds.has(comment.commentId)
+      ? { ...comment, replyCount: Math.max(0, comment.replyCount - 1) }
+      : comment,
+  )
 }
 
 export function appendCommentReplies(

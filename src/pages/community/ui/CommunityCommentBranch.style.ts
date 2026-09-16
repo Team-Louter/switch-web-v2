@@ -1,38 +1,50 @@
-import styled, { css, keyframes } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components';
 
-import * as token from '@/shared/styles/values/token'
+import * as token from '@/shared/styles/values/token';
 
 interface CommentMenuItemProps {
-  $danger?: boolean
+  $danger?: boolean;
 }
 
 interface CommentTextProps {
-  $isDeleted: boolean
+  $isDeleted: boolean;
+}
+
+interface CommentItemProps {
+  $isTarget: boolean;
 }
 
 interface CommentRowProps {
-  $isReply: boolean
+  $isReply: boolean;
+  $isFlattened: boolean;
+  $hasFlattenedChildren: boolean;
 }
 
 interface CommentTreeNodeProps {
-  $hasNextSibling?: boolean
+  $hasNextSibling?: boolean;
+  $isFlattened: boolean;
+}
+
+interface CommentChildrenProps {
+  $isFlattened: boolean;
+  $hasCommonConnector: boolean;
 }
 
 interface RepliesCaretProps {
-  $isOpen: boolean
+  $isOpen: boolean;
 }
 
 interface RepliesToggleRowProps {
-  $hasConnector?: boolean
-  $isWithinReplies?: boolean
+  $hasConnector?: boolean;
+  $isWithinReplies?: boolean;
 }
 
 interface ReplyLoadSkeletonLineProps {
-  $width: string
+  $width: string;
 }
 
 const checkboxCheckmark =
-  'url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Cpath d=%22m3.25 8.25 2.75 2.75 6.75-6.75%22 fill=%22none%22 stroke=%22white%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222.25%22/%3E%3C/svg%3E")'
+  'url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Cpath d=%22m3.25 8.25 2.75 2.75 6.75-6.75%22 fill=%22none%22 stroke=%22white%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222.25%22/%3E%3C/svg%3E")';
 
 const replyLoadShimmer = keyframes`
   from {
@@ -42,7 +54,7 @@ const replyLoadShimmer = keyframes`
   to {
     background-position: -200% 0;
   }
-`
+`;
 
 const replyComposerAvatarEnter = keyframes`
   from {
@@ -54,7 +66,7 @@ const replyComposerAvatarEnter = keyframes`
     opacity: 1;
     transform: scale(1) rotate(0);
   }
-`
+`;
 
 const anonymousReplyComposerAvatarEnter = keyframes`
   from {
@@ -66,7 +78,24 @@ const anonymousReplyComposerAvatarEnter = keyframes`
     opacity: 1;
     transform: scale(1) rotate(0);
   }
-`
+`;
+
+const targetCommentHighlight = keyframes`
+  0% {
+    background: ${token.colors.primary.primary20};
+    box-shadow: 0 0 0 4px ${token.colors.primary.primary40};
+  }
+
+  55% {
+    background: ${token.colors.primary.primary10};
+    box-shadow: 0 0 0 3px ${token.colors.primary.primary30};
+  }
+
+  100% {
+    background: ${token.colors.white};
+    box-shadow: 0 0 0 0 transparent;
+  }
+`;
 
 const replyLoadSkeletonSurface = css`
   border-radius: ${token.shapes.small};
@@ -82,28 +111,29 @@ const replyLoadSkeletonSurface = css`
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
-`
+`;
 
 export const CommentTreeNode = styled.div<CommentTreeNodeProps>`
   ${token.flexColumn}
   position: relative;
   gap: 12px;
   width: 100%;
+  min-width: 0;
 
   &::before {
-    display: ${({ $hasNextSibling }) =>
-      $hasNextSibling ? 'block' : 'none'};
+    display: ${({ $hasNextSibling, $isFlattened }) =>
+      $hasNextSibling && !$isFlattened ? 'block' : 'none'};
     position: absolute;
     z-index: 1;
-    top: 32px;
+    top: 0;
     bottom: -12px;
     left: -16px;
-    width: 1px;
-    background: ${token.colors.gray.gray10};
+    width: 0;
+    border-left: 1px solid ${token.colors.gray.gray10};
     pointer-events: none;
     content: '';
   }
-`
+`;
 
 export const RepliesToggleRow = styled.div<RepliesToggleRowProps>`
   position: relative;
@@ -128,16 +158,79 @@ export const RepliesToggleRow = styled.div<RepliesToggleRowProps>`
     pointer-events: none;
     content: '';
   }
-`
+`;
 
-export const CommentChildren = styled.div`
+export const CommentChildren = styled.div<CommentChildrenProps>`
   ${token.flexColumn}
+  position: relative;
   box-sizing: border-box;
   gap: 12px;
   width: calc(100% - 20px);
+  min-width: 0;
   margin-left: 20px;
   padding-left: 28px;
-`
+
+  ${({ $isFlattened }) =>
+    $isFlattened &&
+    css`
+      width: 100%;
+      margin-left: 0;
+      padding-left: 0;
+    `}
+
+  ${({ $hasCommonConnector }) =>
+    $hasCommonConnector &&
+    css`
+      &::before {
+        position: absolute;
+        z-index: 0;
+        top: -12px;
+        bottom: 0;
+        left: 12px;
+        width: 0;
+        border-left: 1px solid ${token.colors.gray.gray10};
+        pointer-events: none;
+        content: '';
+      }
+
+      /* 더보기의 곡선 아래에서는 공통 세로선이 이어지지 않도록 가린다. */
+      ${RepliesToggleRow}::before {
+        z-index: 2;
+      }
+
+      ${RepliesToggleRow}::after {
+        position: absolute;
+        z-index: 1;
+        top: 2px;
+        bottom: 0;
+        left: 12px;
+        width: 1px;
+        background: ${token.colors.white};
+        pointer-events: none;
+        content: '';
+      }
+    `}
+
+  @container community-detail (max-width: 520px) {
+    ${({ $isFlattened }) =>
+      !$isFlattened &&
+      css`
+        width: calc(100% - 12px);
+        margin-left: 12px;
+        padding-left: 16px;
+      `}
+  }
+
+  @container community-detail (max-width: 380px) {
+    ${({ $isFlattened }) =>
+      !$isFlattened &&
+      css`
+        width: calc(100% - 8px);
+        margin-left: 8px;
+        padding-left: 12px;
+      `}
+  }
+`;
 
 export const RepliesToggle = styled.button`
   ${token.flexLeft}
@@ -170,7 +263,7 @@ export const RepliesToggle = styled.button`
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
-`
+`;
 
 export const RepliesCaret = styled.span<RepliesCaretProps>`
   box-sizing: border-box;
@@ -179,14 +272,13 @@ export const RepliesCaret = styled.span<RepliesCaretProps>`
   margin-top: ${({ $isOpen }) => ($isOpen ? '4px' : '-3px')};
   border-right: 2px solid currentColor;
   border-bottom: 2px solid currentColor;
-  transform: ${({ $isOpen }) =>
-    $isOpen ? 'rotate(225deg)' : 'rotate(45deg)'};
+  transform: ${({ $isOpen }) => ($isOpen ? 'rotate(225deg)' : 'rotate(45deg)')};
   transition: transform 160ms ease;
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
-`
+`;
 
 export const ReplyLoadSkeleton = styled.div<RepliesToggleRowProps>`
   position: relative;
@@ -216,21 +308,21 @@ export const ReplyLoadSkeleton = styled.div<RepliesToggleRowProps>`
     pointer-events: none;
     content: '';
   }
-`
+`;
 
 export const ReplyLoadSkeletonAvatar = styled.span`
   ${replyLoadSkeletonSurface}
   width: 32px;
   height: 32px;
   border-radius: ${token.shapes.circle};
-`
+`;
 
 export const ReplyLoadSkeletonContent = styled.div`
   ${token.flexColumn}
   justify-content: center;
   gap: 8px;
   min-width: 0;
-`
+`;
 
 export const ReplyLoadSkeletonLine = styled.span<ReplyLoadSkeletonLineProps>`
   ${replyLoadSkeletonSurface}
@@ -238,7 +330,7 @@ export const ReplyLoadSkeletonLine = styled.span<ReplyLoadSkeletonLineProps>`
   width: ${({ $width }) => $width};
   max-width: 100%;
   height: 12px;
-`
+`;
 
 export const CommentRow = styled.article<CommentRowProps>`
   ${token.flexLeft}
@@ -247,16 +339,20 @@ export const CommentRow = styled.article<CommentRowProps>`
   gap: 12px;
   width: 100%;
   min-height: 0;
+  min-width: 0;
+  scroll-margin-top: 24px;
 
   &::before {
     display: none;
     position: absolute;
     z-index: 1;
-    top: 48px;
+    top: ${({ $hasFlattenedChildren }) =>
+      $hasFlattenedChildren ? '32px' : '48px'};
     bottom: -12px;
-    left: 32px;
-    width: 1px;
-    background: ${token.colors.gray.gray10};
+    left: ${({ $hasFlattenedChildren }) =>
+      $hasFlattenedChildren ? '-16px' : '32px'};
+    width: 0;
+    border-left: 1px solid ${token.colors.gray.gray10};
     pointer-events: none;
     content: '';
   }
@@ -264,13 +360,13 @@ export const CommentRow = styled.article<CommentRowProps>`
   &:has(+ ${CommentChildren})::before,
   &:has(+ ${ReplyLoadSkeleton})::before,
   &:has(+ ${RepliesToggleRow})::before {
-    display: block;
+    display: ${({ $isFlattened }) => ($isFlattened ? 'none' : 'block')};
   }
 
   &::after {
     display: ${({ $isReply }) => ($isReply ? 'block' : 'none')};
     position: absolute;
-    z-index: 1;
+    z-index: 2;
     top: 0;
     left: -16px;
     width: 16px;
@@ -281,9 +377,9 @@ export const CommentRow = styled.article<CommentRowProps>`
     pointer-events: none;
     content: '';
   }
-`
+`;
 
-export const CommentItem = styled.div`
+export const CommentItem = styled.div<CommentItemProps>`
   ${token.flexLeft}
   flex: 1 1 0;
   gap: 12px;
@@ -296,7 +392,22 @@ export const CommentItem = styled.div`
   border: 0;
   border-radius: ${token.shapes.medium};
   background: ${token.colors.white};
-`
+
+  ${({ $isTarget }) =>
+    $isTarget &&
+    css`
+      animation: ${targetCommentHighlight} 1.2s ease-out both;
+
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
+    `}
+
+  @container community-detail (max-width: 430px) {
+    gap: 8px;
+    padding: 12px;
+  }
+`;
 
 export const CommentAuthorImage = styled.img`
   flex: 0 0 32px;
@@ -305,14 +416,20 @@ export const CommentAuthorImage = styled.img`
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.circle};
   object-fit: cover;
-`
+
+  @container community-detail (max-width: 430px) {
+    flex-basis: 28px;
+    width: 28px;
+    height: 28px;
+  }
+`;
 
 export const CommentContent = styled.div`
   ${token.flexColumn}
   flex: 1 1 0;
   gap: 8px;
   min-width: 0;
-`
+`;
 
 export const CommentHeader = styled.div`
   ${token.flexBetween}
@@ -323,7 +440,7 @@ export const CommentHeader = styled.div`
   @container community-detail (max-width: 430px) {
     gap: 8px;
   }
-`
+`;
 
 export const CommentMeta = styled.div`
   ${token.flexLeft}
@@ -336,33 +453,33 @@ export const CommentMeta = styled.div`
     flex-wrap: wrap;
     min-width: 0;
   }
-`
+`;
 
 export const CommentAuthor = styled.span`
   color: #404040;
   ${token.typography('heading', 'sm', 'semibold')}
   line-height: 1.2;
   white-space: nowrap;
-`
+`;
 
 export const CommentMetaDot = styled.span`
   width: 4px;
   height: 4px;
   border-radius: ${token.shapes.circle};
   background: ${token.colors.gray.gray40};
-`
+`;
 
 export const CommentDate = styled.time`
-  color: ${token.colors.gray.gray40};
+  color: ${token.colors.gray.gray70};
   ${token.typography('body', 'md', 'regular')}
   line-height: 1;
   white-space: nowrap;
-`
+`;
 
 export const CommentMenu = styled.div`
   position: relative;
   flex: 0 0 auto;
-`
+`;
 
 export const CommentMenuButton = styled.button`
   ${token.flexCenter}
@@ -388,14 +505,14 @@ export const CommentMenuButton = styled.button`
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
-`
+`;
 
 export const CommentMenuIcon = styled.img`
   width: 20px;
   height: 20px;
   object-fit: contain;
   transform: rotate(90deg);
-`
+`;
 
 export const CommentMenuPanel = styled.div`
   ${token.flexColumn}
@@ -410,7 +527,7 @@ export const CommentMenuPanel = styled.div`
   border-radius: ${token.shapes.large};
   background: ${token.colors.white};
   box-shadow: 0 6px 18px rgb(0 0 0 / 8%);
-`
+`;
 
 export const CommentMenuItem = styled.button<CommentMenuItemProps>`
   width: 100%;
@@ -443,29 +560,36 @@ export const CommentMenuItem = styled.button<CommentMenuItemProps>`
     css`
       color: ${token.colors.danger.danger20};
     `}
-`
+`;
 
 export const CommentMenuDivider = styled.span`
   width: 100%;
   height: 1px;
   margin: 4px 0;
   background: ${token.colors.gray.gray10};
-`
+`;
 
 export const CommentText = styled.p<CommentTextProps>`
   margin: 0;
   color: ${({ $isDeleted }) =>
-    $isDeleted ? token.colors.gray.gray40 : '#404040'};
+    $isDeleted ? token.colors.gray.gray70 : '#404040'};
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1.5;
   overflow-wrap: anywhere;
-`
+`;
+
+export const CommentMention = styled.span`
+  margin-right: 6px;
+  color: ${token.colors.primary.primary80};
+  ${token.typography('body', 'lg', 'semibold')}
+  white-space: nowrap;
+`;
 
 export const CommentEditForm = styled.div`
   ${token.flexColumn}
   gap: 8px;
   width: 100%;
-`
+`;
 
 export const CommentEditInput = styled.input`
   box-sizing: border-box;
@@ -483,13 +607,13 @@ export const CommentEditInput = styled.input`
   &:focus {
     border-color: ${token.colors.primary.primary50};
   }
-`
+`;
 
 export const CommentEditActions = styled.div`
   ${token.flexLeft}
   align-self: flex-end;
   gap: 8px;
-`
+`;
 
 export const CommentEditButton = styled.button`
   min-width: 56px;
@@ -515,7 +639,7 @@ export const CommentEditButton = styled.button`
     cursor: wait;
     opacity: 0.6;
   }
-`
+`;
 
 export const CommentEditSaveButton = styled(CommentEditButton)`
   color: ${token.colors.gray.gray100};
@@ -524,7 +648,7 @@ export const CommentEditSaveButton = styled(CommentEditButton)`
   &:hover:not(:disabled) {
     background: ${token.colors.primary.primary40};
   }
-`
+`;
 
 export const ReplyActionButton = styled.button`
   align-self: flex-start;
@@ -545,7 +669,7 @@ export const ReplyActionButton = styled.button`
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: 2px;
   }
-`
+`;
 
 export const ReplyComposer = styled.div`
   display: grid;
@@ -553,10 +677,10 @@ export const ReplyComposer = styled.div`
   gap: 12px;
   width: 100%;
   margin-top: 4px;
-`
+`;
 
 export const ReplyComposerAvatar = styled.img<{
-  $isAnonymous: boolean
+  $isAnonymous: boolean;
 }>`
   width: 32px;
   height: 32px;
@@ -571,13 +695,13 @@ export const ReplyComposerAvatar = styled.img<{
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
-`
+`;
 
 export const ReplyComposerBody = styled.div`
   ${token.flexColumn}
   gap: 8px;
   min-width: 0;
-`
+`;
 
 export const ReplyComposerInput = styled.input`
   box-sizing: border-box;
@@ -593,21 +717,21 @@ export const ReplyComposerInput = styled.input`
   line-height: 1.5;
 
   &::placeholder {
-    color: ${token.colors.gray.gray40};
+    color: ${token.colors.gray.gray70};
   }
-`
+`;
 
 export const ReplyComposerFooter = styled.div`
   ${token.flexBetween}
   gap: 16px;
   min-height: 44px;
-`
+`;
 
 export const ReplyComposerTools = styled.div`
   ${token.flexLeft}
   gap: 14px;
   min-width: 0;
-`
+`;
 
 export const ReplyAnonymousLabel = styled.label`
   ${token.flexLeft}
@@ -616,7 +740,7 @@ export const ReplyAnonymousLabel = styled.label`
   ${token.typography('body', 'sm', 'medium')}
   line-height: 1;
   cursor: pointer;
-`
+`;
 
 export const ReplyAnonymousCheckbox = styled.input`
   appearance: none;
@@ -649,13 +773,13 @@ export const ReplyAnonymousCheckbox = styled.input`
     cursor: not-allowed;
     opacity: 0.55;
   }
-`
+`;
 
 export const ReplyComposerActions = styled.div`
   ${token.flexLeft}
   flex: 0 0 auto;
   gap: 12px;
-`
+`;
 
 export const ReplyCancelButton = styled.button`
   height: 44px;
@@ -676,7 +800,7 @@ export const ReplyCancelButton = styled.button`
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: 2px;
   }
-`
+`;
 
 export const ReplySubmitButton = styled.button`
   min-width: 76px;
@@ -707,7 +831,7 @@ export const ReplySubmitButton = styled.button`
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
-`
+`;
 
 export const ReplyActionError = styled.p`
   align-self: flex-start;
@@ -715,4 +839,4 @@ export const ReplyActionError = styled.p`
   color: ${token.colors.danger.danger20};
   ${token.typography('body', 'sm', 'medium')}
   line-height: 1.4;
-`
+`;
