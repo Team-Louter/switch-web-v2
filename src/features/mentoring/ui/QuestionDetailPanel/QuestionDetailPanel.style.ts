@@ -1,5 +1,6 @@
 import styled, { css, keyframes } from 'styled-components'
 
+import { contentReveal } from '@/shared/styles/animations'
 import * as token from '@/shared/styles/values/token'
 
 export const Panel = styled.aside<{ $embedded: boolean }>`
@@ -305,10 +306,26 @@ const messageSkeletonSurface = css`
   }
 `
 
+const messageRevealAnimation = css`
+  animation: ${contentReveal} 360ms ease-out both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
 export const MessageLoading = styled.div`
   ${token.flexColumnStart}
   width: 100%;
   gap: 16px;
+  ${messageRevealAnimation}
+`
+
+export const MessageContent = styled.div`
+  ${token.flexColumnStart}
+  width: 100%;
+  gap: 16px;
+  ${messageRevealAnimation}
 `
 
 export const MessageLoadingGroup = styled.div`

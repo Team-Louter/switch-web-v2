@@ -1,15 +1,11 @@
 import styled, { css, keyframes } from 'styled-components'
 
+import { contentReveal } from '@/shared/styles/animations'
 import { ProfileAvatar } from '@/shared/ui'
 
 const shimmer = keyframes`
   from { background-position: 100% 0; }
   to { background-position: -100% 0; }
-`
-
-const reveal = keyframes`
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: translateY(0); }
 `
 
 export const Section = styled.section<{ $visible: boolean }>`
@@ -65,7 +61,7 @@ export const MemberList = styled.div<{ $loaded: boolean }>`
   width: 100%;
   margin: 0 auto;
   overflow-anchor: none;
-  animation: ${({ $loaded }) => $loaded && css`${reveal} 360ms ease-out both`};
+  animation: ${({ $loaded }) => $loaded && css`${contentReveal} 360ms ease-out both`};
 `
 
 export const LoadMoreTrigger = styled.div`

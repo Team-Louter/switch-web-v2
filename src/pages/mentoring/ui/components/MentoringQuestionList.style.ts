@@ -1,11 +1,17 @@
 import styled from 'styled-components'
 
+import { contentReveal } from '@/shared/styles/animations'
 import * as token from '@/shared/styles/values/token'
 
 export const List = styled.div`
   ${token.flexColumn}
   width: 100%;
   gap: 3px;
+  animation: ${contentReveal} 360ms ease-out both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 export const QuestionItem = styled.div<{

@@ -440,6 +440,7 @@ export function MentoringEntryPage() {
                 <MentoringQuestionListSkeleton />
               ) : selectedRoom ? (
                 <MentoringQuestionList
+                  key={activeRoomId}
                   questions={roomQuestions}
                   selectedQuestionId={activeQuestionId}
                   onSelect={(question) => {
