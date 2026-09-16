@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { PiPlus } from 'react-icons/pi'
 
 import { getMember } from '@/entities/member'
@@ -174,11 +174,16 @@ export function MentoringEntryPage() {
     null,
   )
   const [isWritingNew, setIsWritingNew] = useState(false)
+  const [pendingQuestionId, setPendingQuestionId] = useState<number | null>(
+    null,
+  )
+  const [isCreatingQuestion, setIsCreatingQuestion] = useState(false)
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false)
   const [editingRoom, setEditingRoom] = useState<MentoringRoomView | undefined>(
     undefined,
   )
   const [isStatusUpdating, setIsStatusUpdating] = useState(false)
+  const optimisticQuestionIdRef = useRef(-1)
 
   const isMentor = profile?.role === 'MENTOR' || profile?.role === 'LEADER'
 
@@ -336,23 +341,63 @@ export function MentoringEntryPage() {
   }
 
   const handleCreateQuestion = async (content: string, files: File[]) => {
-    if (activeRoomId === null) {
+    if (activeRoomId === null || isCreatingQuestion) {
       return
     }
 
-    const uploadedFiles = await Promise.all(
-      files.map((file) => uploadMentoringFile(file)),
-    )
-    const createdQuestion = await createQuestion({
+    const optimisticQuestionId = optimisticQuestionIdRef.current
+    optimisticQuestionIdRef.current -= 1
+    const optimisticQuestion: MentoringQuestion = {
+      questionId: optimisticQuestionId,
       mentoringId: activeRoomId,
+      userId: profile?.userId ?? 0,
+      status: 'PAUSED',
       title: content.length > 20 ? `${content.slice(0, 20)}...` : content,
       content,
-      files: uploadedFiles,
-    })
+      files: [],
+      createdAt: new Date().toISOString(),
+    }
 
-    await reloadMentoring()
-    setSelectedQuestionId(createdQuestion.questionId)
-    setIsWritingNew(false)
+    setPendingQuestionId(optimisticQuestionId)
+    setIsCreatingQuestion(true)
+    setQuestions((currentQuestions) => [
+      optimisticQuestion,
+      ...currentQuestions,
+    ])
+
+    try {
+      const uploadedFiles = await Promise.all(
+        files.map((file) => uploadMentoringFile(file)),
+      )
+      const createdQuestion = await createQuestion({
+        mentoringId: activeRoomId,
+        title: content.length > 20 ? `${content.slice(0, 20)}...` : content,
+        content,
+        files: uploadedFiles,
+      })
+
+      await reloadMentoring()
+      setQuestions((currentQuestions) => [
+        createdQuestion,
+        ...currentQuestions.filter(
+          (question) =>
+            question.questionId !== optimisticQuestionId &&
+            question.questionId !== createdQuestion.questionId,
+        ),
+      ])
+      setSelectedQuestionId(createdQuestion.questionId)
+      setIsWritingNew(false)
+    } catch (error) {
+      setQuestions((currentQuestions) =>
+        currentQuestions.filter(
+          (question) => question.questionId !== optimisticQuestionId,
+        ),
+      )
+      throw error
+    } finally {
+      setPendingQuestionId(null)
+      setIsCreatingQuestion(false)
+    }
   }
 
   const handleCompleteQuestion = async () => {
@@ -469,6 +514,7 @@ export function MentoringEntryPage() {
                 <MentoringQuestionList
                   key={activeRoomId}
                   questions={roomQuestions}
+                  pendingQuestionId={pendingQuestionId}
                   selectedQuestionId={activeQuestionId}
                   onSelect={(question) => {
                     setSelectedQuestionId(question.questionId)
@@ -491,6 +537,7 @@ export function MentoringEntryPage() {
               <>
                 <S.DetailEmpty>질문을 시작해보세요.</S.DetailEmpty>
                 <MentoringComposer
+                  isSubmitting={isCreatingQuestion}
                   placeholder="질문을 남겨보세요."
                   onSubmit={handleCreateQuestion}
                 />

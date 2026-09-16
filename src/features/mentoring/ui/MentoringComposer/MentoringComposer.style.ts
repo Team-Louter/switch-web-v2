@@ -1,4 +1,4 @@
-import styled, { css } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
@@ -96,6 +96,28 @@ export const ImageButton = styled.label`
 export const CharacterCount = styled.span`
   color: ${token.colors.gray.gray40};
   ${token.typography('caption', 'md', 'medium')}
+`
+
+const submitSpin = keyframes`
+  to {
+    transform: rotate(360deg);
+  }
+`
+
+export const SubmitSpinner = styled.span`
+  ${token.flexCenter}
+  width: 18px;
+  height: 18px;
+  animation: ${submitSpin} 700ms linear infinite;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 export const ImagePreviewArea = styled.div`

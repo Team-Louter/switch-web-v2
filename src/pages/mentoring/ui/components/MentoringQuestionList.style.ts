@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 
 import { contentReveal } from '@/shared/styles/animations'
 import * as token from '@/shared/styles/values/token'
@@ -15,6 +15,7 @@ export const List = styled.div`
 `
 
 export const QuestionItem = styled.div<{
+  $pending?: boolean
   $selected: boolean
 }>`
   ${token.flexBetween}
@@ -32,7 +33,7 @@ export const QuestionItem = styled.div<{
     $selected
       ? `inset 3px 0 0 ${token.colors.primary.primary50}, ${token.elevations.black_1}`
       : 'none'};
-  cursor: pointer;
+  cursor: ${({ $pending }) => ($pending ? 'default' : 'pointer')};
   transition:
     background-color 120ms ease,
     box-shadow 120ms ease;
@@ -85,15 +86,22 @@ export const StatusRow = styled.div`
   gap: 4px;
 `
 
+const pendingSpin = keyframes`
+  to {
+    transform: rotate(360deg);
+  }
+`
+
 export const StatusBadge = styled.span<{
   $color: string
   $isDone?: boolean
+  $isPending?: boolean
 }>`
   ${token.flexRow}
   align-items: center;
   gap: 5px;
-  color: ${({ $color, $isDone }) =>
-    $isDone ? $color : token.colors.gray.gray60};
+  color: ${({ $color, $isDone, $isPending }) =>
+    $isDone || $isPending ? $color : token.colors.gray.gray60};
   white-space: nowrap;
   ${token.typography('caption', 'lg', 'medium')}
 
@@ -104,7 +112,8 @@ export const StatusBadge = styled.span<{
     border-radius: ${token.shapes.circle};
     background: ${({ $color }) => $color};
     content: '';
-    display: ${({ $isDone }) => ($isDone ? 'none' : 'block')};
+    display: ${({ $isDone, $isPending }) =>
+      $isDone || $isPending ? 'none' : 'block'};
   }
 
   svg {
@@ -112,6 +121,20 @@ export const StatusBadge = styled.span<{
     height: 13px;
     flex: 0 0 auto;
     stroke-width: 3;
+  }
+
+  ${({ $isPending }) =>
+    $isPending &&
+    css`
+      svg {
+        animation: ${pendingSpin} 700ms linear infinite;
+      }
+    `}
+
+  @media (prefers-reduced-motion: reduce) {
+    svg {
+      animation: none;
+    }
   }
 `
 

@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { PiCode, PiImage, PiPaperPlaneTilt, PiTrash } from 'react-icons/pi'
+import {
+  PiCode,
+  PiImage,
+  PiPaperPlaneTilt,
+  PiSpinnerGap,
+  PiTrash,
+} from 'react-icons/pi'
 
 import * as S from './MentoringComposer.style'
 
@@ -241,12 +247,19 @@ export function MentoringComposer({
           <S.IconButton
             type="button"
             aria-label="전송"
+            aria-busy={submitting}
             disabled={
               submitting || (!content.trim() && attachedImages.length === 0)
             }
             onClick={() => void handleSubmit()}
           >
-            <PiPaperPlaneTilt aria-hidden="true" />
+            {submitting ? (
+              <S.SubmitSpinner aria-hidden="true">
+                <PiSpinnerGap />
+              </S.SubmitSpinner>
+            ) : (
+              <PiPaperPlaneTilt aria-hidden="true" />
+            )}
           </S.IconButton>
         </S.ToolGroup>
       </S.Toolbar>

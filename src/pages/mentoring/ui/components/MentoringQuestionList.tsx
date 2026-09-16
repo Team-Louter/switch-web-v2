@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { PiCheck, PiDotsThreeVertical } from 'react-icons/pi'
+import { PiCheck, PiDotsThreeVertical, PiSpinnerGap } from 'react-icons/pi'
 
 import type { MentoringQuestion } from '@/entities/mentoring'
 import {
@@ -18,6 +18,7 @@ const QUESTION_MENU_HEIGHT = 40
 interface MentoringQuestionListProps {
   onDelete: (question: MentoringQuestion) => Promise<void>
   onSelect: (question: MentoringQuestion) => void
+  pendingQuestionId?: number | null
   questions: MentoringQuestion[]
   selectedQuestionId: number | null
 }
@@ -25,6 +26,7 @@ interface MentoringQuestionListProps {
 export function MentoringQuestionList({
   onDelete,
   onSelect,
+  pendingQuestionId = null,
   questions,
   selectedQuestionId,
 }: MentoringQuestionListProps) {
@@ -65,6 +67,7 @@ export function MentoringQuestionList({
         ) : (
           questions.map((question) => (
             <QuestionListItem
+              isPending={question.questionId === pendingQuestionId}
               key={question.questionId}
               isSelected={question.questionId === selectedQuestionId}
               menuPlacement={menuPlacement}
@@ -103,6 +106,7 @@ export function MentoringQuestionList({
 }
 
 interface QuestionListItemProps {
+  isPending: boolean
   isMenuOpen: boolean
   isSelected: boolean
   menuPlacement: MenuPlacement
@@ -113,6 +117,7 @@ interface QuestionListItemProps {
 }
 
 function QuestionListItem({
+  isPending,
   isMenuOpen,
   isSelected,
   menuPlacement,
@@ -123,12 +128,18 @@ function QuestionListItem({
 }: QuestionListItemProps) {
   return (
     <S.QuestionItem
+      $pending={isPending}
       $selected={isSelected}
       role="button"
-      tabIndex={0}
-      onClick={() => onSelect(question)}
+      tabIndex={isPending ? -1 : 0}
+      aria-busy={isPending}
+      onClick={() => {
+        if (!isPending) {
+          onSelect(question)
+        }
+      }}
       onKeyDown={(event) => {
-        if (event.target !== event.currentTarget) {
+        if (isPending || event.target !== event.currentTarget) {
           return
         }
 
@@ -145,47 +156,54 @@ function QuestionListItem({
         <S.StatusRow>
           <S.StatusBadge
             $color={QUESTION_STATUS_COLOR[question.status]}
-            $isDone={question.status === 'DONE'}
+            $isDone={question.status === 'DONE' && !isPending}
+            $isPending={isPending}
           >
-            {question.status === 'DONE' && <PiCheck aria-hidden="true" />}
-            {QUESTION_STATUS_LABEL[question.status]}
+            {isPending ? (
+              <PiSpinnerGap aria-hidden="true" />
+            ) : (
+              question.status === 'DONE' && <PiCheck aria-hidden="true" />
+            )}
+            {isPending ? '질문 생성 중' : QUESTION_STATUS_LABEL[question.status]}
           </S.StatusBadge>
           <S.QuestionDate>{formatQuestionDate(question.createdAt)}</S.QuestionDate>
         </S.StatusRow>
       </S.QuestionBody>
-      <S.QuestionActions>
-        <S.MenuButton
-          type="button"
-          aria-label="질문 관리"
-          aria-haspopup="menu"
-          aria-expanded={isMenuOpen}
-          onClick={(event) => {
-            event.stopPropagation()
-            onMenuToggle(event.currentTarget)
-          }}
-        >
-          <PiDotsThreeVertical aria-hidden="true" />
-        </S.MenuButton>
-        {isMenuOpen && (
-          <Menu.Panel
-            $placement={menuPlacement}
-            role="menu"
-            onMouseDown={(event) => event.stopPropagation()}
+      {!isPending && (
+        <S.QuestionActions>
+          <S.MenuButton
+            type="button"
+            aria-label="질문 관리"
+            aria-haspopup="menu"
+            aria-expanded={isMenuOpen}
+            onClick={(event) => {
+              event.stopPropagation()
+              onMenuToggle(event.currentTarget)
+            }}
           >
-            <Menu.Item
-              type="button"
-              role="menuitem"
-              $danger
-              onClick={(event) => {
-                event.stopPropagation()
-                onDelete(question)
-              }}
+            <PiDotsThreeVertical aria-hidden="true" />
+          </S.MenuButton>
+          {isMenuOpen && (
+            <Menu.Panel
+              $placement={menuPlacement}
+              role="menu"
+              onMouseDown={(event) => event.stopPropagation()}
             >
-              삭제하기
-            </Menu.Item>
-          </Menu.Panel>
-        )}
-      </S.QuestionActions>
+              <Menu.Item
+                type="button"
+                role="menuitem"
+                $danger
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onDelete(question)
+                }}
+              >
+                삭제하기
+              </Menu.Item>
+            </Menu.Panel>
+          )}
+        </S.QuestionActions>
+      )}
     </S.QuestionItem>
   )
 }
