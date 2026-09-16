@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import { getPostCategoryLabel, resolveCommunityAssetUrl } from '@/entities/community'
 import { formatProfileClassInfo, useUserStore } from '@/entities/profile'
 import { mergeSyncedEquippedItems } from '@/shared/lib/profileSync'
 
@@ -19,6 +20,7 @@ import type {
   ProfileMajor,
 } from '../types'
 import type {
+  MyCommentResponse,
   MyPostResponse,
   ProfileResponse,
 } from '../api'
@@ -66,37 +68,18 @@ const initialLoadedTabs: Record<MyActivityTabId, boolean> = {
   likes: false,
 }
 
-const getStringValue = (
-  record: MyPostResponse,
-  keys: string[],
-) => {
-  const value = keys.map((key) => record[key]).find(Boolean)
-
-  return typeof value === 'string' ? value : ''
-}
-
 const getNumberValue = (
-  record: MyPostResponse | ProfileResponse,
-  keys: string[],
+  record: ProfileResponse,
+  keys: (keyof ProfileResponse)[],
 ) => {
-  const value = keys.map((key) => record[key as keyof typeof record]).find(
-    (item) => item !== undefined && item !== null,
-  )
+  const value = keys
+    .map((key) => record[key])
+    .find((item) => item !== undefined && item !== null)
 
   return typeof value === 'number' ? value : undefined
 }
 
-const getPostId = (record: MyPostResponse, fallback: number) => {
-  const value = ['postId', 'id', 'commentId']
-    .map((key) => record[key])
-    .find((item) => item !== undefined && item !== null)
-
-  return typeof value === 'number' || typeof value === 'string'
-    ? String(value)
-    : `post-${fallback}`
-}
-
-const getPageItems = (response: { content?: MyPostResponse[] }) =>
+const getPageItems = <T>(response: { content?: T[] }): T[] =>
   Array.isArray(response.content) ? response.content : []
 
 const formatMajorText = (majors?: ProfileMajor[]) =>
@@ -127,50 +110,35 @@ const formatProfile = (profile: ProfileResponse): MyProfile => {
   return nextProfile
 }
 
-const formatPost = (
-  post: MyPostResponse,
-  index: number,
-  shouldShowComment = false,
-): MyPost => ({
-  id: getPostId(post, index + 1),
-  category: getStringValue(post, ['category', 'categoryName']),
-  title: getStringValue(post, ['title', 'postTitle']),
-  author: getStringValue(post, ['author', 'writer', 'userName']),
-  createdAt: getStringValue(post, [
-    'createdAt',
-    'createdDate',
-    'createdDateTime',
-  ]),
-  likes: getNumberValue(post, ['likes', 'likeCount', 'heartCount']) ?? 0,
-  comments: getNumberValue(post, ['comments', 'commentCount']) ?? 0,
-  views: getNumberValue(post, ['views', 'viewCount']) ?? 0,
-  commentPreview: shouldShowComment
-    ? getStringValue(post, ['comment', 'commentContent', 'content'])
-    : undefined,
+const formatMyPost = (post: MyPostResponse): MyPost => ({
+  id: String(post.postId),
+  category: getPostCategoryLabel(post.postCategory),
+  title: post.postTitle,
+  author: post.userName,
+  authorImageUrl: resolveCommunityAssetUrl(post.userProfileImageUrl),
+  createdAt: post.createdAt,
+  likes: post.likeCount,
+  isLiked: post.isHearted,
+  comments: post.commentCount,
+  views: post.viewers,
+})
+
+const formatMyComment = (comment: MyCommentResponse): MyPost => ({
+  id: String(comment.postId),
+  category: getPostCategoryLabel(comment.postCategory),
+  title: comment.postTitle,
+  author: comment.userName,
+  authorImageUrl: resolveCommunityAssetUrl(comment.userProfileImageUrl),
+  createdAt: comment.commentCreatedAt,
+  likes: comment.likeCount,
+  isLiked: comment.isHearted,
+  comments: comment.commentCount,
+  views: comment.viewers,
+  commentPreview: comment.commentContent,
 })
 
 const formatOptionalStatValue = (value?: number) =>
   typeof value === 'number' ? value.toLocaleString() : '-'
-
-const formatActivityPosts = (
-  tabId: MyActivityTabId,
-  response: { content?: MyPostResponse[] },
-) =>
-  getPageItems(response).map((post, index) =>
-    formatPost(post, index, tabId === 'comments'),
-  )
-
-const getActivityTabPosts = (tabId: MyActivityTabId) => {
-  if (tabId === 'comments') {
-    return getMyComments()
-  }
-
-  if (tabId === 'likes') {
-    return getMyLikedPosts()
-  }
-
-  return getMyPosts()
-}
 
 // 마이 페이지의 프로필과 활동 데이터를 서버 응답 기준으로 구성한다.
 export function useMyPage() {
@@ -191,11 +159,19 @@ export function useMyPage() {
     setIsLoading(true)
 
     try {
-      const response = await getActivityTabPosts(tabId)
+      let posts: MyPost[]
+
+      if (tabId === 'comments') {
+        posts = getPageItems(await getMyComments()).map(formatMyComment)
+      } else if (tabId === 'likes') {
+        posts = getPageItems(await getMyLikedPosts()).map(formatMyPost)
+      } else {
+        posts = getPageItems(await getMyPosts()).map(formatMyPost)
+      }
 
       setPostsByTab((currentPostsByTab) => ({
         ...currentPostsByTab,
-        [tabId]: formatActivityPosts(tabId, response),
+        [tabId]: posts,
       }))
       setLoadedTabs((currentLoadedTabs) => ({
         ...currentLoadedTabs,
@@ -264,7 +240,7 @@ export function useMyPage() {
         ])
         setPostsByTab({
           ...initialPostsByTab,
-          posts: formatActivityPosts('posts', postsResponse),
+          posts: getPageItems(postsResponse).map(formatMyPost),
         })
         setLoadedTabs({
           ...initialLoadedTabs,
