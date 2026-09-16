@@ -55,6 +55,7 @@ export const QuestionHeader = styled.div`
 
 export const QuestionTitle = styled.span`
   min-width: 0;
+  max-width: 225px;
   overflow: hidden;
   display: block;
   color: ${token.colors.gray.gray90};
@@ -64,11 +65,10 @@ export const QuestionTitle = styled.span`
 `
 
 export const QuestionDate = styled.span`
-  margin-left: auto;
   flex-shrink: 0;
   color: ${token.colors.gray.gray40};
   white-space: nowrap;
-  ${token.typography('caption', 'lg', 'medium')}
+  ${token.typography('caption', 'sm', 'regular')}
 `
 
 export const StatusRow = styled.div`
@@ -76,7 +76,7 @@ export const StatusRow = styled.div`
   align-items: center;
   width: 100%;
   min-width: 0;
-  gap: 8px;
+  gap: 4px;
 `
 
 export const StatusBadge = styled.span<{ $color: string }>`
