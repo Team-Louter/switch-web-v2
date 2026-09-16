@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { PiPlus } from 'react-icons/pi'
 
-import { Button } from '@/shared/ui'
 import { getMember } from '@/entities/member'
 import { getProfile } from '@/entities/member/getProfile'
 import type { Profile } from '@/entities/member/model/profile'
@@ -10,18 +10,24 @@ import {
   getMentorings,
   getQuestions,
 } from '@/entities/mentoring'
-import type { MentoringQuestion } from '@/entities/mentoring'
+import type {
+  MentoringQuestion,
+  MentoringRoom,
+} from '@/entities/mentoring'
 import {
-  CreateQuestionModal,
+  changeQuestionStatus,
+  createQuestion,
   CreateRoomModal,
-  MentoringRoomColumn,
-  MyMentorChip,
+  deleteMentoring,
+  deleteQuestion,
+  MentoringComposer,
   QuestionDetailPanel,
+  uploadMentoringFile,
 } from '@/features/mentoring'
 import type { MentoringRoomView } from '@/features/mentoring'
-import { deleteMentoring } from '@/features/mentoring'
 
-import { useMentoringEntryPage } from '../model/useMentoringEntryPage'
+import { MentoringQuestionList } from './components/MentoringQuestionList'
+import { MentoringRoomList } from './components/MentoringRoomList'
 import * as S from './MentoringEntryPage.style'
 
 interface MentoringData {
@@ -31,7 +37,7 @@ interface MentoringData {
 }
 
 /**
- * 멘토링 방과 방별 멤버, 질문을 한 번에 불러온다.
+ * 멘토링 방, 방별 멤버, 질문을 v1 화면이 요구하는 단위로 구성한다.
  */
 async function fetchMentoring(): Promise<MentoringData> {
   const [mentorings, members, questions] = await Promise.all([
@@ -43,23 +49,30 @@ async function fetchMentoring(): Promise<MentoringData> {
     members.map((member) => [member.userId, member]),
   )
   const toMembers = (userIds: number[]) =>
-    userIds
+    [...new Set(userIds)]
       .map((userId) => memberByUserId.get(userId))
       .filter((member): member is Member => member !== undefined)
 
   const rooms = await Promise.all(
-    mentorings.map(async (room) => {
-      const [mentors, mentees] = await Promise.all([
+    mentorings.map(async (room: MentoringRoom) => {
+      const [leaders, mentors, mentees] = await Promise.all([
+        getMentoringMembers(room.mentoringId, 'LEADER').catch(() => []),
         getMentoringMembers(room.mentoringId, 'MENTOR').catch(() => []),
         getMentoringMembers(room.mentoringId, 'MENTEE').catch(() => []),
       ])
+      const leaderMembers = toMembers(leaders.map(({ userId }) => userId))
       const mentorMembers = toMembers(mentors.map(({ userId }) => userId))
       const menteeMembers = toMembers(mentees.map(({ userId }) => userId))
 
       return {
         ...room,
         mentors: mentorMembers,
-        members: [...mentorMembers, ...menteeMembers],
+        members: [...leaderMembers, ...mentorMembers, ...menteeMembers].filter(
+          (member, index, roomMembers) =>
+            roomMembers.findIndex(
+              ({ userId }) => userId === member.userId,
+            ) === index,
+        ),
       }
     }),
   )
@@ -67,37 +80,45 @@ async function fetchMentoring(): Promise<MentoringData> {
   return { members, questions, rooms }
 }
 
+function applyMentoringData(
+  data: MentoringData,
+  setMembers: (members: Member[]) => void,
+  setQuestions: (questions: MentoringQuestion[]) => void,
+  setRooms: (rooms: MentoringRoomView[]) => void,
+) {
+  setMembers(data.members)
+  setQuestions(data.questions)
+  setRooms(data.rooms)
+}
+
 export function MentoringEntryPage() {
-  const { handleDashboardClick } = useMentoringEntryPage()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [members, setMembers] = useState<Member[]>([])
   const [rooms, setRooms] = useState<MentoringRoomView[]>([])
   const [questions, setQuestions] = useState<MentoringQuestion[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null)
   const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(
     null,
   )
+  const [isWritingNew, setIsWritingNew] = useState(false)
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false)
   const [editingRoom, setEditingRoom] = useState<MentoringRoomView | undefined>(
     undefined,
   )
-  const [askingRoomId, setAskingRoomId] = useState<number | null>(null)
+  const [isStatusUpdating, setIsStatusUpdating] = useState(false)
 
-  // 역할을 확인하기 전에는 멘토 / 멘티 전용 요소를 노출하지 않는다.
   const isMentor = profile?.role === 'MENTOR' || profile?.role === 'LEADER'
   const isMentee = profile?.role === 'MENTEE' || profile?.role === 'STUDENT'
 
-  /**
-   * 멘토링 목록을 다시 불러와 화면 상태에 반영한다.
-   */
-  const reloadMentoring = useCallback(() => {
-    fetchMentoring()
-      .then(({ members: loadedMembers, questions: loadedQuestions, rooms: loadedRooms }) => {
-        setMembers(loadedMembers)
-        setQuestions(loadedQuestions)
-        setRooms(loadedRooms)
-      })
-      .catch(() => {})
+  const reloadMentoring = useCallback(async () => {
+    try {
+      const data = await fetchMentoring()
+      applyMentoringData(data, setMembers, setQuestions, setRooms)
+      return data
+    } catch {
+      return null
+    }
   }, [])
 
   useEffect(() => {
@@ -105,27 +126,51 @@ export function MentoringEntryPage() {
 
     getProfile()
       .then((myProfile) => {
-        if (!isCancelled) setProfile(myProfile)
+        if (!isCancelled) {
+          setProfile(myProfile)
+        }
       })
       .catch(() => {})
 
     fetchMentoring()
-      .then(({ members: loadedMembers, questions: loadedQuestions, rooms: loadedRooms }) => {
-        if (isCancelled) return
-
-        setMembers(loadedMembers)
-        setQuestions(loadedQuestions)
-        setRooms(loadedRooms)
+      .then((data) => {
+        if (!isCancelled) {
+          applyMentoringData(data, setMembers, setQuestions, setRooms)
+        }
       })
       .catch(() => {})
       .finally(() => {
-        if (!isCancelled) setIsLoading(false)
+        if (!isCancelled) {
+          setIsLoading(false)
+        }
       })
 
     return () => {
       isCancelled = true
     }
   }, [])
+
+  const activeRoomId =
+    selectedRoomId !== null &&
+    rooms.some((room) => room.mentoringId === selectedRoomId)
+      ? selectedRoomId
+      : (rooms[0]?.mentoringId ?? null)
+
+  const roomQuestions = useMemo(() => {
+    return questions
+      .filter((question) => question.mentoringId === activeRoomId)
+      .sort((first, second) => {
+        const firstOrder = first.status === 'DONE' ? 1 : 0
+        const secondOrder = second.status === 'DONE' ? 1 : 0
+
+        return (
+          firstOrder - secondOrder ||
+          new Date(second.createdAt).getTime() -
+            new Date(first.createdAt).getTime() ||
+          second.questionId - first.questionId
+        )
+      })
+  }, [activeRoomId, questions])
 
   const membersByUserId = useMemo(
     () =>
@@ -134,134 +179,246 @@ export function MentoringEntryPage() {
     [members],
   )
 
-  const myMentors = useMemo(() => {
-    const mentorByUserId = new Map(
-      rooms
-        .flatMap((room) => room.mentors)
-        .map((mentor) => [mentor.userId, mentor]),
-    )
-
-    return [...mentorByUserId.values()]
-  }, [rooms])
-
-  const selectedQuestion = questions.find(
-    (question) => question.questionId === selectedQuestionId,
-  )
   const selectedRoom = rooms.find(
-    (room) => room.mentoringId === selectedQuestion?.mentoringId,
+    (room) => room.mentoringId === activeRoomId,
   )
+  const activeQuestionId =
+    !isWritingNew &&
+    selectedQuestionId !== null &&
+    roomQuestions.some((question) => question.questionId === selectedQuestionId)
+      ? selectedQuestionId
+      : !isWritingNew
+        ? (roomQuestions[0]?.questionId ?? null)
+        : null
+  const selectedQuestion = roomQuestions.find(
+    (question) => question.questionId === activeQuestionId,
+  )
+  const shouldShowCompleteAction = Boolean(
+    isMentor && selectedQuestion && selectedQuestion.status !== 'DONE',
+  )
+  const shouldShowAddQuestion = Boolean(selectedRoom && isMentee)
+
+  const handleSelectRoom = (room: MentoringRoomView) => {
+    setSelectedRoomId(room.mentoringId)
+    setSelectedQuestionId(null)
+    setIsWritingNew(false)
+  }
 
   const handleDeleteRoom = async (room: MentoringRoomView) => {
     try {
       await deleteMentoring(room.mentoringId)
-      reloadMentoring()
+      await reloadMentoring()
     } catch {
-      // 실패 시 기존 목록을 유지한다.
+      // 삭제 실패 시 기존 목록을 유지한다.
     }
   }
 
+  const handleDeleteQuestion = async (question: MentoringQuestion) => {
+    try {
+      await deleteQuestion(question.questionId)
+      setQuestions((currentQuestions) =>
+        currentQuestions.filter(
+          ({ questionId }) => questionId !== question.questionId,
+        ),
+      )
+      if (selectedQuestionId === question.questionId) {
+        setSelectedQuestionId(null)
+      }
+    } catch {
+      // 삭제 실패 시 기존 질문을 유지한다.
+    }
+  }
+
+  const handleCreateQuestion = async (content: string, files: File[]) => {
+    if (activeRoomId === null) {
+      return
+    }
+
+    const uploadedFiles = await Promise.all(
+      files.map((file) => uploadMentoringFile(file)),
+    )
+    const createdQuestion = await createQuestion({
+      mentoringId: activeRoomId,
+      title: content.length > 20 ? `${content.slice(0, 20)}...` : content,
+      content,
+      files: uploadedFiles,
+    })
+
+    await reloadMentoring()
+    setSelectedQuestionId(createdQuestion.questionId)
+    setIsWritingNew(false)
+  }
+
+  const handleCompleteQuestion = async () => {
+    if (!selectedQuestion || isStatusUpdating) {
+      return
+    }
+
+    try {
+      setIsStatusUpdating(true)
+      await changeQuestionStatus(selectedQuestion.questionId, 'DONE')
+      setQuestions((currentQuestions) =>
+        currentQuestions.map((question) =>
+          question.questionId === selectedQuestion.questionId
+            ? { ...question, status: 'DONE' }
+            : question,
+        ),
+      )
+    } catch {
+      // 상태 변경 실패 시 기존 상태를 유지한다.
+    } finally {
+      setIsStatusUpdating(false)
+    }
+  }
+
+  const handleAddQuestion = () => {
+    if (!selectedRoom || !isMentee) {
+      return
+    }
+
+    setSelectedQuestionId(null)
+    setIsWritingNew(true)
+  }
+
   return (
-    <S.PageContainer>
-      <S.Header>
-        <S.TitleGroup>
-          <S.Title>멘토링</S.Title>
-          <S.Subtitle>
-            {isMentor
-              ? '멘티의 성장을 도와주세요!'
-              : '멘토와 함께 한 단계 성장해 볼까요?'}
-          </S.Subtitle>
-        </S.TitleGroup>
-        {isMentor && (
-          <Button
-            type="button"
-            size="md"
-            variant="neutral"
-            onClick={handleDashboardClick}
-          >
-            대시보드로 이동
-          </Button>
-        )}
-        {isMentee && <MyMentorChip mentors={myMentors} />}
-      </S.Header>
-      <S.QuestionSection>
-        <S.SectionHeader>
-          <S.SectionTitle>질문 목록</S.SectionTitle>
-          {/* 방 생성은 멘토만 할 수 있다 */}
-          {isMentor && (
-            <Button
-              type="button"
-              size="md"
-              variant="primary"
-              onClick={() => {
-                setEditingRoom(undefined)
-                setIsRoomModalOpen(true)
-              }}
-            >
-              방 새로 만들기
-            </Button>
-          )}
-        </S.SectionHeader>
-        {/* 목록을 불러오는 중이거나 참여 중인 방이 없는 경우를 구분해 안내한다 */}
-        {isLoading ? (
-          <S.StateText>멘토링 방을 불러오는 중이에요.</S.StateText>
-        ) : rooms.length === 0 ? (
-          <S.StateText>참여 중인 멘토링 방이 없어요.</S.StateText>
-        ) : (
-          <S.RoomScroll>
-            {rooms.map((room) => (
-              <MentoringRoomColumn
-                key={room.mentoringId}
-                room={room}
-                questions={questions.filter(
-                  (question) => question.mentoringId === room.mentoringId,
+    <S.Page>
+      <S.Container>
+        <S.LeftArea>
+          <S.RoomContainer>
+            <S.SectionHeader>
+              <S.SectionHeading>
+                <S.SectionTitle>방</S.SectionTitle>
+                {!isLoading && <S.SectionCount>{rooms.length}</S.SectionCount>}
+              </S.SectionHeading>
+              {isMentor && (
+                <S.AddButton
+                  type="button"
+                  aria-label="멘토링 방 추가"
+                  onClick={() => {
+                    setEditingRoom(undefined)
+                    setIsRoomModalOpen(true)
+                  }}
+                >
+                  <PiPlus aria-hidden="true" />
+                  <span>새 방</span>
+                </S.AddButton>
+              )}
+            </S.SectionHeader>
+            <S.ListScroll>
+              {isLoading ? (
+                <S.DetailEmpty>방을 불러오는 중이에요.</S.DetailEmpty>
+              ) : (
+                <MentoringRoomList
+                  rooms={rooms}
+                  selectedRoomId={activeRoomId}
+                  canManageRoom={Boolean(isMentor)}
+                  onSelect={handleSelectRoom}
+                  onEdit={(room) => {
+                    setEditingRoom(room)
+                    setIsRoomModalOpen(true)
+                  }}
+                  onDelete={handleDeleteRoom}
+                />
+              )}
+            </S.ListScroll>
+          </S.RoomContainer>
+
+          <S.QuestionContainer>
+            <S.SectionHeader>
+              <S.SectionHeading>
+                <S.SectionTitle>질문</S.SectionTitle>
+                {!isLoading && (
+                  <S.SectionCount>{roomQuestions.length}</S.SectionCount>
                 )}
-                canManageRoom={isMentor}
-                canAskQuestion={isMentee}
-                onSelectQuestion={(question) =>
-                  setSelectedQuestionId(question.questionId)
-                }
-                onAskQuestion={({ mentoringId }) =>
-                  setAskingRoomId(mentoringId)
-                }
-                onEditRoom={(selectedRoomView) => {
-                  setEditingRoom(selectedRoomView)
-                  setIsRoomModalOpen(true)
+              </S.SectionHeading>
+              {shouldShowAddQuestion && (
+                <S.AddButton
+                  type="button"
+                  aria-label="질문 추가"
+                  onClick={handleAddQuestion}
+                >
+                  <PiPlus aria-hidden="true" />
+                  <span>새 질문</span>
+                </S.AddButton>
+              )}
+            </S.SectionHeader>
+            <S.ListScroll>
+              {isLoading ? (
+                <S.DetailEmpty>질문을 불러오는 중이에요.</S.DetailEmpty>
+              ) : selectedRoom ? (
+                <MentoringQuestionList
+                  questions={roomQuestions}
+                  selectedQuestionId={activeQuestionId}
+                  onSelect={(question) => {
+                    setSelectedQuestionId(question.questionId)
+                    setIsWritingNew(false)
+                  }}
+                  onDelete={handleDeleteQuestion}
+                />
+              ) : (
+                <S.DetailEmpty>등록된 질문이 없습니다.</S.DetailEmpty>
+              )}
+            </S.ListScroll>
+          </S.QuestionContainer>
+        </S.LeftArea>
+
+        <S.RightContainer>
+          {shouldShowCompleteAction && (
+            <S.TopActionRow>
+              <S.EndContainer>
+                <S.EndWrap>
+                  질문에 대한 답변이 끝났나요?
+                  <S.EndButton
+                    type="button"
+                    disabled={isStatusUpdating}
+                    onClick={() => void handleCompleteQuestion()}
+                  >
+                    답변 완료
+                  </S.EndButton>
+                </S.EndWrap>
+              </S.EndContainer>
+            </S.TopActionRow>
+          )}
+
+          <S.DetailWrapper>
+            {isLoading ? (
+              <S.DetailEmpty>멘토링 정보를 불러오는 중이에요.</S.DetailEmpty>
+            ) : isWritingNew ? (
+              <>
+                <S.DetailEmpty>질문을 시작해보세요.</S.DetailEmpty>
+                <MentoringComposer
+                  placeholder="질문을 남겨보세요."
+                  onSubmit={handleCreateQuestion}
+                />
+              </>
+            ) : selectedQuestion ? (
+              <QuestionDetailPanel
+                embedded
+                question={selectedQuestion}
+                roomName={selectedRoom?.mentoringName ?? ''}
+                currentUserId={profile?.userId}
+                canChangeStatus={false}
+                membersByUserId={membersByUserId}
+                onClose={() => setSelectedQuestionId(null)}
+                onStatusChange={async () => {
+                  await reloadMentoring()
                 }}
-                onDeleteRoom={(selectedRoomView) =>
-                  void handleDeleteRoom(selectedRoomView)
-                }
               />
-            ))}
-          </S.RoomScroll>
-        )}
-      </S.QuestionSection>
-      {/* 질문을 선택한 경우에만 상세 패널을 띄운다 */}
-      {selectedQuestion && (
-        <QuestionDetailPanel
-          question={selectedQuestion}
-          roomName={selectedRoom?.mentoringName ?? ''}
-          currentUserId={profile?.userId}
-          canChangeStatus={isMentor}
-          membersByUserId={membersByUserId}
-          onClose={() => setSelectedQuestionId(null)}
-          onStatusChange={() => reloadMentoring()}
-        />
-      )}
+            ) : (
+              <S.DetailEmpty>선택된 질문이 없습니다.</S.DetailEmpty>
+            )}
+          </S.DetailWrapper>
+        </S.RightContainer>
+      </S.Container>
+
       <CreateRoomModal
         isOpen={isRoomModalOpen}
         room={editingRoom}
         onClose={() => setIsRoomModalOpen(false)}
-        onSaveSuccess={() => reloadMentoring()}
+        onSaveSuccess={async () => {
+          await reloadMentoring()
+        }}
       />
-      {/* 질문하기를 누른 방이 있을 때만 생성 모달을 띄운다 */}
-      {askingRoomId !== null && (
-        <CreateQuestionModal
-          isOpen
-          mentoringId={askingRoomId}
-          onClose={() => setAskingRoomId(null)}
-          onCreateSuccess={() => reloadMentoring()}
-        />
-      )}
-    </S.PageContainer>
+    </S.Page>
   )
 }

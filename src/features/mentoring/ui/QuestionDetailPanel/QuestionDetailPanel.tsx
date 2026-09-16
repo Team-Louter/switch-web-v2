@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { PiCaretDoubleRight, PiPlus } from 'react-icons/pi'
+import { PiCaretDoubleRight } from 'react-icons/pi'
 
 import { Button } from '@/shared/ui'
 import type { Member } from '@/entities/member/model/types'
@@ -20,6 +20,7 @@ import {
   QUESTION_STATUS_LABEL,
 } from '../../lib/questionStatus'
 import { MemberAvatar } from '../MemberAvatar'
+import { MentoringComposer } from '../MentoringComposer'
 import * as S from './QuestionDetailPanel.style'
 
 /** 상태 변경 버튼이 가리키는 다음 상태 */
@@ -78,6 +79,7 @@ interface QuestionDetailPanelProps {
   currentUserId?: number
   canChangeStatus: boolean
   membersByUserId: Record<number, Member>
+  embedded?: boolean
   onClose: () => void
   onStatusChange?: (status: QuestionStatus) => void | Promise<void>
 }
@@ -88,15 +90,13 @@ export function QuestionDetailPanel({
   currentUserId,
   canChangeStatus,
   membersByUserId,
+  embedded = false,
   onClose,
   onStatusChange,
 }: QuestionDetailPanelProps) {
   const [messages, setMessages] = useState<MentoringMessage[]>([])
-  const [content, setContent] = useState('')
-  const [files, setFiles] = useState<File[]>([])
   const [isSending, setIsSending] = useState(false)
   const messageListRef = useRef<HTMLDivElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const loadMessages = async (questionId: number) => {
     // 서버에 질문 단위 조회가 없어 전체 메시지에서 해당 질문만 추린다.
@@ -127,30 +127,24 @@ export function QuestionDetailPanel({
     })
   }, [messages])
 
-  const handleSend = async () => {
+  const handleSend = async (nextContent: string, nextFiles: File[]) => {
     // 전송 중에는 버튼/엔터 어느 쪽으로도 중복 전송되지 않게 막는다.
     if (isSending) return
-    if (!content.trim() && files.length === 0) return
+    if (!nextContent.trim() && nextFiles.length === 0) return
 
     try {
       setIsSending(true)
       const uploadedFiles = await Promise.all(
-        files.map((file) => uploadMentoringFile(file)),
+        nextFiles.map((file) => uploadMentoringFile(file)),
       )
 
       await createMessage({
         questionId: question.questionId,
-        content: content.trim(),
+        content: nextContent.trim(),
         files: uploadedFiles,
       })
 
-      setContent('')
-      setFiles([])
-      // 같은 파일을 다시 선택할 수 있도록 입력값을 비운다.
-      if (fileInputRef.current) fileInputRef.current.value = ''
       setMessages(await loadMessages(question.questionId))
-    } catch {
-      // 실패 시 입력값을 유지해 사용자가 다시 시도할 수 있게 한다.
     } finally {
       setIsSending(false)
     }
@@ -168,13 +162,20 @@ export function QuestionDetailPanel({
   }
 
   const messageGroups = useMemo(() => groupMessages(messages), [messages])
+  const questionAuthor = membersByUserId[question.userId]
 
   return (
-    <S.Panel aria-label="질문 상세">
-      <S.CloseButton type="button" aria-label="질문 상세 닫기" onClick={onClose}>
-        <PiCaretDoubleRight aria-hidden="true" />
-      </S.CloseButton>
-      <S.Header>
+    <S.Panel $embedded={embedded} aria-label="질문 상세">
+      {!embedded && (
+        <S.CloseButton
+          type="button"
+          aria-label="질문 상세 닫기"
+          onClick={onClose}
+        >
+          <PiCaretDoubleRight aria-hidden="true" />
+        </S.CloseButton>
+      )}
+      <S.Header $embedded={embedded}>
         <S.StatusRow>
           <S.Status $color={QUESTION_STATUS_COLOR[question.status]}>
             {QUESTION_STATUS_LABEL[question.status]}
@@ -196,32 +197,77 @@ export function QuestionDetailPanel({
           <S.Title>{question.title}</S.Title>
         </S.QuestionInfo>
       </S.Header>
-      <S.CreatedAt>{formatQuestionDate(question.createdAt)}</S.CreatedAt>
-      <S.Chat>
+      <S.CreatedAt $embedded={embedded}>
+        {formatQuestionDate(question.createdAt)}
+      </S.CreatedAt>
+      <S.Chat $embedded={embedded}>
         <S.MessageList ref={messageListRef}>
-          {/* 메시지가 없으면 안내 문구를 보여준다 */}
+          <S.MessageGroup $isMine={false}>
+            <MemberAvatar
+              userName={questionAuthor?.userName ?? '질문자'}
+              profileImageUrl={questionAuthor?.profileImageUrl}
+            />
+            <S.MessageBody>
+              <S.SenderName>{questionAuthor?.userName ?? '질문자'}</S.SenderName>
+              <S.Bubbles $isMine={false}>
+                <S.Bubble $isMine={false} $isRoot $embedded={embedded}>
+                  {question.content}
+                  {question.files?.map((file) =>
+                    isImageFile(file) ? (
+                      <S.AttachedImage
+                        key={file.fileId}
+                        src={file.fileUrl}
+                        alt={file.fileName}
+                      />
+                    ) : (
+                      <S.AttachedFile
+                        key={file.fileId}
+                        href={file.fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {file.fileName}
+                      </S.AttachedFile>
+                    ),
+                  )}
+                </S.Bubble>
+                <S.MessageTime $isMine={false} $embedded={embedded}>
+                  {formatQuestionDate(question.createdAt)}
+                </S.MessageTime>
+              </S.Bubbles>
+            </S.MessageBody>
+          </S.MessageGroup>
+
+          {/* 질문에 달린 답변이 없으면 안내 문구를 보여준다 */}
           {messageGroups.length === 0 ? (
-            <S.EmptyText>아직 주고받은 내용이 없어요.</S.EmptyText>
+            <S.EmptyText>아직 답변이 없어요.</S.EmptyText>
           ) : (
             messageGroups.map((group) => {
               const isMine = group.userId === currentUserId
               const sender = membersByUserId[group.userId]
 
               return (
-                <S.MessageGroup key={group.groupId} $isMine={isMine}>
-                  {!isMine && (
+                <S.MessageGroup
+                  key={group.groupId}
+                  $isMine={embedded ? false : isMine}
+                >
+                  {(!isMine || embedded) && (
                     <MemberAvatar
                       userName={sender?.userName}
                       profileImageUrl={sender?.profileImageUrl}
                     />
                   )}
                   <S.MessageBody>
-                    {!isMine && (
+                    {(!isMine || embedded) && (
                       <S.SenderName>{sender?.userName ?? '멤버'}</S.SenderName>
                     )}
-                    <S.Bubbles $isMine={isMine}>
+                    <S.Bubbles $isMine={embedded ? false : isMine}>
                       {group.messages.map((message) => (
-                        <S.Bubble key={message.messageId} $isMine={isMine}>
+                        <S.Bubble
+                          key={message.messageId}
+                          $isMine={embedded ? false : isMine}
+                          $embedded={embedded}
+                        >
                           {message.content}
                           {message.files?.map((file) =>
                             isImageFile(file) ? (
@@ -243,7 +289,10 @@ export function QuestionDetailPanel({
                           )}
                         </S.Bubble>
                       ))}
-                      <S.MessageTime $isMine={isMine}>
+                      <S.MessageTime
+                        $isMine={embedded ? false : isMine}
+                        $embedded={embedded}
+                      >
                         {formatQuestionDate(group.createdAt)}
                       </S.MessageTime>
                     </S.Bubbles>
@@ -253,42 +302,13 @@ export function QuestionDetailPanel({
             })
           )}
         </S.MessageList>
-        <S.InputRow>
-          <S.AttachButton aria-label="파일 첨부">
-            <PiPlus aria-hidden="true" />
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              onChange={(event) => setFiles(Array.from(event.target.files ?? []))}
-            />
-          </S.AttachButton>
-          <S.MessageInput
-            type="text"
-            placeholder="내용을 입력해주세요."
-            value={content}
-            onChange={(event) => setContent(event.target.value)}
-            onKeyDown={(event) => {
-              // 한글 입력 조합 중 Enter는 전송으로 보지 않는다.
-              if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
-                void handleSend()
-              }
-            }}
+        {question.status !== 'DONE' && (
+          <MentoringComposer
+            isSubmitting={isSending}
+            placeholder="답변을 남겨보세요."
+            onSubmit={handleSend}
           />
-          {/* 첨부한 파일이 있으면 파일명을 함께 보여준다 */}
-          {files.length > 0 && (
-            <S.AttachedFileNames>
-              {files.map((file) => file.name).join(', ')}
-            </S.AttachedFileNames>
-          )}
-          <S.SendButton
-            type="button"
-            disabled={isSending || (!content.trim() && files.length === 0)}
-            onClick={() => void handleSend()}
-          >
-            전송
-          </S.SendButton>
-        </S.InputRow>
+        )}
       </S.Chat>
     </S.Panel>
   )

@@ -3,9 +3,9 @@ import type { QuestionStatus } from '@/entities/mentoring'
 
 /** 질문 상태별 화면 표기 */
 export const QUESTION_STATUS_LABEL: Record<QuestionStatus, string> = {
-  PAUSED: '대기',
-  ACTIVE: '진행',
-  DONE: '종료',
+  PAUSED: '답변 대기',
+  ACTIVE: '답변 중',
+  DONE: '답변 완료',
 }
 
 /** 질문 상태별 색상 */
@@ -16,7 +16,7 @@ export const QUESTION_STATUS_COLOR: Record<QuestionStatus, string> = {
 }
 
 /**
- * 멘토링 화면에서 쓰는 "2026. 7. 16. 12:02" 형식으로 날짜를 변환한다.
+ * v1 멘토링 화면과 같은 "07.16. 오후 12:02" 형식으로 날짜를 변환한다.
  *
  * @param isoDate ISO 형식 날짜 문자열
  */
@@ -27,12 +27,12 @@ export const formatQuestionDate = (isoDate: string): string => {
 
   if (Number.isNaN(date.getTime())) return ''
 
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(date)
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = date.getHours()
+  const period = hours >= 12 ? '오후' : '오전'
+  const hour = hours % 12 || 12
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+
+  return `${month}.${day}. ${period} ${hour}:${minutes}`
 }
