@@ -12,7 +12,7 @@ import * as Menu from './MentoringContextMenu.style'
 import * as S from './MentoringRoomList.style'
 
 const VISIBLE_AVATAR_COUNT = 4
-const ROOM_MENU_HEIGHT = 144
+const ROOM_MENU_HEIGHT = 76
 
 interface MentoringRoomListProps {
   canManageRoom: boolean

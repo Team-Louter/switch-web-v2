@@ -18,23 +18,23 @@ export const Panel = styled.div<{ $placement: MenuPlacement }>`
       : 'top: calc(100% + 6px);'}
   right: 0;
   box-sizing: border-box;
-  min-width: 120px;
-  padding: 8px;
+  min-width: 104px;
+  padding: 4px;
   border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.large};
+  border-radius: ${token.shapes.medium};
   background: ${token.colors.white};
-  box-shadow: 0 6px 18px rgb(0 0 0 / 8%);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 8%);
 `
 
 export const Item = styled.button<MenuItemProps>`
   width: 100%;
-  min-height: 40px;
-  padding: 8px 12px;
+  min-height: 30px;
+  padding: 5px 8px;
   border: 0;
-  border-radius: ${token.shapes.small};
+  border-radius: ${token.shapes.xsmall};
   color: ${token.colors.gray.gray100};
   background: transparent;
-  ${token.typography('body', 'sm', 'semibold')}
+  ${token.typography('caption', 'md', 'semibold')}
   text-align: left;
   cursor: pointer;
 
@@ -62,6 +62,6 @@ export const Item = styled.button<MenuItemProps>`
 export const Divider = styled.span`
   width: 100%;
   height: 1px;
-  margin: 4px 0;
+  margin: 2px 0;
   background: ${token.colors.gray.gray10};
 `

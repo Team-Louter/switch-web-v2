@@ -13,7 +13,7 @@ import * as S from './MentoringQuestionList.style'
 import * as Menu from './MentoringContextMenu.style'
 import { getMenuPlacement, type MenuPlacement } from './menuPlacement'
 
-const QUESTION_MENU_HEIGHT = 64
+const QUESTION_MENU_HEIGHT = 40
 
 interface MentoringQuestionListProps {
   onDelete: (question: MentoringQuestion) => Promise<void>
