@@ -36,3 +36,12 @@ export const changeQuestionStatus = async (
     { params: { status } },
   )
 }
+
+/**
+ * 질문을 삭제한다.
+ *
+ * @param questionId 삭제할 질문 아이디
+ */
+export const deleteQuestion = async (questionId: number): Promise<void> => {
+  await apiClient.delete<void>(`/mentoring/questions/${questionId}`)
+}
