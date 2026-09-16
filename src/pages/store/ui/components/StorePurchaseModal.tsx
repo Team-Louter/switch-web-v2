@@ -57,6 +57,8 @@ export function StorePurchaseModal({
   const canPurchase = effect.canPurchase !== false
   const conditionLabels = effect.conditionLabels ?? []
   const previewEquippedItems = getPurchasePreviewEquippedItems(profile, effect)
+  const previewTitle = previewEquippedItems?.title
+  const previewTitleText = previewTitle?.valueText ?? previewTitle?.itemName
   const equippedNameColor = profile?.equippedItems?.nameColor
   const previewNameStyleKey =
     effect.itemType === 'NAME_COLOR'
@@ -84,9 +86,12 @@ export function StorePurchaseModal({
             equippedItems={previewEquippedItems}
             size={200}
           />
-          <S.PreviewName styleKey={previewNameStyleKey}>
-            {profile?.name ?? ''}
-          </S.PreviewName>
+          <S.PreviewTextGroup>
+            {previewTitleText && <S.PreviewTitle>{previewTitleText}</S.PreviewTitle>}
+            <S.PreviewName styleKey={previewNameStyleKey}>
+              {profile?.name ?? ''}
+            </S.PreviewName>
+          </S.PreviewTextGroup>
         </S.PreviewSection>
         <S.PurchaseEffectTitle>{effect.title}</S.PurchaseEffectTitle>
         {conditionLabels.length > 0 && (
