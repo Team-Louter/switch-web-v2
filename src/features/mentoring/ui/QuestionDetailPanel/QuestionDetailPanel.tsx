@@ -6,6 +6,9 @@ import {
   useState,
 } from 'react'
 import { PiCaretDoubleRight } from 'react-icons/pi'
+import ReactMarkdown from 'react-markdown'
+import rehypeSanitize from 'rehype-sanitize'
+import remarkGfm from 'remark-gfm'
 
 import { Button } from '@/shared/ui'
 import type { Member } from '@/entities/member/model/types'
@@ -84,6 +87,23 @@ function groupMessages(messages: MentoringMessage[]): MessageGroup[] {
 }
 
 const isImageFile = (file: MentoringFile) => file.fileType?.startsWith('image/')
+
+interface MessageMarkdownProps {
+  content: string
+}
+
+function MessageMarkdown({ content }: MessageMarkdownProps) {
+  return (
+    <S.MessageMarkdown>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeSanitize]}
+      >
+        {content}
+      </ReactMarkdown>
+    </S.MessageMarkdown>
+  )
+}
 
 interface QuestionDetailPanelProps {
   question: MentoringQuestion
@@ -347,7 +367,7 @@ export function QuestionDetailPanel({
               <S.SenderName>{questionAuthor?.userName ?? '질문자'}</S.SenderName>
               <S.Bubbles $isMine={false}>
                 <S.Bubble $isMine={false} $isRoot $embedded={embedded}>
-                  {question.content}
+                  <MessageMarkdown content={question.content} />
                   {question.files?.map((file) =>
                     isImageFile(file) ? (
                       <S.AttachedImage
@@ -421,7 +441,7 @@ export function QuestionDetailPanel({
                             $isMine={embedded ? false : isMine}
                             $embedded={embedded}
                           >
-                            {message.content}
+                            <MessageMarkdown content={message.content} />
                             {message.files?.map((file) =>
                               isImageFile(file) ? (
                                 <S.AttachedImage

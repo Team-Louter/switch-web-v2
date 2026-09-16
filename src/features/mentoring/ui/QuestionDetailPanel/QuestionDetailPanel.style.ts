@@ -255,6 +255,56 @@ export const Bubble = styled.div<{
   white-space: pre-wrap;
 `
 
+export const MessageMarkdown = styled.div`
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+
+  p {
+    margin: 0;
+    white-space: pre-wrap;
+  }
+
+  p + p {
+    margin-top: 8px;
+  }
+
+  ul,
+  ol {
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  pre {
+    max-width: 100%;
+    margin: 0;
+    padding: 10px 12px;
+    overflow-x: auto;
+    border-radius: ${token.shapes.small};
+    background: ${token.colors.gray.gray90};
+    color: ${token.colors.white};
+    white-space: pre;
+  }
+
+  pre code {
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.9em;
+  }
+
+  :not(pre) > code {
+    padding: 2px 5px;
+    border-radius: ${token.shapes.xsmall};
+    background: ${token.colors.gray.gray0};
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.9em;
+  }
+`
+
 export const AttachedImage = styled.img`
   display: block;
   max-width: 100%;

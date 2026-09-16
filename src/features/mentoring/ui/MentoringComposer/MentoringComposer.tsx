@@ -5,6 +5,19 @@ import * as S from './MentoringComposer.style'
 
 const MAX_LENGTH = 700
 
+function isCursorInsideCodeBlock(content: string, cursorPosition: number) {
+  return content
+    .slice(0, cursorPosition)
+    .split('\n')
+    .reduce(
+      (isInsideCodeBlock, line) =>
+        line.trimStart().startsWith('```')
+          ? !isInsideCodeBlock
+          : isInsideCodeBlock,
+      false,
+    )
+}
+
 interface AttachedImage {
   file: File
   previewUrl: string
@@ -102,6 +115,8 @@ export function MentoringComposer({
     setContent(nextContent)
     window.setTimeout(() => {
       textarea.focus()
+      textarea.style.height = 'auto'
+      textarea.style.height = `${textarea.scrollHeight}px`
       textarea.setSelectionRange(start + 4, start + 4 + selectedText.length)
     }, 0)
   }
@@ -115,12 +130,19 @@ export function MentoringComposer({
   }
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (
-      event.key === 'Enter' &&
-      !event.metaKey &&
-      !event.shiftKey &&
-      !event.nativeEvent.isComposing
-    ) {
+    if (event.key !== 'Enter' || event.nativeEvent.isComposing) {
+      return
+    }
+
+    const isInsideCodeBlock = isCursorInsideCodeBlock(
+      content,
+      event.currentTarget.selectionStart,
+    )
+    const shouldSubmit = isInsideCodeBlock
+      ? event.metaKey || event.ctrlKey
+      : !event.metaKey && !event.ctrlKey && !event.shiftKey
+
+    if (shouldSubmit) {
       event.preventDefault()
       void handleSubmit()
     }
