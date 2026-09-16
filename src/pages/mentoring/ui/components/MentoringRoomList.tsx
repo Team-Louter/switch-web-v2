@@ -7,9 +7,11 @@ import type { MentoringRoomView } from '@/features/mentoring'
 
 import { MemberAvatar } from '@/features/mentoring'
 
+import { getMenuPlacement, type MenuPlacement } from './menuPlacement'
 import * as S from './MentoringRoomList.style'
 
 const VISIBLE_AVATAR_COUNT = 4
+const ROOM_MENU_HEIGHT = 80
 
 interface MentoringRoomListProps {
   canManageRoom: boolean
@@ -29,6 +31,7 @@ export function MentoringRoomList({
   selectedRoomId,
 }: MentoringRoomListProps) {
   const [openedMenuRoomId, setOpenedMenuRoomId] = useState<number | null>(null)
+  const [menuPlacement, setMenuPlacement] = useState<MenuPlacement>('bottom')
   const [deleteTarget, setDeleteTarget] =
     useState<MentoringRoomView | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -123,17 +126,24 @@ export function MentoringRoomList({
                       aria-expanded={openedMenuRoomId === room.mentoringId}
                       onClick={(event) => {
                         event.stopPropagation()
-                        setOpenedMenuRoomId((currentRoomId) =>
-                          currentRoomId === room.mentoringId
-                            ? null
-                            : room.mentoringId,
+                        if (openedMenuRoomId === room.mentoringId) {
+                          setOpenedMenuRoomId(null)
+                          return
+                        }
+
+                        setMenuPlacement(
+                          getMenuPlacement(
+                            event.currentTarget,
+                            ROOM_MENU_HEIGHT,
+                          ),
                         )
+                        setOpenedMenuRoomId(room.mentoringId)
                       }}
                     >
                       <PiDotsThreeVertical aria-hidden="true" />
                     </S.MenuButton>
                     {openedMenuRoomId === room.mentoringId && (
-                      <S.Menu role="menu">
+                      <S.Menu $placement={menuPlacement} role="menu">
                         <S.MenuItem
                           type="button"
                           role="menuitem"

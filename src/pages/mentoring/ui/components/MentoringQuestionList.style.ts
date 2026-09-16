@@ -3,6 +3,8 @@ import styled from 'styled-components'
 import { contentReveal } from '@/shared/styles/animations'
 import * as token from '@/shared/styles/values/token'
 
+type MenuPlacement = 'bottom' | 'top'
+
 export const List = styled.div`
   ${token.flexColumn}
   width: 100%;
@@ -130,10 +132,13 @@ export const MenuButton = styled.button`
   }
 `
 
-export const Menu = styled.div`
+export const Menu = styled.div<{ $placement: MenuPlacement }>`
   ${token.flexColumnStart}
   position: absolute;
-  top: calc(100% + 4px);
+  ${({ $placement }) =>
+    $placement === 'top'
+      ? 'bottom: calc(100% + 4px);'
+      : 'top: calc(100% + 4px);'}
   right: 0;
   z-index: 10;
   width: 72px;

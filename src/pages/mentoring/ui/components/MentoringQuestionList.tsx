@@ -10,6 +10,9 @@ import {
 import { ConfirmModal } from '@/shared/ui'
 
 import * as S from './MentoringQuestionList.style'
+import { getMenuPlacement, type MenuPlacement } from './menuPlacement'
+
+const QUESTION_MENU_HEIGHT = 44
 
 interface MentoringQuestionListProps {
   onDelete: (question: MentoringQuestion) => Promise<void>
@@ -27,6 +30,7 @@ export function MentoringQuestionList({
   const [openedMenuQuestionId, setOpenedMenuQuestionId] = useState<
     number | null
   >(null)
+  const [menuPlacement, setMenuPlacement] = useState<MenuPlacement>('bottom')
   const [deleteTarget, setDeleteTarget] =
     useState<MentoringQuestion | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -62,17 +66,22 @@ export function MentoringQuestionList({
             <QuestionListItem
               key={question.questionId}
               isSelected={question.questionId === selectedQuestionId}
+              menuPlacement={menuPlacement}
               question={question}
               onDelete={setDeleteTarget}
               onSelect={onSelect}
               isMenuOpen={openedMenuQuestionId === question.questionId}
-              onMenuToggle={() =>
-                setOpenedMenuQuestionId((currentQuestionId) =>
-                  currentQuestionId === question.questionId
-                    ? null
-                    : question.questionId,
+              onMenuToggle={(trigger) => {
+                if (openedMenuQuestionId === question.questionId) {
+                  setOpenedMenuQuestionId(null)
+                  return
+                }
+
+                setMenuPlacement(
+                  getMenuPlacement(trigger, QUESTION_MENU_HEIGHT),
                 )
-              }
+                setOpenedMenuQuestionId(question.questionId)
+              }}
             />
           ))
         )}
@@ -95,8 +104,9 @@ export function MentoringQuestionList({
 interface QuestionListItemProps {
   isMenuOpen: boolean
   isSelected: boolean
+  menuPlacement: MenuPlacement
   onDelete: (question: MentoringQuestion) => void
-  onMenuToggle: () => void
+  onMenuToggle: (trigger: HTMLButtonElement) => void
   onSelect: (question: MentoringQuestion) => void
   question: MentoringQuestion
 }
@@ -104,6 +114,7 @@ interface QuestionListItemProps {
 function QuestionListItem({
   isMenuOpen,
   isSelected,
+  menuPlacement,
   onDelete,
   onMenuToggle,
   onSelect,
@@ -147,13 +158,13 @@ function QuestionListItem({
           aria-expanded={isMenuOpen}
           onClick={(event) => {
             event.stopPropagation()
-            onMenuToggle()
+            onMenuToggle(event.currentTarget)
           }}
         >
           <PiDotsThreeVertical aria-hidden="true" />
         </S.MenuButton>
         {isMenuOpen && (
-          <S.Menu role="menu">
+          <S.Menu $placement={menuPlacement} role="menu">
             <S.MenuItem
               type="button"
               role="menuitem"
