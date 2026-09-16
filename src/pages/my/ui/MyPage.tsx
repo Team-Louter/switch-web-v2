@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { clearAccessToken, clearPendingAccessToken } from '@/shared/lib/authToken'
@@ -19,9 +19,6 @@ import {
 import * as S from './MyPage.style'
 import type { WithdrawModalStep } from './components'
 
-const WITHDRAW_CODE_TIME_LIMIT_SECONDS = 120
-const WITHDRAW_CODE_RESEND_DELAY_SECONDS = 30
-
 export function MyPage() {
   const navigate = useNavigate()
   const [withdrawStep, setWithdrawStep] = useState<WithdrawModalStep | null>(
@@ -32,10 +29,9 @@ export function MyPage() {
   const [memberActionToastMessage, setMemberActionToastMessage] = useState('')
   const [withdrawConfirmText, setWithdrawConfirmText] = useState('')
   const [verificationCode, setVerificationCode] = useState('')
-  const [withdrawCodeRemainingSeconds, setWithdrawCodeRemainingSeconds] =
-    useState(WITHDRAW_CODE_TIME_LIMIT_SECONDS)
-  const [withdrawResendRemainingSeconds, setWithdrawResendRemainingSeconds] =
-    useState(WITHDRAW_CODE_RESEND_DELAY_SECONDS)
+  const [isRequestingWithdrawalCode, setIsRequestingWithdrawalCode] =
+    useState(false)
+  const [isWithdrawing, setIsWithdrawing] = useState(false)
   const {
     activeTabId,
     activityTabs,
@@ -52,41 +48,11 @@ export function MyPage() {
   } = useMyPage()
 
   const canManageMembers = profile.role === 'LEADER'
-  const canResendWithdrawalCode =
-    withdrawStep === 'verify' && withdrawResendRemainingSeconds === 0
-
-  useEffect(() => {
-    if (withdrawStep !== 'verify' || withdrawCodeRemainingSeconds === 0) {
-      return
-    }
-
-    const timerId = window.setInterval(() => {
-      setWithdrawCodeRemainingSeconds((currentSeconds) =>
-        Math.max(currentSeconds - 1, 0),
-      )
-    }, 1000)
-
-    return () => window.clearInterval(timerId)
-  }, [withdrawCodeRemainingSeconds, withdrawStep])
-
-  useEffect(() => {
-    if (withdrawStep !== 'verify' || withdrawResendRemainingSeconds === 0) {
-      return
-    }
-
-    const timerId = window.setInterval(() => {
-      setWithdrawResendRemainingSeconds((currentSeconds) =>
-        Math.max(currentSeconds - 1, 0),
-      )
-    }, 1000)
-
-    return () => window.clearInterval(timerId)
-  }, [withdrawResendRemainingSeconds, withdrawStep])
 
   const resetWithdrawalVerificationState = () => {
     setVerificationCode('')
-    setWithdrawCodeRemainingSeconds(WITHDRAW_CODE_TIME_LIMIT_SECONDS)
-    setWithdrawResendRemainingSeconds(WITHDRAW_CODE_RESEND_DELAY_SECONDS)
+    setIsRequestingWithdrawalCode(false)
+    setIsWithdrawing(false)
   }
 
   const handleLogout = () => {
@@ -104,46 +70,59 @@ export function MyPage() {
   const handleRequestWithdrawalCode = async () => {
     resetWithdrawalVerificationState()
     setWithdrawStep('verify')
+    setIsRequestingWithdrawalCode(true)
 
     try {
       await sendWithdrawalVerificationCode()
     } catch {
       window.alert('이메일 인증 요청을 보내지 못했어요')
+      setWithdrawStep(null)
+    } finally {
+      setIsRequestingWithdrawalCode(false)
     }
   }
 
   const handleResendWithdrawalCode = async () => {
-    if (!canResendWithdrawalCode) {
+    if (isRequestingWithdrawalCode) {
       return
     }
 
-    resetWithdrawalVerificationState()
+    setVerificationCode('')
+    setIsRequestingWithdrawalCode(true)
 
     try {
       await sendWithdrawalVerificationCode()
     } catch {
       window.alert('이메일 인증 요청을 보내지 못했어요')
+      setWithdrawStep(null)
+    } finally {
+      setIsRequestingWithdrawalCode(false)
     }
   }
 
-  const handleVerifyWithdrawalCode = async () => {
-    if (withdrawCodeRemainingSeconds === 0) {
-      window.alert('인증 시간이 만료되었어요')
+  const handleShowWithdrawalConfirm = () => {
+    if (verificationCode.length === 6) {
+      setWithdrawStep('confirm')
+    }
+  }
+
+  const handleCompleteWithdrawal = async () => {
+    if (isWithdrawing) {
       return
     }
 
     try {
+      setIsWithdrawing(true)
       await verifyWithdrawalCode(verificationCode)
-      setWithdrawStep('confirm')
+      clearAccessToken()
+      clearPendingAccessToken()
+      navigate('/my/withdraw-complete', { replace: true })
     } catch {
       window.alert('인증 코드가 올바르지 않아요')
+      handleCloseWithdrawModal()
+    } finally {
+      setIsWithdrawing(false)
     }
-  }
-
-  const handleCompleteWithdrawal = () => {
-    clearAccessToken()
-    clearPendingAccessToken()
-    navigate('/my/withdraw-complete', { replace: true })
   }
 
   const handleCloseWithdrawModal = () => {
@@ -187,19 +166,20 @@ export function MyPage() {
 
       {withdrawStep && (
         <WithdrawModal
-          canResendCode={canResendWithdrawalCode}
           confirmText={withdrawConfirmText}
+          isRequestingCode={isRequestingWithdrawalCode}
+          isWithdrawing={isWithdrawing}
+          onBack={() => setWithdrawStep('verify')}
           onCancel={handleCloseWithdrawModal}
           onConfirmTextChange={setWithdrawConfirmText}
           onNext={
             withdrawStep === 'acknowledge'
               ? handleRequestWithdrawalCode
-              : handleVerifyWithdrawalCode
+              : handleShowWithdrawalConfirm
           }
           onResendCode={handleResendWithdrawalCode}
           onVerificationCodeChange={setVerificationCode}
           onWithdraw={handleCompleteWithdrawal}
-          remainingSeconds={withdrawCodeRemainingSeconds}
           step={withdrawStep}
           verificationCode={verificationCode}
         />

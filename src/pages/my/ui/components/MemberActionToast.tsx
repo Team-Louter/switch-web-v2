@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import memberToastCheckIcon from '../assets/member-toast-check.svg'
+import memberToastSuccessIcon from '../assets/member-toast-success.svg'
 import * as S from './MemberActionToast.style'
 
 type MemberActionToastProps = {
@@ -15,8 +15,8 @@ export function MemberActionToast({
   const [isLeaving, setIsLeaving] = useState(false)
 
   useEffect(() => {
-    const leaveTimerId = window.setTimeout(() => setIsLeaving(true), 2200)
-    const closeTimerId = window.setTimeout(onClose, 2360)
+    const leaveTimerId = window.setTimeout(() => setIsLeaving(true), 2000)
+    const closeTimerId = window.setTimeout(onClose, 2200)
 
     return () => {
       window.clearTimeout(leaveTimerId)
@@ -26,7 +26,9 @@ export function MemberActionToast({
 
   return (
     <S.Toast role="status" $isLeaving={isLeaving}>
-      <S.Icon src={memberToastCheckIcon} alt="" />
+      <S.IconCircle>
+        <S.Icon src={memberToastSuccessIcon} alt="" />
+      </S.IconCircle>
       {message}
     </S.Toast>
   )

@@ -1,31 +1,41 @@
-import styled, { css } from 'styled-components'
+import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
 export const Scrim = styled.div`
   ${token.flexCenter}
-  position: absolute;
-  z-index: 3;
+  position: fixed;
+  z-index: 31;
   inset: 0;
-  background: rgb(14 13 12 / 50%);
+  background: rgb(14 13 12 / 45%);
 `
 
 export const Card = styled.div`
-  ${token.flexColumn}
-  align-items: center;
+  ${token.flexColumnCenter}
   box-sizing: border-box;
   width: 460px;
-  gap: 32px;
   padding: 40px 56px;
   border-radius: ${token.shapes.large};
   background: ${token.colors.white};
+  box-shadow: 0 8px 28px rgb(14 13 12 / 14%);
 `
 
-export const Title = styled.h3`
-  margin: 0;
-  color: ${token.colors.gray.gray100};
-  line-height: 1;
-  ${token.typography('heading', 'sm', 'semibold')}
+export const Title = styled.h2`
+  margin: 0 0 32px;
+  color: ${token.colors.gray.gray80};
+  ${token.typography('heading', 'lg', 'bold')}
+`
+
+export const Description = styled.p`
+  margin: 0 0 32px;
+  color: ${token.colors.gray.gray80};
+  text-align: center;
+  ${token.typography('body', 'md', 'medium')}
+`
+
+export const SmallNote = styled.span`
+  color: ${token.colors.gray.gray40};
+  font-size: 12px;
 `
 
 export const Actions = styled.div`
@@ -33,25 +43,31 @@ export const Actions = styled.div`
   gap: 20px;
 `
 
-export const Button = styled.button<{ $variant?: 'primary' | 'danger' }>`
-  ${token.flexCenter}
+export const CancelButton = styled.button`
+  width: 100px;
+  padding: 10px 0;
+  border: 1px solid ${token.colors.gray.gray20};
+  border-radius: ${token.shapes.small};
+  color: ${token.colors.gray.gray80};
+  background: ${token.colors.white};
+  ${token.typography('body', 'sm', 'bold')}
+
+  &:hover:not(:disabled) {
+    background: ${token.colors.gray.gray0};
+  }
+`
+
+export const ConfirmButton = styled.button<{ $active: boolean }>`
   width: 100px;
   padding: 10px 0;
   border-radius: ${token.shapes.small};
-  background: ${token.colors.gray.gray10};
-  color: ${token.colors.gray.gray100};
-  line-height: 1;
-  ${token.typography('body', 'sm', 'medium')}
+  color: ${token.colors.gray.gray80};
+  background: ${token.colors.primary.primary40};
+  opacity: ${({ $active }) => ($active ? 1 : 0.5)};
+  cursor: ${({ $active }) => ($active ? 'pointer' : 'not-allowed')};
+  ${token.typography('body', 'sm', 'bold')}
 
-  ${({ $variant }) =>
-    $variant === 'primary' &&
-    css`
-      background: ${token.colors.primary.primary50};
-    `}
-
-  ${({ $variant }) =>
-    $variant === 'danger' &&
-    css`
-      color: ${token.colors.danger.danger20};
-    `}
+  &:hover:not(:disabled) {
+    background: ${token.colors.primary.primary50};
+  }
 `

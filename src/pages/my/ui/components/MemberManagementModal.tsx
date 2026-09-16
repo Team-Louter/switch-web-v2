@@ -10,7 +10,6 @@ import {
 
 import {
   formatManagedMember,
-  memberActionCompleteText,
   memberActionRoleMap,
   memberRoleLabel,
 } from '../../model/memberManagementModel'
@@ -26,11 +25,6 @@ import type {
   ManagedMember,
   MemberConfirmAction,
 } from '../../model/memberManagementModel'
-
-interface PendingAction {
-  member: ManagedMember
-  action: MemberConfirmAction
-}
 
 interface MenuPosition {
   right: number
@@ -52,7 +46,7 @@ export function MemberManagementModal({
     null,
   )
   const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null)
-  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
+  const [kickTarget, setKickTarget] = useState<ManagedMember | null>(null)
   const [keyword, setKeyword] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
@@ -109,8 +103,8 @@ export function MemberManagementModal({
         return
       }
 
-      if (pendingAction) {
-        setPendingAction(null)
+      if (kickTarget) {
+        setKickTarget(null)
         return
       }
 
@@ -126,7 +120,7 @@ export function MemberManagementModal({
     window.addEventListener('keydown', handleKeyDown)
 
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onClose, openedMenuMemberId, pendingAction])
+  }, [kickTarget, onClose, openedMenuMemberId])
 
   useEffect(() => {
     if (openedMenuMemberId === null) {
@@ -195,60 +189,65 @@ export function MemberManagementModal({
       const email = await getAdminMemberEmail(member.id)
 
       await navigator.clipboard?.writeText(email)
-      onComplete(`${member.name}의 이메일을 복사했습니다`)
+      onComplete('이메일 복사 성공')
     } catch {
       window.alert('이메일을 복사하지 못했어요')
     }
   }
 
-  const handleOpenConfirm = (
+  const handleMemberAction = async (
     member: ManagedMember,
     action: MemberConfirmAction,
   ) => {
     setOpenedMenuMemberId(null)
     setMenuPosition(null)
-    setPendingAction({ member, action })
-  }
 
-  const handleConfirmAction = async () => {
-    if (!pendingAction) {
+    if (action === 'remove') {
+      setKickTarget(member)
       return
     }
 
-    const { member, action } = pendingAction
+    try {
+      const updatedMember = await changeAdminMemberRole({
+        role: memberActionRoleMap[action],
+        userId: member.id,
+      })
+
+      setMembers((currentMembers) =>
+        currentMembers.map((currentMember) =>
+          currentMember.id === member.id
+            ? {
+                ...formatManagedMember(updatedMember),
+                profileImageUrl:
+                  updatedMember.profileImageUrl ??
+                  currentMember.profileImageUrl,
+              }
+            : currentMember,
+        ),
+      )
+      onComplete('역할 변경 성공')
+    } catch {
+      window.alert('역할 변경 실패')
+    }
+  }
+
+  const handleKickMember = async () => {
+    if (!kickTarget) {
+      return
+    }
 
     try {
-      if (action === 'remove') {
-        await quitAdminMembers({ userIds: [member.id] })
-        setMembers((currentMembers) =>
-          currentMembers.filter(
-            (currentMember) => currentMember.id !== member.id,
-          ),
-        )
-      } else {
-        const updatedMember = await changeAdminMemberRole({
-          role: memberActionRoleMap[action],
-          userId: member.id,
-        })
-
-        setMembers((currentMembers) =>
-          currentMembers.map((currentMember) =>
-            currentMember.id === member.id
-              ? {
-                  ...formatManagedMember(updatedMember),
-                  profileImageUrl:
-                    updatedMember.profileImageUrl ??
-                    currentMember.profileImageUrl,
-                }
-              : currentMember,
-          ),
-        )
-      }
-
-      setPendingAction(null)
-      onComplete(`${member.name}을 ${memberActionCompleteText[action]}`)
+      await quitAdminMembers({ userIds: [kickTarget.id] })
+      setMembers((currentMembers) =>
+        currentMembers.filter(
+          (currentMember) => currentMember.id !== kickTarget.id,
+        ),
+      )
+      setKickTarget(null)
+      onComplete('퇴출 성공')
     } catch {
-      window.alert('멤버 정보를 변경하지 못했어요')
+      setKickTarget(null)
+      window.alert('퇴출 실패')
     }
   }
 
@@ -342,17 +341,16 @@ export function MemberManagementModal({
               닫기
             </S.ShortcutGroup>
           </S.Footer>
-
-          {pendingAction && (
-            <MemberConfirmModal
-              action={pendingAction.action}
-              member={pendingAction.member}
-              onCancel={() => setPendingAction(null)}
-              onConfirm={handleConfirmAction}
-            />
-          )}
         </S.Modal>
       </S.Overlay>
+
+      {kickTarget && (
+        <MemberConfirmModal
+          member={kickTarget}
+          onCancel={() => setKickTarget(null)}
+          onConfirm={handleKickMember}
+        />
+      )}
 
       {openedMenuMember &&
         menuPosition &&
@@ -367,7 +365,7 @@ export function MemberManagementModal({
               memberRole={openedMenuMember.role}
               onCopyEmail={() => handleCopyEmail(openedMenuMember)}
               onSelectAction={(action) =>
-                handleOpenConfirm(openedMenuMember, action)
+                void handleMemberAction(openedMenuMember, action)
               }
             />
           </S.MenuPositioner>,

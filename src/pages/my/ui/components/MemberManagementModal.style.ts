@@ -29,10 +29,10 @@ export const Modal = styled.section`
 export const SearchBar = styled.div`
   ${token.flexLeft}
   box-sizing: border-box;
-  flex: 0 0 58px;
+  flex-shrink: 0;
   width: 100%;
   gap: 12px;
-  padding: 0 24px;
+  padding: 16px 24px;
   border-bottom: 1px solid ${token.colors.gray.gray10};
 `
 
@@ -97,11 +97,10 @@ export const Empty = styled.div`
 
 export const Row = styled.div`
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 180px minmax(0, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: center;
   box-sizing: border-box;
   width: 100%;
-  min-height: 72px;
   padding: 16px 24px;
   border-bottom: 1px solid ${token.colors.gray.gray10};
 

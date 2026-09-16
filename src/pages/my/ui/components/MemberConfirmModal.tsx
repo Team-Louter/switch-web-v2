@@ -1,54 +1,69 @@
+import { useState } from 'react'
+
 import * as S from './MemberConfirmModal.style'
 
-import type {
-  ManagedMember,
-  MemberConfirmAction,
-} from '../../model/memberManagementModel'
+import type { ManagedMember } from '../../model/memberManagementModel'
 
-type MemberConfirmModalProps = {
-  action: MemberConfirmAction
+interface MemberConfirmModalProps {
   member: ManagedMember
   onCancel: () => void
-  onConfirm: () => void
-}
-
-const confirmTextByAction: Record<MemberConfirmAction, string> = {
-  mentor: '지정',
-  mentee: '변경',
-  leader: '지정',
-  remove: '퇴출',
-}
-
-const titleByAction: Record<MemberConfirmAction, (name: string) => string> = {
-  mentor: (name) => `${name}을 멘토로 지정할까요?`,
-  mentee: (name) => `${name}을 멘티로 변경할까요?`,
-  leader: (name) => `${name}을 부장으로 지정할까요?`,
-  remove: (name) => `${name}을 동아리에서 퇴출할까요?`,
+  onConfirm: () => Promise<void>
 }
 
 export function MemberConfirmModal({
-  action,
   member,
   onCancel,
   onConfirm,
 }: MemberConfirmModalProps) {
-  const isRemoveAction = action === 'remove'
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleConfirm = async () => {
+    if (isLoading) {
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      await onConfirm()
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
-    <S.Scrim>
-      <S.Card role="dialog" aria-modal="true">
-        <S.Title>{titleByAction[action](member.name)}</S.Title>
+    <S.Scrim onClick={onCancel}>
+      <S.Card
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="member-kick-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <S.Title id="member-kick-title">제명 확인</S.Title>
+        <S.Description>
+          <strong>{member.name}</strong>님을
+          <br />
+          동아리에서 퇴출하시겠습니까?
+          <br />
+          <br />
+          <S.SmallNote>이 작업은 되돌릴 수 없습니다.</S.SmallNote>
+        </S.Description>
         <S.Actions>
-          <S.Button type="button" onClick={onCancel}>
-            취소
-          </S.Button>
-          <S.Button
+          <S.CancelButton
             type="button"
-            $variant={isRemoveAction ? 'danger' : 'primary'}
-            onClick={onConfirm}
+            disabled={isLoading}
+            onClick={onCancel}
           >
-            {confirmTextByAction[action]}
-          </S.Button>
+            취소
+          </S.CancelButton>
+          <S.ConfirmButton
+            type="button"
+            $active={!isLoading}
+            disabled={isLoading}
+            onClick={() => void handleConfirm()}
+          >
+            퇴출합니다.
+          </S.ConfirmButton>
         </S.Actions>
       </S.Card>
     </S.Scrim>
