@@ -11,6 +11,7 @@ export interface AttachedImage {
 }
 
 export interface MentoringComposerProps {
+  allowFileOnly?: boolean
   isSubmitting?: boolean
   onSubmit: (content: string, files: File[]) => Promise<void>
   placeholder: string
@@ -28,6 +29,7 @@ export interface MentoringComposerHandlers {
 
 export interface UseMentoringComposerResult
   extends MentoringComposerHandlers {
+  canSubmit: boolean
   content: string
   attachedImages: AttachedImage[]
   textareaRef: RefObject<HTMLTextAreaElement | null>

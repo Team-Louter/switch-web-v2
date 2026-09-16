@@ -18,9 +18,13 @@ import type {
 } from './MentoringComposer.types'
 
 export function useMentoringComposer({
+  allowFileOnly = true,
   isSubmitting = false,
   onSubmit,
-}: Pick<MentoringComposerProps, 'isSubmitting' | 'onSubmit'>): UseMentoringComposerResult {
+}: Pick<
+  MentoringComposerProps,
+  'allowFileOnly' | 'isSubmitting' | 'onSubmit'
+>): UseMentoringComposerResult {
   const [content, setContent] = useState('')
   const [attachedImages, setAttachedImages] = useState<AttachedImage[]>([])
   const [isSubmittingInternal, setIsSubmittingInternal] = useState(false)
@@ -56,8 +60,11 @@ export function useMentoringComposer({
     ])
   }
 
+  const canSubmit =
+    content.trim().length > 0 || (allowFileOnly && attachedImages.length > 0)
+
   const handleSubmit = async () => {
-    if (submitting || (!content.trim() && attachedImages.length === 0)) {
+    if (submitting || !canSubmit) {
       return
     }
 
@@ -172,6 +179,7 @@ export function useMentoringComposer({
   }
 
   return {
+    canSubmit,
     content,
     attachedImages,
     textareaRef,

@@ -16,7 +16,7 @@ const ROOM_MENU_HEIGHT = 76
 
 interface MentoringRoomListProps {
   canManageRoom: boolean
-  onDelete: (room: MentoringRoomView) => Promise<void>
+  onDelete: (room: MentoringRoomView) => Promise<boolean>
   onEdit: (room: MentoringRoomView) => void
   onSelect: (room: MentoringRoomView) => void
   rooms: MentoringRoomView[]
@@ -36,6 +36,7 @@ export function MentoringRoomList({
   const [deleteTarget, setDeleteTarget] =
     useState<MentoringRoomView | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState(false)
   useEffect(() => {
     const handlePointerDown = () => setOpenedMenuRoomId(null)
 
@@ -65,8 +66,16 @@ export function MentoringRoomList({
 
     try {
       setIsDeleting(true)
-      await onDelete(deleteTarget)
-      setDeleteTarget(null)
+      const didDelete = await onDelete(deleteTarget)
+
+      if (didDelete) {
+        setDeleteTarget(null)
+        setDeleteError(false)
+      } else {
+        setDeleteError(true)
+      }
+    } catch {
+      setDeleteError(true)
     } finally {
       setIsDeleting(false)
     }
@@ -168,6 +177,7 @@ export function MentoringRoomList({
                           onClick={(event) => {
                             event.stopPropagation()
                             setOpenedMenuRoomId(null)
+                            setDeleteError(false)
                             setDeleteTarget(room)
                           }}
                         >
@@ -186,10 +196,17 @@ export function MentoringRoomList({
       {deleteTarget && (
         <ConfirmModal
           title="멘토링 방 삭제"
-          description="이 멘토링 방을 삭제하시겠습니까?"
+          description={
+            deleteError
+              ? '멘토링 방 삭제에 실패했습니다. 다시 시도해주세요.'
+              : '이 멘토링 방을 삭제하시겠습니까?'
+          }
           confirmLabel="삭제"
           isConfirming={isDeleting}
-          onCancel={() => setDeleteTarget(null)}
+          onCancel={() => {
+            setDeleteTarget(null)
+            setDeleteError(false)
+          }}
           onConfirm={() => void handleDelete()}
         />
       )}

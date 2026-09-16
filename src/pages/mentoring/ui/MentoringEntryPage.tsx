@@ -50,6 +50,8 @@ interface MentoringBaseData {
 
 // 빠른 응답에서 스켈레톤이 한 프레임만 보이는 플래시를 방지한다.
 const INITIAL_SKELETON_MIN_DURATION_MS = 180
+// 외부 프로필 이미지가 응답하지 않아도 전체 화면 로딩이 멈추지 않도록 제한한다.
+const MEMBER_IMAGE_PRELOAD_TIMEOUT_MS = 1_500
 
 const wait = (durationMs: number) =>
   new Promise<void>((resolve) => {
@@ -117,15 +119,26 @@ async function preloadMemberImages(members: Member[]): Promise<void> {
   ]
 
   await Promise.all(
-    imageUrls.map(
-      (url) =>
-        new Promise<void>((resolve) => {
-          const image = new Image()
-          image.onload = () => resolve()
-          image.onerror = () => resolve()
-          image.src = url
-        }),
-    ),
+    imageUrls.map((url) => {
+      return new Promise<void>((resolve) => {
+        const image = new Image()
+
+        const settle = () => {
+          window.clearTimeout(timeoutId)
+          image.onload = null
+          image.onerror = null
+          resolve()
+        }
+
+        image.onload = settle
+        image.onerror = settle
+        const timeoutId = window.setTimeout(
+          settle,
+          MEMBER_IMAGE_PRELOAD_TIMEOUT_MS,
+        )
+        image.src = url
+      })
+    }),
   )
 }
 
@@ -315,16 +328,22 @@ export function MentoringEntryPage() {
     setIsWritingNew(false)
   }
 
-  const handleDeleteRoom = async (room: MentoringRoomView) => {
+  const handleDeleteRoom = async (
+    room: MentoringRoomView,
+  ): Promise<boolean> => {
     try {
       await deleteMentoring(room.mentoringId)
       await reloadMentoring()
+      return true
     } catch {
-      // 삭제 실패 시 기존 목록을 유지한다.
+      // 삭제 실패 시 기존 목록을 유지하고 확인 모달에서 재시도할 수 있게 한다.
+      return false
     }
   }
 
-  const handleDeleteQuestion = async (question: MentoringQuestion) => {
+  const handleDeleteQuestion = async (
+    question: MentoringQuestion,
+  ): Promise<boolean> => {
     try {
       await deleteQuestion(question.questionId)
       setQuestions((currentQuestions) =>
@@ -335,8 +354,10 @@ export function MentoringEntryPage() {
       if (selectedQuestionId === question.questionId) {
         setSelectedQuestionId(null)
       }
+      return true
     } catch {
-      // 삭제 실패 시 기존 질문을 유지한다.
+      // 삭제 실패 시 기존 질문을 유지하고 확인 모달에서 재시도할 수 있게 한다.
+      return false
     }
   }
 
@@ -537,6 +558,7 @@ export function MentoringEntryPage() {
               <>
                 <S.DetailEmpty>질문을 시작해보세요.</S.DetailEmpty>
                 <MentoringComposer
+                  allowFileOnly={false}
                   isSubmitting={isCreatingQuestion}
                   placeholder="질문을 남겨보세요."
                   onSubmit={handleCreateQuestion}

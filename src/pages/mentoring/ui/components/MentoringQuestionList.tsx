@@ -16,7 +16,7 @@ import { getMenuPlacement, type MenuPlacement } from './menuPlacement'
 const QUESTION_MENU_HEIGHT = 40
 
 interface MentoringQuestionListProps {
-  onDelete: (question: MentoringQuestion) => Promise<void>
+  onDelete: (question: MentoringQuestion) => Promise<boolean>
   onSelect: (question: MentoringQuestion) => void
   pendingQuestionId?: number | null
   questions: MentoringQuestion[]
@@ -37,6 +37,7 @@ export function MentoringQuestionList({
   const [deleteTarget, setDeleteTarget] =
     useState<MentoringQuestion | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState(false)
   useEffect(() => {
     const handlePointerDown = () => setOpenedMenuQuestionId(null)
 
@@ -52,8 +53,16 @@ export function MentoringQuestionList({
 
     try {
       setIsDeleting(true)
-      await onDelete(deleteTarget)
-      setDeleteTarget(null)
+      const didDelete = await onDelete(deleteTarget)
+
+      if (didDelete) {
+        setDeleteTarget(null)
+        setDeleteError(false)
+      } else {
+        setDeleteError(true)
+      }
+    } catch {
+      setDeleteError(true)
     } finally {
       setIsDeleting(false)
     }
@@ -72,7 +81,10 @@ export function MentoringQuestionList({
               isSelected={question.questionId === selectedQuestionId}
               menuPlacement={menuPlacement}
               question={question}
-              onDelete={setDeleteTarget}
+              onDelete={(nextQuestion) => {
+                setDeleteError(false)
+                setDeleteTarget(nextQuestion)
+              }}
               onSelect={onSelect}
               isMenuOpen={openedMenuQuestionId === question.questionId}
               onMenuToggle={(trigger) => {
@@ -94,10 +106,17 @@ export function MentoringQuestionList({
       {deleteTarget && (
         <ConfirmModal
           title="질문 삭제"
-          description="이 질문을 삭제하시겠습니까?"
+          description={
+            deleteError
+              ? '질문 삭제에 실패했습니다. 다시 시도해주세요.'
+              : '이 질문을 삭제하시겠습니까?'
+          }
           confirmLabel="삭제"
           isConfirming={isDeleting}
-          onCancel={() => setDeleteTarget(null)}
+          onCancel={() => {
+            setDeleteTarget(null)
+            setDeleteError(false)
+          }}
           onConfirm={() => void handleDelete()}
         />
       )}

@@ -12,6 +12,7 @@ import type { MentoringComposerProps } from './MentoringComposer.types'
 import { useMentoringComposer } from './useMentoringComposer'
 
 export function MentoringComposer({
+  allowFileOnly = true,
   isSubmitting = false,
   onSubmit,
   placeholder,
@@ -28,7 +29,8 @@ export function MentoringComposer({
     handleRemoveImage,
     handleCodeInsert,
     handleSubmit,
-  } = useMentoringComposer({ isSubmitting, onSubmit })
+    canSubmit,
+  } = useMentoringComposer({ allowFileOnly, isSubmitting, onSubmit })
 
   return (
     <S.Wrapper>
@@ -92,9 +94,7 @@ export function MentoringComposer({
             type="button"
             aria-label="전송"
             aria-busy={submitting}
-            disabled={
-              submitting || (!content.trim() && attachedImages.length === 0)
-            }
+            disabled={submitting || !canSubmit}
             onClick={() => void handleSubmit()}
           >
             {submitting ? (
