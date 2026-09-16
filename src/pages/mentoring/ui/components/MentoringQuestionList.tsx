@@ -167,7 +167,11 @@ function QuestionListItem({
           <PiDotsThreeVertical aria-hidden="true" />
         </S.MenuButton>
         {isMenuOpen && (
-          <Menu.Panel $placement={menuPlacement} role="menu">
+          <Menu.Panel
+            $placement={menuPlacement}
+            role="menu"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
             <Menu.Item
               type="button"
               role="menuitem"

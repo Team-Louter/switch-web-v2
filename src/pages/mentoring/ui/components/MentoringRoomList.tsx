@@ -144,7 +144,11 @@ export function MentoringRoomList({
                       <PiDotsThreeVertical aria-hidden="true" />
                     </S.MenuButton>
                     {openedMenuRoomId === room.mentoringId && (
-                      <Menu.Panel $placement={menuPlacement} role="menu">
+                      <Menu.Panel
+                        $placement={menuPlacement}
+                        role="menu"
+                        onMouseDown={(event) => event.stopPropagation()}
+                      >
                         <Menu.Item
                           type="button"
                           role="menuitem"
