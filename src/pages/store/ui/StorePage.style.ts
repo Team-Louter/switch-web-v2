@@ -605,6 +605,7 @@ export const CustomizeSectionTitle = styled.p`
 
 export const CustomizeOptionGrid = styled.div`
   display: flex;
+  flex-shrink: 0;
   flex-wrap: wrap;
   align-content: flex-start;
   align-items: flex-start;
