@@ -48,6 +48,7 @@ export type ProfileResponse = {
   userId: number
   userName: string
   userEmail: string
+  recoveryEmail: string | null
   grade: number
   classRoom: number
   number: number

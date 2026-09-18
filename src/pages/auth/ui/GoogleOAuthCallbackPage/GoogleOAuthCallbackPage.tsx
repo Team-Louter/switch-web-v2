@@ -2,11 +2,14 @@ import { useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useUserStore } from '@/entities/profile'
-import { exchangeGoogleOAuthCode } from '@/features/auth'
+import {
+  exchangeGoogleOAuthCode,
+  requiresRecoveryEmail,
+} from '@/features/auth'
 import {
   clearAccessToken,
   clearPendingAccessToken,
-  setAccessToken,
+  promotePendingAccessToken,
   setPendingAccessToken,
 } from '@/shared/lib/authToken'
 
@@ -25,15 +28,34 @@ export function GoogleOAuthCallbackPage() {
 
     hasHandledOAuthRef.current = true
 
-    async function handleLegacyAccessToken() {
+    async function activateLoginToken(accessToken: string) {
+      clearAccessToken()
       clearPendingAccessToken()
-      setAccessToken(legacyAccessToken)
+      setPendingAccessToken(accessToken, 'recovery-email')
 
+      const profile = await useUserStore.getState().fetchUser()
+
+      if (requiresRecoveryEmail(profile)) {
+        navigate('/recovery-email', {
+          replace: true,
+          state: { from: '/home' },
+        })
+        return
+      }
+
+      if (!promotePendingAccessToken()) {
+        throw new Error('로그인 토큰을 활성화하지 못했습니다.')
+      }
+
+      navigate('/home', { replace: true })
+    }
+
+    async function handleLegacyAccessToken() {
       try {
-        await useUserStore.getState().fetchUser()
-        navigate('/home', { replace: true })
+        await activateLoginToken(legacyAccessToken)
       } catch {
         clearAccessToken()
+        clearPendingAccessToken()
         useUserStore.getState().resetUser()
         navigate('/login', { replace: true })
       }
@@ -61,14 +83,12 @@ export function GoogleOAuthCallbackPage() {
         })
 
         if (response.requiresExtraSignup) {
-          setPendingAccessToken(response.token)
+          setPendingAccessToken(response.token, 'google-extra-signup')
           navigate('/extra-signup', { replace: true })
           return
         }
 
-        setAccessToken(response.token)
-        await useUserStore.getState().fetchUser()
-        navigate('/home', { replace: true })
+        await activateLoginToken(response.token)
       } catch {
         clearAccessToken()
         clearPendingAccessToken()

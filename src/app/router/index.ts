@@ -1,1 +1,6 @@
-export { GuestOnlyRoute, ProtectedRoute, RootRoute } from './RouteGuards'
+export {
+  GuestOnlyRoute,
+  PendingAuthRoute,
+  ProtectedRoute,
+  RootRoute,
+} from './RouteGuards'

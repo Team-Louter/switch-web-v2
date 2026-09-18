@@ -3,11 +3,13 @@ import type { ChangeEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useUserStore } from '@/entities/profile'
-import { signupGoogleExtra } from '@/features/auth'
+import { requiresRecoveryEmail, signupGoogleExtra } from '@/features/auth'
 import {
   clearAccessToken,
   clearPendingAccessToken,
+  getAccessToken,
   getPendingAccessToken,
+  getPendingAccessTokenFlow,
   promotePendingAccessToken,
   setPendingAccessToken,
 } from '@/shared/lib/authToken'
@@ -51,7 +53,11 @@ export function useGoogleExtraSignupForm(): GoogleExtraSignupFormController {
   const [turnstileToken, setTurnstileToken] = useState('')
   const [turnstileKey, setTurnstileKey] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const hasOAuthToken = Boolean(tokenFromUrl || getPendingAccessToken())
+  const hasOAuthToken = Boolean(
+    tokenFromUrl ||
+      (getPendingAccessToken() &&
+        getPendingAccessTokenFlow() === 'google-extra-signup'),
+  )
   const hasEmptyField = Object.values(values).some(
     (value) => !value.trim(),
   )
@@ -95,7 +101,21 @@ export function useGoogleExtraSignupForm(): GoogleExtraSignupFormController {
         return
       }
 
-      await useUserStore.getState().fetchUser()
+      const profile = await useUserStore.getState().fetchUser()
+
+      if (requiresRecoveryEmail(profile)) {
+        const accessToken = getAccessToken()
+
+        if (!accessToken) {
+          throw new Error('로그인 토큰을 확인하지 못했습니다.')
+        }
+
+        clearAccessToken()
+        setPendingAccessToken(accessToken, 'recovery-email')
+        navigate('/recovery-email', { replace: true })
+        return
+      }
+
       navigate('/home', { replace: true })
     } catch {
       setTurnstileToken('')
@@ -126,12 +146,15 @@ export function useGoogleExtraSignupForm(): GoogleExtraSignupFormController {
   useEffect(() => {
     if (tokenFromUrl) {
       clearAccessToken()
-      setPendingAccessToken(tokenFromUrl)
+      setPendingAccessToken(tokenFromUrl, 'google-extra-signup')
       navigate('/extra-signup', { replace: true })
       return
     }
 
-    if (!getPendingAccessToken()) {
+    if (
+      !getPendingAccessToken() ||
+      getPendingAccessTokenFlow() !== 'google-extra-signup'
+    ) {
       navigate('/login', { replace: true })
     }
   }, [navigate, tokenFromUrl])

@@ -7,6 +7,8 @@ import {
   clearAccessToken,
   clearPendingAccessToken,
   getAccessToken,
+  getPendingAccessToken,
+  getPendingAccessTokenFlow,
   hasAccessToken,
 } from '@/shared/lib/authToken'
 
@@ -87,9 +89,14 @@ export function GuestOnlyRoute() {
   const { isAuthenticated, isChecking } = useAuthenticationState()
   const location = useLocation()
   const returnPath = getSafeReturnPath(location.state)
+  const pendingRoute = getPendingAuthRoute()
 
   if (isChecking) {
     return null
+  }
+
+  if (pendingRoute) {
+    return <Navigate to={pendingRoute} replace state={{ from: returnPath }} />
   }
 
   return isAuthenticated ? <Navigate to={returnPath} replace /> : <Outlet />
@@ -99,9 +106,14 @@ export function ProtectedRoute() {
   const { isAuthenticated, isChecking } = useAuthenticationState()
   const location = useLocation()
   const returnPath = `${location.pathname}${location.search}${location.hash}`
+  const pendingRoute = getPendingAuthRoute()
 
   if (isChecking) {
     return null
+  }
+
+  if (pendingRoute) {
+    return <Navigate to={pendingRoute} replace state={{ from: returnPath }} />
   }
 
   return isAuthenticated ? (
@@ -109,6 +121,37 @@ export function ProtectedRoute() {
   ) : (
     <Navigate to="/login" replace state={{ from: returnPath }} />
   )
+}
+
+export function PendingAuthRoute() {
+  const location = useLocation()
+  const pendingRoute = getPendingAuthRoute()
+
+  if (!pendingRoute || location.pathname === pendingRoute) {
+    return <Outlet />
+  }
+
+  const returnPath = `${location.pathname}${location.search}${location.hash}`
+
+  return <Navigate to={pendingRoute} replace state={{ from: returnPath }} />
+}
+
+function getPendingAuthRoute(): '/extra-signup' | '/recovery-email' | null {
+  if (!getPendingAccessToken()) {
+    return null
+  }
+
+  const flow = getPendingAccessTokenFlow()
+
+  if (flow === 'google-extra-signup') {
+    return '/extra-signup'
+  }
+
+  if (flow === 'recovery-email') {
+    return '/recovery-email'
+  }
+
+  return null
 }
 
 export function RootRoute() {
