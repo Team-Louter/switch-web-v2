@@ -69,19 +69,15 @@ export function RecoveryEmailModal({
           isResendReady={!isResendDisabled}
           turnstileSiteKey={turnstileSiteKey}
           turnstileKey={resendTurnstileKey}
-          title="인증번호를 입력하세요"
-          description={`${email}으로 전송된 6자리 인증번호를 입력해주세요.`}
-          resendLabel="인증번호 재전송"
-          resendingLabel="인증번호 전송 중"
-          submitAriaLabel="복구 이메일 등록"
-          loadingAlt="복구 이메일 등록 중"
           closeOnOverlayClick={false}
+          showLogout
           onChangeCode={handleVerificationCodeChange}
           onClose={onLogout}
           onResend={() => void handleResendCode()}
           onSubmit={() => void handleVerifyCode()}
           onTurnstileVerify={handleResendTurnstileVerify}
           onTurnstileReset={handleResendTurnstileReset}
+          onLogout={onLogout}
         />
         {errorMessage && (
           <RecoveryEmailErrorToast key={errorMessage} message={errorMessage} />

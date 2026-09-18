@@ -22,12 +22,14 @@ interface EmailVerificationModalProps {
   submitAriaLabel?: string
   loadingAlt?: string
   closeOnOverlayClick?: boolean
+  showLogout?: boolean
   onChangeCode: (code: string) => void
   onClose: () => void
   onResend: () => void
   onSubmit: () => void
   onTurnstileVerify: (token: string) => void
   onTurnstileReset: () => void
+  onLogout?: () => void
 }
 
 export function EmailVerificationModal({
@@ -44,12 +46,14 @@ export function EmailVerificationModal({
   submitAriaLabel = '이메일 인증 완료',
   loadingAlt = '회원가입 처리 중',
   closeOnOverlayClick = true,
+  showLogout = false,
   onChangeCode,
   onClose,
   onResend,
   onSubmit,
   onTurnstileVerify,
   onTurnstileReset,
+  onLogout,
 }: EmailVerificationModalProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isInputFocused, setIsInputFocused] = useState(true)
@@ -169,6 +173,16 @@ export function EmailVerificationModal({
                 $isEnabled={isComplete && !isBusy}
               />
             </S.SubmitButton>
+
+            {showLogout && onLogout && (
+              <S.LogoutButton
+                type="button"
+                onClick={onLogout}
+                disabled={isBusy}
+              >
+                로그아웃
+              </S.LogoutButton>
+            )}
           </S.Form>
         )}
       </S.Dialog>
