@@ -104,7 +104,7 @@ export function RecoveryEmailModal({
                 aria-hidden="true"
               />
               <S.CelebrationMessage>
-                3학년이 되신 것을 축하합니다!
+                이제 졸업을 준비할 시간이에요
               </S.CelebrationMessage>
               <S.Title id="recovery-email-title">복구 이메일 등록</S.Title>
             </S.CelebrationHeader>
