@@ -1,7 +1,25 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 import { Button } from '@/shared/ui'
+
+const fireworksCelebrate = keyframes`
+  0%,
+  100% {
+    opacity: 0.78;
+    transform: scale(0.88) rotate(-4deg);
+  }
+
+  45% {
+    opacity: 1;
+    transform: scale(1.04) rotate(3deg);
+  }
+
+  70% {
+    opacity: 0.9;
+    transform: scale(0.96) rotate(-1deg);
+  }
+`
 
 export const Overlay = styled.div`
   ${token.flexCenter}
@@ -93,22 +111,21 @@ export const CelebrationHeader = styled.div`
   gap: 8px;
 `
 
-export const GraduationCap = styled.div`
-  ${token.flexCenter}
-  width: 48px;
-  height: 48px;
-  border-radius: ${token.shapes.circle};
-  color: ${token.colors.primary.primary60};
-  background: ${token.colors.primary.primary10};
+export const FireworksImage = styled.img`
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  pointer-events: none;
+  animation: ${fireworksCelebrate} 2.4s ease-in-out infinite;
 
-  svg {
-    width: 30px;
-    height: 30px;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
   }
 `
 
 export const CelebrationMessage = styled.p`
-  color: ${token.colors.primary.primary60};
+  color: hsla(44, 100%, 50%, 1);
   line-height: normal;
   text-align: center;
   ${token.typography('body', 'sm', 'semibold')}

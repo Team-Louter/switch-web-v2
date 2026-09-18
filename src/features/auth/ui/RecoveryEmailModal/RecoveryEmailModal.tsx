@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
-import { PiGraduationCapFill } from 'react-icons/pi'
 
+import fireworksImage from '../../assets/recovery-email-fireworks.png'
 import { useRecoveryEmailForm } from '../../model/useRecoveryEmailForm'
 import { Turnstile } from '../Turnstile/Turnstile'
 import * as S from './RecoveryEmailModal.style'
@@ -164,9 +164,11 @@ export function RecoveryEmailModal({
           ) : (
             <>
               <S.CelebrationHeader>
-                <S.GraduationCap aria-hidden="true">
-                  <PiGraduationCapFill />
-                </S.GraduationCap>
+                <S.FireworksImage
+                  src={fireworksImage}
+                  alt=""
+                  aria-hidden="true"
+                />
                 <S.CelebrationMessage>
                   3학년이 되신 것을 축하합니다!
                 </S.CelebrationMessage>
