@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
+import { PiGraduationCapFill } from 'react-icons/pi'
 
 import { useRecoveryEmailForm } from '../../model/useRecoveryEmailForm'
 import { Turnstile } from '../Turnstile/Turnstile'
@@ -162,10 +163,18 @@ export function RecoveryEmailModal({
             </>
           ) : (
             <>
-              <S.Title id="recovery-email-title">복구 이메일 등록</S.Title>
+              <S.CelebrationHeader>
+                <S.GraduationCap aria-hidden="true">
+                  <PiGraduationCapFill />
+                </S.GraduationCap>
+                <S.CelebrationMessage>
+                  3학년이 되신 것을 축하합니다!
+                </S.CelebrationMessage>
+                <S.Title id="recovery-email-title">복구 이메일 등록</S.Title>
+              </S.CelebrationHeader>
               <S.EmailStepContent>
                 <S.Description id="recovery-email-description">
-                  복구 이메일 등록을 위한 이메일 인증을 진행합니다
+                  졸업을 대비하여 개인 이메일을 등록해주세요.
                 </S.Description>
 
                 <S.EmailInput
@@ -173,8 +182,8 @@ export function RecoveryEmailModal({
                   name="recoveryEmail"
                   value={email}
                   onChange={handleEmailChange}
-                  aria-label="복구 이메일"
-                  placeholder="복구 이메일을 입력해주세요"
+                  aria-label="개인 이메일"
+                  placeholder="개인 이메일을 입력해주세요"
                   autoComplete="email"
                   autoFocus
                   disabled={isBusy}

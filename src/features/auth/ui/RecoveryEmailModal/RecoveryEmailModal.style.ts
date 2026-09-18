@@ -17,7 +17,7 @@ export const Dialog = styled.div<{ $isVerificationStep: boolean }>`
   ${token.flexCenter}
   width: min(480px, 100%);
   min-height: ${({ $isVerificationStep }) =>
-    $isVerificationStep ? '510px' : '328px'};
+    $isVerificationStep ? '510px' : '382px'};
   max-height: calc(100dvh - 48px);
   overflow-y: auto;
   border-radius: ${token.shapes.large};
@@ -25,7 +25,7 @@ export const Dialog = styled.div<{ $isVerificationStep: boolean }>`
   box-shadow: 0 8px 28px rgb(14 13 12 / 14%);
 
   @media (max-width: 480px) {
-    min-height: min(328px, calc(100dvh - 48px));
+    min-height: min(382px, calc(100dvh - 48px));
   }
 `
 
@@ -33,10 +33,10 @@ export const Form = styled.form`
   ${token.flexColumn}
   align-items: center;
   width: 100%;
-  padding: 40px 65px;
+  padding: 32px 65px;
 
   @media (max-width: 480px) {
-    padding: 36px 20px;
+    padding: 28px 20px;
   }
 `
 
@@ -44,7 +44,7 @@ export const Title = styled.h2`
   color: ${token.colors.gray.gray80};
   line-height: normal;
   text-align: center;
-  ${token.typography('heading', 'lg', 'bold')}
+  ${token.typography('heading', 'md', 'bold')}
 `
 
 export const Description = styled.p`
@@ -53,7 +53,7 @@ export const Description = styled.p`
   line-height: normal;
   text-align: center;
   word-break: break-word;
-  ${token.typography('body', 'md', 'medium')}
+  ${token.typography('body', 'sm', 'medium')}
 `
 
 export const EmailInput = styled.input`
@@ -83,15 +83,42 @@ export const EmailStepContent = styled.div`
   align-items: center;
   width: 350px;
   max-width: 100%;
-  margin-top: 48px;
+  margin-top: 24px;
   gap: 24px;
+`
+
+export const CelebrationHeader = styled.div`
+  ${token.flexColumn}
+  align-items: center;
+  gap: 8px;
+`
+
+export const GraduationCap = styled.div`
+  ${token.flexCenter}
+  width: 48px;
+  height: 48px;
+  border-radius: ${token.shapes.circle};
+  color: ${token.colors.primary.primary60};
+  background: ${token.colors.primary.primary10};
+
+  svg {
+    width: 30px;
+    height: 30px;
+  }
+`
+
+export const CelebrationMessage = styled.p`
+  color: ${token.colors.primary.primary60};
+  line-height: normal;
+  text-align: center;
+  ${token.typography('body', 'sm', 'semibold')}
 `
 
 export const ActionRow = styled.div`
   display: flex;
   align-items: center;
   gap: 20px;
-  margin-top: 48px;
+  margin-top: 32px;
 `
 
 export const SecondaryButton = styled.button`
