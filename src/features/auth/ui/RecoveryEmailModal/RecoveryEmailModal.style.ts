@@ -118,6 +118,16 @@ export const EmailInput = styled.input`
     border-color: ${token.colors.gray.gray60};
     outline: none;
   }
+
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus,
+  &:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px ${token.colors.white} inset;
+    -webkit-text-fill-color: ${token.colors.gray.gray80};
+    caret-color: ${token.colors.gray.gray80};
+    transition: background-color 5000s ease-in-out 0s;
+  }
 `
 
 export const EmailStepContent = styled.div`

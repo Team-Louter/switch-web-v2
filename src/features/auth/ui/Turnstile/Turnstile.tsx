@@ -133,10 +133,14 @@ export function Turnstile({
           size,
           retry: 'auto',
           callback: onVerify,
-          'expired-callback': onExpire,
+          'expired-callback': () => {
+            onExpire()
+            resetTurnstileWidget(widgetIdRef.current)
+          },
           'error-callback': () => {
-            setStatus('error')
             onError()
+            setStatus('ready')
+            resetTurnstileWidget(widgetIdRef.current)
             return true
           },
           'response-field': false,
@@ -172,7 +176,8 @@ export function Turnstile({
       return
     }
 
-    window.turnstile.reset(widgetIdRef.current)
+    setStatus('ready')
+    resetTurnstileWidget(widgetIdRef.current)
   }, [resetKey])
 
   return (
@@ -193,4 +198,10 @@ export function Turnstile({
       )}
     </S.WidgetShell>
   )
+}
+
+function resetTurnstileWidget(widgetId: string | null) {
+  if (widgetId && window.turnstile) {
+    window.turnstile.reset(widgetId)
+  }
 }
