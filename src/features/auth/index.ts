@@ -29,4 +29,11 @@ export { verifyRecoveryEmail } from './api/verifyRecoveryEmail'
 export type { VerifyRecoveryEmailRequest } from './api/verifyRecoveryEmail'
 export { requiresRecoveryEmail } from './lib/requiresRecoveryEmail'
 export { startGoogleLogin } from './lib/startGoogleLogin'
+export { TURNSTILE_SITE_KEY } from './config/turnstile'
+export { useRecoveryEmailForm } from './model/useRecoveryEmailForm'
+export type {
+  RecoveryEmailFormController,
+  RecoveryEmailStep,
+} from './model/useRecoveryEmailForm'
 export { Turnstile } from './ui/Turnstile/Turnstile'
+export { RecoveryEmailModal } from './ui/RecoveryEmailModal'

@@ -112,7 +112,7 @@ export function useGoogleExtraSignupForm(): GoogleExtraSignupFormController {
 
         clearAccessToken()
         setPendingAccessToken(accessToken, 'recovery-email')
-        navigate('/recovery-email', { replace: true })
+        navigate('/home', { replace: true })
         return
       }
 

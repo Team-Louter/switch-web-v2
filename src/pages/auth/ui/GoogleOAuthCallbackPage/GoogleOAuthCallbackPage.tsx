@@ -36,10 +36,7 @@ export function GoogleOAuthCallbackPage() {
       const profile = await useUserStore.getState().fetchUser()
 
       if (requiresRecoveryEmail(profile)) {
-        navigate('/recovery-email', {
-          replace: true,
-          state: { from: '/home' },
-        })
+        navigate('/home', { replace: true })
         return
       }
 

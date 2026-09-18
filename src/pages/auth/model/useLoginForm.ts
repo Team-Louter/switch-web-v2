@@ -101,10 +101,7 @@ export function useLoginForm(
         const profile = await useUserStore.getState().fetchUser()
 
         if (requiresRecoveryEmail(profile)) {
-          navigate('/recovery-email', {
-            replace: true,
-            state: { from: returnPath },
-          })
+          navigate('/home', { replace: true })
           return
         }
 

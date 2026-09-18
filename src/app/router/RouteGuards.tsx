@@ -113,7 +113,11 @@ export function ProtectedRoute() {
   }
 
   if (pendingRoute) {
-    return <Navigate to={pendingRoute} replace state={{ from: returnPath }} />
+    if (location.pathname !== pendingRoute) {
+      return <Navigate to={pendingRoute} replace state={{ from: returnPath }} />
+    }
+
+    return <Outlet />
   }
 
   return isAuthenticated ? (
@@ -136,7 +140,7 @@ export function PendingAuthRoute() {
   return <Navigate to={pendingRoute} replace state={{ from: returnPath }} />
 }
 
-function getPendingAuthRoute(): '/extra-signup' | '/recovery-email' | null {
+function getPendingAuthRoute(): '/extra-signup' | '/home' | null {
   if (!getPendingAccessToken()) {
     return null
   }
@@ -148,7 +152,7 @@ function getPendingAuthRoute(): '/extra-signup' | '/recovery-email' | null {
   }
 
   if (flow === 'recovery-email') {
-    return '/recovery-email'
+    return '/home'
   }
 
   return null

@@ -2,10 +2,8 @@ import axios from 'axios'
 import { useCallback, useState } from 'react'
 import type { ChangeEvent } from 'react'
 
-import {
-  sendRecoveryEmailVerification,
-  verifyRecoveryEmail,
-} from '@/features/auth'
+import { sendRecoveryEmailVerification } from '../api/sendRecoveryEmailVerification'
+import { verifyRecoveryEmail } from '../api/verifyRecoveryEmail'
 
 import { TURNSTILE_SITE_KEY } from '../config/turnstile'
 
@@ -15,7 +13,7 @@ const SEND_CODE_FAILED_MESSAGE =
 const VERIFY_CODE_FAILED_MESSAGE =
   '복구 이메일 등록을 완료하지 못했습니다. 다시 시도해주세요.'
 
-type RecoveryEmailStep = 'email' | 'verification'
+export type RecoveryEmailStep = 'email' | 'verification'
 
 export interface RecoveryEmailFormController {
   email: string
@@ -102,9 +100,7 @@ export function useRecoveryEmailForm(
       setResendTurnstileKey((currentKey) => currentKey + 1)
       setStep('verification')
     } catch (error: unknown) {
-      setErrorMessage(
-        getApiErrorMessage(error, SEND_CODE_FAILED_MESSAGE),
-      )
+      setErrorMessage(getApiErrorMessage(error, SEND_CODE_FAILED_MESSAGE))
       setSendTurnstileToken('')
       setSendTurnstileKey((currentKey) => currentKey + 1)
     } finally {
@@ -117,14 +113,12 @@ export function useRecoveryEmailForm(
       return
     }
 
-    const submittedEmail = email.trim()
-
     setIsVerifyingCode(true)
     setErrorMessage('')
 
     try {
       await verifyRecoveryEmail({
-        recoveryEmail: submittedEmail,
+        recoveryEmail: email.trim(),
         verificationCode,
       })
     } catch (error: unknown) {

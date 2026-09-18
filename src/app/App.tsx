@@ -23,11 +23,6 @@ const GoogleOAuthCallbackPage = lazy(() =>
     default: Page,
   })),
 )
-const RecoveryEmailPage = lazy(() =>
-  import('@/pages/auth').then(({ RecoveryEmailPage: Page }) => ({
-    default: Page,
-  })),
-)
 const CalendarPage = lazy(() =>
   import('@/pages/calendar').then(({ CalendarPage: Page }) => ({
     default: Page,
@@ -102,7 +97,6 @@ export function App() {
           <Route element={<PendingAuthRoute />}>
             <Route path="/" element={<RootRoute />} />
             <Route path="/extra-signup" element={<GoogleExtraSignupPage />} />
-            <Route path="/recovery-email" element={<RecoveryEmailPage />} />
             <Route
               path="/oauth/callback"
               element={<GoogleOAuthCallbackPage />}
