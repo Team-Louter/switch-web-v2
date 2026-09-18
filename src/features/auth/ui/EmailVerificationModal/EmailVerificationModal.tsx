@@ -22,6 +22,7 @@ interface EmailVerificationModalProps {
   submitAriaLabel?: string
   loadingAlt?: string
   closeOnOverlayClick?: boolean
+  manageBodyScroll?: boolean
   showLogout?: boolean
   onChangeCode: (code: string) => void
   onClose: () => void
@@ -46,6 +47,7 @@ export function EmailVerificationModal({
   submitAriaLabel = '이메일 인증 완료',
   loadingAlt = '회원가입 처리 중',
   closeOnOverlayClick = true,
+  manageBodyScroll = true,
   showLogout = false,
   onChangeCode,
   onClose,
@@ -91,6 +93,11 @@ export function EmailVerificationModal({
   }
 
   useEffect(() => {
+    if (!manageBodyScroll) {
+      inputRef.current?.focus()
+      return
+    }
+
     const previousOverflow = document.body.style.overflow
 
     document.body.style.overflow = 'hidden'
@@ -99,7 +106,7 @@ export function EmailVerificationModal({
     return () => {
       document.body.style.overflow = previousOverflow
     }
-  }, [])
+  }, [manageBodyScroll])
 
   return (
     <S.Overlay onClick={handleOverlayClick}>

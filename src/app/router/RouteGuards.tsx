@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 
-import { refreshAccessToken } from '@/shared/api'
+import { refreshAccessToken, UNAUTHORIZED_EVENT } from '@/shared/api'
 import {
   AUTH_STATE_CHANGED_EVENT,
   clearAccessToken,
@@ -10,6 +10,7 @@ import {
   getPendingAccessToken,
   getPendingAccessTokenFlow,
   hasAccessToken,
+  isAccessTokenExpired,
 } from '@/shared/lib/authToken'
 
 interface AuthenticationState {
@@ -24,10 +25,12 @@ function subscribeToAuthState(onStoreChange: () => void) {
 
   window.addEventListener('storage', handleAuthStateChange)
   window.addEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChange)
+  window.addEventListener(UNAUTHORIZED_EVENT, handleAuthStateChange)
 
   return () => {
     window.removeEventListener('storage', handleAuthStateChange)
     window.removeEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChange)
+    window.removeEventListener(UNAUTHORIZED_EVENT, handleAuthStateChange)
   }
 }
 
@@ -44,6 +47,14 @@ function useAuthenticationState(): AuthenticationState {
   const shouldRefresh = Boolean(
     accessToken && !isAuthenticated && checkedAccessToken !== accessToken,
   )
+
+  useEffect(() => {
+    const pendingAccessToken = getPendingAccessToken()
+
+    if (pendingAccessToken && isAccessTokenExpired(pendingAccessToken)) {
+      clearPendingAccessToken()
+    }
+  }, [])
 
   useEffect(() => {
     if (!shouldRefresh || !accessToken) {
@@ -130,6 +141,11 @@ export function ProtectedRoute() {
 export function PendingAuthRoute() {
   const location = useLocation()
   const pendingRoute = getPendingAuthRoute()
+  const hasTokenInUrl = new URLSearchParams(location.search).has('token')
+
+  if (location.pathname === '/extra-signup' && !pendingRoute && !hasTokenInUrl) {
+    return <Navigate to="/login" replace />
+  }
 
   if (!pendingRoute || location.pathname === pendingRoute) {
     return <Outlet />
@@ -141,7 +157,9 @@ export function PendingAuthRoute() {
 }
 
 function getPendingAuthRoute(): '/extra-signup' | '/home' | null {
-  if (!getPendingAccessToken()) {
+  const pendingAccessToken = getPendingAccessToken()
+
+  if (!pendingAccessToken || isAccessTokenExpired(pendingAccessToken)) {
     return null
   }
 

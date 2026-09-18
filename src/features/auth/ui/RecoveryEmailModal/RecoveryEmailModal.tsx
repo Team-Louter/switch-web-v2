@@ -70,6 +70,7 @@ export function RecoveryEmailModal({
           turnstileSiteKey={turnstileSiteKey}
           turnstileKey={resendTurnstileKey}
           closeOnOverlayClick={false}
+          manageBodyScroll={false}
           showLogout
           onChangeCode={handleVerificationCodeChange}
           onClose={onLogout}
