@@ -1,13 +1,16 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 
-import { refreshAccessToken } from '@/shared/api'
+import { refreshAccessToken, UNAUTHORIZED_EVENT } from '@/shared/api'
 import {
   AUTH_STATE_CHANGED_EVENT,
   clearAccessToken,
   clearPendingAccessToken,
   getAccessToken,
+  getPendingAccessToken,
+  getPendingAccessTokenFlow,
   hasAccessToken,
+  isAccessTokenExpired,
 } from '@/shared/lib/authToken'
 
 interface AuthenticationState {
@@ -22,10 +25,12 @@ function subscribeToAuthState(onStoreChange: () => void) {
 
   window.addEventListener('storage', handleAuthStateChange)
   window.addEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChange)
+  window.addEventListener(UNAUTHORIZED_EVENT, handleAuthStateChange)
 
   return () => {
     window.removeEventListener('storage', handleAuthStateChange)
     window.removeEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChange)
+    window.removeEventListener(UNAUTHORIZED_EVENT, handleAuthStateChange)
   }
 }
 
@@ -42,6 +47,14 @@ function useAuthenticationState(): AuthenticationState {
   const shouldRefresh = Boolean(
     accessToken && !isAuthenticated && checkedAccessToken !== accessToken,
   )
+
+  useEffect(() => {
+    const pendingAccessToken = getPendingAccessToken()
+
+    if (pendingAccessToken && isAccessTokenExpired(pendingAccessToken)) {
+      clearPendingAccessToken()
+    }
+  }, [])
 
   useEffect(() => {
     if (!shouldRefresh || !accessToken) {
@@ -87,9 +100,14 @@ export function GuestOnlyRoute() {
   const { isAuthenticated, isChecking } = useAuthenticationState()
   const location = useLocation()
   const returnPath = getSafeReturnPath(location.state)
+  const pendingRoute = getPendingAuthRoute()
 
   if (isChecking) {
     return null
+  }
+
+  if (pendingRoute) {
+    return <Navigate to={pendingRoute} replace state={{ from: returnPath }} />
   }
 
   return isAuthenticated ? <Navigate to={returnPath} replace /> : <Outlet />
@@ -99,9 +117,18 @@ export function ProtectedRoute() {
   const { isAuthenticated, isChecking } = useAuthenticationState()
   const location = useLocation()
   const returnPath = `${location.pathname}${location.search}${location.hash}`
+  const pendingRoute = getPendingAuthRoute()
 
   if (isChecking) {
     return null
+  }
+
+  if (pendingRoute) {
+    if (location.pathname !== pendingRoute) {
+      return <Navigate to={pendingRoute} replace state={{ from: returnPath }} />
+    }
+
+    return <Outlet />
   }
 
   return isAuthenticated ? (
@@ -109,6 +136,44 @@ export function ProtectedRoute() {
   ) : (
     <Navigate to="/login" replace state={{ from: returnPath }} />
   )
+}
+
+export function PendingAuthRoute() {
+  const location = useLocation()
+  const pendingRoute = getPendingAuthRoute()
+  const hasTokenInUrl = new URLSearchParams(location.search).has('token')
+
+  if (location.pathname === '/extra-signup' && !pendingRoute && !hasTokenInUrl) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (!pendingRoute || location.pathname === pendingRoute) {
+    return <Outlet />
+  }
+
+  const returnPath = `${location.pathname}${location.search}${location.hash}`
+
+  return <Navigate to={pendingRoute} replace state={{ from: returnPath }} />
+}
+
+function getPendingAuthRoute(): '/extra-signup' | '/home' | null {
+  const pendingAccessToken = getPendingAccessToken()
+
+  if (!pendingAccessToken || isAccessTokenExpired(pendingAccessToken)) {
+    return null
+  }
+
+  const flow = getPendingAccessTokenFlow()
+
+  if (flow === 'google-extra-signup') {
+    return '/extra-signup'
+  }
+
+  if (flow === 'recovery-email') {
+    return '/home'
+  }
+
+  return null
 }
 
 export function RootRoute() {

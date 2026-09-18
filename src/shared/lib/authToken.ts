@@ -1,6 +1,9 @@
 const ACCESS_TOKEN_STORAGE_KEY = 'accessToken'
 const PENDING_ACCESS_TOKEN_STORAGE_KEY = 'pendingAccessToken'
+const PENDING_ACCESS_TOKEN_FLOW_STORAGE_KEY = 'pendingAccessTokenFlow'
 const ACCESS_TOKEN_EXPIRATION_LEEWAY_SECONDS = 30
+
+export type PendingAccessTokenFlow = 'google-extra-signup' | 'recovery-email'
 
 interface JwtPayload {
   exp: number
@@ -40,12 +43,25 @@ export function getPendingAccessToken(): string | null {
   return localStorage.getItem(PENDING_ACCESS_TOKEN_STORAGE_KEY)
 }
 
-export function setPendingAccessToken(accessToken: string) {
+export function setPendingAccessToken(
+  accessToken: string,
+  flow: PendingAccessTokenFlow = 'google-extra-signup',
+) {
   localStorage.setItem(PENDING_ACCESS_TOKEN_STORAGE_KEY, accessToken)
+  localStorage.setItem(PENDING_ACCESS_TOKEN_FLOW_STORAGE_KEY, flow)
+}
+
+export function getPendingAccessTokenFlow(): PendingAccessTokenFlow | null {
+  const flow = localStorage.getItem(PENDING_ACCESS_TOKEN_FLOW_STORAGE_KEY)
+
+  return flow === 'google-extra-signup' || flow === 'recovery-email'
+    ? flow
+    : null
 }
 
 export function clearPendingAccessToken() {
   localStorage.removeItem(PENDING_ACCESS_TOKEN_STORAGE_KEY)
+  localStorage.removeItem(PENDING_ACCESS_TOKEN_FLOW_STORAGE_KEY)
 }
 
 export function promotePendingAccessToken(): boolean {

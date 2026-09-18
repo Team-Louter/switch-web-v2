@@ -28,6 +28,7 @@ interface TurnstileApi {
     container: HTMLElement,
     options: TurnstileRenderOptions,
   ) => string
+  reset: (widgetId: string) => void
   remove: (widgetId: string) => void
 }
 
@@ -39,6 +40,7 @@ interface TurnstileProps {
   onVerify: (token: string) => void
   onExpire: () => void
   onError: () => void
+  resetKey?: number
 }
 
 type WidgetStatus = 'loading' | 'ready' | 'error'
@@ -60,7 +62,7 @@ function loadTurnstileScript(): Promise<TurnstileApi> {
     return turnstileScriptPromise
   }
 
-  turnstileScriptPromise = new Promise((resolve, reject) => {
+  const scriptPromise = new Promise<TurnstileApi>((resolve, reject) => {
     const existingScript = document.getElementById(
       TURNSTILE_SCRIPT_ID,
     ) as HTMLScriptElement | null
@@ -81,9 +83,10 @@ function loadTurnstileScript(): Promise<TurnstileApi> {
     }
 
     if (existingScript) {
-      existingScript.addEventListener('load', handleLoad, { once: true })
-      existingScript.addEventListener('error', handleError, { once: true })
-      return
+      // Fast Refresh or a previous failed load can leave a script element
+      // without a usable window.turnstile instance. Recreate it so rendering
+      // does not depend on an already-fired load event.
+      existingScript.remove()
     }
 
     const script = document.createElement('script')
@@ -96,7 +99,13 @@ function loadTurnstileScript(): Promise<TurnstileApi> {
     document.head.appendChild(script)
   })
 
-  return turnstileScriptPromise
+  turnstileScriptPromise = scriptPromise
+
+  return scriptPromise.finally(() => {
+    if (turnstileScriptPromise === scriptPromise) {
+      turnstileScriptPromise = null
+    }
+  })
 }
 
 export function Turnstile({
@@ -107,14 +116,14 @@ export function Turnstile({
   onVerify,
   onExpire,
   onError,
+  resetKey,
 }: TurnstileProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const widgetIdRef = useRef<string | null>(null)
   const [status, setStatus] = useState<WidgetStatus>('loading')
 
   useEffect(() => {
     let isDisposed = false
-    let widgetId: string | null = null
-
     async function renderWidget() {
       try {
         const turnstile = await loadTurnstileScript()
@@ -123,7 +132,7 @@ export function Turnstile({
           return
         }
 
-        widgetId = turnstile.render(containerRef.current, {
+        widgetIdRef.current = turnstile.render(containerRef.current, {
           sitekey: siteKey,
           action,
           appearance,
@@ -131,10 +140,14 @@ export function Turnstile({
           size,
           retry: 'auto',
           callback: onVerify,
-          'expired-callback': onExpire,
+          'expired-callback': () => {
+            onExpire()
+            resetTurnstileWidget(widgetIdRef.current)
+          },
           'error-callback': () => {
-            setStatus('error')
             onError()
+            setStatus('ready')
+            resetTurnstileWidget(widgetIdRef.current)
             return true
           },
           'response-field': false,
@@ -153,11 +166,26 @@ export function Turnstile({
     return () => {
       isDisposed = true
 
-      if (widgetId && window.turnstile) {
-        window.turnstile.remove(widgetId)
+      if (widgetIdRef.current && window.turnstile) {
+        window.turnstile.remove(widgetIdRef.current)
+        widgetIdRef.current = null
       }
     }
   }, [action, appearance, onError, onExpire, onVerify, siteKey, size])
+
+  useEffect(() => {
+    if (
+      resetKey === undefined ||
+      resetKey === 0 ||
+      !widgetIdRef.current ||
+      !window.turnstile
+    ) {
+      return
+    }
+
+    setStatus('ready')
+    resetTurnstileWidget(widgetIdRef.current)
+  }, [resetKey])
 
   return (
     <S.WidgetShell
@@ -177,4 +205,10 @@ export function Turnstile({
       )}
     </S.WidgetShell>
   )
+}
+
+function resetTurnstileWidget(widgetId: string | null) {
+  if (widgetId && window.turnstile) {
+    window.turnstile.reset(widgetId)
+  }
 }

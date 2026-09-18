@@ -1,9 +1,19 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
+import { useUserStore } from '@/entities/profile'
 import { getAllSchedules } from '@/entities/schedule'
 import type { Schedule } from '@/entities/schedule'
+import { RecoveryEmailModal } from '@/features/auth'
 import { HomeCalendar, HomeSidebar } from '@/features/home'
+import {
+  clearAccessToken,
+  clearPendingAccessToken,
+  getPendingAccessToken,
+  getPendingAccessTokenFlow,
+  promotePendingAccessToken,
+} from '@/shared/lib/authToken'
+
 import { HomeMemberSection } from './HomeMemberSection/HomeMemberSection'
 import * as S from './HomePage.style'
 
@@ -20,12 +30,39 @@ function parseScheduleId(value: string | null): number | null {
 }
 
 export function HomePage() {
+  const navigate = useNavigate()
   const viewport = useRef<HTMLDivElement>(null)
   const [searchParams, setSearchParams] = useSearchParams()
   const [scale, setScale] = useState(1)
   const [schedules, setSchedules] = useState<Schedule[]>([])
   const [loading, setLoading] = useState(true)
+  const [isRecoveryEmailModalOpen, setIsRecoveryEmailModalOpen] = useState(
+    () =>
+      Boolean(getPendingAccessToken()) &&
+      getPendingAccessTokenFlow() === 'recovery-email',
+  )
   const selectedScheduleId = parseScheduleId(searchParams.get('scheduleId'))
+
+  async function handleRecoveryEmailComplete() {
+    const profile = await useUserStore.getState().fetchUser()
+
+    if (profile.recoveryEmail == null) {
+      throw new Error('복구 이메일 등록 결과를 확인하지 못했습니다.')
+    }
+
+    if (!promotePendingAccessToken()) {
+      throw new Error('로그인 토큰을 활성화하지 못했습니다.')
+    }
+
+    setIsRecoveryEmailModalOpen(false)
+  }
+
+  function handleRecoveryEmailLogout() {
+    clearAccessToken()
+    clearPendingAccessToken()
+    useUserStore.getState().resetUser()
+    navigate('/login', { replace: true })
+  }
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
@@ -83,6 +120,13 @@ export function HomePage() {
           Github
         </S.GithubLink>
       </S.Footer>
+
+      {isRecoveryEmailModalOpen && (
+        <RecoveryEmailModal
+          onComplete={handleRecoveryEmailComplete}
+          onLogout={handleRecoveryEmailLogout}
+        />
+      )}
     </S.PageContainer>
   )
 }

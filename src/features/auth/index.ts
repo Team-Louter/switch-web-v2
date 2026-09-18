@@ -11,6 +11,8 @@ export type {
   SendVerificationCodeRequest,
   SendVerificationCodeResponse,
 } from './api/sendVerificationCode'
+export { sendRecoveryEmailVerification } from './api/sendRecoveryEmailVerification'
+export type { SendRecoveryEmailVerificationRequest } from './api/sendRecoveryEmailVerification'
 export { signup, signupGoogleExtra } from './api/signup'
 export type {
   GoogleExtraSignupRequest,
@@ -23,5 +25,16 @@ export type {
   VerifyEmailCodeRequest,
   VerifyEmailCodeResponse,
 } from './api/verifyEmailCode'
+export { verifyRecoveryEmail } from './api/verifyRecoveryEmail'
+export type { VerifyRecoveryEmailRequest } from './api/verifyRecoveryEmail'
+export { requiresRecoveryEmail } from './lib/requiresRecoveryEmail'
 export { startGoogleLogin } from './lib/startGoogleLogin'
+export { TURNSTILE_SITE_KEY } from './config/turnstile'
+export { useRecoveryEmailForm } from './model/useRecoveryEmailForm'
+export type {
+  RecoveryEmailFormController,
+  RecoveryEmailStep,
+} from './model/useRecoveryEmailForm'
 export { Turnstile } from './ui/Turnstile/Turnstile'
+export { EmailVerificationModal } from './ui/EmailVerificationModal'
+export { RecoveryEmailModal } from './ui/RecoveryEmailModal'
