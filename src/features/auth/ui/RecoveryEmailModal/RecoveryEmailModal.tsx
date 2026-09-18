@@ -1,8 +1,11 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 
 import fireworksImage from '../../assets/party-popper.png'
-import { useRecoveryEmailForm } from '../../model/useRecoveryEmailForm'
+import {
+  SCHOOL_EMAIL_ERROR_MESSAGE,
+  useRecoveryEmailForm,
+} from '../../model/useRecoveryEmailForm'
 import { Turnstile } from '../Turnstile/Turnstile'
 import * as S from './RecoveryEmailModal.style'
 
@@ -45,6 +48,8 @@ export function RecoveryEmailModal({
 
   const isVerificationStep = step === 'verification'
   const isBusy = isSendingCode || isVerifyingCode || isResendingCode
+  const isSchoolEmailError =
+    errorMessage === SCHOOL_EMAIL_ERROR_MESSAGE
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow
@@ -197,7 +202,7 @@ export function RecoveryEmailModal({
                   </S.TurnstileConfigMessage>
                 )}
 
-                {errorMessage && (
+                {errorMessage && !isSchoolEmailError && (
                   <S.ErrorMessage role="alert">{errorMessage}</S.ErrorMessage>
                 )}
               </S.EmailStepContent>
@@ -229,6 +234,10 @@ export function RecoveryEmailModal({
         </S.Form>
       </S.Dialog>
 
+      {isSchoolEmailError && (
+        <SchoolEmailErrorToast message={SCHOOL_EMAIL_ERROR_MESSAGE} />
+      )}
+
       {turnstileSiteKey && (
         <S.OverlayTurnstile>
           <Turnstile
@@ -254,5 +263,34 @@ export function RecoveryEmailModal({
         </S.OverlayTurnstile>
       )}
     </S.Overlay>
+  )
+}
+
+interface SchoolEmailErrorToastProps {
+  message: string
+}
+
+function SchoolEmailErrorToast({ message }: SchoolEmailErrorToastProps) {
+  const [isLeaving, setIsLeaving] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+
+  useEffect(() => {
+    const leaveTimerId = window.setTimeout(() => setIsLeaving(true), 2000)
+    const closeTimerId = window.setTimeout(() => setIsVisible(false), 2200)
+
+    return () => {
+      window.clearTimeout(leaveTimerId)
+      window.clearTimeout(closeTimerId)
+    }
+  }, [])
+
+  if (!isVisible) {
+    return null
+  }
+
+  return (
+    <S.ErrorToast role="alert" $isLeaving={isLeaving}>
+      {message}
+    </S.ErrorToast>
   )
 }

@@ -21,6 +21,30 @@ const fireworksCelebrate = keyframes`
   }
 `
 
+const errorToastEnter = keyframes`
+  from {
+    opacity: 0;
+    transform: translate(-50%, 16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+`
+
+const errorToastLeave = keyframes`
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translate(-50%, 16px);
+  }
+`
+
 export const Overlay = styled.div`
   ${token.flexCenter}
   position: fixed;
@@ -292,6 +316,28 @@ export const ErrorMessage = styled.p`
   color: ${token.colors.danger.danger20};
   line-height: 1.4;
   text-align: center;
+  ${token.typography('caption', 'md', 'medium')}
+`
+
+export const ErrorToast = styled.p<{ $isLeaving?: boolean }>`
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  z-index: 2;
+  max-width: min(360px, calc(100% - 48px));
+  margin: 0;
+  border-radius: ${token.shapes.small};
+  padding: 10px 14px;
+  color: ${token.colors.white};
+  background: ${token.colors.gray.gray90};
+  box-shadow: 0 4px 16px rgb(0 0 0 / 20%);
+  text-align: center;
+  word-break: keep-all;
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: ${({ $isLeaving }) =>
+      $isLeaving ? errorToastLeave : errorToastEnter}
+    ${({ $isLeaving }) => ($isLeaving ? '200ms' : '220ms')} ease forwards;
   ${token.typography('caption', 'md', 'medium')}
 `
 
