@@ -21,6 +21,7 @@ export const Overlay = styled.div`
 
 export const Dialog = styled.div`
   ${token.flexCenter}
+  position: relative;
   width: min(452px, 100%);
   height: 510px;
   overflow: hidden;
@@ -57,7 +58,7 @@ export const Form = styled.form`
 `
 
 export const Title = styled.h2`
-  color: ${token.colors.gray.gray80};
+  color: #333333;
   line-height: 1;
   text-align: center;
   ${token.typography('heading', 'lg', 'bold')}
@@ -65,15 +66,13 @@ export const Title = styled.h2`
 
 export const Description = styled.p`
   margin-top: 16px;
-  color: ${token.colors.gray.gray50};
-  line-height: 1;
+  color: #8a95a0;
+  line-height: 1.35;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
   ${token.typography('heading', 'sm', 'semibold')}
 
   @media (max-width: 480px) {
-    line-height: 1.35;
-    white-space: normal;
     ${token.typography('body', 'md', 'semibold')}
   }
 `
@@ -101,13 +100,13 @@ export const DigitBox = styled.span<{
   height: 60px;
   border: 1px solid
     ${({ $isActive }) =>
-      $isActive ? token.colors.gray.gray80 : 'transparent'};
+      $isActive ? '#333333' : 'transparent'};
   border-radius: ${token.shapes.xsmall};
-  color: ${token.colors.gray.gray80};
+  color: #333333;
   background: ${({ $isActive, $isFilled }) =>
     $isActive || $isFilled
       ? token.colors.white
-      : token.colors.gray.gray0};
+      : '#f5f5f5'};
   line-height: 1;
   ${token.typography('heading', 'lg', 'bold')}
 `
@@ -128,7 +127,7 @@ export const CodeInput = styled.input`
 
 export const ResendButton = styled.button`
   margin-top: 26px;
-  color: ${token.colors.gray.gray80};
+  color: #333333;
   line-height: 1;
   text-align: center;
   ${token.typography('body', 'sm', 'semibold')}
@@ -153,8 +152,23 @@ export const SubmitButton = styled(Button)`
   }
 
   &:disabled {
-    border-color: ${token.colors.gray.gray30};
+    border-color: #b8b8b8;
     background: ${token.colors.white};
+  }
+`
+
+export const LogoutButton = styled.button`
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  padding: 0;
+  color: #b8b8b8;
+  transform: translateX(-50%);
+  ${token.typography('caption', 'md', 'medium')}
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 `
 

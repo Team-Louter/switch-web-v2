@@ -3,8 +3,17 @@ import type { ChangeEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useUserStore } from '@/entities/profile'
-import { checkEmailExists, login } from '@/features/auth'
-import { clearAccessToken, setAccessToken } from '@/shared/lib/authToken'
+import {
+  checkEmailExists,
+  login,
+  requiresRecoveryEmail,
+} from '@/features/auth'
+import {
+  clearAccessToken,
+  clearPendingAccessToken,
+  promotePendingAccessToken,
+  setPendingAccessToken,
+} from '@/shared/lib/authToken'
 
 import { TURNSTILE_SITE_KEY } from '../config/turnstile'
 
@@ -85,11 +94,25 @@ export function useLoginForm(
           turnstileToken,
         })
 
-        setAccessToken(token)
-        await useUserStore.getState().fetchUser()
+        clearAccessToken()
+        clearPendingAccessToken()
+        setPendingAccessToken(token, 'recovery-email')
+
+        const profile = await useUserStore.getState().fetchUser()
+
+        if (requiresRecoveryEmail(profile)) {
+          navigate('/home', { replace: true })
+          return
+        }
+
+        if (!promotePendingAccessToken()) {
+          throw new Error('로그인 토큰을 활성화하지 못했습니다.')
+        }
+
         navigate(returnPath, { replace: true })
       } catch {
         clearAccessToken()
+        clearPendingAccessToken()
         setLoginValidationMessage(LOGIN_FAILED_MESSAGE)
         setTurnstileToken('')
         setTurnstileKey((currentKey) => currentKey + 1)

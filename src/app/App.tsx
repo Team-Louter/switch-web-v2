@@ -3,7 +3,12 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { AppLayout } from './layouts'
 import { AppProvider } from './providers'
-import { GuestOnlyRoute, ProtectedRoute, RootRoute } from './router'
+import {
+  GuestOnlyRoute,
+  PendingAuthRoute,
+  ProtectedRoute,
+  RootRoute,
+} from './router'
 
 const AuthPage = lazy(() =>
   import('@/pages/auth').then(({ AuthPage: Page }) => ({ default: Page })),
@@ -89,14 +94,19 @@ export function App() {
     <AppProvider>
       <Suspense fallback={null}>
         <Routes>
-        <Route path="/" element={<RootRoute />} />
-        <Route path="/extra-signup" element={<GoogleExtraSignupPage />} />
-        <Route path="/oauth/callback" element={<GoogleOAuthCallbackPage />} />
-        <Route path="/main" element={<GoogleOAuthCallbackPage />} />
-        <Route
-          path="/my/withdraw-complete"
-          element={<WithdrawCompletePage />}
-        />
+          <Route element={<PendingAuthRoute />}>
+            <Route path="/" element={<RootRoute />} />
+            <Route path="/extra-signup" element={<GoogleExtraSignupPage />} />
+            <Route
+              path="/oauth/callback"
+              element={<GoogleOAuthCallbackPage />}
+            />
+            <Route path="/main" element={<GoogleOAuthCallbackPage />} />
+            <Route
+              path="/my/withdraw-complete"
+              element={<WithdrawCompletePage />}
+            />
+          </Route>
         <Route element={<GuestOnlyRoute />}>
           <Route path="/login" element={<AuthPage />} />
           <Route
