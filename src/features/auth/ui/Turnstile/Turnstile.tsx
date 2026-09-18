@@ -83,9 +83,10 @@ function loadTurnstileScript(): Promise<TurnstileApi> {
     }
 
     if (existingScript) {
-      existingScript.addEventListener('load', handleLoad, { once: true })
-      existingScript.addEventListener('error', handleError, { once: true })
-      return
+      // Fast Refresh or a previous failed load can leave a script element
+      // without a usable window.turnstile instance. Recreate it so rendering
+      // does not depend on an already-fired load event.
+      existingScript.remove()
     }
 
     const script = document.createElement('script')

@@ -2,10 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 
 import fireworksImage from '../../assets/party-popper.png'
-import {
-  SCHOOL_EMAIL_ERROR_MESSAGE,
-  useRecoveryEmailForm,
-} from '../../model/useRecoveryEmailForm'
+import { useRecoveryEmailForm } from '../../model/useRecoveryEmailForm'
 import { Turnstile } from '../Turnstile/Turnstile'
 import * as S from './RecoveryEmailModal.style'
 
@@ -48,8 +45,6 @@ export function RecoveryEmailModal({
 
   const isVerificationStep = step === 'verification'
   const isBusy = isSendingCode || isVerifyingCode || isResendingCode
-  const isSchoolEmailError =
-    errorMessage === SCHOOL_EMAIL_ERROR_MESSAGE
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow
@@ -154,10 +149,6 @@ export function RecoveryEmailModal({
                 </S.TurnstileConfigMessage>
               )}
 
-              {errorMessage && (
-                <S.ErrorMessage role="alert">{errorMessage}</S.ErrorMessage>
-              )}
-
               <S.PrimaryButton
                 type="submit"
                 disabled={isVerificationSubmitDisabled}
@@ -202,9 +193,6 @@ export function RecoveryEmailModal({
                   </S.TurnstileConfigMessage>
                 )}
 
-                {errorMessage && !isSchoolEmailError && (
-                  <S.ErrorMessage role="alert">{errorMessage}</S.ErrorMessage>
-                )}
               </S.EmailStepContent>
 
               <S.ActionRow>
@@ -234,8 +222,8 @@ export function RecoveryEmailModal({
         </S.Form>
       </S.Dialog>
 
-      {isSchoolEmailError && (
-        <SchoolEmailErrorToast message={SCHOOL_EMAIL_ERROR_MESSAGE} />
+      {errorMessage && (
+        <RecoveryEmailErrorToast key={errorMessage} message={errorMessage} />
       )}
 
       {turnstileSiteKey && (
@@ -266,11 +254,11 @@ export function RecoveryEmailModal({
   )
 }
 
-interface SchoolEmailErrorToastProps {
+interface RecoveryEmailErrorToastProps {
   message: string
 }
 
-function SchoolEmailErrorToast({ message }: SchoolEmailErrorToastProps) {
+function RecoveryEmailErrorToast({ message }: RecoveryEmailErrorToastProps) {
   const [isLeaving, setIsLeaving] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
 

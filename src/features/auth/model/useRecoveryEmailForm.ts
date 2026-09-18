@@ -12,8 +12,6 @@ const SEND_CODE_FAILED_MESSAGE =
   '복구 이메일 인증번호를 전송하지 못했습니다. 다시 시도해주세요.'
 const VERIFY_CODE_FAILED_MESSAGE =
   '복구 이메일 등록을 완료하지 못했습니다. 다시 시도해주세요.'
-export const SCHOOL_EMAIL_ERROR_MESSAGE =
-  '학교 이메일은 복구 이메일로 등록할 수 없습니다.'
 
 export type RecoveryEmailStep = 'email' | 'verification'
 

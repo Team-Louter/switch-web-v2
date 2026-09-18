@@ -320,15 +320,6 @@ export const OverlayTurnstile = styled.div`
   }
 `
 
-export const ErrorMessage = styled.p`
-  width: 100%;
-  margin-top: 16px;
-  color: ${token.colors.danger.danger20};
-  line-height: 1.4;
-  text-align: center;
-  ${token.typography('caption', 'md', 'medium')}
-`
-
 export const ErrorToast = styled.p<{ $isLeaving?: boolean }>`
   position: absolute;
   bottom: 24px;
