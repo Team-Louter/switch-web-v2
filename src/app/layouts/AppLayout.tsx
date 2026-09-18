@@ -11,6 +11,7 @@ import styled from 'styled-components'
 import { getUnreadNotificationCount } from '@/entities/notification'
 import { formatProfileClassInfo, useUserStore } from '@/entities/profile'
 import { SIDEBAR_MENU } from '@/shared/constants/sidebar'
+import switchLogo from '@/shared/assets/sidebar/switch-logo.svg'
 import {
   getProfileSyncPayload,
   PROFILE_SYNC_EVENT_NAME,
@@ -62,6 +63,7 @@ export function AppLayout() {
     getStoredUnreadNotificationCount,
   )
   const [isSidebarProfileLoading, setIsSidebarProfileLoading] = useState(true)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [sidebarProfile, setSidebarProfile] = useState<SidebarProfile | null>(
     null,
   )
@@ -84,6 +86,7 @@ export function AppLayout() {
     const path = SIDEBAR_MENU.find((item) => item.id === itemId)?.path
 
     if (path) {
+      setIsMobileMenuOpen(false)
       navigate(path)
     }
   }
@@ -204,8 +207,28 @@ export function AppLayout() {
   return (
     <Layout>
       {shouldShowSidebar && (
-        <Side>
-          <SidebarContainer>
+        <>
+          <MobileHeader>
+            <MobileMenuButton
+              type="button"
+              aria-label="메뉴 열기"
+              aria-expanded={isMobileMenuOpen}
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <span />
+              <span />
+              <span />
+            </MobileMenuButton>
+            <MobileLogo src={switchLogo} alt="Switch" />
+          </MobileHeader>
+          <MobileBackdrop
+            type="button"
+            aria-label="메뉴 닫기"
+            $open={isMobileMenuOpen}
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <Side $open={isMobileMenuOpen}>
+            <SidebarContainer>
             <Sidebar
               activeItemId={activeSidebarItemId}
               notificationCount={notificationCount}
@@ -213,10 +236,11 @@ export function AppLayout() {
               profile={sidebarProfile}
               onItemSelect={handleSidebarItemSelect}
             />
-          </SidebarContainer>
-        </Side>
+            </SidebarContainer>
+          </Side>
+        </>
       )}
-      <Body>
+      <Body $withMobileNav={shouldShowSidebar}>
         <Outlet context={{ setNotificationCount: updateNotificationCount }} />
       </Body>
     </Layout>
@@ -231,13 +255,26 @@ const Layout = styled.main`
   background: ${token.colors.white};
 `
 
-const Side = styled.div`
+const Side = styled.div<{ $open: boolean }>`
   ${token.flexLeft}
   align-items: flex-start;
   flex: 0 0 clamp(260px, 21.5vw, 309px);
   width: clamp(260px, 21.5vw, 309px);
   box-sizing: border-box;
   min-height: 100dvh;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    z-index: 110;
+    inset: 0 auto 0 0;
+    width: min(309px, calc(100vw - 48px));
+    transform: translateX(${({ $open }) => ($open ? '0' : '-100%')});
+    transition: transform 200ms ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 `
 
 const SidebarContainer = styled.div`
@@ -248,12 +285,80 @@ const SidebarContainer = styled.div`
   height: 100dvh;
   box-sizing: border-box;
   padding: clamp(20px, 2vw, 30px);
+
+  @media (max-width: 768px) {
+    width: min(309px, calc(100vw - 48px));
+    padding: 12px;
+    background: ${token.colors.white};
+  }
 `
 
-const Body = styled.section`
+const Body = styled.section<{ $withMobileNav: boolean }>`
   flex: 1 1 0;
   min-width: 0;
   box-sizing: border-box;
   min-height: 100dvh;
   background: ${token.colors.white};
+
+  @media (max-width: 768px) {
+    width: 100%;
+    padding-top: ${({ $withMobileNav }) => ($withMobileNav ? '60px' : '0')};
+  }
+`
+
+const MobileHeader = styled.header`
+  display: none;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    z-index: 100;
+    inset: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 60px;
+    padding: 0 16px;
+    border-bottom: 1px solid ${token.colors.gray.gray10};
+    background: rgb(255 255 255 / 94%);
+    backdrop-filter: blur(10px);
+  }
+`
+
+const MobileMenuButton = styled.button`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 40px;
+  height: 40px;
+  padding: 9px;
+  border-radius: ${token.shapes.medium};
+
+  span {
+    width: 22px;
+    height: 2px;
+    border-radius: 999px;
+    background: ${token.colors.gray.gray80};
+  }
+`
+
+const MobileLogo = styled.img`
+  display: block;
+  width: 112px;
+  height: auto;
+`
+const MobileBackdrop = styled.button<{ $open: boolean }>`
+  display: none;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    z-index: 105;
+    inset: 0;
+    display: block;
+    border: 0;
+    background: rgb(14 13 12 / 45%);
+    opacity: ${({ $open }) => ($open ? 1 : 0)};
+    pointer-events: ${({ $open }) => ($open ? 'auto' : 'none')};
+    transition: opacity 200ms ease;
+  }
 `
