@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 
-import fireworksImage from '../../assets/recovery-email-fireworks.png'
+import fireworksImage from '../../assets/party-popper.png'
 import { useRecoveryEmailForm } from '../../model/useRecoveryEmailForm'
 import { Turnstile } from '../Turnstile/Turnstile'
 import * as S from './RecoveryEmailModal.style'
