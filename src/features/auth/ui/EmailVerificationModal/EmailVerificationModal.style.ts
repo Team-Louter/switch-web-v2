@@ -21,6 +21,7 @@ export const Overlay = styled.div`
 
 export const Dialog = styled.div`
   ${token.flexCenter}
+  position: relative;
   width: min(452px, 100%);
   height: 510px;
   overflow: hidden;
@@ -157,8 +158,12 @@ export const SubmitButton = styled(Button)`
 `
 
 export const LogoutButton = styled.button`
-  margin-top: 16px;
-  color: #8a95a0;
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  padding: 0;
+  color: #b8b8b8;
+  transform: translateX(-50%);
   ${token.typography('caption', 'md', 'medium')}
 
   &:disabled {

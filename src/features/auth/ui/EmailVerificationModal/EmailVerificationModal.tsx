@@ -113,67 +113,68 @@ export function EmailVerificationModal({
         {isSubmitting ? (
           <S.LoadingIcon src={loadingIcon} alt={loadingAlt} />
         ) : (
-          <S.Form onSubmit={handleSubmit} noValidate>
-            <S.Title id="email-verification-title">{title}</S.Title>
-            <S.Description id="email-verification-description">
-              {description}
-            </S.Description>
+          <>
+            <S.Form onSubmit={handleSubmit} noValidate>
+              <S.Title id="email-verification-title">{title}</S.Title>
+              <S.Description id="email-verification-description">
+                {description}
+              </S.Description>
 
-            <S.CodeField onClick={() => inputRef.current?.focus()}>
-              {Array.from({ length: VERIFICATION_CODE_LENGTH }).map(
-                (_, index) => {
-                  const digit = code[index] ?? ''
-                  const isActive =
-                    isInputFocused && !isComplete && index === code.length
+              <S.CodeField onClick={() => inputRef.current?.focus()}>
+                {Array.from({ length: VERIFICATION_CODE_LENGTH }).map(
+                  (_, index) => {
+                    const digit = code[index] ?? ''
+                    const isActive =
+                      isInputFocused && !isComplete && index === code.length
 
-                  return (
-                    <S.DigitBox
-                      key={index}
-                      $isFilled={Boolean(digit)}
-                      $isActive={isActive}
-                      aria-hidden="true"
-                    >
-                      {digit}
-                    </S.DigitBox>
-                  )
-                },
-              )}
-              <S.CodeInput
-                ref={inputRef}
-                type="text"
-                value={code}
-                onChange={handleCodeChange}
-                onFocus={() => setIsInputFocused(true)}
-                onBlur={() => setIsInputFocused(false)}
-                aria-label="이메일 인증 코드 6자리"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                autoComplete="one-time-code"
-                maxLength={VERIFICATION_CODE_LENGTH}
-                disabled={isBusy}
-              />
-            </S.CodeField>
+                    return (
+                      <S.DigitBox
+                        key={index}
+                        $isFilled={Boolean(digit)}
+                        $isActive={isActive}
+                        aria-hidden="true"
+                      >
+                        {digit}
+                      </S.DigitBox>
+                    )
+                  },
+                )}
+                <S.CodeInput
+                  ref={inputRef}
+                  type="text"
+                  value={code}
+                  onChange={handleCodeChange}
+                  onFocus={() => setIsInputFocused(true)}
+                  onBlur={() => setIsInputFocused(false)}
+                  aria-label="이메일 인증 코드 6자리"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="one-time-code"
+                  maxLength={VERIFICATION_CODE_LENGTH}
+                  disabled={isBusy}
+                />
+              </S.CodeField>
 
-            <S.ResendButton
-              type="button"
-              onClick={onResend}
-              disabled={isBusy || !isResendReady}
-            >
-              {isResending ? resendingLabel : resendLabel}
-            </S.ResendButton>
+              <S.ResendButton
+                type="button"
+                onClick={onResend}
+                disabled={isBusy || !isResendReady}
+              >
+                {isResending ? resendingLabel : resendLabel}
+              </S.ResendButton>
 
-            <S.SubmitButton
-              type="submit"
-              disabled={!isComplete || isBusy}
-              aria-label={submitAriaLabel}
-            >
-              <S.ArrowIcon
-                src={arrowIcon}
-                alt=""
-                $isEnabled={isComplete && !isBusy}
-              />
-            </S.SubmitButton>
-
+              <S.SubmitButton
+                type="submit"
+                disabled={!isComplete || isBusy}
+                aria-label={submitAriaLabel}
+              >
+                <S.ArrowIcon
+                  src={arrowIcon}
+                  alt=""
+                  $isEnabled={isComplete && !isBusy}
+                />
+              </S.SubmitButton>
+            </S.Form>
             {showLogout && onLogout && (
               <S.LogoutButton
                 type="button"
@@ -183,7 +184,7 @@ export function EmailVerificationModal({
                 로그아웃
               </S.LogoutButton>
             )}
-          </S.Form>
+          </>
         )}
       </S.Dialog>
 
