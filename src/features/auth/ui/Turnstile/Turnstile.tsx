@@ -28,6 +28,7 @@ interface TurnstileApi {
     container: HTMLElement,
     options: TurnstileRenderOptions,
   ) => string
+  reset: (widgetId: string) => void
   remove: (widgetId: string) => void
 }
 
@@ -39,6 +40,7 @@ interface TurnstileProps {
   onVerify: (token: string) => void
   onExpire: () => void
   onError: () => void
+  resetKey?: number
 }
 
 type WidgetStatus = 'loading' | 'ready' | 'error'
@@ -107,14 +109,14 @@ export function Turnstile({
   onVerify,
   onExpire,
   onError,
+  resetKey,
 }: TurnstileProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const widgetIdRef = useRef<string | null>(null)
   const [status, setStatus] = useState<WidgetStatus>('loading')
 
   useEffect(() => {
     let isDisposed = false
-    let widgetId: string | null = null
-
     async function renderWidget() {
       try {
         const turnstile = await loadTurnstileScript()
@@ -123,7 +125,7 @@ export function Turnstile({
           return
         }
 
-        widgetId = turnstile.render(containerRef.current, {
+        widgetIdRef.current = turnstile.render(containerRef.current, {
           sitekey: siteKey,
           action,
           appearance,
@@ -153,11 +155,25 @@ export function Turnstile({
     return () => {
       isDisposed = true
 
-      if (widgetId && window.turnstile) {
-        window.turnstile.remove(widgetId)
+      if (widgetIdRef.current && window.turnstile) {
+        window.turnstile.remove(widgetIdRef.current)
+        widgetIdRef.current = null
       }
     }
   }, [action, appearance, onError, onExpire, onVerify, siteKey, size])
+
+  useEffect(() => {
+    if (
+      resetKey === undefined ||
+      resetKey === 0 ||
+      !widgetIdRef.current ||
+      !window.turnstile
+    ) {
+      return
+    }
+
+    window.turnstile.reset(widgetIdRef.current)
+  }, [resetKey])
 
   return (
     <S.WidgetShell

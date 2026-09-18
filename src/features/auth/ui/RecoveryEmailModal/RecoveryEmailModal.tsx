@@ -241,9 +241,9 @@ export function RecoveryEmailModal({
       {turnstileSiteKey && (
         <S.OverlayTurnstile>
           <Turnstile
-            key={isVerificationStep ? resendTurnstileKey : turnstileKey}
             siteKey={turnstileSiteKey}
             action="email_verification"
+            resetKey={isVerificationStep ? resendTurnstileKey : turnstileKey}
             onVerify={
               isVerificationStep
                 ? handleResendTurnstileVerify
