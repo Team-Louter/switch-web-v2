@@ -36,4 +36,5 @@ export type {
   RecoveryEmailStep,
 } from './model/useRecoveryEmailForm'
 export { Turnstile } from './ui/Turnstile/Turnstile'
+export { EmailVerificationModal } from './ui/EmailVerificationModal'
 export { RecoveryEmailModal } from './ui/RecoveryEmailModal'

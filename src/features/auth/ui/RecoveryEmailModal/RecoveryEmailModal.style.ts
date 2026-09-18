@@ -55,11 +55,10 @@ export const Overlay = styled.div`
   backdrop-filter: blur(4px);
 `
 
-export const Dialog = styled.div<{ $isVerificationStep: boolean }>`
+export const Dialog = styled.div`
   ${token.flexCenter}
   width: min(480px, 100%);
-  min-height: ${({ $isVerificationStep }) =>
-    $isVerificationStep ? '510px' : '382px'};
+  min-height: 382px;
   max-height: calc(100dvh - 48px);
   overflow-y: auto;
   border-radius: ${token.shapes.large};
@@ -209,91 +208,6 @@ export const ActionButton = styled(Button)`
   }
 `
 
-export const EmailSummary = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  min-height: 44px;
-  margin-top: 28px;
-  border: 1px solid ${token.colors.gray.gray20};
-  border-radius: ${token.shapes.xsmall};
-  padding: 0 14px;
-`
-
-export const EmailSummaryText = styled.span`
-  min-width: 0;
-  overflow: hidden;
-  color: ${token.colors.gray.gray70};
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  ${token.typography('body', 'sm', 'medium')}
-`
-
-export const ChangeEmailButton = styled.button`
-  flex: 0 0 auto;
-  color: ${token.colors.gray.gray60};
-  ${token.typography('caption', 'md', 'semibold')}
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-`
-
-export const CodeField = styled.div`
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 8px;
-  width: 100%;
-  margin-top: 28px;
-`
-
-export const DigitBox = styled.span<{
-  $isFilled: boolean
-  $isActive: boolean
-}>`
-  ${token.flexCenter}
-  width: 100%;
-  height: 56px;
-  border: 1px solid
-    ${({ $isActive }) =>
-      $isActive ? token.colors.gray.gray80 : token.colors.gray.gray10};
-  border-radius: ${token.shapes.xsmall};
-  color: ${token.colors.gray.gray80};
-  background: ${({ $isFilled }) =>
-    $isFilled ? token.colors.white : token.colors.gray.gray0};
-  line-height: 1;
-  ${token.typography('heading', 'md', 'bold')}
-`
-
-export const CodeInput = styled.input`
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border: 0;
-  outline: 0;
-  color: transparent;
-  background: transparent;
-  caret-color: transparent;
-  opacity: 0.01;
-`
-
-export const ResendButton = styled.button`
-  margin-top: 20px;
-  color: ${token.colors.gray.gray70};
-  ${token.typography('body', 'sm', 'semibold')}
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-`
-
 export const TurnstileConfigMessage = styled.p`
   ${token.flexCenter}
   width: 100%;
@@ -321,10 +235,10 @@ export const OverlayTurnstile = styled.div`
 `
 
 export const ErrorToast = styled.p<{ $isLeaving?: boolean }>`
-  position: absolute;
+  position: fixed;
   bottom: 24px;
   left: 50%;
-  z-index: 2;
+  z-index: 1100;
   max-width: min(360px, calc(100% - 48px));
   margin: 0;
   border-radius: ${token.shapes.small};
@@ -340,32 +254,4 @@ export const ErrorToast = styled.p<{ $isLeaving?: boolean }>`
       $isLeaving ? errorToastLeave : errorToastEnter}
     ${({ $isLeaving }) => ($isLeaving ? '200ms' : '220ms')} ease forwards;
   ${token.typography('caption', 'md', 'medium')}
-`
-
-export const PrimaryButton = styled(Button)`
-  width: 100%;
-  height: 48px;
-  margin-top: 24px;
-  border-radius: ${token.shapes.small};
-  padding: 0;
-  color: ${token.colors.gray.gray100};
-  background: ${token.colors.primary.primary40};
-  ${token.typography('body', 'sm', 'bold')}
-
-  &:disabled {
-    background: ${token.colors.primary.primary40};
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-`
-
-export const LogoutButton = styled.button`
-  margin-top: 18px;
-  color: ${token.colors.gray.gray50};
-  ${token.typography('caption', 'md', 'medium')}
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
 `

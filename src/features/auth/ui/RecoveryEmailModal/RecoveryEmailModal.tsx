@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
-import type { ChangeEvent, FormEvent } from 'react'
+import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
 
 import fireworksImage from '../../assets/party-popper.png'
 import { useRecoveryEmailForm } from '../../model/useRecoveryEmailForm'
+import { EmailVerificationModal } from '../EmailVerificationModal'
 import { Turnstile } from '../Turnstile/Turnstile'
 import * as S from './RecoveryEmailModal.style'
 
@@ -15,7 +16,6 @@ export function RecoveryEmailModal({
   onComplete,
   onLogout,
 }: RecoveryEmailModalProps) {
-  const codeInputRef = useRef<HTMLInputElement>(null)
   const controller = useRecoveryEmailForm(onComplete)
   const {
     email,
@@ -26,7 +26,6 @@ export function RecoveryEmailModal({
     isVerifyingCode,
     isResendingCode,
     isEmailSubmitDisabled,
-    isVerificationSubmitDisabled,
     isResendDisabled,
     turnstileSiteKey,
     turnstileKey,
@@ -36,7 +35,6 @@ export function RecoveryEmailModal({
     handleSendCode,
     handleVerifyCode,
     handleResendCode,
-    handleChangeEmail,
     handleTurnstileVerify,
     handleTurnstileReset,
     handleResendTurnstileVerify,
@@ -56,201 +54,124 @@ export function RecoveryEmailModal({
     }
   }, [])
 
-  useEffect(() => {
-    if (isVerificationStep) {
-      codeInputRef.current?.focus()
-    }
-  }, [isVerificationStep])
-
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-
-    if (isVerificationStep) {
-      void handleVerifyCode()
-      return
-    }
-
     void handleSendCode()
   }
 
-  function handleCodeInputChange(event: ChangeEvent<HTMLInputElement>) {
-    handleVerificationCodeChange(event.currentTarget.value)
+  if (isVerificationStep) {
+    return (
+      <>
+        <EmailVerificationModal
+          code={verificationCode}
+          isSubmitting={isVerifyingCode}
+          isResending={isResendingCode}
+          isResendReady={!isResendDisabled}
+          turnstileSiteKey={turnstileSiteKey}
+          turnstileKey={resendTurnstileKey}
+          title="인증번호를 입력하세요"
+          description={`${email}으로 전송된 6자리 인증번호를 입력해주세요.`}
+          resendLabel="인증번호 재전송"
+          resendingLabel="인증번호 전송 중"
+          submitAriaLabel="복구 이메일 등록"
+          loadingAlt="복구 이메일 등록 중"
+          closeOnOverlayClick={false}
+          onChangeCode={handleVerificationCodeChange}
+          onClose={onLogout}
+          onResend={() => void handleResendCode()}
+          onSubmit={() => void handleVerifyCode()}
+          onTurnstileVerify={handleResendTurnstileVerify}
+          onTurnstileReset={handleResendTurnstileReset}
+        />
+        {errorMessage && (
+          <RecoveryEmailErrorToast key={errorMessage} message={errorMessage} />
+        )}
+      </>
+    )
   }
 
   return (
-    <S.Overlay>
-      <S.Dialog
-        $isVerificationStep={isVerificationStep}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="recovery-email-title"
-        aria-describedby="recovery-email-description"
-        aria-busy={isBusy}
-      >
-        <S.Form onSubmit={handleSubmit} noValidate>
-          {isVerificationStep ? (
-            <>
-              <S.Title id="recovery-email-title">인증번호를 입력하세요</S.Title>
+    <>
+      <S.Overlay>
+        <S.Dialog
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="recovery-email-title"
+          aria-describedby="recovery-email-description"
+          aria-busy={isBusy}
+        >
+          <S.Form onSubmit={handleSubmit} noValidate>
+            <S.CelebrationHeader>
+              <S.FireworksImage
+                src={fireworksImage}
+                alt=""
+                aria-hidden="true"
+              />
+              <S.CelebrationMessage>
+                3학년이 되신 것을 축하합니다!
+              </S.CelebrationMessage>
+              <S.Title id="recovery-email-title">복구 이메일 등록</S.Title>
+            </S.CelebrationHeader>
+            <S.EmailStepContent>
               <S.Description id="recovery-email-description">
-                {email}으로 전송된 6자리 인증번호를 입력해주세요.
+                졸업을 대비하여 개인 이메일을 등록해주세요.
               </S.Description>
 
-              <S.EmailSummary>
-                <S.EmailSummaryText>{email}</S.EmailSummaryText>
-                <S.ChangeEmailButton
-                  type="button"
-                  onClick={handleChangeEmail}
-                  disabled={isBusy}
-                >
-                  변경
-                </S.ChangeEmailButton>
-              </S.EmailSummary>
-
-              <S.CodeField onClick={() => codeInputRef.current?.focus()}>
-                {Array.from({ length: 6 }).map((_, index) => {
-                  const digit = verificationCode[index] ?? ''
-
-                  return (
-                    <S.DigitBox
-                      key={index}
-                      $isFilled={Boolean(digit)}
-                      $isActive={index === verificationCode.length}
-                      aria-hidden="true"
-                    >
-                      {digit}
-                    </S.DigitBox>
-                  )
-                })}
-                <S.CodeInput
-                  ref={codeInputRef}
-                  type="text"
-                  value={verificationCode}
-                  onChange={handleCodeInputChange}
-                  aria-label="복구 이메일 인증번호 6자리"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  disabled={isBusy}
-                />
-              </S.CodeField>
-
-              <S.ResendButton
-                type="button"
-                onClick={() => void handleResendCode()}
-                disabled={isResendDisabled}
-              >
-                {isResendingCode ? '인증번호 전송 중' : '인증번호 재전송'}
-              </S.ResendButton>
+              <S.EmailInput
+                type="email"
+                name="recoveryEmail"
+                value={email}
+                onChange={handleEmailChange}
+                aria-label="개인 이메일"
+                placeholder="개인 이메일을 입력해주세요"
+                autoComplete="email"
+                autoFocus
+                disabled={isBusy}
+              />
 
               {!turnstileSiteKey && (
                 <S.TurnstileConfigMessage role="alert">
                   보안 인증 설정이 필요합니다
                 </S.TurnstileConfigMessage>
               )}
+            </S.EmailStepContent>
 
-              <S.PrimaryButton
+            <S.ActionRow>
+              <S.SecondaryButton
+                type="button"
+                onClick={onLogout}
+                disabled={isBusy}
+              >
+                로그아웃
+              </S.SecondaryButton>
+              <S.ActionButton
                 type="submit"
-                disabled={isVerificationSubmitDisabled}
+                disabled={isEmailSubmitDisabled}
                 aria-busy={isBusy}
               >
-                {isVerifyingCode ? '등록 중...' : '복구 이메일 등록'}
-              </S.PrimaryButton>
-            </>
-          ) : (
-            <>
-              <S.CelebrationHeader>
-                <S.FireworksImage
-                  src={fireworksImage}
-                  alt=""
-                  aria-hidden="true"
-                />
-                <S.CelebrationMessage>
-                  3학년이 되신 것을 축하합니다!
-                </S.CelebrationMessage>
-                <S.Title id="recovery-email-title">복구 이메일 등록</S.Title>
-              </S.CelebrationHeader>
-              <S.EmailStepContent>
-                <S.Description id="recovery-email-description">
-                  졸업을 대비하여 개인 이메일을 등록해주세요.
-                </S.Description>
+                {isSendingCode ? '인증 중...' : '인증하기'}
+              </S.ActionButton>
+            </S.ActionRow>
+          </S.Form>
 
-                <S.EmailInput
-                  type="email"
-                  name="recoveryEmail"
-                  value={email}
-                  onChange={handleEmailChange}
-                  aria-label="개인 이메일"
-                  placeholder="개인 이메일을 입력해주세요"
-                  autoComplete="email"
-                  autoFocus
-                  disabled={isBusy}
-                />
-
-                {!turnstileSiteKey && (
-                  <S.TurnstileConfigMessage role="alert">
-                    보안 인증 설정이 필요합니다
-                  </S.TurnstileConfigMessage>
-                )}
-
-              </S.EmailStepContent>
-
-              <S.ActionRow>
-                <S.SecondaryButton
-                  type="button"
-                  onClick={onLogout}
-                  disabled={isBusy}
-                >
-                  로그아웃
-                </S.SecondaryButton>
-                <S.ActionButton
-                  type="submit"
-                  disabled={isEmailSubmitDisabled}
-                  aria-busy={isBusy}
-                >
-                  {isSendingCode ? '인증 중...' : '인증하기'}
-                </S.ActionButton>
-              </S.ActionRow>
-            </>
+          {turnstileSiteKey && (
+            <S.OverlayTurnstile>
+              <Turnstile
+                siteKey={turnstileSiteKey}
+                action="email_verification"
+                resetKey={turnstileKey}
+                onVerify={handleTurnstileVerify}
+                onExpire={handleTurnstileReset}
+                onError={handleTurnstileReset}
+              />
+            </S.OverlayTurnstile>
           )}
-
-          {isVerificationStep && (
-            <S.LogoutButton type="button" onClick={onLogout} disabled={isBusy}>
-              로그아웃
-            </S.LogoutButton>
-          )}
-        </S.Form>
-      </S.Dialog>
-
+        </S.Dialog>
+      </S.Overlay>
       {errorMessage && (
         <RecoveryEmailErrorToast key={errorMessage} message={errorMessage} />
       )}
-
-      {turnstileSiteKey && (
-        <S.OverlayTurnstile>
-          <Turnstile
-            siteKey={turnstileSiteKey}
-            action="email_verification"
-            resetKey={isVerificationStep ? resendTurnstileKey : turnstileKey}
-            onVerify={
-              isVerificationStep
-                ? handleResendTurnstileVerify
-                : handleTurnstileVerify
-            }
-            onExpire={
-              isVerificationStep
-                ? handleResendTurnstileReset
-                : handleTurnstileReset
-            }
-            onError={
-              isVerificationStep
-                ? handleResendTurnstileReset
-                : handleTurnstileReset
-            }
-          />
-        </S.OverlayTurnstile>
-      )}
-    </S.Overlay>
+    </>
   )
 }
 

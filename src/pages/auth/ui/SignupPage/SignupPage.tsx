@@ -2,13 +2,12 @@ import { useState } from 'react'
 import type { AnimationEvent } from 'react'
 import { FiEye, FiEyeOff } from 'react-icons/fi'
 
-import { Turnstile } from '@/features/auth'
+import { EmailVerificationModal, Turnstile } from '@/features/auth'
 
 import authHeroImage from '../../assets/images/auth-hero.jpg'
 import { useSignupForm } from '../../model/useSignupForm'
 import { AuthHeader } from '../AuthHeader'
 import { AuthIntro } from '../AuthIntro'
-import { EmailVerificationModal } from '../EmailVerificationModal'
 import * as S from './SignupPage.style'
 
 interface SignupPageProps {

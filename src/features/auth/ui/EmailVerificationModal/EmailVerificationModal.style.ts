@@ -66,14 +66,12 @@ export const Title = styled.h2`
 export const Description = styled.p`
   margin-top: 16px;
   color: ${token.colors.gray.gray50};
-  line-height: 1;
+  line-height: 1.35;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
   ${token.typography('heading', 'sm', 'semibold')}
 
   @media (max-width: 480px) {
-    line-height: 1.35;
-    white-space: normal;
     ${token.typography('body', 'md', 'semibold')}
   }
 `

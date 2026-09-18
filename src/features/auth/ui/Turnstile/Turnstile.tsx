@@ -62,7 +62,7 @@ function loadTurnstileScript(): Promise<TurnstileApi> {
     return turnstileScriptPromise
   }
 
-  turnstileScriptPromise = new Promise((resolve, reject) => {
+  const scriptPromise = new Promise<TurnstileApi>((resolve, reject) => {
     const existingScript = document.getElementById(
       TURNSTILE_SCRIPT_ID,
     ) as HTMLScriptElement | null
@@ -99,7 +99,13 @@ function loadTurnstileScript(): Promise<TurnstileApi> {
     document.head.appendChild(script)
   })
 
-  return turnstileScriptPromise
+  turnstileScriptPromise = scriptPromise
+
+  return scriptPromise.finally(() => {
+    if (turnstileScriptPromise === scriptPromise) {
+      turnstileScriptPromise = null
+    }
+  })
 }
 
 export function Turnstile({

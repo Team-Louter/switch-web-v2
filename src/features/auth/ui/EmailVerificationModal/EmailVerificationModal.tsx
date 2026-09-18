@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent, MouseEvent } from 'react'
 
-import { Turnstile } from '@/features/auth'
-
 import arrowIcon from '../../assets/svg/email-verification-arrow.svg'
 import loadingIcon from '../../assets/svg/email-verification-loading.svg'
+import { Turnstile } from '../Turnstile/Turnstile'
 import * as S from './EmailVerificationModal.style'
 
 const VERIFICATION_CODE_LENGTH = 6
@@ -16,6 +15,13 @@ interface EmailVerificationModalProps {
   isResendReady: boolean
   turnstileSiteKey: string
   turnstileKey: number
+  title?: string
+  description?: string
+  resendLabel?: string
+  resendingLabel?: string
+  submitAriaLabel?: string
+  loadingAlt?: string
+  closeOnOverlayClick?: boolean
   onChangeCode: (code: string) => void
   onClose: () => void
   onResend: () => void
@@ -31,6 +37,13 @@ export function EmailVerificationModal({
   isResendReady,
   turnstileSiteKey,
   turnstileKey,
+  title = '코드를 입력하세요',
+  description = '아래에 이메일로 전송된 6자리 코드를 입력하세요.',
+  resendLabel = '인증 코드 재전송',
+  resendingLabel = '인증 코드 전송 중',
+  submitAriaLabel = '이메일 인증 완료',
+  loadingAlt = '회원가입 처리 중',
+  closeOnOverlayClick = true,
   onChangeCode,
   onClose,
   onResend,
@@ -62,7 +75,11 @@ export function EmailVerificationModal({
   }
 
   function handleOverlayClick(event: MouseEvent<HTMLDivElement>) {
-    if (event.target !== event.currentTarget || isBusy) {
+    if (
+      !closeOnOverlayClick ||
+      event.target !== event.currentTarget ||
+      isBusy
+    ) {
       return
     }
 
@@ -90,14 +107,12 @@ export function EmailVerificationModal({
         aria-busy={isSubmitting}
       >
         {isSubmitting ? (
-          <S.LoadingIcon src={loadingIcon} alt="회원가입 처리 중" />
+          <S.LoadingIcon src={loadingIcon} alt={loadingAlt} />
         ) : (
           <S.Form onSubmit={handleSubmit} noValidate>
-            <S.Title id="email-verification-title">
-              코드를 입력하세요
-            </S.Title>
+            <S.Title id="email-verification-title">{title}</S.Title>
             <S.Description id="email-verification-description">
-              아래에 이메일로 전송된 6자리 코드를 입력하세요.
+              {description}
             </S.Description>
 
             <S.CodeField onClick={() => inputRef.current?.focus()}>
@@ -140,13 +155,13 @@ export function EmailVerificationModal({
               onClick={onResend}
               disabled={isBusy || !isResendReady}
             >
-              {isResending ? '인증 코드 전송 중' : '인증 코드 재전송'}
+              {isResending ? resendingLabel : resendLabel}
             </S.ResendButton>
 
             <S.SubmitButton
               type="submit"
               disabled={!isComplete || isBusy}
-              aria-label="이메일 인증 완료"
+              aria-label={submitAriaLabel}
             >
               <S.ArrowIcon
                 src={arrowIcon}
