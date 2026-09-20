@@ -9,7 +9,10 @@ import * as S from './Calendar.style.ts';
 import { EventDetailCard } from './EventDetailCard';
 import { EventEditModal } from './EventEditModal';
 import { formatApiEvents } from '../lib/calendarEvents';
+import { asCalendarDate, getLocalDateString } from '../lib/calendarDates';
 import { useEvent } from '../model/useEvent';
+import { toDateKeyFromServer } from '@/shared/lib/calendar';
+import { addDays, formatDateInput, parseDateInput } from '@/shared/utils/date';
 
 interface CalendarProps {
   readOnly?: boolean;
@@ -18,6 +21,28 @@ interface CalendarProps {
   selectedScheduleIds?: number[];
   showHeaderToolbar?: boolean;
   onSelectionToggle?: (event: EventInput) => void;
+}
+
+interface CalendarDateClickInfo {
+  date: Date;
+}
+
+function getEventDateKey(value: NonNullable<EventInput['start']>) {
+  return typeof value === 'string'
+    ? toDateKeyFromServer(value)
+    : getLocalDateString(asCalendarDate(value));
+}
+
+function isMultiDayEvent(event: EventInput) {
+  if (!event.start || !event.end || String(event.id).startsWith('skeleton-')) {
+    return false;
+  }
+
+  const startDate = parseDateInput(getEventDateKey(event.start));
+  const dayAfterStartKey = formatDateInput(addDays(startDate, 1));
+  const exclusiveEndKey = getEventDateKey(event.end);
+
+  return dayAfterStartKey < exclusiveEndKey;
 }
 
 export function Calendar({
@@ -34,6 +59,10 @@ export function Calendar({
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
   const [modalMode, setModalMode] = useState<string>('');
+  const [isMobileCalendar, setIsMobileCalendar] = useState(false);
+  const [mobileSelectedDate, setMobileSelectedDate] = useState(new Date());
+  const calendarWrapperRef = useRef<HTMLDivElement>(null);
+  const fullCalendarRef = useRef<FullCalendar>(null);
   const blockPopover = useRef(false);
   const isSelectionMode = selectionMode === 'clubReport';
 
@@ -54,6 +83,34 @@ export function Calendar({
         color: '#e0e0e0',
       })) as EventInput[]
     : [] as EventInput[];
+
+  useEffect(() => {
+    const calendarWrapper = calendarWrapperRef.current;
+    if (!calendarWrapper) return;
+    let resizeFrame = 0;
+
+    const updateLayoutMode = () => {
+      setIsMobileCalendar(window.innerWidth <= 768);
+    };
+
+    updateLayoutMode();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateLayoutMode();
+      window.cancelAnimationFrame(resizeFrame);
+      resizeFrame = window.requestAnimationFrame(() => {
+        fullCalendarRef.current?.getApi().updateSize();
+      });
+    });
+
+    resizeObserver.observe(calendarWrapper);
+    window.addEventListener('resize', updateLayoutMode);
+    return () => {
+      window.cancelAnimationFrame(resizeFrame);
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateLayoutMode);
+    };
+  }, []);
 
   useEffect(() => {
     if (isModalOpen) {
@@ -122,7 +179,9 @@ export function Calendar({
       if (popover) popover.remove();
     }, 0);
 
-    const clickedEvent = formatApiEvents(clickInfo.event);
+    const clickedEvent = (
+      clickInfo.event.extendedProps?.sourceEvent as EventInput | undefined
+    ) ?? formatApiEvents(clickInfo.event);
 
     if (isSelectionMode) {
       const rawScheduleId =
@@ -168,10 +227,19 @@ export function Calendar({
       return <div style={{ width: '100%', height: '100%' }} />;
     }
     return (
-      <S.EventContentWrapper>
-        <FaFlag size={12} style={{flexShrink: 0}}/>
-        <S.EventLabel>{eventInfo.event.title}</S.EventLabel>
-      </S.EventContentWrapper>
+      <>
+        <S.EventContentWrapper>
+          <FaFlag size={12} style={{flexShrink: 0}}/>
+          <S.EventLabel>{eventInfo.event.title}</S.EventLabel>
+        </S.EventContentWrapper>
+        <S.MobileEventDot
+          aria-label={eventInfo.event.title}
+          $color={
+            eventInfo.event.backgroundColor ||
+            String(eventInfo.event.extendedProps?.color ?? '#FFD000')
+          }
+        />
+      </>
     );
   };
 
@@ -184,18 +252,55 @@ export function Calendar({
       classNames.push('club-report-selected-event');
     }
 
+    if (isMultiDayEvent(event)) {
+      classNames.push('calendar-mobile-range-event');
+    }
+
     return {
       ...event,
       classNames,
     };
   }) as EventInput[];
 
+  const mobileSelectedEvents = calendarEvents.filter((event) => {
+    if (!event.start || String(event.id).startsWith('skeleton-')) return false;
+    const selectedDateKey = getLocalDateString(mobileSelectedDate);
+    const eventStartKey = getEventDateKey(event.start);
+
+    if (!event.end) return eventStartKey === selectedDateKey;
+
+    // FullCalendar의 end는 exclusive이므로 종료 날짜 당일은 포함하지 않습니다.
+    const eventEndKey = getEventDateKey(event.end);
+    return eventStartKey <= selectedDateKey && selectedDateKey < eventEndKey;
+  });
+
+  const handleMobileDateClick = (info: CalendarDateClickInfo) => {
+    setMobileSelectedDate(info.date);
+  };
+
+  const handleMobileEventSelect = (event: EventInput) => {
+    if (isSelectionMode) {
+      onSelectionToggle?.(event);
+      return;
+    }
+    setSelectedEvent(event);
+    if (readOnly) {
+      setCardPosition({ x: window.innerWidth / 2, y: 120 });
+      return;
+    }
+    setSelectedDate(null);
+    setSelectedEndDate(null);
+    setIsModalOpen(true);
+    setModalMode('편집');
+  };
+
   return (
     <>
       <S.SkeletonStyle />
-      <S.CalendarWrapper>
+      <S.CalendarWrapper ref={calendarWrapperRef}>
         {error && <p role="alert">{error}</p>}
         <FullCalendar
+          ref={fullCalendarRef}
           plugins={[dayGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
           headerToolbar={
@@ -203,7 +308,7 @@ export function Calendar({
               ? {
                   left: '',
                   center: 'prev title next',
-                  right: readOnly ? '' : 'createSchedule'
+                  right: readOnly || isMobileCalendar ? '' : 'createSchedule'
                 }
               : false
           }
@@ -216,15 +321,21 @@ export function Calendar({
           initialDate={initialDate}
           events={calendarEvents}
           editable={false}
-          selectable={!readOnly}
+          selectable={!readOnly && !isMobileCalendar}
           selectMirror={true}
-          dayMaxEvents={true}
+          dayMaxEvents={!isMobileCalendar}
           weekends={true}
           select={handleDateSelect}
+          dateClick={isMobileCalendar ? handleMobileDateClick : undefined}
+          dayCellClassNames={(info) => {
+            if (!isMobileCalendar) return [];
+            return info.date.toDateString() === mobileSelectedDate.toDateString()
+              ? ['mobile-selected-day']
+              : [];
+          }}
           eventClick={handleEventClick}
           eventContent={renderEventContent}
           locale={koLocale}
-          height="100%"
           fixedWeekCount={false}
           eventOrder={(a: unknown, b: unknown) => {
             const eventA = a as { start?: Date; end?: Date };
@@ -251,6 +362,41 @@ export function Calendar({
             info.el.style.border = 'none';
           }}
         />
+        {isMobileCalendar && (
+          <S.MobileScheduleSection aria-live="polite">
+            <S.MobileScheduleHeader>
+              <S.MobileScheduleHeading>
+                {mobileSelectedDate.toLocaleDateString('ko-KR', {
+                  month: 'long',
+                  day: 'numeric',
+                  weekday: 'short',
+                })}
+              </S.MobileScheduleHeading>
+              {!readOnly && (
+                <S.MobileCreateButton type="button" onClick={handleCreateScheduleClick}>
+                  <span aria-hidden="true">+</span> 일정 생성
+                </S.MobileCreateButton>
+              )}
+            </S.MobileScheduleHeader>
+            {mobileSelectedEvents.length === 0 ? (
+              <S.MobileScheduleEmpty>등록된 일정이 없습니다.</S.MobileScheduleEmpty>
+            ) : (
+              <S.MobileScheduleList>
+                {mobileSelectedEvents.map((event, index) => (
+                  <li key={`${event.id ?? event.title}-${index}`}>
+                    <S.MobileScheduleButton
+                      type="button"
+                      $color={String(event.backgroundColor ?? '#FFD000')}
+                      onClick={() => handleMobileEventSelect(event)}
+                    >
+                      <span>{event.title}</span>
+                    </S.MobileScheduleButton>
+                  </li>
+                ))}
+              </S.MobileScheduleList>
+            )}
+          </S.MobileScheduleSection>
+        )}
       </S.CalendarWrapper>
 
       {readOnly && !isSelectionMode && selectedEvent && (

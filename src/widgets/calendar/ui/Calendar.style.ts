@@ -56,8 +56,7 @@ export const CalendarWrapper = styled.div`
   }
 
   .fc-header-toolbar .fc-toolbar-chunk:last-child {
-    position: absolute;
-    right: clamp(10px, 2cqw, 24px);
+    position: static;
   }
 
   .fc-header-toolbar .fc-prev-button {
@@ -141,17 +140,19 @@ export const CalendarWrapper = styled.div`
   }
 
   .fc .fc-col-header-cell {
-    padding: 10px 0 10px 10px;
+    padding: 10px 0;
     ${token.typography("caption", "md", "semibold")};
     color: ${token.colors.text.lightGray};
     background: ${token.colors.background.white};
     border: none;
     border-radius: ${token.shapes.xsmall};
-    text-align: left;
+    text-align: center;
   }
 
   .fc .fc-col-header-cell-cushion {
-    text-align: left;
+    display: block;
+    width: 100%;
+    text-align: center;
   }
 
   .fc .fc-scrollgrid {
@@ -277,6 +278,85 @@ export const CalendarWrapper = styled.div`
   height: 18px !important;
   }
 
+  @media (max-width: 768px) {
+    .fc {
+      flex: 1 1 0;
+      height: auto;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .fc .fc-event {
+      display: inline-flex;
+      position: relative;
+      z-index: 2;
+      width: 10px;
+      min-width: 10px;
+      min-height: 10px;
+      height: 10px;
+      margin: 1px 2px;
+      padding: 0;
+      overflow: visible;
+      border-radius: 999px;
+      opacity: 1;
+    }
+
+    .fc .fc-event-main,
+    .fc .fc-event-main-frame,
+    .fc .fc-event-title-container {
+      width: 10px;
+      min-width: 10px;
+      height: 10px;
+      overflow: visible;
+    }
+
+    .fc .fc-event svg,
+    .calendar-desktop-event,
+    .fc .fc-daygrid-more-link {
+      display: none;
+    }
+
+    .calendar-mobile-dot {
+      display: block;
+    }
+
+    .fc .fc-event.calendar-mobile-range-event {
+      display: block;
+      width: calc(100% - 4px);
+      min-width: 0;
+      height: 10px;
+      min-height: 10px;
+      margin: 1px 2px;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .fc .calendar-mobile-range-event .fc-event-main,
+    .fc .calendar-mobile-range-event .fc-event-main-frame,
+    .fc .calendar-mobile-range-event .fc-event-title-container {
+      width: 100%;
+      min-width: 0;
+      height: 10px;
+      overflow: hidden;
+    }
+
+    .calendar-mobile-range-event .calendar-mobile-dot {
+      display: none;
+    }
+
+    .fc .fc-daygrid-day-events {
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      margin-top: 24px;
+      padding-inline: 3px;
+    }
+
+    .fc .mobile-selected-day {
+      box-shadow: inset 0 0 0 2px ${token.colors.main.normal};
+    }
+  }
+
   .fc .fc-daygrid-more-link {
     display: block;
     width: 100%;
@@ -293,7 +373,19 @@ export const CalendarWrapper = styled.div`
     }
   }
 
+  @media (max-width: 768px) {
+    .fc .fc-daygrid-more-link {
+      display: none;
+    }
+  }
+
   @container (max-width: 600px) {
+    .fc .fc-scrollgrid {
+      width: calc(100% - 20px);
+      height: calc(100% - 12px);
+      margin-bottom: 10px;
+    }
+
     .fc .fc-col-header-cell {
       padding: 8px 0;
       text-align: center;
@@ -303,24 +395,12 @@ export const CalendarWrapper = styled.div`
       padding: 4px;
     }
 
-    .fc .fc-event {
-      width: calc(100% - 4px);
-      margin: 2px;
-      padding: 4px 2px;
-    }
-
-    .fc .fc-event svg {
-      display: none;
-    }
-
-    .fc .fc-daygrid-more-link {
-      padding: 2px;
-      font-size: 10px;
-    }
   }
 `;
 
-export const EventContentWrapper = styled.div`
+export const EventContentWrapper = styled.div.attrs({
+  className: 'calendar-desktop-event',
+})`
   display: flex;
   align-items: center;
   gap: 4px;
@@ -335,4 +415,89 @@ export const EventLabel = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   pointer-events: none;
+`;
+
+export const MobileEventDot = styled.span.attrs({
+  className: 'calendar-mobile-dot',
+})<{ $color: string }>`
+  display: none;
+  width: 10px;
+  min-width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: ${({ $color }) => $color};
+  box-shadow: 0 0 0 1px ${({ $color }) => $color};
+`;
+
+export const MobileScheduleSection = styled.section`
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 16px 12px 4px;
+`;
+
+export const MobileScheduleHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+`;
+
+export const MobileScheduleHeading = styled.h3`
+  margin: 0;
+  color: ${token.colors.text.normal};
+  ${token.typography('body', 'md', 'semibold')}
+`;
+
+export const MobileCreateButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-height: 40px;
+  gap: 6px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: ${token.shapes.xsmall};
+  color: ${token.colors.fill.white};
+  background: ${token.colors.fill.charcoal};
+  ${token.typography('body', 'sm', 'semibold')}
+
+  span {
+    font-size: 22px;
+    font-weight: 300;
+    line-height: 1;
+  }
+`;
+
+export const MobileScheduleList = styled.ul`
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+`;
+
+export const MobileScheduleButton = styled.button<{ $color: string }>`
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid ${token.colors.line.light};
+  border-left: 5px solid ${({ $color }) => $color};
+  border-radius: ${token.shapes.xsmall};
+  background: ${token.colors.fill.white};
+  color: ${token.colors.text.normal};
+  text-align: left;
+  ${token.typography('body', 'sm', 'medium')}
+`;
+
+export const MobileScheduleEmpty = styled.p`
+  margin: 0;
+  padding: 18px 0;
+  color: ${token.colors.text.lightGray};
+  text-align: center;
+  ${token.typography('body', 'sm', 'medium')}
 `;
