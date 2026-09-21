@@ -1,4 +1,4 @@
-import styled, { css } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 
 import { UserName } from '@/entities/user'
 import * as token from '@/shared/styles/values/token'
@@ -546,6 +546,55 @@ export const ModalButtonRow = styled.div`
 `
 
 
+const customizeModalReveal = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+`
+
+const customizeSelectionReveal = keyframes`
+  from {
+    box-shadow: 0 0 0 0 rgb(255 193 7 / 30%);
+    transform: translateY(2px);
+  }
+
+  to {
+    box-shadow: 0 0 0 4px rgb(255 193 7 / 0%);
+    transform: translateY(0);
+  }
+`
+
+const customizeSkeletonShimmer = keyframes`
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+`
+
+const customizeSkeletonSurface = css`
+  background: linear-gradient(
+    90deg,
+    ${token.colors.gray.gray0} 20%,
+    ${token.colors.gray.gray10} 50%,
+    ${token.colors.gray.gray0} 80%
+  );
+  background-size: 200% 100%;
+  animation: ${customizeSkeletonShimmer} 1.4s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
 export const CustomizeModal = styled.div`
   ${token.flexColumn}
   gap: 20px;
@@ -557,6 +606,12 @@ export const CustomizeModal = styled.div`
   border-radius: ${token.shapes.large};
   background: ${token.colors.white};
   box-shadow: 0 20px 60px rgb(14 13 12 / 18%);
+  animation: ${customizeModalReveal} 220ms cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 export const CustomizeBody = styled.div`
@@ -637,6 +692,36 @@ const CUSTOMIZE_OPTION_GRID_WIDTH =
   CUSTOMIZE_OPTION_SIZE * CUSTOMIZE_OPTION_COLUMNS +
   CUSTOMIZE_OPTION_GAP * (CUSTOMIZE_OPTION_COLUMNS - 1)
 
+export const CustomizeSkeletonContent = styled.div`
+  ${token.flexColumn}
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+`
+
+export const CustomizeSkeletonHeading = styled.span`
+  ${customizeSkeletonSurface}
+  display: block;
+  width: 82px;
+  height: 22px;
+  border-radius: ${token.shapes.xsmall};
+`
+
+export const CustomizeSkeletonGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, ${CUSTOMIZE_OPTION_SIZE}px);
+  gap: ${CUSTOMIZE_OPTION_GAP}px;
+  width: ${CUSTOMIZE_OPTION_GRID_WIDTH}px;
+`
+
+export const CustomizeSkeletonOption = styled.span`
+  ${customizeSkeletonSurface}
+  display: block;
+  width: ${CUSTOMIZE_OPTION_SIZE}px;
+  height: ${CUSTOMIZE_OPTION_SIZE}px;
+  border-radius: ${token.shapes.medium};
+`
+
 export const CustomizeOptionGrid = styled.div`
   display: flex;
   flex-shrink: 0;
@@ -649,6 +734,7 @@ export const CustomizeOptionGrid = styled.div`
 `
 
 export const CustomizeEffectOption = styled.button<{
+  $isEquipped: boolean
   $isLocked: boolean
   $isSelected: boolean
 }>`
@@ -660,17 +746,30 @@ export const CustomizeEffectOption = styled.button<{
   height: ${CUSTOMIZE_OPTION_SIZE}px;
   padding: 12px;
   overflow: hidden;
-  border: ${({ $isSelected }) =>
-    $isSelected
-      ? `2px solid ${token.colors.primary.primary50}`
-      : '2px solid transparent'};
+  border: ${({ $isEquipped, $isSelected }) =>
+    $isEquipped
+      ? `2px solid ${token.colors.gray.gray20}`
+      : $isSelected
+        ? `2px solid ${token.colors.primary.primary50}`
+        : '2px solid transparent'};
   border-radius: ${token.shapes.medium};
-  background: ${({ $isSelected }) =>
-    $isSelected ? token.colors.white : token.colors.gray.gray0};
+  background: ${({ $isEquipped, $isSelected }) =>
+    $isEquipped || $isSelected ? token.colors.white : token.colors.gray.gray0};
   transition:
     border-color 120ms ease,
     background-color 120ms ease,
+    box-shadow 120ms ease,
     transform 120ms ease;
+  animation: ${({ $isEquipped, $isSelected }) =>
+    $isSelected && !$isEquipped
+      ? css`
+          ${customizeSelectionReveal} 180ms ease-out
+        `
+      : 'none'};
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 
   &:hover:not(:disabled) {
     border-color: ${token.colors.primary.primary40};
@@ -679,7 +778,20 @@ export const CustomizeEffectOption = styled.button<{
 
   &:disabled {
     cursor: not-allowed;
+    opacity: 0.65;
   }
+`
+
+export const CustomizeEquippedBadge = styled.span`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  padding: 4px 7px;
+  border-radius: ${token.shapes.circle};
+  color: ${token.colors.primary.primary80};
+  background: ${token.colors.primary.primary10};
+  ${token.typography('caption', 'sm', 'semibold')}
 `
 
 export const CustomizeNonePreview = styled.span`
@@ -729,6 +841,7 @@ export const CustomizeLockOverlay = styled.div`
   inset: 0;
   border-radius: ${token.shapes.medium};
   background: rgb(255 255 255 / 70%);
+  pointer-events: none;
 `
 
 export const CustomizeEmptyText = styled.p`
@@ -756,6 +869,14 @@ export const CustomizeStoreButton = styled.button`
     border-color: ${token.colors.primary.primary60};
     color: ${token.colors.primary.primary60};
     transform: translateY(-1px);
+  }
+
+  &:disabled {
+    border-color: ${token.colors.gray.gray20};
+    color: ${token.colors.gray.gray50};
+    background: ${token.colors.gray.gray0};
+    cursor: not-allowed;
+    transform: none;
   }
 `
 
