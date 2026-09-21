@@ -169,7 +169,9 @@ export function StorePage() {
       {activeModal === 'customize' && (
         <StoreProfileCustomizeModal
           categories={customizeCategories}
+          errorMessage={errorMessage}
           isActionPending={isActionPending}
+          isLoading={isLoading}
           ownedEffects={customizeOwnedEffects}
           profile={profilePreview}
           recommendedEffects={customizeRecommendedEffects}
@@ -182,7 +184,6 @@ export function StorePage() {
             onCategorySelect(category)
             onModalClose()
           }}
-          onPurchaseOpen={onPurchaseOpen}
           onReset={onCustomizeReset}
           onSave={onCustomizeSave}
         />

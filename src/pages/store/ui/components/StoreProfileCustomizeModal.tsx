@@ -13,7 +13,9 @@ import type {
 
 type StoreProfileCustomizeModalProps = {
   categories: StoreCategory[]
+  errorMessage?: string
   isActionPending: boolean
+  isLoading?: boolean
   ownedEffects: StoreEffect[]
   profile: StoreProfilePreview | null
   recommendedEffects: StoreEffect[]
@@ -24,7 +26,6 @@ type StoreProfileCustomizeModalProps = {
   onClose: () => void
   onEffectSelect: (effect: StoreEffect | null) => void
   onGoToStore: (category: StoreCategory) => void
-  onPurchaseOpen: (effect: StoreEffect) => void
   onReset: () => void
   onSave: () => void
 }
@@ -154,7 +155,9 @@ function CustomizeEffectOption({
 // 3) 오른쪽 미리보기와 하단 액션으로 저장 흐름을 제공한다
 export function StoreProfileCustomizeModal({
   categories,
+  errorMessage = '',
   isActionPending,
+  isLoading = false,
   ownedEffects,
   profile,
   recommendedEffects,
@@ -165,7 +168,6 @@ export function StoreProfileCustomizeModal({
   onClose,
   onEffectSelect,
   onGoToStore,
-  onPurchaseOpen,
   onReset,
   onSave,
 }: StoreProfileCustomizeModalProps) {
@@ -198,6 +200,7 @@ export function StoreProfileCustomizeModal({
         selectedEffect &&
           recommendedEffects.some((effect) => effect.id === selectedEffect.id),
       )
+  const isModalBusy = isActionPending || isLoading
 
   return (
     <S.Overlay>
@@ -225,38 +228,51 @@ export function StoreProfileCustomizeModal({
 
           <S.CustomizeEffectPanel>
             <S.CustomizeEffectScrollArea>
-              <S.CustomizeSectionTitle>내 효과</S.CustomizeSectionTitle>
-              <S.CustomizeOptionGrid>
-                <CustomizeEffectOption
-                  isNone
-                  isSelected={selectedEffect === null}
-                  onClick={() => onEffectSelect(null)}
-                />
-                {ownedEffects.map((effect) => (
-                  <CustomizeEffectOption
-                    effect={effect}
-                    isSelected={selectedEffect?.id === effect.id}
-                    key={effect.id}
-                    onClick={() => onEffectSelect(effect)}
-                  />
-                ))}
-              </S.CustomizeOptionGrid>
-              <S.CustomizeSectionTitle>추천 효과</S.CustomizeSectionTitle>
-              <S.CustomizeOptionGrid>
-                {recommendedEffects.length > 0 ? (
-                  recommendedEffects.map((effect) => (
+              {isLoading ? (
+                <S.CustomizeFeedbackMessage role="status">
+                  프로필 꾸미기 효과를 불러오는 중이에요
+                </S.CustomizeFeedbackMessage>
+              ) : (
+                <>
+                  <S.CustomizeSectionTitle>내 효과</S.CustomizeSectionTitle>
+                  <S.CustomizeOptionGrid>
                     <CustomizeEffectOption
-                      effect={effect}
-                      isLocked
-                      isSelected={selectedEffect?.id === effect.id}
-                      key={effect.id}
-                      onClick={() => onEffectSelect(effect)}
+                      isNone
+                      isSelected={selectedEffect === null}
+                      onClick={() => onEffectSelect(null)}
                     />
-                  ))
-                ) : (
-                  <S.CustomizeEmptyText>추천 효과가 없어요</S.CustomizeEmptyText>
-                )}
-              </S.CustomizeOptionGrid>
+                    {ownedEffects.map((effect) => (
+                      <CustomizeEffectOption
+                        effect={effect}
+                        isSelected={selectedEffect?.id === effect.id}
+                        key={effect.id}
+                        onClick={() => onEffectSelect(effect)}
+                      />
+                    ))}
+                  </S.CustomizeOptionGrid>
+                  <S.CustomizeSectionTitle>추천 효과</S.CustomizeSectionTitle>
+                  <S.CustomizeOptionGrid>
+                    {recommendedEffects.length > 0 ? (
+                      recommendedEffects.map((effect) => (
+                        <CustomizeEffectOption
+                          effect={effect}
+                          isLocked
+                          isSelected={selectedEffect?.id === effect.id}
+                          key={effect.id}
+                          onClick={() => onEffectSelect(effect)}
+                        />
+                      ))
+                    ) : (
+                      <S.CustomizeEmptyText>추천 효과가 없어요</S.CustomizeEmptyText>
+                    )}
+                  </S.CustomizeOptionGrid>
+                </>
+              )}
+              {errorMessage && (
+                <S.CustomizeFeedbackMessage role="alert">
+                  {errorMessage}
+                </S.CustomizeFeedbackMessage>
+              )}
             </S.CustomizeEffectScrollArea>
 
             <S.CustomizeStoreButton onClick={() => onGoToStore(selectedCategory)} type="button">
@@ -290,7 +306,7 @@ export function StoreProfileCustomizeModal({
             <S.CustomizeActionGroup>
               <S.ModalButton
                 $variant="secondary"
-                disabled={isActionPending}
+                disabled={isModalBusy}
                 onClick={onReset}
                 type="button"
               >
@@ -299,18 +315,18 @@ export function StoreProfileCustomizeModal({
               <S.ModalButtonRow>
                 <S.ModalButton
                   $variant="secondary"
-                  disabled={isActionPending}
+                  disabled={isModalBusy}
                   onClick={onClose}
                   type="button"
                 >
                   취소
                 </S.ModalButton>
                 <S.ModalButton
-                disabled={isActionPending || isAnySelectionLocked}
-                onClick={onSave}
-                type="button"
+                  disabled={isModalBusy || isAnySelectionLocked}
+                  onClick={onSave}
+                  type="button"
                 >
-                저장
+                  저장
                 </S.ModalButton>
               </S.ModalButtonRow>
             </S.CustomizeActionGroup>

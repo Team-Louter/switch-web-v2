@@ -623,6 +623,13 @@ export const CustomizeSectionTitle = styled.p`
   ${token.typography('body', 'lg', 'medium')}
 `
 
+export const CustomizeFeedbackMessage = styled.p`
+  margin: 0;
+  padding: 20px 0;
+  color: ${token.colors.gray.gray50};
+  ${token.typography('body', 'sm', 'medium')}
+`
+
 const CUSTOMIZE_OPTION_SIZE = 110
 const CUSTOMIZE_OPTION_GAP = 10
 const CUSTOMIZE_OPTION_COLUMNS = 3

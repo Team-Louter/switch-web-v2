@@ -19,6 +19,9 @@ const CUSTOMIZE_CATEGORIES: Exclude<StoreCategory, '전체'>[] = [
 
 type CategorySelections = Record<Exclude<StoreCategory, '전체'>, number | null>
 
+const getEffectById = (effects: StoreEffect[], id: number | null) =>
+  id === null ? null : effects.find((effect) => effect.id === id) ?? null
+
 const getInitialSelections = (effects: StoreEffect[]): CategorySelections => {
   const initial = {} as CategorySelections
 
@@ -110,14 +113,11 @@ export function useProfileCustomize({
       ? null
       : categoryEffects.find((effect) => effect.id === selectedEffectId) ?? null
   
-  const getEffectById = (id: number | null) =>
-    id === null ? null : storeEffects.find((effect) => effect.id === id) ?? null
-  
   const selectedEffectsByCategory = useMemo(
     () => ({
-      '이름 색상': getEffectById(selections['이름 색상']),
-      '테두리': getEffectById(selections['테두리']),
-      '칭호': getEffectById(selections['칭호']),
+      '이름 색상': getEffectById(storeEffects, selections['이름 색상']),
+      '테두리': getEffectById(storeEffects, selections['테두리']),
+      '칭호': getEffectById(storeEffects, selections['칭호']),
     }),
     [selections, storeEffects],
   )
