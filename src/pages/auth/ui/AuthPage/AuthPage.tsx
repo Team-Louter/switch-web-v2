@@ -155,6 +155,7 @@ export function AuthPage({
           key={loginCardKey}
           initialEmail={authViewState.email}
           returnPath={authViewState.returnPath}
+          authPath={authPath}
           authTransitionSessionId={authTransitionSessionId}
           hideHeroImage={hideHeroImage}
           useSwitchLogo={useSwitchLogo}

@@ -10,6 +10,7 @@ const VALIDATION_MESSAGE_HEIGHT_OFFSET = 24
 interface LoginCardProps {
   initialEmail?: string
   returnPath?: string
+  authPath?: string
   authTransitionSessionId?: string
   hideHeroImage?: boolean
   useSwitchLogo?: boolean
@@ -44,6 +45,7 @@ function getHeightOffset(
 export function LoginCard({
   initialEmail = '',
   returnPath = '/home',
+  authPath = '/login',
   authTransitionSessionId = '',
   hideHeroImage = false,
   useSwitchLogo = false,
@@ -64,6 +66,7 @@ export function LoginCard({
     returnPath,
     authTransitionSessionId,
     requiresTurnstile,
+    authPath,
   )
   const {
     isPasswordStep,

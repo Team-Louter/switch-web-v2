@@ -48,6 +48,7 @@ export function useLoginForm(
   returnPath = '/home',
   authTransitionSessionId = '',
   requiresTurnstile = true,
+  authPath = '/login',
 ): LoginFormController {
   const navigate = useNavigate()
   const [email, setEmail] = useState(initialEmail)
@@ -153,7 +154,7 @@ export function useLoginForm(
         return
       }
 
-      navigate('/login', {
+      navigate(authPath, {
         replace: true,
         state: {
           authView: 'signup',
