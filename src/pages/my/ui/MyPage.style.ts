@@ -136,7 +136,8 @@ export const PointRewardTooltip = styled.div`
 export const PointRewardContainer = styled.div`
   position: relative;
 
-  &:hover ${PointRewardTooltip} {
+  &:hover ${PointRewardTooltip},
+  &:focus-within ${PointRewardTooltip} {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
@@ -255,6 +256,10 @@ export const ProfileCustomizeButton = styled.button`
 
   @media (hover: hover) and (pointer: fine) {
     pointer-events: none;
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    opacity: 1;
   }
 
   &:hover {
