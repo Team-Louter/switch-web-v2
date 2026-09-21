@@ -96,6 +96,7 @@ export function StorePage() {
     onCategorySelect,
     onCustomizeCategorySelect,
     onCustomizeEffectSelect,
+    onCustomizePurchase,
     onCustomizeReset,
     onCustomizeSave,
     onEffectEquip,
@@ -184,6 +185,7 @@ export function StorePage() {
             onCategorySelect(category)
             onModalClose()
           }}
+          onPurchase={onCustomizePurchase}
           onReset={onCustomizeReset}
           onSave={onCustomizeSave}
         />

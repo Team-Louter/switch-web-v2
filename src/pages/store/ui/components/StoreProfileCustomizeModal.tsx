@@ -2,7 +2,7 @@ import { ProfileAvatar } from '@/shared/ui'
 import { getNameStyleKey } from '@/shared/styles'
 
 import * as S from '../StorePage.style'
-import { CloseIcon, LockIcon } from '../icons'
+import { CloseIcon, LockIcon, PointIcon } from '../icons'
 
 import type { ProfileAvatarDecorationItem } from '@/shared/ui'
 import type {
@@ -26,6 +26,7 @@ type StoreProfileCustomizeModalProps = {
   onClose: () => void
   onEffectSelect: (effect: StoreEffect | null) => void
   onGoToStore: (category: StoreCategory) => void
+  onPurchase: () => void
   onReset: () => void
   onSave: () => void
 }
@@ -168,6 +169,7 @@ export function StoreProfileCustomizeModal({
   onClose,
   onEffectSelect,
   onGoToStore,
+  onPurchase,
   onReset,
   onSave,
 }: StoreProfileCustomizeModalProps) {
@@ -192,17 +194,26 @@ export function StoreProfileCustomizeModal({
         )
   const previewTitle = previewEquippedItems?.title
   const previewTitleText = previewTitle?.valueText ?? previewTitle?.itemName
-  const isAnySelectionLocked = selectedEffectsByCategory
-    ? Object.values(selectedEffectsByCategory).some(
+  const selectedPurchaseEffect = selectedEffectsByCategory
+    ? Object.values(selectedEffectsByCategory).find(
         (effect) => effect?.status === 'recommended',
-      )
-    : Boolean(
-        selectedEffect &&
-          recommendedEffects.some((effect) => effect.id === selectedEffect.id),
-      )
+      ) ?? null
+    : selectedEffect?.status === 'recommended'
+      ? selectedEffect
+      : null
   const isModalBusy = isActionPending || isLoading
-  const isSaveDisabled =
-    isModalBusy || Boolean(errorMessage) || isAnySelectionLocked
+  const isPrimaryActionDisabled =
+    isModalBusy ||
+    Boolean(errorMessage) ||
+    Boolean(selectedPurchaseEffect?.canPurchase === false)
+  const handlePrimaryAction = () => {
+    if (selectedPurchaseEffect) {
+      onPurchase()
+      return
+    }
+
+    onSave()
+  }
 
   return (
     <S.Overlay>
@@ -324,11 +335,22 @@ export function StoreProfileCustomizeModal({
                   취소
                 </S.ModalButton>
                 <S.ModalButton
-                  disabled={isSaveDisabled}
-                  onClick={onSave}
+                  disabled={isPrimaryActionDisabled}
+                  onClick={handlePrimaryAction}
                   type="button"
                 >
-                  저장
+                  {selectedPurchaseEffect ? (
+                    selectedPurchaseEffect.canPurchase === false ? (
+                      '구매할 수 없어요'
+                    ) : (
+                      <>
+                        <PointIcon size={17} />
+                        {selectedPurchaseEffect.price}에 구매하기
+                      </>
+                    )
+                  ) : (
+                    '저장'
+                  )}
                 </S.ModalButton>
               </S.ModalButtonRow>
             </S.CustomizeActionGroup>
