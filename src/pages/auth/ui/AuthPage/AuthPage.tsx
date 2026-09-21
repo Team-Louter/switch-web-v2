@@ -1,5 +1,12 @@
 import { useState } from 'react'
+import { toast } from 'react-toastify'
 import { useLocation, useNavigate } from 'react-router-dom'
+
+import {
+  createClubApplication,
+  InvalidClubSlugError,
+} from '@/features/club-create'
+import type { ClubApplicationInput } from '@/entities/club'
 
 import { AuthHeader } from '../AuthHeader'
 import { LoginCard } from '../LoginCard'
@@ -87,6 +94,24 @@ export function AuthPage({
     setLoginCardKey((currentKey) => currentKey + 1)
   }
 
+  function handleClubCreateSubmit(values: ClubApplicationInput) {
+    try {
+      createClubApplication(values)
+      toast.success('동아리 신청 내용이 저장되었습니다.')
+    } catch (error) {
+      if (error instanceof InvalidClubSlugError) {
+        toast.error(error.message)
+        return
+      }
+
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : '동아리 신청 내용을 저장하지 못했습니다.',
+      )
+    }
+  }
+
   function handleChangeSignupEmail(email: string) {
     navigate('/login', {
       replace: true,
@@ -128,6 +153,9 @@ export function AuthPage({
           title={title}
           subtitle={subtitle}
           isClubCreation={isClubCreation}
+          onClubCreateSubmit={
+            isClubCreation ? handleClubCreateSubmit : undefined
+          }
           representativeImagePreview={representativeImagePreview}
           onClubLogoPreviewChange={setClubLogoPreview}
           onRepresentativeImagePreviewChange={setRepresentativeImagePreview}

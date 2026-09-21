@@ -1,4 +1,5 @@
 import authHeroImage from '../../assets/images/auth-hero.jpg'
+import type { ClubApplicationInput } from '@/entities/club'
 import { useLoginForm } from '../../model/useLoginForm'
 import { LoginPanel } from '../LoginPanel'
 import * as S from './LoginCard.style'
@@ -16,6 +17,7 @@ interface LoginCardProps {
   title?: string
   subtitle?: string
   isClubCreation?: boolean
+  onClubCreateSubmit?: (values: ClubApplicationInput) => void
   representativeImagePreview?: string
   onClubLogoPreviewChange?: (preview: string) => void
   onRepresentativeImagePreviewChange?: (preview: string) => void
@@ -46,6 +48,7 @@ export function LoginCard({
   title,
   subtitle,
   isClubCreation = false,
+  onClubCreateSubmit,
   representativeImagePreview,
   onClubLogoPreviewChange,
   onRepresentativeImagePreviewChange,
@@ -92,6 +95,7 @@ export function LoginCard({
         title={title}
         subtitle={subtitle}
         isClubCreation={isClubCreation}
+        onClubCreateSubmit={onClubCreateSubmit}
         representativeImagePreview={representativeImagePreview}
         onClubLogoPreviewChange={onClubLogoPreviewChange}
         onRepresentativeImagePreviewChange={onRepresentativeImagePreviewChange}

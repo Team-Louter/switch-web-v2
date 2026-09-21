@@ -1,4 +1,5 @@
 import type { LoginFormController } from '../../model/useLoginForm'
+import type { ClubApplicationInput } from '@/entities/club'
 import clubCreateBanner from '../../assets/images/club-create-banner.webp'
 import { AuthIntro } from '../AuthIntro'
 import { ClubCreateForm } from '../ClubCreateForm'
@@ -14,6 +15,7 @@ interface LoginPanelProps {
   title?: string
   subtitle?: string
   isClubCreation?: boolean
+  onClubCreateSubmit?: (values: ClubApplicationInput) => void
   representativeImagePreview?: string
   onClubLogoPreviewChange?: (preview: string) => void
   onRepresentativeImagePreviewChange?: (preview: string) => void
@@ -28,6 +30,7 @@ export function LoginPanel({
   title,
   subtitle,
   isClubCreation = false,
+  onClubCreateSubmit,
   representativeImagePreview,
   onClubLogoPreviewChange,
   onRepresentativeImagePreviewChange,
@@ -60,6 +63,7 @@ export function LoginPanel({
         />
         {isClubCreation ? (
           <ClubCreateForm
+            onSubmit={onClubCreateSubmit}
             onLogoPreviewChange={onClubLogoPreviewChange}
             onRepresentativeImagePreviewChange={
               onRepresentativeImagePreviewChange

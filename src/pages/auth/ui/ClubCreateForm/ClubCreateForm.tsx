@@ -2,16 +2,17 @@ import { useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { FiEdit } from 'react-icons/fi'
 
+import type { ClubApplicationInput } from '@/entities/club'
+import {
+  PALETTE_OPTIONS,
+  PALETTES,
+  type PaletteId,
+} from '@/shared/styles/values/_palettes'
+
 import * as S from './ClubCreateForm.style'
 
-const COLOR_OPTIONS = [
-  { label: 'Switch Yellow', value: '#FFD101' },
-  { label: 'Blue', value: '#0066B3' },
-  { label: 'Charcoal', value: '#37362F' },
-] as const
-
 interface ClubCreateFormProps {
-  onSubmit?: () => void
+  onSubmit?: (values: ClubApplicationInput) => void
   onLogoPreviewChange?: (preview: string) => void
   onRepresentativeImagePreviewChange?: (preview: string) => void
 }
@@ -45,10 +46,9 @@ export function ClubCreateForm({
   )
   const [representativeImagePreview, setRepresentativeImagePreview] =
     useState('')
-  const [selectedColor, setSelectedColor] = useState<string>(
-    COLOR_OPTIONS[0].value,
-  )
+  const [selectedPaletteId, setSelectedPaletteId] = useState<PaletteId>('yellow')
   const [clubOlga, setClubOlga] = useState('')
+  const selectedPalette = PALETTES[selectedPaletteId]
 
   const isSubmitDisabled =
     !koreanName.trim() ||
@@ -78,15 +78,20 @@ export function ClubCreateForm({
       return
     }
 
-    onSubmit?.()
+    onSubmit?.({
+      koreanName: koreanName.trim(),
+      englishName: englishName.trim(),
+      clubLogoPreview,
+      representativeImagePreview,
+      paletteId: selectedPaletteId,
+      clubOlga: clubOlga.trim(),
+    })
   }
 
   return (
     <S.Form
-      $accentColor={selectedColor}
-      $isDarkAccent={
-        selectedColor === '#0066B3' || selectedColor === '#37362F'
-      }
+      $accentColor={selectedPalette.colors.primary50}
+      $isDarkAccent={selectedPalette.colors.foreground === '#FFFFFF'}
       onSubmit={handleSubmit}
       noValidate
     >
@@ -228,16 +233,16 @@ export function ClubCreateForm({
           <S.RequiredMark aria-hidden="true">*</S.RequiredMark>
         </S.Label>
         <S.Palette role="radiogroup" aria-labelledby="club-color-label">
-          {COLOR_OPTIONS.map((color) => (
+          {PALETTE_OPTIONS.map((palette) => (
             <S.ColorOption
-              key={color.value}
+              key={palette.id}
               type="button"
               role="radio"
-              aria-label={color.label}
-              aria-checked={selectedColor === color.value}
-              $color={color.value}
-              $selected={selectedColor === color.value}
-              onClick={() => setSelectedColor(color.value)}
+              aria-label={palette.label}
+              aria-checked={selectedPaletteId === palette.id}
+              $color={palette.swatch}
+              $selected={selectedPaletteId === palette.id}
+              onClick={() => setSelectedPaletteId(palette.id)}
             />
           ))}
         </S.Palette>
