@@ -13,6 +13,11 @@ import {
 const AuthPage = lazy(() =>
   import('@/pages/auth').then(({ AuthPage: Page }) => ({ default: Page })),
 )
+const ClubLoginPage = lazy(() =>
+  import('@/pages/auth').then(({ ClubLoginPage: Page }) => ({
+    default: Page,
+  })),
+)
 const GoogleExtraSignupPage = lazy(() =>
   import('@/pages/auth').then(({ GoogleExtraSignupPage: Page }) => ({
     default: Page,
@@ -109,6 +114,7 @@ export function App() {
           </Route>
         <Route element={<GuestOnlyRoute />}>
           <Route path="/login" element={<AuthPage />} />
+          <Route path="/:clubSlug/login" element={<ClubLoginPage />} />
           <Route
             path="/create"
             element={

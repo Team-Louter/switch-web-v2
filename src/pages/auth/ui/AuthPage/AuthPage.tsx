@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { toast } from 'react-toastify'
 import { useLocation, useNavigate } from 'react-router-dom'
 
+import type { ClubApplication, ClubApplicationInput } from '@/entities/club'
 import {
   createClubApplication,
   InvalidClubSlugError,
 } from '@/features/club-create'
-import type { ClubApplicationInput } from '@/entities/club'
 
 import { AuthHeader } from '../AuthHeader'
 import { LoginCard } from '../LoginCard'
@@ -27,6 +27,7 @@ interface AuthPageProps {
   title?: string
   subtitle?: string
   isClubCreation?: boolean
+  clubProfile?: ClubApplication
 }
 
 function getAuthViewState(locationState: unknown): AuthViewState {
@@ -78,6 +79,7 @@ export function AuthPage({
   title,
   subtitle,
   isClubCreation = false,
+  clubProfile,
 }: AuthPageProps) {
   const location = useLocation()
   const navigate = useNavigate()
@@ -89,6 +91,7 @@ export function AuthPage({
   const authViewState = getAuthViewState(location.state)
   const shouldAnimateAuthTransition =
     authViewState.authTransitionSessionId === authTransitionSessionId
+  const authPath = clubProfile ? `/${clubProfile.slug}/login` : '/login'
 
   function handleLoginReset() {
     setLoginCardKey((currentKey) => currentKey + 1)
@@ -96,8 +99,8 @@ export function AuthPage({
 
   function handleClubCreateSubmit(values: ClubApplicationInput) {
     try {
-      createClubApplication(values)
-      toast.success('동아리 신청 내용이 저장되었습니다.')
+      const application = createClubApplication(values)
+      navigate(`/${application.slug}/login`, { replace: true })
     } catch (error) {
       if (error instanceof InvalidClubSlugError) {
         toast.error(error.message)
@@ -113,7 +116,7 @@ export function AuthPage({
   }
 
   function handleChangeSignupEmail(email: string) {
-    navigate('/login', {
+    navigate(authPath, {
       replace: true,
       state: {
         authView: 'login',
