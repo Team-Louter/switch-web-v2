@@ -926,7 +926,7 @@ export const CustomizePreviewPanel = styled.div`
   flex: 1 1 0;
   min-width: 0;
   height: 100%;
-  padding: 20px;
+  padding: 36px 20px 20px;
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.large};
   background: ${token.colors.gray.gray0};
