@@ -3,7 +3,11 @@ import { useEffect } from 'react'
 import { Bounce, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
-import { GlobalStyle } from '@/shared/styles'
+import { GlobalStyle, PaletteThemeStyle } from '@/shared/styles'
+import {
+  DEFAULT_PALETTE_ID,
+  PALETTES,
+} from '@/shared/styles/values/_palettes'
 
 export function AppProvider({ children }: PropsWithChildren) {
   useEffect(() => {
@@ -22,6 +26,7 @@ export function AppProvider({ children }: PropsWithChildren) {
 
   return (
     <>
+      <PaletteThemeStyle $palette={PALETTES[DEFAULT_PALETTE_ID]} />
       <GlobalStyle />
       <ToastContainer
         position="top-right"

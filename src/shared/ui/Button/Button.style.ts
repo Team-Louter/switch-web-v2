@@ -25,7 +25,7 @@ const sizeStyles = {
 
 const variantStyles = {
   primary: css`
-    color: ${token.colors.gray.gray100};
+    color: ${token.colors.primary.foreground};
     background: ${token.colors.primary.primary50};
 
     &:hover {
