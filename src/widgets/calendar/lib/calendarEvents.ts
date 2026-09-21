@@ -3,11 +3,6 @@ import type { Member } from '@/shared/types/member'
 import type { ScheduleResponse, ScheduleTarget } from '@/shared/types/schedule'
 import { addDays, formatDateInput, parseDateInput } from '@/shared/utils/date'
 import { toDateKeyFromServer } from '@/shared/lib/calendar'
-import * as paletteToken from '@/shared/styles/values/token'
-
-function getCalendarEventColor(color: ScheduleResponse['color']): string {
-  return color === 'GOLD' ? paletteToken.colors.primary.primary50 : color
-}
 
 export const calendarHighlight = ['LIGHTGREY', 'PINK', 'GOLD', 'LIGHTGREEN', 'LIGHTBLUE']
 
@@ -60,30 +55,17 @@ export function formatEvents(events: ScheduleResponse[]): EventInput[] {
 
     return {
       id: String(event.scheduleId), title: event.title,
-      start: event.startDate,
-      end: formatDateInput(endDate),
-      color: getCalendarEventColor(event.color),
-      classNames: event.color === 'GOLD' ? ['club-primary-event'] : undefined,
+      start: event.startDate, end: formatDateInput(endDate), color: event.color,
       scheduleId: event.scheduleId,
-      extendedProps: {
-        scheduleId: event.scheduleId,
-        scheduleColor: event.color,
-        description: event.content,
-        assignees: event.users,
-      },
+      extendedProps: { scheduleId: event.scheduleId, description: event.content, assignees: event.users },
     }
   })
 }
 
 export function formatApiEvents(event: EventApi): EventInput {
-  const scheduleColor = event.extendedProps?.scheduleColor
-
   return {
     id: event.id, scheduleId: Number(event.extendedProps.scheduleId ?? event.id),
-    title: event.title,
-    start: event.start?.toISOString(),
-    end: event.end?.toISOString(),
-    color: scheduleColor === 'GOLD' ? 'GOLD' : event.backgroundColor,
-    extendedProps: event.extendedProps,
+    title: event.title, start: event.start?.toISOString(), end: event.end?.toISOString(),
+    color: event.backgroundColor, extendedProps: event.extendedProps,
   }
 }

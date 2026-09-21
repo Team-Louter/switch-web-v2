@@ -256,10 +256,6 @@ export const CalendarWrapper = styled.div<{
     color: #191a1a;
   }
 
-  .fc .club-primary-event .fc-event-main {
-    color: ${token.colors.primary.foreground};
-  }
-
   .fc .fc-day-today {
     background-color: rgba(66, 153, 225, 0.05);
   }

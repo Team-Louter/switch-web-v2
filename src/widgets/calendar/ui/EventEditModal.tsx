@@ -8,7 +8,6 @@ import { calendarHighlight } from "../lib/calendarEvents";
 import { MemberDropdown } from "./MemberDropdown";
 import type { EventInput } from "@fullcalendar/core";
 import { useEventEditor } from "../model/useEventEditor";
-import * as paletteToken from '@/shared/styles/values/token';
 
 export interface EventEditModalProps {
     selectedDate?: Date | null;
@@ -94,9 +93,7 @@ export function EventEditModal({ selectedDate, selectedEndDate, setIsModalOpen, 
                             <S.Color
                                 key={color}
                                 style={{
-                                    backgroundColor: color === 'GOLD'
-                                        ? paletteToken.colors.primary.primary50
-                                        : color,
+                                    backgroundColor: color,
                                     border: selectedColor === color ? '1px solid #333' : 'none',
                                     cursor: 'pointer'
                                 }}

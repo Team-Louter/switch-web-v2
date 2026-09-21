@@ -7,7 +7,6 @@ import { FaFlag } from 'react-icons/fa6'
 
 import type { Schedule, ScheduleColor } from '@/entities/schedule'
 import { toDateKey, toDateKeyFromServer } from '@/shared/lib/calendar'
-import * as paletteToken from '@/shared/styles/values/token'
 
 import * as S from './HomeCalendar.style'
 import { ScheduleDetailPopover } from './ScheduleDetailPopover'
@@ -26,7 +25,7 @@ interface SelectedSchedule {
 }
 
 const COLORS: Record<ScheduleColor, string> = {
-  GOLD: paletteToken.colors.primary.primary50, LIGHTGREY: 'lightgrey', PINK: 'pink',
+  GOLD: 'gold', LIGHTGREY: 'lightgrey', PINK: 'pink',
   LIGHTGREEN: 'lightgreen', LIGHTBLUE: 'lightblue',
 }
 
@@ -52,9 +51,7 @@ export function HomeCalendar({
         id: String(schedule.scheduleId), title: schedule.title,
         start: toDateKeyFromServer(schedule.startDate),
         end: toDateKey(end.getUTCFullYear(), end.getUTCMonth() + 1, end.getUTCDate()),
-        allDay: true,
-        color: COLORS[schedule.color] ?? 'gold',
-        classNames: schedule.color === 'GOLD' ? ['club-primary-event'] : undefined,
+        allDay: true, color: COLORS[schedule.color] ?? 'gold',
       }
     })
 
