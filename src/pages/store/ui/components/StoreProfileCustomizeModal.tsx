@@ -14,6 +14,7 @@ import type {
 type StoreProfileCustomizeModalProps = {
   categories: StoreCategory[]
   errorMessage?: string
+  hasUnsavedChanges: boolean
   isActionPending: boolean
   isLoading?: boolean
   ownedEffects: StoreEffect[]
@@ -124,7 +125,7 @@ function CustomizeEffectOption({
 }: CustomizeEffectOptionProps) {
   const optionLabel = isNone
     ? '효과 없음'
-    : `${effect?.title ?? '프로필 효과'}${isEquipped ? ', 현재 적용 중' : ''}`
+    : `${effect?.title ?? '프로필 효과'}${isEquipped ? ', 현재 착용 중' : ''}`
 
   return (
     <S.CustomizeEffectOption
@@ -156,7 +157,7 @@ function CustomizeEffectOption({
       )}
 
       {isEquipped && (
-        <S.CustomizeEquippedBadge aria-hidden="true">적용 중</S.CustomizeEquippedBadge>
+        <S.CustomizeEquippedBadge aria-hidden="true">착용 중</S.CustomizeEquippedBadge>
       )}
 
       {isLocked && (
@@ -199,6 +200,7 @@ function CustomizeEffectSkeleton() {
 export function StoreProfileCustomizeModal({
   categories,
   errorMessage = '',
+  hasUnsavedChanges,
   isActionPending,
   isLoading = false,
   ownedEffects,
@@ -247,7 +249,8 @@ export function StoreProfileCustomizeModal({
   const isPrimaryActionDisabled =
     isModalBusy ||
     Boolean(errorMessage) ||
-    Boolean(selectedPurchaseEffect?.canPurchase === false)
+    Boolean(selectedPurchaseEffect?.canPurchase === false) ||
+    (!selectedPurchaseEffect && !hasUnsavedChanges)
   const handlePrimaryAction = () => {
     if (selectedPurchaseEffect) {
       onPurchase()

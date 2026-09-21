@@ -465,6 +465,11 @@ export function useStorePage() {
       : customizeCategoryEffects.find(
           (effect) => effect.id === selectedCustomizeEffectId,
         ) ?? null
+  const equippedCustomizeEffectId =
+    customizeOwnedEffects.find((effect) => effect.status === 'equipped')?.id ?? null
+  const hasCustomizeChanges =
+    selectedCustomizeEffectId !== undefined &&
+    (selectedCustomizeEffectId ?? null) !== equippedCustomizeEffectId
 
   useEffect(() => {
     setSelectedCustomizeEffectId((currentEffectId) => {
@@ -633,7 +638,7 @@ export function useStorePage() {
   }
 
   const handleCustomizeSave = async () => {
-    if (isActionPending) {
+    if (isActionPending || !hasCustomizeChanges) {
       return
     }
 
@@ -668,6 +673,7 @@ export function useStorePage() {
     customizeOwnedEffects,
     customizeRecommendedEffects,
     errorMessage,
+    hasCustomizeChanges,
     isActionPending,
     isLoading,
     ownedEffects,

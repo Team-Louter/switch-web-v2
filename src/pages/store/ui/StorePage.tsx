@@ -83,6 +83,7 @@ export function StorePage() {
     customizeOwnedEffects,
     customizeRecommendedEffects,
     errorMessage,
+    hasCustomizeChanges,
     isActionPending,
     isLoading,
     ownedEffects,
@@ -171,6 +172,7 @@ export function StorePage() {
         <StoreProfileCustomizeModal
           categories={customizeCategories}
           errorMessage={errorMessage}
+          hasUnsavedChanges={hasCustomizeChanges}
           isActionPending={isActionPending}
           isLoading={isLoading}
           ownedEffects={customizeOwnedEffects}

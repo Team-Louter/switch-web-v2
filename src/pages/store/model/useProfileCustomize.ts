@@ -129,6 +129,20 @@ export function useProfileCustomize({
     }),
     [selections, storeEffects],
   )
+
+  const hasUnsavedChanges = useMemo(
+    () =>
+      CUSTOMIZE_CATEGORIES.some((category) => {
+        const equippedEffectId =
+          storeEffects.find(
+            (effect) =>
+              effect.category === category && effect.status === 'equipped',
+          )?.id ?? null
+
+        return selections[category] !== equippedEffectId
+      }),
+    [selections, storeEffects],
+  )
   
   const onCategorySelect = (category: StoreCategory) => {
     if (category === '전체') {
@@ -200,7 +214,7 @@ export function useProfileCustomize({
   }
 
   const onSave = async () => {
-    if (isActionPending) {
+    if (isActionPending || !hasUnsavedChanges) {
       return false
     }
   
@@ -253,6 +267,7 @@ export function useProfileCustomize({
   return {
     categories: CUSTOMIZE_CATEGORIES,
     errorMessage,
+    hasUnsavedChanges,
     isActionPending,
     isLoading,
     ownedEffects,

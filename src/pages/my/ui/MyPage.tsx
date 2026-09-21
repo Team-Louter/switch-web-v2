@@ -243,6 +243,7 @@ export function MyPage() {
         <StoreProfileCustomizeModal
           categories={profileCustomize.categories}
           errorMessage={profileCustomize.errorMessage}
+          hasUnsavedChanges={profileCustomize.hasUnsavedChanges}
           isActionPending={profileCustomize.isActionPending}
           isLoading={profileCustomize.isLoading}
           ownedEffects={profileCustomize.ownedEffects}
