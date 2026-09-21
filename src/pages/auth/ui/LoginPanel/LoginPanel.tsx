@@ -14,6 +14,9 @@ interface LoginPanelProps {
   title?: string
   subtitle?: string
   isClubCreation?: boolean
+  representativeImagePreview?: string
+  onClubLogoPreviewChange?: (preview: string) => void
+  onRepresentativeImagePreviewChange?: (preview: string) => void
 }
 
 export function LoginPanel({
@@ -25,14 +28,21 @@ export function LoginPanel({
   title,
   subtitle,
   isClubCreation = false,
+  representativeImagePreview,
+  onClubLogoPreviewChange,
+  onRepresentativeImagePreviewChange,
 }: LoginPanelProps) {
   return (
     <S.Panel $heightOffset={heightOffset} $isFullWidth={isFullWidth}>
       {isClubCreation && (
         <S.ClubCreateBannerFrame>
           <S.ClubCreateBanner
-            src={clubCreateBanner}
-            alt="동아리 생성 안내 배너"
+            src={representativeImagePreview || clubCreateBanner}
+            alt={
+              representativeImagePreview
+                ? '선택한 동아리 대표 이미지 미리보기'
+                : '동아리 생성 안내 배너'
+            }
           />
         </S.ClubCreateBannerFrame>
       )}
@@ -49,7 +59,12 @@ export function LoginPanel({
           showPartnerLogo={!isClubCreation}
         />
         {isClubCreation ? (
-          <ClubCreateForm />
+          <ClubCreateForm
+            onLogoPreviewChange={onClubLogoPreviewChange}
+            onRepresentativeImagePreviewChange={
+              onRepresentativeImagePreviewChange
+            }
+          />
         ) : (
           <LoginForm
             controller={controller}

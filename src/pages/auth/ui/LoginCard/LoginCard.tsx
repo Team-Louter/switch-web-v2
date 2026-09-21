@@ -16,6 +16,9 @@ interface LoginCardProps {
   title?: string
   subtitle?: string
   isClubCreation?: boolean
+  representativeImagePreview?: string
+  onClubLogoPreviewChange?: (preview: string) => void
+  onRepresentativeImagePreviewChange?: (preview: string) => void
 }
 
 function getHeightOffset(
@@ -43,6 +46,9 @@ export function LoginCard({
   title,
   subtitle,
   isClubCreation = false,
+  representativeImagePreview,
+  onClubLogoPreviewChange,
+  onRepresentativeImagePreviewChange,
 }: LoginCardProps) {
   const controller = useLoginForm(
     initialEmail,
@@ -86,6 +92,9 @@ export function LoginCard({
         title={title}
         subtitle={subtitle}
         isClubCreation={isClubCreation}
+        representativeImagePreview={representativeImagePreview}
+        onClubLogoPreviewChange={onClubLogoPreviewChange}
+        onRepresentativeImagePreviewChange={onRepresentativeImagePreviewChange}
       />
     </S.Card>
   )

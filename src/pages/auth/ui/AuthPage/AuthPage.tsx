@@ -75,6 +75,9 @@ export function AuthPage({
   const location = useLocation()
   const navigate = useNavigate()
   const [loginCardKey, setLoginCardKey] = useState(0)
+  const [clubLogoPreview, setClubLogoPreview] = useState('')
+  const [representativeImagePreview, setRepresentativeImagePreview] =
+    useState('')
   const [authTransitionSessionId] = useState(() => crypto.randomUUID())
   const authViewState = getAuthViewState(location.state)
   const shouldAnimateAuthTransition =
@@ -111,6 +114,7 @@ export function AuthPage({
       <AuthHeader
         onSwitchClick={handleLoginReset}
         isClubCreation={isClubCreation}
+        clubLogoPreview={clubLogoPreview}
       />
       <S.Content>
         <LoginCard
@@ -124,6 +128,9 @@ export function AuthPage({
           title={title}
           subtitle={subtitle}
           isClubCreation={isClubCreation}
+          representativeImagePreview={representativeImagePreview}
+          onClubLogoPreviewChange={setClubLogoPreview}
+          onRepresentativeImagePreviewChange={setRepresentativeImagePreview}
         />
       </S.Content>
     </S.Page>

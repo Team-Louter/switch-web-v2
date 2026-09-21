@@ -12,16 +12,20 @@ const COLOR_OPTIONS = [
 
 interface ClubCreateFormProps {
   onSubmit?: () => void
+  onLogoPreviewChange?: (preview: string) => void
+  onRepresentativeImagePreviewChange?: (preview: string) => void
 }
 
 function readImagePreview(
   file: File,
   setPreview: (preview: string) => void,
+  onPreviewChange?: (preview: string) => void,
 ) {
   const reader = new FileReader()
   reader.addEventListener('load', () => {
     if (typeof reader.result === 'string') {
       setPreview(reader.result)
+      onPreviewChange?.(reader.result)
     }
   })
   reader.readAsDataURL(file)
@@ -29,6 +33,8 @@ function readImagePreview(
 
 export function ClubCreateForm({
   onSubmit,
+  onLogoPreviewChange,
+  onRepresentativeImagePreviewChange,
 }: ClubCreateFormProps) {
   const [koreanName, setKoreanName] = useState('')
   const [englishName, setEnglishName] = useState('')
@@ -55,6 +61,7 @@ export function ClubCreateForm({
     event: ChangeEvent<HTMLInputElement>,
     setFile: (file: File) => void,
     setPreview: (preview: string) => void,
+    onPreviewChange?: (preview: string) => void,
   ) {
     const file = event.currentTarget.files?.[0]
     if (!file) {
@@ -62,7 +69,7 @@ export function ClubCreateForm({
     }
 
     setFile(file)
-    readImagePreview(file, setPreview)
+    readImagePreview(file, setPreview, onPreviewChange)
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -149,6 +156,7 @@ export function ClubCreateForm({
                 event,
                 setClubLogo,
                 setClubLogoPreview,
+                onLogoPreviewChange,
               )
             }
           />
@@ -199,6 +207,7 @@ export function ClubCreateForm({
                 event,
                 setRepresentativeImage,
                 setRepresentativeImagePreview,
+                onRepresentativeImagePreviewChange,
               )
             }
           />
