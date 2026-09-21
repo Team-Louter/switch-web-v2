@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useUserStore } from '@/entities/profile'
+import { getActiveClubSlug, getClubApplicationBySlug } from '@/entities/club'
 import { getAllSchedules } from '@/entities/schedule'
 import type { Schedule } from '@/entities/schedule'
 import { RecoveryEmailModal } from '@/features/auth'
@@ -36,6 +37,15 @@ export function HomePage() {
   const [scale, setScale] = useState(1)
   const [schedules, setSchedules] = useState<Schedule[]>([])
   const [loading, setLoading] = useState(true)
+  const activeClubSlug = getActiveClubSlug()
+  const activeClub = activeClubSlug
+    ? getClubApplicationBySlug(activeClubSlug)
+    : null
+  const clubEnglishName = activeClub?.englishName ?? 'Louter'
+  const clubDisplayName = activeClub
+    ? `${activeClub.englishName}(${activeClub.koreanName})`
+    : 'Louter(라우터)'
+  const clubGithubUrl = activeClub?.clubOlga || 'https://github.com/Team-Louter'
   const [isRecoveryEmailModalOpen, setIsRecoveryEmailModalOpen] = useState(
     () =>
       Boolean(getPendingAccessToken()) &&
@@ -113,10 +123,10 @@ export function HomePage() {
           <HomeSidebar />
         </S.Canvas>
       </S.Viewport>
-      <HomeMemberSection />
+      <HomeMemberSection clubEnglishName={clubEnglishName} />
       <S.Footer>
-        <S.FooterText>Louter(라우터) / 대구소프트웨어마이스터고</S.FooterText>
-        <S.GithubLink href="https://github.com/Team-Louter" target="_blank" rel="noopener noreferrer">
+        <S.FooterText>{clubDisplayName}</S.FooterText>
+        <S.GithubLink href={clubGithubUrl} target="_blank" rel="noopener noreferrer">
           Github
         </S.GithubLink>
       </S.Footer>

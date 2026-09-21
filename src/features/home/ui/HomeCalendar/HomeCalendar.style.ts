@@ -248,7 +248,7 @@ export const CalendarWrapper = styled.div<{
   }
 
   .fc .club-report-selected-event {
-    box-shadow: inset 0 0 0 2px #ffd600;
+    box-shadow: inset 0 0 0 2px ${token.colors.primary.primary50};
     filter: brightness(0.96);
   }
 

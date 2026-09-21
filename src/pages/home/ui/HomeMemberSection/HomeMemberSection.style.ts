@@ -1,6 +1,7 @@
 import styled, { css, keyframes } from 'styled-components'
 
 import { contentReveal } from '@/shared/styles/animations'
+import * as token from '@/shared/styles/values/token'
 import { ProfileAvatar } from '@/shared/ui'
 
 const shimmer = keyframes`
@@ -43,10 +44,10 @@ export const FilterList = styled.div`
 export const FilterButton = styled.button<{ $active: boolean }>`
   flex: 0 0 66px;
   height: 28px;
-  border: 1px solid ${({ $active }) => ($active ? '#ffd600' : '#eee')};
+  border: 1px solid ${({ $active }) => ($active ? token.colors.primary.primary50 : '#eee')};
   border-radius: 999px;
-  background: ${({ $active }) => ($active ? '#ffd600' : '#fff')};
-  color: #333;
+  background: ${({ $active }) => ($active ? token.colors.primary.primary50 : '#fff')};
+  color: ${({ $active }) => ($active ? token.colors.primary.foreground : '#333')};
   font-size: .8125rem;
   font-weight: ${({ $active }) => ($active ? 700 : 500)};
   transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
@@ -119,8 +120,8 @@ export const RoleBadge = styled.span<{ $leader: boolean }>`
   height: 23px;
   place-items: center;
   border-radius: 4px;
-  background: ${({ $leader }) => ($leader ? '#ffd600' : '#f3f4f6')};
-  color: #333;
+  background: ${({ $leader }) => ($leader ? token.colors.primary.primary50 : '#f3f4f6')};
+  color: ${({ $leader }) => ($leader ? token.colors.primary.foreground : '#333')};
   font-size: .8125rem;
   font-weight: 500;
 `

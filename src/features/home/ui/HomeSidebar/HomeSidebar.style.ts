@@ -1,6 +1,7 @@
 import styled, { css, keyframes } from 'styled-components';
 
 import { ProfileAvatar } from '@/shared/ui';
+import * as token from '@/shared/styles/values/token';
 
 const shimmer = keyframes`
   from { background-position: 100% 0; }
@@ -52,7 +53,7 @@ export const ProfileHeader = styled.div`
   width: 90%;
   height: 40%;
   margin: 0 auto;
-  border-bottom: 2px solid #ffd600;
+  border-bottom: 2px solid ${token.colors.primary.primary50};
 `;
 export const Identity = styled.div`
   display: flex;
@@ -187,8 +188,8 @@ export const RankingTab = styled.button<{ $active: boolean }>`
   padding: 0 8px;
   border: 1px solid ${({ $active }) => ($active ? 'transparent' : '#333')};
   border-radius: 12px;
-  background: ${({ $active }) => ($active ? '#ffd600' : '#fff')};
-  color: #333;
+  background: ${({ $active }) => ($active ? token.colors.primary.primary50 : '#fff')};
+  color: ${({ $active }) => ($active ? token.colors.primary.foreground : '#333')};
   font-size: 10px;
   font-weight: 500;
   transition: transform 160ms ease, background-color 160ms ease;
@@ -247,8 +248,8 @@ export const MyRankingBadge = styled.span`
   flex: 0 0 auto;
   padding: 2px 5px;
   border-radius: 4px;
-  background: #fff4b8;
-  color: #806d00;
+  background: ${token.colors.primary.primary10};
+  color: ${token.colors.primary.primary80};
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
@@ -262,7 +263,7 @@ export const Post = styled.button`
   height: 84px;
   margin: 0 auto 6px;
   padding: 0 16px;
-  border-bottom: 2px solid #ffd600;
+  border-bottom: 2px solid ${token.colors.primary.primary50};
   border-radius: 8px;
   background: #fff;
   text-align: left;

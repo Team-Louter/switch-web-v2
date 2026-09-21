@@ -11,7 +11,11 @@ const ALL_GENERATIONS = '전체'
 const DEFAULT_GENERATIONS = [1, 2, 3]
 const MEMBER_BATCH_SIZE = 5
 
-export function HomeMemberSection() {
+interface HomeMemberSectionProps {
+  clubEnglishName: string
+}
+
+export function HomeMemberSection({ clubEnglishName }: HomeMemberSectionProps) {
   const [members, setMembers] = useState<Member[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
@@ -105,8 +109,8 @@ export function HomeMemberSection() {
   }
 
   return (
-    <S.Section ref={sectionRef} aria-label="Louter Member" $visible={isVisible}>
-      <S.Title>Louter Member</S.Title>
+    <S.Section ref={sectionRef} aria-label={`${clubEnglishName} Member`} $visible={isVisible}>
+      <S.Title>{clubEnglishName} Member</S.Title>
       <S.FilterList aria-label="기수 필터">
         <S.FilterButton
           type="button"
@@ -129,7 +133,7 @@ export function HomeMemberSection() {
       <S.MemberList key={selectedGeneration} $loaded={shouldLoad && !isLoading}>
         {isLoading
           ? Array.from({ length: 5 }, (_, index) => <MemberSkeleton key={index} />)
-          : shouldLoad && renderedMembers.map((member) => <MemberRow key={member.userId} member={member} />)}
+          : shouldLoad && renderedMembers.map((member) => <MemberRow key={member.userId} member={member} clubEnglishName={clubEnglishName} />)}
         {isLoadingMore && Array.from({ length: Math.min(MEMBER_BATCH_SIZE, visibleMembers.length - visibleCount) }, (_, index) => <MemberSkeleton key={`more-${index}`} />)}
         {shouldLoad && hasMoreMembers && <S.LoadMoreTrigger ref={loadMoreRef} aria-label="다음 멤버 불러오는 중" />}
       </S.MemberList>
@@ -139,9 +143,10 @@ export function HomeMemberSection() {
 
 interface MemberRowProps {
   member: Member
+  clubEnglishName: string
 }
 
-function MemberRow({ member }: MemberRowProps) {
+function MemberRow({ member, clubEnglishName }: MemberRowProps) {
   const roleLabel = member.role === 'LEADER' ? '부장' : '부원'
   const majorText = member.majors.length > 0
     ? `${member.majors.join(' & ')} Developer`
@@ -191,7 +196,7 @@ function MemberRow({ member }: MemberRowProps) {
           {member.linkedinUrl && <a href={member.linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label={`${member.userName} LinkedIn`}><FaLinkedin /></a>}
         </S.SocialLinks>
         <S.Generation>
-          Louter {member.generation}기
+          {clubEnglishName} {member.generation}기
           {profileTitleText && (
             <>
               <S.GenerationSeparator aria-hidden="true">·</S.GenerationSeparator>
