@@ -681,10 +681,28 @@ export const CustomizeEffectScrollArea = styled.div`
   ${token.flexColumn}
   align-items: flex-start;
   gap: 12px;
+  box-sizing: border-box;
   flex: 1 1 auto;
   min-height: 0;
-  width: 100%;
+  width: calc(100% + 16px);
+  margin-right: -16px;
+  padding-right: 16px;
   overflow-y: auto;
+  scrollbar-color: ${token.colors.gray.gray30} ${token.colors.gray.gray10};
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${token.colors.gray.gray10};
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: ${token.shapes.circle};
+    background: ${token.colors.gray.gray30};
+  }
 `
 
 export const CustomizeSectionTitle = styled.p`
