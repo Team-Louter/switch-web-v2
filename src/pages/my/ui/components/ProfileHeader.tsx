@@ -55,12 +55,6 @@ export function ProfileHeader({
               </S.QuickStatIcon>
               <S.SkeletonBlock $width="24px" $height="10px" />
             </S.QuickStat>
-            <S.QuickStat>
-              <S.QuickStatIcon $kind="badge" aria-hidden="true">
-                <MyStatIcon type="badge" />
-              </S.QuickStatIcon>
-              <S.SkeletonBlock $width="12px" $height="10px" />
-            </S.QuickStat>
           </S.QuickStats>
           <S.ProfileGroup>
             <S.SkeletonCircle />
@@ -133,15 +127,6 @@ export function ProfileHeader({
               <MyStatIcon type="point" />
             </S.QuickStatIcon>
             <S.QuickStatValue>{formatCount(profile.point)}</S.QuickStatValue>
-          </S.QuickStat>
-          <S.QuickStat
-            role="img"
-            aria-label={`뱃지 ${profile.badgeCount ?? 0}개`}
-          >
-            <S.QuickStatIcon $kind="badge" aria-hidden="true">
-              <MyStatIcon type="badge" />
-            </S.QuickStatIcon>
-            <S.QuickStatValue>{profile.badgeCount ?? 0}</S.QuickStatValue>
           </S.QuickStat>
         </S.QuickStats>
         <S.ProfileGroup>
