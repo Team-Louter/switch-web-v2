@@ -2,6 +2,7 @@ import styled, { css, keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 import DecoSvg from '../assets/deco1.svg?react'
+import SpringSvg from '../assets/spring.svg?react'
 
 type PeriodState = 'past' | 'current' | 'future'
 
@@ -377,7 +378,7 @@ export const DecoImg = styled(DecoSvg)`
   right: 170px;
   width: auto;
   height: 100%;
-  color: ${({ color }) => color ?? '#CCA700'};
+  color: ${({ color }) => color ?? token.colors.primary.primary60};
   object-fit: contain;
   pointer-events: none;
 `;
@@ -421,8 +422,9 @@ export const WriteButton = styled.button`
   }
 `;
 
-export const DecoImg2 = styled.img`
+export const DecoImg2 = styled(SpringSvg)`
   position: absolute;
   top: 30px;
   right: 0px;
+  color: ${token.colors.primary.primary20};
 `;

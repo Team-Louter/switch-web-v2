@@ -26,7 +26,6 @@ import type { Member } from '@/entities/member/model/types'
 import { useUserStore } from '@/entities/profile'
 import { tokens } from '@/shared/styles'
 
-import decoImg2 from '../assets/spring.svg'
 import { getWeeksForCurrentYear } from '../lib/getWeeksForCurrentYear'
 import type { StudyWeek } from '../lib/getWeeksForCurrentYear'
 import { loadWithConcurrency } from '../lib/loadWithConcurrency'
@@ -673,7 +672,7 @@ export function MentorLearningPage() {
                     </S.WriteButton>
                   </S.ButtonContent>
                 </S.DiaryContent>
-                <S.DecoImg2 src={decoImg2} alt="" />
+                <S.DecoImg2 aria-hidden="true" />
               </S.Card>
             </S.Column>
           )

@@ -24,7 +24,6 @@ import {
 } from '@/shared/lib/studyWeek'
 import { tokens } from '@/shared/styles'
 
-import decoImg2 from '../assets/spring.svg'
 import {
   getMonthsFromCurrentMonth,
   getMonthState,
@@ -490,7 +489,7 @@ export function MenteeLearningPage() {
                     </S.WriteButton>
                   </S.ButtonContent>
                 </S.DiaryContent>
-                <S.DecoImg2 src={decoImg2} alt="" />
+                <S.DecoImg2 aria-hidden="true" />
               </S.Card>
             </S.Column>
           )
