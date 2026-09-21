@@ -2,16 +2,30 @@ import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
-export const Intro = styled.div`
+export const Intro = styled.div<{ $logoBelowTitle: boolean }>`
   ${token.flexColumn}
   align-items: center;
-  gap: 20px;
+  gap: ${({ $logoBelowTitle }) => ($logoBelowTitle ? '12px' : '20px')};
+  width: ${({ $logoBelowTitle }) => ($logoBelowTitle ? '100%' : 'auto')};
 `
 
-export const PartnerLogo = styled.img`
-  width: 40px;
-  height: 40px;
-  border-radius: ${token.shapes.small};
+export const IntroDivider = styled.div`
+  width: 100%;
+  height: 1px;
+  background: ${token.colors.gray.gray10};
+`
+
+export const PartnerLogo = styled.img<{
+  $isSwitchLogo: boolean
+  $isCompactLogo: boolean
+}>`
+  width: ${({ $isSwitchLogo, $isCompactLogo }) =>
+    $isSwitchLogo ? ($isCompactLogo ? '64px' : '112px') : '40px'};
+  height: ${({ $isSwitchLogo, $isCompactLogo }) =>
+    $isSwitchLogo ? ($isCompactLogo ? '18px' : '31px') : '40px'};
+  border-radius: ${({ $isSwitchLogo }) =>
+    $isSwitchLogo ? '0' : token.shapes.small};
+  object-fit: contain;
 `
 
 export const Copy = styled.div`

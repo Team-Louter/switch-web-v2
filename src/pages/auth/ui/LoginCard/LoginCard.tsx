@@ -10,6 +10,12 @@ interface LoginCardProps {
   initialEmail?: string
   returnPath?: string
   authTransitionSessionId?: string
+  hideHeroImage?: boolean
+  useSwitchLogo?: boolean
+  requiresTurnstile?: boolean
+  title?: string
+  subtitle?: string
+  isClubCreation?: boolean
 }
 
 function getHeightOffset(
@@ -31,11 +37,18 @@ export function LoginCard({
   initialEmail = '',
   returnPath = '/home',
   authTransitionSessionId = '',
+  hideHeroImage = false,
+  useSwitchLogo = false,
+  requiresTurnstile = true,
+  title,
+  subtitle,
+  isClubCreation = false,
 }: LoginCardProps) {
   const controller = useLoginForm(
     initialEmail,
     returnPath,
     authTransitionSessionId,
+    requiresTurnstile,
   )
   const {
     isPasswordStep,
@@ -51,17 +64,29 @@ export function LoginCard({
   return (
     <S.Card
       $heightOffset={heightOffset}
+      $isFullWidth={hideHeroImage}
       $usesPasswordTransition={usesPasswordTransition}
       aria-labelledby="login-title"
     >
-      <S.Hero $heightOffset={heightOffset}>
-        <S.HeroImage
-          src={authHeroImage}
-          alt="Louter 캐릭터들이 함께 노는 모습"
-        />
-      </S.Hero>
+      {!hideHeroImage && (
+        <S.Hero $heightOffset={heightOffset}>
+          <S.HeroImage
+            src={authHeroImage}
+            alt="Louter 캐릭터들이 함께 노는 모습"
+          />
+        </S.Hero>
+      )}
 
-      <LoginPanel controller={controller} heightOffset={heightOffset} />
+      <LoginPanel
+        controller={controller}
+        heightOffset={heightOffset}
+        isFullWidth={hideHeroImage}
+        useSwitchLogo={useSwitchLogo}
+        requiresTurnstile={requiresTurnstile}
+        title={title}
+        subtitle={subtitle}
+        isClubCreation={isClubCreation}
+      />
     </S.Card>
   )
 }

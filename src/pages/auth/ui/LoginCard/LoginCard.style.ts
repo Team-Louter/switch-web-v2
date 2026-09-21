@@ -4,6 +4,7 @@ import * as token from '@/shared/styles/values/token'
 
 interface CardProps {
   $heightOffset: number
+  $isFullWidth: boolean
   $usesPasswordTransition: boolean
 }
 
@@ -13,9 +14,14 @@ export const Card = styled.section<CardProps>`
     $usesPasswordTransition ? '480ms' : '320ms'};
 
   align-items: stretch;
-  width: min(969px, 100%);
-  height: ${({ $heightOffset }) => 549 + $heightOffset}px;
-  margin-bottom: ${({ $heightOffset }) => -$heightOffset}px;
+  width: ${({ $isFullWidth }) =>
+    $isFullWidth ? 'min(800px, 100%)' : 'min(969px, 100%)'};
+  height: ${({ $heightOffset, $isFullWidth }) =>
+    $isFullWidth ? 'auto' : `${549 + $heightOffset}px`};
+  min-height: ${({ $heightOffset, $isFullWidth }) =>
+    $isFullWidth ? `${721 + $heightOffset}px` : 'auto'};
+  margin-bottom: ${({ $heightOffset, $isFullWidth }) =>
+    $isFullWidth ? 0 : -$heightOffset}px;
   overflow: hidden;
   view-transition-name: auth-card;
   border-radius: 20px;
@@ -37,6 +43,7 @@ export const Card = styled.section<CardProps>`
   @media (max-width: 420px) {
     width: 100%;
     height: auto;
+    min-height: 0;
     margin-bottom: 0;
 
   }

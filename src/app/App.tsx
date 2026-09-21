@@ -109,7 +109,19 @@ export function App() {
           </Route>
         <Route element={<GuestOnlyRoute />}>
           <Route path="/login" element={<AuthPage />} />
-          <Route path="/create" element={<AuthPage />} />
+          <Route
+            path="/create"
+            element={
+              <AuthPage
+                hideHeroImage
+                useSwitchLogo
+                requiresTurnstile={false}
+                title="동아리 생성 신청서"
+                subtitle="동아리 정보를 입력해주세요"
+                isClubCreation
+              />
+            }
+          />
           <Route
             path="/signup"
             element={<Navigate to="/login" replace />}

@@ -13,6 +13,15 @@ interface AuthViewState {
   authTransitionSessionId: string
 }
 
+interface AuthPageProps {
+  hideHeroImage?: boolean
+  useSwitchLogo?: boolean
+  requiresTurnstile?: boolean
+  title?: string
+  subtitle?: string
+  isClubCreation?: boolean
+}
+
 function getAuthViewState(locationState: unknown): AuthViewState {
   if (typeof locationState !== 'object' || locationState === null) {
     return {
@@ -55,7 +64,14 @@ function isSafeReturnPath(returnPath: string): boolean {
   )
 }
 
-export function AuthPage() {
+export function AuthPage({
+  hideHeroImage = false,
+  useSwitchLogo = false,
+  requiresTurnstile = true,
+  title,
+  subtitle,
+  isClubCreation = false,
+}: AuthPageProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const [loginCardKey, setLoginCardKey] = useState(0)
@@ -92,13 +108,22 @@ export function AuthPage() {
 
   return (
     <S.Page>
-      <AuthHeader onSwitchClick={handleLoginReset} />
+      <AuthHeader
+        onSwitchClick={handleLoginReset}
+        isClubCreation={isClubCreation}
+      />
       <S.Content>
         <LoginCard
           key={loginCardKey}
           initialEmail={authViewState.email}
           returnPath={authViewState.returnPath}
           authTransitionSessionId={authTransitionSessionId}
+          hideHeroImage={hideHeroImage}
+          useSwitchLogo={useSwitchLogo}
+          requiresTurnstile={requiresTurnstile}
+          title={title}
+          subtitle={subtitle}
+          isClubCreation={isClubCreation}
         />
       </S.Content>
     </S.Page>

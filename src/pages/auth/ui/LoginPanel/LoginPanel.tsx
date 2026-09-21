@@ -1,19 +1,61 @@
 import type { LoginFormController } from '../../model/useLoginForm'
+import clubCreateBanner from '../../assets/images/club-create-banner.webp'
 import { AuthIntro } from '../AuthIntro'
+import { ClubCreateForm } from '../ClubCreateForm'
 import { LoginForm } from '../LoginForm'
 import * as S from './LoginPanel.style'
 
 interface LoginPanelProps {
   controller: LoginFormController
   heightOffset: number
+  isFullWidth?: boolean
+  useSwitchLogo?: boolean
+  requiresTurnstile?: boolean
+  title?: string
+  subtitle?: string
+  isClubCreation?: boolean
 }
 
-export function LoginPanel({ controller, heightOffset }: LoginPanelProps) {
+export function LoginPanel({
+  controller,
+  heightOffset,
+  isFullWidth = false,
+  useSwitchLogo = false,
+  requiresTurnstile = true,
+  title,
+  subtitle,
+  isClubCreation = false,
+}: LoginPanelProps) {
   return (
-    <S.Panel $heightOffset={heightOffset}>
-      <S.Content>
-        <AuthIntro titleId="login-title" />
-        <LoginForm controller={controller} />
+    <S.Panel $heightOffset={heightOffset} $isFullWidth={isFullWidth}>
+      {isClubCreation && (
+        <S.ClubCreateBannerFrame>
+          <S.ClubCreateBanner
+            src={clubCreateBanner}
+            alt="동아리 생성 안내 배너"
+          />
+        </S.ClubCreateBannerFrame>
+      )}
+      <S.Content
+        $isFullWidth={isFullWidth}
+        $hasBanner={isClubCreation}
+      >
+        <AuthIntro
+          titleId="login-title"
+          title={title}
+          subtitle={subtitle}
+          useSwitchLogo={useSwitchLogo}
+          compactLogo={isClubCreation}
+          showPartnerLogo={!isClubCreation}
+        />
+        {isClubCreation ? (
+          <ClubCreateForm />
+        ) : (
+          <LoginForm
+            controller={controller}
+            requiresTurnstile={requiresTurnstile}
+          />
+        )}
       </S.Content>
     </S.Panel>
   )
