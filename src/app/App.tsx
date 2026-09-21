@@ -109,6 +109,7 @@ export function App() {
           </Route>
         <Route element={<GuestOnlyRoute />}>
           <Route path="/login" element={<AuthPage />} />
+          <Route path="/create" element={<AuthPage />} />
           <Route
             path="/signup"
             element={<Navigate to="/login" replace />}
