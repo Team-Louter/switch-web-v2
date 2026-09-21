@@ -52,7 +52,9 @@ export function HomeCalendar({
         id: String(schedule.scheduleId), title: schedule.title,
         start: toDateKeyFromServer(schedule.startDate),
         end: toDateKey(end.getUTCFullYear(), end.getUTCMonth() + 1, end.getUTCDate()),
-        allDay: true, color: COLORS[schedule.color] ?? 'gold',
+        allDay: true,
+        color: COLORS[schedule.color] ?? 'gold',
+        classNames: schedule.color === 'GOLD' ? ['club-primary-event'] : undefined,
       }
     })
 

@@ -63,6 +63,7 @@ export function formatEvents(events: ScheduleResponse[]): EventInput[] {
       start: event.startDate,
       end: formatDateInput(endDate),
       color: getCalendarEventColor(event.color),
+      classNames: event.color === 'GOLD' ? ['club-primary-event'] : undefined,
       scheduleId: event.scheduleId,
       extendedProps: {
         scheduleId: event.scheduleId,

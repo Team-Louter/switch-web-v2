@@ -249,6 +249,10 @@ export const CalendarWrapper = styled.div`
     color: ${token.colors.calendar.black};
   }
 
+  .fc .club-primary-event .fc-event-main {
+    color: ${paletteToken.colors.primary.foreground};
+  }
+
   .fc .fc-day-today {
     background-color: rgba(66, 153, 225, 0.05);
   }
