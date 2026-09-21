@@ -1,4 +1,5 @@
 import * as token from '../lib/calendarTokens';
+import * as paletteToken from '@/shared/styles/values/token';
 import styled, { createGlobalStyle } from 'styled-components';
 
 export const SkeletonStyle = createGlobalStyle`
@@ -236,11 +237,11 @@ export const CalendarWrapper = styled.div`
   }
 
   .fc .fc-event:hover {
-    background-color: rgb(252, 222, 25);
+    background-color: ${paletteToken.colors.primary.primary40};
   }
 
   .fc .club-report-selected-event {
-    box-shadow: inset 0 0 0 2px ${token.colors.main.alternative};
+    box-shadow: inset 0 0 0 2px ${paletteToken.colors.primary.primary50};
     filter: brightness(0.96);
   }
 

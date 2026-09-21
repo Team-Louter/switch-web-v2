@@ -7,6 +7,7 @@ import { FaFlag } from 'react-icons/fa6'
 
 import type { Schedule, ScheduleColor } from '@/entities/schedule'
 import { toDateKey, toDateKeyFromServer } from '@/shared/lib/calendar'
+import * as paletteToken from '@/shared/styles/values/token'
 
 import * as S from './HomeCalendar.style'
 import { ScheduleDetailPopover } from './ScheduleDetailPopover'
@@ -25,7 +26,7 @@ interface SelectedSchedule {
 }
 
 const COLORS: Record<ScheduleColor, string> = {
-  GOLD: 'gold', LIGHTGREY: 'lightgrey', PINK: 'pink',
+  GOLD: paletteToken.colors.primary.primary50, LIGHTGREY: 'lightgrey', PINK: 'pink',
   LIGHTGREEN: 'lightgreen', LIGHTBLUE: 'lightblue',
 }
 
