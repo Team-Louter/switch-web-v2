@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import * as paletteToken from "@/shared/styles/values/token";
 import * as token from "../lib/calendarTokens";
 
 export const Background = styled.div`
@@ -198,11 +199,11 @@ export const ConfirmButton = styled.button<{ $isValid: boolean }>`
     height: 35px;
     min-width: 70px;
     width: 100px;
-    background-color: ${token.colors.background.yellow};
-    border: 1px solid ${token.colors.line.highlight};
+    background-color: ${paletteToken.colors.primary.primary50};
+    border: 1px solid ${paletteToken.colors.primary.primary50};
     border-radius: 4px;
     ${token.typography('body', 'sm', 'bold')};
-    color: ${token.colors.text.dark};
+    color: ${paletteToken.colors.primary.foreground};
     opacity: ${({ $isValid }) => $isValid ? 1 : 0.5};
     cursor: ${({ $isValid }) => $isValid ? 'pointer' : 'not-allowed'};
 `
