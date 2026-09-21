@@ -1,3 +1,5 @@
+import * as token from '@/shared/styles/values/token'
+
 import * as S from '../StorePage.style'
 import { StoreCardPointIcon } from '../icons'
 
@@ -96,7 +98,9 @@ export function StoreEffectCard({
             onClick={handleActionClick}
             type="button"
           >
-            {isRecommended && <StoreCardPointIcon color="#665400" />}
+            {isRecommended && (
+              <StoreCardPointIcon color={token.colors.point.strong} />
+            )}
             {isRecommended
               ? `${effect.price}에 구매하기`
               : isEquipped

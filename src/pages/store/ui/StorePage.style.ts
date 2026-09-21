@@ -71,23 +71,23 @@ export const PointButton = styled.button`
   flex: 0 0 auto;
   margin-left: auto;
   padding: 12px;
-  color: ${token.colors.primary.primary70};
+  color: ${token.colors.point.text};
 `
 
 export const PointTextGroup = styled.span`
   ${token.flexRow}
   align-items: center;
   gap: 5px;
-  color: ${token.colors.primary.primary70};
+  color: ${token.colors.point.text};
   ${token.typography('body', 'lg', 'medium')}
 
   svg {
-    color: ${token.colors.primary.primary60};
+    color: ${token.colors.point.primary};
   }
 `
 
 export const PointValue = styled.span`
-  color: ${token.colors.primary.primary100};
+  color: ${token.colors.point.text};
   ${token.typography('body', 'lg', 'medium')}
 `
 
@@ -317,13 +317,13 @@ export const PriceRow = styled.div`
   position: absolute;
   inset: 0;
   gap: 2px;
-  color: ${token.colors.primary.primary70};
+  color: ${token.colors.point.text};
   ${token.typography('body', 'sm', 'semibold')}
   opacity: 1;
   transition: opacity 120ms ease;
 
   svg {
-    color: ${token.colors.primary.primary60};
+    color: ${token.colors.point.primary};
   }
 
   ${EffectCard}:hover & {
@@ -349,7 +349,7 @@ export const CardButton = styled.button<{ $isDanger?: boolean }>`
   ${cardHoverButtonStyle}
 
   svg {
-    color: ${token.colors.primary.primary60};
+    color: ${token.colors.point.primary};
   }
 
   ${EffectCard}:hover & {
@@ -499,6 +499,10 @@ export const PointSummary = styled.div`
   width: 100%;
   color: ${token.colors.gray.gray50};
   ${token.typography('body', 'lg', 'medium')}
+
+  span:last-child {
+    color: ${token.colors.point.text};
+  }
 `
 
 export const ModalButton = styled.button<{ $variant?: 'primary' | 'secondary' }>`
@@ -538,7 +542,7 @@ export const ModalButton = styled.button<{ $variant?: 'primary' | 'secondary' }>
   }
 
   svg {
-    color: ${token.colors.primary.primary60};
+    color: ${token.colors.point.primary};
   }
 `
 
@@ -834,6 +838,6 @@ export const PointHistoryDescription = styled.p`
 export const PointHistoryAmount = styled.p<{ $isPositive: boolean }>`
   margin: 0;
   color: ${({ $isPositive }) =>
-    $isPositive ? token.colors.primary.primary60 : token.colors.danger.danger20};
+    $isPositive ? token.colors.point.text : token.colors.danger.danger20};
   ${token.typography('body', 'md', 'medium')}
 `

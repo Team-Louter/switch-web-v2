@@ -1,7 +1,8 @@
 import type { StoreIconProps } from './types'
+import * as token from '@/shared/styles/values/token'
 
 export function StoreCardPointIcon({
-  color = '#997D00',
+  color = token.colors.point.primary,
   size = 15,
 }: StoreIconProps & { color?: string }) {
   return (

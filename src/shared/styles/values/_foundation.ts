@@ -29,6 +29,12 @@ export const colors = {
     foreground: 'var(--switch-primary-foreground, #0E0D0C)',
   },
 
+  point: {
+    primary: '#FFD600',
+    text: '#997D00',
+    strong: '#665400',
+  },
+
   gray: {
     gray0: '#F3F2F1',
     gray10: '#E8E7E3',
