@@ -47,6 +47,7 @@ export function useLoginForm(
   initialEmail = '',
   returnPath = '/home',
   authTransitionSessionId = '',
+  requiresTurnstile = true,
 ): LoginFormController {
   const navigate = useNavigate()
   const [email, setEmail] = useState(initialEmail)
@@ -60,11 +61,13 @@ export function useLoginForm(
   const [loginValidationMessage, setLoginValidationMessage] = useState('')
   const passwordTransitionTimerRef = useRef<number | null>(null)
   const isPasswordStep = loginStep === 'password'
+  const isTurnstileReady =
+    !requiresTurnstile || Boolean(turnstileToken && TURNSTILE_SITE_KEY)
   const isContinueDisabled =
     isSubmitting ||
     (isPasswordStep
-      ? !password || !turnstileToken || !TURNSTILE_SITE_KEY
-      : !email.trim() || !turnstileToken || !TURNSTILE_SITE_KEY)
+      ? !password || !isTurnstileReady
+      : !email.trim() || !isTurnstileReady)
 
   function handleEmailChange(event: ChangeEvent<HTMLInputElement>) {
     setEmail(event.target.value)

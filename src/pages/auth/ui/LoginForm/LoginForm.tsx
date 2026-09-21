@@ -10,9 +10,13 @@ import * as S from './LoginForm.style'
 
 interface LoginFormProps {
   controller: LoginFormController
+  requiresTurnstile?: boolean
 }
 
-export function LoginForm({ controller }: LoginFormProps) {
+export function LoginForm({
+  controller,
+  requiresTurnstile = true,
+}: LoginFormProps) {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const {
     email,
@@ -153,20 +157,21 @@ export function LoginForm({ controller }: LoginFormProps) {
             </S.ValidationMessageSlot>
           </S.Fields>
 
-          {turnstileSiteKey ? (
-            <Turnstile
-              key={turnstileKey}
-              siteKey={turnstileSiteKey}
-              action="login"
-              onVerify={handleTurnstileVerify}
-              onExpire={handleTurnstileReset}
-              onError={handleTurnstileReset}
-            />
-          ) : (
-            <S.TurnstileConfigMessage role="alert">
-              보안 인증 설정이 필요합니다
-            </S.TurnstileConfigMessage>
-          )}
+          {requiresTurnstile &&
+            (turnstileSiteKey ? (
+              <Turnstile
+                key={turnstileKey}
+                siteKey={turnstileSiteKey}
+                action="login"
+                onVerify={handleTurnstileVerify}
+                onExpire={handleTurnstileReset}
+                onError={handleTurnstileReset}
+              />
+            ) : (
+              <S.TurnstileConfigMessage role="alert">
+                보안 인증 설정이 필요합니다
+              </S.TurnstileConfigMessage>
+            ))}
         </S.EmailGroup>
       </S.Options>
 
