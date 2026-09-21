@@ -16,7 +16,7 @@ export function ModeButton({ Icon, mode, description, setSelected, selected, ser
       <Icon size={35}/>
       <S.Column>
         <S.Label>{mode}</S.Label>
-        <S.Value>{description}</S.Value>
+        <S.Value $selected={selected}>{description}</S.Value>
       </S.Column>
     </S.Card>
   )
