@@ -609,6 +609,12 @@ export const CustomizeModal = styled.div`
   animation: ${customizeModalReveal} 220ms cubic-bezier(0.22, 1, 0.36, 1)
     both;
 
+  ${ModalHeader} {
+    box-sizing: border-box;
+    padding-bottom: 16px;
+    border-bottom: 1px solid ${token.colors.gray.gray10};
+  }
+
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
@@ -617,55 +623,64 @@ export const CustomizeModal = styled.div`
 export const CustomizeBody = styled.div`
   ${token.flexRow}
   align-items: flex-start;
-  gap: 20px;
+  gap: 16px;
+  flex: 1 1 auto;
   min-height: 0;
   width: 100%;
-  height: 100%;
+  height: auto;
 `
 
 export const CustomizeTabList = styled.div`
   ${token.flexColumn}
-  gap: 10px;
-  flex: 0 0 200px;
+  gap: 6px;
+  box-sizing: border-box;
+  flex: 0 0 172px;
   height: 100%;
+  padding-right: 16px;
   overflow: hidden;
+  border-right: 1px solid ${token.colors.gray.gray10};
 `
 
 export const CustomizeTabButton = styled.button<{ $isActive: boolean }>`
   width: 100%;
-  padding: 15px 20px;
+  padding: 12px 14px;
   border-radius: ${token.shapes.medium};
   color: ${({ $isActive }) =>
     $isActive ? token.colors.gray.gray90 : token.colors.gray.gray50};
   text-align: left;
   background: ${({ $isActive }) =>
-    $isActive ? token.colors.gray.gray10 : token.colors.white};
-  ${token.typography('body', 'lg', 'medium')}
+    $isActive ? token.colors.primary.primary0 : 'transparent'};
+  ${token.typography('body', 'md', 'medium')}
   transition:
     background-color 120ms ease,
     color 120ms ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     color: ${token.colors.gray.gray90};
-    background: ${token.colors.gray.gray0};
+    background: ${token.colors.primary.primary0};
   }
 `
 
 export const CustomizeEffectPanel = styled.div`
   ${token.flexColumn}
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
+  box-sizing: border-box;
   flex: 1 1 0;
   min-width: 0;
   min-height: 0;
   height: 100%;
+  padding: 16px;
   overflow: hidden;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.large};
+  background: ${token.colors.gray.gray0};
 `
 
 export const CustomizeEffectScrollArea = styled.div`
   ${token.flexColumn}
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
   flex: 1 1 auto;
   min-height: 0;
   width: 100%;
@@ -674,8 +689,12 @@ export const CustomizeEffectScrollArea = styled.div`
 
 export const CustomizeSectionTitle = styled.p`
   margin: 0;
+  box-sizing: border-box;
+  width: 100%;
+  padding-bottom: 8px;
+  border-bottom: 1px solid ${token.colors.gray.gray10};
   color: ${token.colors.gray.gray80};
-  ${token.typography('body', 'lg', 'medium')}
+  ${token.typography('body', 'md', 'semibold')}
 `
 
 export const CustomizeFeedbackMessage = styled.p`
@@ -685,7 +704,7 @@ export const CustomizeFeedbackMessage = styled.p`
   ${token.typography('body', 'sm', 'medium')}
 `
 
-const CUSTOMIZE_OPTION_SIZE = 110
+const CUSTOMIZE_OPTION_SIZE = 100
 const CUSTOMIZE_OPTION_GAP = 10
 const CUSTOMIZE_OPTION_COLUMNS = 3
 const CUSTOMIZE_OPTION_GRID_WIDTH =
@@ -748,10 +767,10 @@ export const CustomizeEffectOption = styled.button<{
   overflow: hidden;
   border: ${({ $isEquipped, $isSelected }) =>
     $isEquipped
-      ? `2px solid ${token.colors.gray.gray20}`
+      ? `2px solid ${token.colors.primary.primary30}`
       : $isSelected
         ? `2px solid ${token.colors.primary.primary50}`
-        : '2px solid transparent'};
+        : `1px solid ${token.colors.gray.gray10}`};
   border-radius: ${token.shapes.medium};
   background: ${({ $isEquipped, $isSelected }) =>
     $isEquipped || $isSelected ? token.colors.white : token.colors.gray.gray0};
@@ -859,6 +878,7 @@ export const CustomizeStoreButton = styled.button`
   border: 1px solid ${token.colors.primary.primary80};
   border-radius: ${token.shapes.small};
   color: ${token.colors.primary.primary80};
+  background: ${token.colors.white};
   ${token.typography('body', 'md', 'medium')}
   transition:
     border-color 120ms ease,
@@ -884,46 +904,53 @@ export const CustomizePreviewPanel = styled.div`
   ${token.flexColumn}
   align-items: stretch;
   justify-content: space-between;
+  box-sizing: border-box;
   flex: 1 1 0;
   min-width: 0;
   height: 100%;
+  padding: 20px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.large};
+  background: ${token.colors.gray.gray0};
 `
 
 export const CustomizePreviewTop = styled.div`
   ${token.flexColumn}
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   width: 100%;
 `
 
 export const CustomizePreviewTextGroup = styled.div`
   ${token.flexColumn}
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   width: 100%;
 `
 export const CustomizePreviewTitle = styled.p`
   margin: 0;
   color: #FFA20A;
-  ${token.typography('body', 'lg', 'regular')}
+  ${token.typography('body', 'md', 'medium')}
 `
 
 export const CustomizePreviewName = styled(UserName)`
   font-family: ${token.fontFamily.system};
-  font-size: ${token.fontSize.heading.xl};
+  font-size: ${token.fontSize.heading.lg};
 `
 
 export const CustomizePreviewDescription = styled.p`
   margin: 0;
   color: ${token.colors.gray.gray60};
   text-align: center;
-  ${token.typography('body', 'lg', 'regular')}
+  ${token.typography('body', 'sm', 'regular')}
 `
 
 export const CustomizeActionGroup = styled.div`
   ${token.flexColumn}
-  gap: 10px;
+  gap: 8px;
   width: 100%;
+  padding-top: 16px;
+  border-top: 1px solid ${token.colors.gray.gray10};
 
   ${ModalButton} {
     box-sizing: border-box;
