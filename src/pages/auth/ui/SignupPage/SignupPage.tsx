@@ -117,7 +117,9 @@ export function SignupPage({
                     ? `${clubProfile.englishName} (${clubProfile.koreanName})`
                     : undefined
                 }
-                showPartnerLogo={!clubProfile}
+                showPartnerLogo
+                partnerLogoSrc={clubProfile?.clubLogoPreview}
+                partnerLogoAlt={clubProfile ? '동아리 로고' : undefined}
               />
 
               <S.FormOptions>

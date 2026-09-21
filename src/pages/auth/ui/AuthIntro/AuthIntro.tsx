@@ -10,6 +10,8 @@ interface AuthIntroProps {
   compactLogo?: boolean
   logoBelowTitle?: boolean
   showPartnerLogo?: boolean
+  partnerLogoSrc?: string
+  partnerLogoAlt?: string
 }
 
 export function AuthIntro({
@@ -20,12 +22,19 @@ export function AuthIntro({
   compactLogo = false,
   logoBelowTitle = false,
   showPartnerLogo = true,
+  partnerLogoSrc,
+  partnerLogoAlt,
 }: AuthIntroProps) {
+  const resolvedPartnerLogoSrc =
+    partnerLogoSrc || (useSwitchLogo ? switchLogo : louterLogoImage)
+  const isSwitchPartnerLogo = useSwitchLogo && !partnerLogoSrc
+  const resolvedPartnerLogoAlt =
+    partnerLogoAlt || (isSwitchPartnerLogo ? 'Switch' : 'Louter')
   const partnerLogo = (
     <S.PartnerLogo
-      src={useSwitchLogo ? switchLogo : louterLogoImage}
-      alt=""
-      $isSwitchLogo={useSwitchLogo}
+      src={resolvedPartnerLogoSrc}
+      alt={resolvedPartnerLogoAlt}
+      $isSwitchLogo={isSwitchPartnerLogo}
       $isCompactLogo={compactLogo}
     />
   )

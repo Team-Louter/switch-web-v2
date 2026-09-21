@@ -61,7 +61,9 @@ export function LoginPanel({
           subtitle={subtitle}
           useSwitchLogo={useSwitchLogo}
           compactLogo={isClubCreation}
-          showPartnerLogo={!isClubCreation && !clubProfile}
+          showPartnerLogo={!isClubCreation}
+          partnerLogoSrc={clubProfile?.clubLogoPreview}
+          partnerLogoAlt={clubProfile ? '동아리 로고' : undefined}
         />
         {isClubCreation ? (
           <ClubCreateForm
