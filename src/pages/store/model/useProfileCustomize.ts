@@ -152,36 +152,43 @@ export function useProfileCustomize({
   
     setIsActionPending(true)
     setErrorMessage('')
-  
+
+    let latestEquippedItems: EquippedItemsResponse | null = null
+    const synchronizeLatestEquippedItems = () => {
+      const equippedItems = latestEquippedItems
+
+      if (!equippedItems) {
+        return
+      }
+
+      setStoreEffects((currentEffects) =>
+        CUSTOMIZE_CATEGORIES.reduce(
+          (effects, category) =>
+            applyEquippedItems(
+              effects,
+              equippedItems,
+              STORE_CATEGORY_ITEM_TYPE[category] as StoreItemType,
+            ),
+          currentEffects,
+        ),
+      )
+      onEquippedItemsChange(equippedItems)
+    }
+
     try {
-      let latestEquippedItems: EquippedItemsResponse | null = null
-  
       for (const category of CUSTOMIZE_CATEGORIES) {
         const itemType = STORE_CATEGORY_ITEM_TYPE[category] as StoreItemType
         const effect = selectedEffectsByCategory[category]
-  
+
         latestEquippedItems = await updateEquippedItem(
           effect ? { itemId: effect.id, itemType } : { itemType },
         )
       }
-  
-      if (latestEquippedItems) {
-        setStoreEffects((currentEffects) =>
-          CUSTOMIZE_CATEGORIES.reduce(
-            (effects, category) =>
-              applyEquippedItems(
-                effects,
-                latestEquippedItems!,
-                STORE_CATEGORY_ITEM_TYPE[category] as StoreItemType,
-              ),
-            currentEffects,
-          ),
-        )
-        onEquippedItemsChange(latestEquippedItems)
-      }
-  
+
+      synchronizeLatestEquippedItems()
       return true
     } catch {
+      synchronizeLatestEquippedItems()
       setErrorMessage('효과 설정을 저장하지 못했어요')
       return false
     } finally {
