@@ -109,6 +109,8 @@ export const ProfileGroup = styled.div`
 export const ProfileImageWrapper = styled.div<{
   $hasCustomBorder: boolean
 }>`
+  position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -120,6 +122,47 @@ export const ProfileImageWrapper = styled.div<{
   border-radius: ${token.shapes.circle};
   background: ${token.colors.white};
   box-shadow: 0 2px 6px rgb(0 0 0 / 8%);
+
+  &:hover > button,
+  &:focus-within > button {
+    pointer-events: auto;
+    opacity: 1;
+  }
+`
+
+export const ProfileCustomizeButton = styled.button`
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: ${token.shapes.circle};
+  color: ${token.colors.white};
+  background: rgb(0 0 0 / 52%);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 120ms ease,
+    background-color 120ms ease;
+
+  &:hover {
+    background: rgb(0 0 0 / 60%);
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
 `
 
 export const ProfileInfo = styled.div`

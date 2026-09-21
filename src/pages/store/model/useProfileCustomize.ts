@@ -19,6 +19,9 @@ const CUSTOMIZE_CATEGORIES: Exclude<StoreCategory, '전체'>[] = [
 
 type CategorySelections = Record<Exclude<StoreCategory, '전체'>, number | null>
 
+const getEffectById = (effects: StoreEffect[], id: number | null) =>
+  id === null ? null : effects.find((effect) => effect.id === id) ?? null
+
 const getInitialSelections = (effects: StoreEffect[]): CategorySelections => {
   const initial = {} as CategorySelections
 
@@ -110,14 +113,11 @@ export function useProfileCustomize({
       ? null
       : categoryEffects.find((effect) => effect.id === selectedEffectId) ?? null
   
-  const getEffectById = (id: number | null) =>
-    id === null ? null : storeEffects.find((effect) => effect.id === id) ?? null
-  
   const selectedEffectsByCategory = useMemo(
     () => ({
-      '이름 색상': getEffectById(selections['이름 색상']),
-      '테두리': getEffectById(selections['테두리']),
-      '칭호': getEffectById(selections['칭호']),
+      '이름 색상': getEffectById(storeEffects, selections['이름 색상']),
+      '테두리': getEffectById(storeEffects, selections['테두리']),
+      '칭호': getEffectById(storeEffects, selections['칭호']),
     }),
     [selections, storeEffects],
   )
@@ -152,36 +152,43 @@ export function useProfileCustomize({
   
     setIsActionPending(true)
     setErrorMessage('')
-  
+
+    let latestEquippedItems: EquippedItemsResponse | null = null
+    const synchronizeLatestEquippedItems = () => {
+      const equippedItems = latestEquippedItems
+
+      if (!equippedItems) {
+        return
+      }
+
+      setStoreEffects((currentEffects) =>
+        CUSTOMIZE_CATEGORIES.reduce(
+          (effects, category) =>
+            applyEquippedItems(
+              effects,
+              equippedItems,
+              STORE_CATEGORY_ITEM_TYPE[category] as StoreItemType,
+            ),
+          currentEffects,
+        ),
+      )
+      onEquippedItemsChange(equippedItems)
+    }
+
     try {
-      let latestEquippedItems: EquippedItemsResponse | null = null
-  
       for (const category of CUSTOMIZE_CATEGORIES) {
         const itemType = STORE_CATEGORY_ITEM_TYPE[category] as StoreItemType
         const effect = selectedEffectsByCategory[category]
-  
+
         latestEquippedItems = await updateEquippedItem(
           effect ? { itemId: effect.id, itemType } : { itemType },
         )
       }
-  
-      if (latestEquippedItems) {
-        setStoreEffects((currentEffects) =>
-          CUSTOMIZE_CATEGORIES.reduce(
-            (effects, category) =>
-              applyEquippedItems(
-                effects,
-                latestEquippedItems!,
-                STORE_CATEGORY_ITEM_TYPE[category] as StoreItemType,
-              ),
-            currentEffects,
-          ),
-        )
-        onEquippedItemsChange(latestEquippedItems)
-      }
-  
+
+      synchronizeLatestEquippedItems()
       return true
     } catch {
+      synchronizeLatestEquippedItems()
       setErrorMessage('효과 설정을 저장하지 못했어요')
       return false
     } finally {

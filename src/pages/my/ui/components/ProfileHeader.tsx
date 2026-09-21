@@ -1,3 +1,5 @@
+import { FiEdit } from 'react-icons/fi'
+
 import {
   extractGithubHandle,
   extractLinkedinHandle,
@@ -19,6 +21,7 @@ interface ProfileHeaderProps {
   activityTabs: MyActivityTab[]
   isLoading: boolean
   onEdit: () => void
+  onCustomize: () => void
   onLogout: () => void
   onMemberManage?: () => void
   onWithdraw: () => void
@@ -35,6 +38,7 @@ export function ProfileHeader({
   activityTabs,
   isLoading,
   onEdit,
+  onCustomize,
   onLogout,
   onMemberManage,
   onWithdraw,
@@ -149,6 +153,13 @@ export function ProfileHeader({
               loading="eager"
               size={116}
             />
+            <S.ProfileCustomizeButton
+              aria-label="프로필 꾸미기"
+              onClick={onCustomize}
+              type="button"
+            >
+              <FiEdit aria-hidden="true" />
+            </S.ProfileCustomizeButton>
           </S.ProfileImageWrapper>
           <S.ProfileInfo>
             {profileTitleText && (
