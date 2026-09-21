@@ -76,7 +76,7 @@ export const TabActionRow = styled.div`
 
 export const WriteButton = styled(Button)`
   gap: 6px;
-  color: ${token.colors.gray.gray100};
+  color: ${token.colors.primary.foreground};
   ${token.typography('body', 'sm', 'bold')}
 
   svg {
