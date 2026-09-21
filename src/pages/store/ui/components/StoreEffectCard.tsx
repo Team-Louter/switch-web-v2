@@ -99,7 +99,7 @@ export function StoreEffectCard({
             type="button"
           >
             {isRecommended && (
-              <StoreCardPointIcon color={token.colors.point.strong} />
+              <StoreCardPointIcon color={token.colors.point.primary} />
             )}
             {isRecommended
               ? `${effect.price}에 구매하기`

@@ -32,7 +32,6 @@ export const colors = {
   point: {
     primary: '#FFD600',
     text: '#997D00',
-    strong: '#665400',
   },
 
   gray: {
