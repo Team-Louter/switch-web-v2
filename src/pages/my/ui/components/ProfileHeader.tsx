@@ -1,4 +1,4 @@
-import { FiEdit } from 'react-icons/fi'
+import { FiEdit, FiHelpCircle } from 'react-icons/fi'
 
 import {
   extractGithubHandle,
@@ -33,6 +33,19 @@ const getSocialLabel = (url: string, kind: 'github' | 'linkedin') =>
 
 const formatCount = (value?: number) =>
   typeof value === 'number' ? value.toLocaleString() : '0'
+
+const POINT_REWARDS = [
+  { label: '회원 가입', points: 500 },
+  { label: '게시글 작성', points: 100 },
+  { label: '댓글 작성', points: 50 },
+  { label: '좋아요', points: 10 },
+  { label: '학습일지 작성', points: 30 },
+  { label: '멘토링 질문', points: 300 },
+  { label: '답변(message)', points: 100 },
+  { label: '타자연습', points: 100 },
+  { label: 'GitHub 등록', points: 100 },
+  { label: 'LinkedIn 등록', points: 150 },
+] as const
 
 export function ProfileHeader({
   activityTabs,
@@ -119,15 +132,34 @@ export function ProfileHeader({
     <>
       <S.CardTop>
         <S.QuickStats aria-label="보유 현황">
-          <S.QuickStat
-            role="img"
-            aria-label={`포인트 ${formatCount(profile.point)}`}
-          >
-            <S.QuickStatIcon $kind="point" aria-hidden="true">
-              <MyStatIcon type="point" />
-            </S.QuickStatIcon>
-            <S.QuickStatValue>{formatCount(profile.point)}</S.QuickStatValue>
-          </S.QuickStat>
+          <S.PointRewardContainer>
+            <S.PointRewardTrigger
+              aria-describedby="point-reward-tooltip"
+              aria-label={`포인트 ${formatCount(profile.point)}. 포인트 획득 기준 보기`}
+              type="button"
+            >
+              <S.QuickStatIcon $kind="point" aria-hidden="true">
+                <MyStatIcon type="point" />
+              </S.QuickStatIcon>
+              <S.QuickStatValue>{formatCount(profile.point)}</S.QuickStatValue>
+              <S.PointRewardHelpIcon aria-hidden="true">
+                <FiHelpCircle />
+              </S.PointRewardHelpIcon>
+            </S.PointRewardTrigger>
+            <S.PointRewardTooltip id="point-reward-tooltip" role="tooltip">
+              <S.PointRewardTooltipTitle>
+                포인트 획득 기준
+              </S.PointRewardTooltipTitle>
+              <S.PointRewardList>
+                {POINT_REWARDS.map(({ label, points }) => (
+                  <S.PointRewardItem key={label}>
+                    <span>{label}</span>
+                    <strong>+{points}</strong>
+                  </S.PointRewardItem>
+                ))}
+              </S.PointRewardList>
+            </S.PointRewardTooltip>
+          </S.PointRewardContainer>
         </S.QuickStats>
         <S.ProfileGroup>
           <S.ProfileImageWrapper $hasCustomBorder={hasCustomBorder}>
