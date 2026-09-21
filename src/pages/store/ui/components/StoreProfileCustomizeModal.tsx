@@ -201,6 +201,8 @@ export function StoreProfileCustomizeModal({
           recommendedEffects.some((effect) => effect.id === selectedEffect.id),
       )
   const isModalBusy = isActionPending || isLoading
+  const isSaveDisabled =
+    isModalBusy || Boolean(errorMessage) || isAnySelectionLocked
 
   return (
     <S.Overlay>
@@ -322,7 +324,7 @@ export function StoreProfileCustomizeModal({
                   취소
                 </S.ModalButton>
                 <S.ModalButton
-                  disabled={isModalBusy || isAnySelectionLocked}
+                  disabled={isSaveDisabled}
                   onClick={onSave}
                   type="button"
                 >
