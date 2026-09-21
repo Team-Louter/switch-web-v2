@@ -419,7 +419,7 @@ export const CheckBox = styled.button<{ $isChecked: boolean }>`
   border-radius: ${token.shapes.xsmall};
   background-color: ${({ $isChecked }) =>
     $isChecked ? token.colors.primary.primary50 : 'transparent'};
-  color: ${token.colors.gray.gray100};
+  color: ${token.colors.primary.foreground};
   cursor: pointer;
 
   svg {

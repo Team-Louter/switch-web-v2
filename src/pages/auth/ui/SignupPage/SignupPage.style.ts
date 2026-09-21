@@ -385,7 +385,7 @@ export const ContinueButton = styled(Button)`
   height: 38px;
   border-radius: ${token.shapes.small};
   padding: 0;
-  color: ${token.colors.gray.gray100};
+  color: ${token.colors.primary.foreground};
   background: ${token.colors.primary.primary40};
   line-height: 1;
   ${token.typography('caption', 'lg', 'bold')}

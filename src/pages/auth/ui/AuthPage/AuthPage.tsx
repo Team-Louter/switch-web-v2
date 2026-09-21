@@ -92,6 +92,9 @@ export function AuthPage({
   const shouldAnimateAuthTransition =
     authViewState.authTransitionSessionId === authTransitionSessionId
   const authPath = clubProfile ? `/${clubProfile.slug}/login` : '/login'
+  const authTitle = clubProfile
+    ? `${clubProfile.englishName} (${clubProfile.koreanName})`
+    : title
 
   function handleLoginReset() {
     setLoginCardKey((currentKey) => currentKey + 1)
@@ -133,6 +136,7 @@ export function AuthPage({
         onChangeEmail={handleChangeSignupEmail}
         onSignupComplete={handleChangeSignupEmail}
         shouldAnimate={shouldAnimateAuthTransition}
+        clubProfile={clubProfile}
       />
     )
   }
@@ -143,6 +147,8 @@ export function AuthPage({
         onSwitchClick={handleLoginReset}
         isClubCreation={isClubCreation}
         clubLogoPreview={clubLogoPreview}
+        clubLogoSrc={clubProfile?.clubLogoPreview}
+        clubLoginPath={authPath}
       />
       <S.Content>
         <LoginCard
@@ -153,12 +159,15 @@ export function AuthPage({
           hideHeroImage={hideHeroImage}
           useSwitchLogo={useSwitchLogo}
           requiresTurnstile={requiresTurnstile}
-          title={title}
+          title={authTitle}
           subtitle={subtitle}
           isClubCreation={isClubCreation}
+          clubProfile={clubProfile}
           onClubCreateSubmit={
             isClubCreation ? handleClubCreateSubmit : undefined
           }
+          heroImage={clubProfile?.representativeImagePreview}
+          heroImageAlt="동아리 대표 이미지"
           representativeImagePreview={representativeImagePreview}
           onClubLogoPreviewChange={setClubLogoPreview}
           onRepresentativeImagePreviewChange={setRepresentativeImagePreview}

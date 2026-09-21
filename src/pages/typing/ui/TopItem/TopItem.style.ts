@@ -29,6 +29,6 @@ export const Value = styled.span`
   background-color: ${token.colors.primary.primary50};
   padding: 2px 6px;
   border-radius: ${token.shapes.xlarge};
-  color: ${token.colors.gray.gray100};
+  color: ${token.colors.primary.foreground};
   ${token.flexCenter};
 `;

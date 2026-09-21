@@ -143,7 +143,7 @@ export const CancelButton = styled.button`
 export const ApplyButton = styled.button`
   ${actionButtonStyle}
   border: 0;
-  color: ${token.colors.gray.gray90};
+  color: ${token.colors.primary.foreground};
   background: ${token.colors.primary.primary40};
 
   &:hover {

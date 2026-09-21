@@ -153,7 +153,7 @@ export const CategoryTitle = styled.p`
 
 const cardHoverButtonStyle = css`
   background: ${token.colors.primary.primary50};
-  color: ${token.colors.gray.gray100};
+  color: ${token.colors.primary.foreground};
 `
 
 export const EffectCard = styled.article`
@@ -508,7 +508,10 @@ export const ModalButton = styled.button<{ $variant?: 'primary' | 'secondary' }>
   min-width: 0;
   padding: 10px 20px;
   border-radius: ${token.shapes.small};
-  color: ${token.colors.gray.gray100};
+  color: ${({ $variant = 'primary' }) =>
+    $variant === 'primary'
+      ? token.colors.primary.foreground
+      : token.colors.gray.gray100};
   background: ${({ $variant = 'primary' }) =>
     $variant === 'primary'
       ? token.colors.primary.primary50

@@ -72,7 +72,7 @@ export const CategoryBadge = styled.span`
   height: 28px;
   border-radius: 6px;
   background: ${token.colors.primary.primary50};
-  color: ${token.colors.gray.gray100};
+  color: ${token.colors.primary.foreground};
   line-height: 1;
   ${token.typography('caption', 'lg', 'medium')}
 `
@@ -190,7 +190,7 @@ export const SubmitButton = styled.button`
   height: 33px;
   border-radius: ${token.shapes.small};
   background: ${token.colors.primary.primary50};
-  color: ${token.colors.gray.gray100};
+  color: ${token.colors.primary.foreground};
   cursor: pointer;
   ${token.typography('caption', 'lg', 'medium')}
 `

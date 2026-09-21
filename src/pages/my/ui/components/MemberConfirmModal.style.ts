@@ -22,7 +22,7 @@ export const Card = styled.div`
 
 export const Title = styled.h2`
   margin: 0 0 32px;
-  color: ${token.colors.gray.gray80};
+  color: ${token.colors.primary.foreground};
   ${token.typography('heading', 'lg', 'bold')}
 `
 

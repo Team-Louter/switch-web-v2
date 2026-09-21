@@ -128,7 +128,7 @@ export const StartButton = styled.button`
   width: 100%;
   height: 50px;
   background-color: ${token.colors.primary.primary50};
-  color: ${token.colors.gray.gray100};
+  color: ${token.colors.primary.foreground};
   border-radius: ${token.shapes.small};
   ${token.typography('body', 'lg', 'medium')};
   cursor: pointer;

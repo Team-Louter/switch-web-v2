@@ -124,13 +124,13 @@ const ActionButton = styled.button`
 export const CancelButton = styled(ActionButton)`
   border: 1px solid ${token.colors.gray.gray10};
   background-color: ${token.colors.white};
-  color: ${token.colors.gray.gray80};
+  color: ${token.colors.primary.foreground};
 `
 
 export const SubmitButton = styled(ActionButton)`
   border: 0;
   background-color: ${token.colors.primary.primary50};
-  color: ${token.colors.gray.gray80};
+  color: ${token.colors.primary.foreground};
 
   &:disabled {
     opacity: 0.45;

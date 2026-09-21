@@ -662,7 +662,7 @@ export const CommentEditButton = styled.button`
 `;
 
 export const CommentEditSaveButton = styled(CommentEditButton)`
-  color: ${token.colors.gray.gray100};
+  color: ${token.colors.primary.foreground};
   background: ${token.colors.primary.primary50};
 
   &:hover:not(:disabled) {
@@ -828,7 +828,7 @@ export const ReplySubmitButton = styled.button`
   padding: 0 20px;
   border: 0;
   border-radius: 999px;
-  color: ${token.colors.gray.gray100};
+  color: ${token.colors.primary.foreground};
   background: ${token.colors.primary.primary50};
   ${token.typography('body', 'md', 'semibold')}
   line-height: 1;

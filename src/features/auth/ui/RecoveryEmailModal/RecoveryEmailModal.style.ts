@@ -82,7 +82,7 @@ export const Form = styled.form`
 `
 
 export const Title = styled.h2`
-  color: ${token.colors.gray.gray80};
+  color: ${token.colors.primary.foreground};
   line-height: normal;
   text-align: center;
   ${token.typography('heading', 'md', 'bold')}
@@ -192,7 +192,7 @@ export const ActionButton = styled(Button)`
   height: 36px;
   border-radius: ${token.shapes.xsmall};
   padding: 0;
-  color: ${token.colors.gray.gray80};
+  color: ${token.colors.primary.foreground};
   background: ${token.colors.primary.primary40};
   line-height: normal;
   ${token.typography('body', 'sm', 'bold')}

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { AnimationEvent } from 'react'
 import { FiEye, FiEyeOff } from 'react-icons/fi'
 
+import type { ClubApplication } from '@/entities/club'
 import { EmailVerificationModal, Turnstile } from '@/features/auth'
 
 import authHeroImage from '../../assets/images/auth-hero.jpg'
@@ -15,6 +16,7 @@ interface SignupPageProps {
   onChangeEmail: (email: string) => void
   onSignupComplete: (email: string) => void
   shouldAnimate?: boolean
+  clubProfile?: ClubApplication
 }
 
 export function SignupPage({
@@ -22,6 +24,7 @@ export function SignupPage({
   onChangeEmail,
   onSignupComplete,
   shouldAnimate = false,
+  clubProfile,
 }: SignupPageProps) {
   const [isReturningToLogin, setIsReturningToLogin] = useState(false)
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
@@ -85,7 +88,10 @@ export function SignupPage({
       $isReturningToLogin={isReturningToLogin}
       data-returning-to-login={isReturningToLogin}
     >
-      <AuthHeader />
+      <AuthHeader
+        clubLogoSrc={clubProfile?.clubLogoPreview}
+        clubLoginPath={clubProfile ? `/${clubProfile.slug}/login` : '/login'}
+      />
       <S.Content>
         <S.Card
           aria-labelledby="signup-title"
@@ -93,14 +99,26 @@ export function SignupPage({
         >
           <S.Hero>
             <S.HeroImage
-              src={authHeroImage}
-              alt="Louter 캐릭터들이 함께 뛰어노는 모습"
+              src={clubProfile?.representativeImagePreview || authHeroImage}
+              alt={
+                clubProfile
+                  ? '동아리 대표 이미지'
+                  : 'Louter 캐릭터들이 함께 뛰어노는 모습'
+              }
             />
           </S.Hero>
 
           <S.Panel>
             <S.PanelContent>
-              <AuthIntro titleId="signup-title" />
+              <AuthIntro
+                titleId="signup-title"
+                title={
+                  clubProfile
+                    ? `${clubProfile.englishName} (${clubProfile.koreanName})`
+                    : undefined
+                }
+                showPartnerLogo={!clubProfile}
+              />
 
               <S.FormOptions>
                 <S.Divider aria-hidden="true" />

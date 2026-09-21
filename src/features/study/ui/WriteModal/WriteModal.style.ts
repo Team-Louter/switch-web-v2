@@ -481,7 +481,7 @@ export const LetterCount = styled.span`
   ${token.typography('caption', 'sm', 'medium')};
   font-size: 10px;
   line-height: normal;
-  color: ${token.colors.gray.gray80};
+  color: ${token.colors.primary.foreground};
   text-align: right;
 `;
 
@@ -521,7 +521,7 @@ export const SubmitButton = styled.button`
   background-color: ${token.colors.primary.primary50};
   ${token.typography('body', 'sm', 'bold')};
   line-height: normal;
-  color: ${token.colors.gray.gray80};
+  color: ${token.colors.primary.foreground};
   cursor: pointer;
 
   &:hover {

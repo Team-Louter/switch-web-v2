@@ -18,7 +18,7 @@ export const Logo = styled.img`
 
 export const Title = styled.h1`
   margin: 0;
-  color: ${token.colors.gray.gray80};
+  color: ${token.colors.primary.foreground};
   text-align: center;
   letter-spacing: -0.5px;
 

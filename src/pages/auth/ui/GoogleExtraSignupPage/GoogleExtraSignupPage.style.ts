@@ -177,7 +177,7 @@ export const ContinueButton = styled(Button)`
   height: 38px;
   border-radius: ${token.shapes.small};
   padding: 0;
-  color: ${token.colors.gray.gray100};
+  color: ${token.colors.primary.foreground};
   background: ${token.colors.primary.primary40};
   line-height: 1;
   ${token.typography('caption', 'lg', 'bold')}
@@ -199,7 +199,7 @@ export const LoadingSpinner = styled.span`
   width: 18px;
   height: 18px;
   border: 2px solid rgb(14 13 12 / 25%);
-  border-top-color: ${token.colors.gray.gray100};
+  border-top-color: ${token.colors.primary.foreground};
   border-radius: ${token.shapes.circle};
   animation: ${rotate} 700ms linear infinite;
 

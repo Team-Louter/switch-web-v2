@@ -145,6 +145,7 @@ export const SubmitButton = styled(Button)`
   border: 1px solid ${token.colors.primary.primary50};
   border-radius: ${token.shapes.xlarge};
   padding: 0;
+  color: ${token.colors.primary.foreground};
   background: ${token.colors.primary.primary50};
 
   &:hover {

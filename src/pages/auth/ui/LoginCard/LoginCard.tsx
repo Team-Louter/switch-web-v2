@@ -1,5 +1,5 @@
 import authHeroImage from '../../assets/images/auth-hero.jpg'
-import type { ClubApplicationInput } from '@/entities/club'
+import type { ClubApplication, ClubApplicationInput } from '@/entities/club'
 import { useLoginForm } from '../../model/useLoginForm'
 import { LoginPanel } from '../LoginPanel'
 import * as S from './LoginCard.style'
@@ -18,6 +18,9 @@ interface LoginCardProps {
   subtitle?: string
   isClubCreation?: boolean
   onClubCreateSubmit?: (values: ClubApplicationInput) => void
+  clubProfile?: ClubApplication
+  heroImage?: string
+  heroImageAlt?: string
   representativeImagePreview?: string
   onClubLogoPreviewChange?: (preview: string) => void
   onRepresentativeImagePreviewChange?: (preview: string) => void
@@ -49,6 +52,9 @@ export function LoginCard({
   subtitle,
   isClubCreation = false,
   onClubCreateSubmit,
+  clubProfile,
+  heroImage,
+  heroImageAlt = 'Louter 캐릭터들이 함께 노는 모습',
   representativeImagePreview,
   onClubLogoPreviewChange,
   onRepresentativeImagePreviewChange,
@@ -80,8 +86,8 @@ export function LoginCard({
       {!hideHeroImage && (
         <S.Hero $heightOffset={heightOffset}>
           <S.HeroImage
-            src={authHeroImage}
-            alt="Louter 캐릭터들이 함께 노는 모습"
+            src={heroImage || authHeroImage}
+            alt={heroImageAlt}
           />
         </S.Hero>
       )}
@@ -96,6 +102,7 @@ export function LoginCard({
         subtitle={subtitle}
         isClubCreation={isClubCreation}
         onClubCreateSubmit={onClubCreateSubmit}
+        clubProfile={clubProfile}
         representativeImagePreview={representativeImagePreview}
         onClubLogoPreviewChange={onClubLogoPreviewChange}
         onRepresentativeImagePreviewChange={onRepresentativeImagePreviewChange}

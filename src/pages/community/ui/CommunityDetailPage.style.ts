@@ -210,7 +210,7 @@ export const CategoryBadge = styled.span`
   min-height: 29px;
   padding: 6px 12px;
   border-radius: ${token.shapes.small};
-  color: ${token.colors.gray.gray100};
+  color: ${token.colors.primary.foreground};
   background: ${token.colors.primary.primary40};
   ${token.typography('body', 'sm', 'bold')}
   line-height: 1.2;

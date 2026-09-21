@@ -9,7 +9,7 @@ export const Chip = styled.button`
   height: 26px;
   border-radius: 15px;
   background: ${token.colors.primary.primary50};
-  color: ${token.colors.primary.primary100};
+  color: ${token.colors.primary.foreground};
   line-height: 1;
   ${token.typography('caption', 'sm', 'medium')}
 
