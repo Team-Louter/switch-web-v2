@@ -924,6 +924,19 @@ export const CustomizeActionGroup = styled.div`
   ${token.flexColumn}
   gap: 10px;
   width: 100%;
+
+  ${ModalButton} {
+    box-sizing: border-box;
+    height: 40px;
+    min-height: 40px;
+    padding: 10px 12px;
+    white-space: nowrap;
+  }
+
+  > ${ModalButtonRow} {
+    display: grid;
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+  }
 `
 
 export const PointHistoryList = styled.div`
