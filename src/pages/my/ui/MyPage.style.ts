@@ -248,10 +248,14 @@ export const ProfileCustomizeButton = styled.button`
   background: rgb(0 0 0 / 52%);
   cursor: pointer;
   opacity: 0;
-  pointer-events: none;
+  pointer-events: auto;
   transition:
     opacity 120ms ease,
     background-color 120ms ease;
+
+  @media (hover: hover) and (pointer: fine) {
+    pointer-events: none;
+  }
 
   &:hover {
     background: rgb(0 0 0 / 60%);

@@ -248,7 +248,6 @@ export function StoreProfileCustomizeModal({
   const isModalBusy = isActionPending || isLoading
   const isPrimaryActionDisabled =
     isModalBusy ||
-    Boolean(errorMessage) ||
     Boolean(selectedPurchaseEffect?.canPurchase === false) ||
     (!selectedPurchaseEffect && !hasUnsavedChanges)
   const handlePrimaryAction = () => {
