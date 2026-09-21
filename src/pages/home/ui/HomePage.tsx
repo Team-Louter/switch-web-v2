@@ -19,6 +19,7 @@ import { HomeMemberSection } from './HomeMemberSection/HomeMemberSection'
 import * as S from './HomePage.style'
 
 const HOME_TOP_CONTENT_HEIGHT = 675
+const DEFAULT_CLUB_INSTITUTION = '대구소프트웨어마이스터고등학교'
 
 function parseScheduleId(value: string | null): number | null {
   if (!value) {
@@ -125,7 +126,7 @@ export function HomePage() {
       </S.Viewport>
       <HomeMemberSection clubEnglishName={clubEnglishName} />
       <S.Footer>
-        <S.FooterText>{clubDisplayName}</S.FooterText>
+        <S.FooterText>{clubDisplayName} / {DEFAULT_CLUB_INSTITUTION}</S.FooterText>
         <S.GithubLink href={clubGithubUrl} target="_blank" rel="noopener noreferrer">
           Github
         </S.GithubLink>
