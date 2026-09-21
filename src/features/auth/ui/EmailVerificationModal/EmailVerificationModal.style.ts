@@ -181,9 +181,13 @@ export const ArrowIcon = styled.img<{ $isEnabled: boolean }>`
     $isEnabled ? 'brightness(0) invert(1)' : 'none'};
 `
 
-export const LoadingIcon = styled.img`
+export const LoadingIcon = styled.span`
+  display: block;
   width: 60px;
   height: 60px;
+  border: 5px solid ${token.colors.primary.primary20};
+  border-top-color: ${token.colors.primary.primary50};
+  border-radius: ${token.shapes.circle};
   animation: ${rotate} 900ms linear infinite;
 
   @media (prefers-reduced-motion: reduce) {

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent, MouseEvent } from 'react'
 
 import arrowIcon from '../../assets/svg/email-verification-arrow.svg'
-import loadingIcon from '../../assets/svg/email-verification-loading.svg'
 import { Turnstile } from '../Turnstile/Turnstile'
 import * as S from './EmailVerificationModal.style'
 
@@ -118,7 +117,7 @@ export function EmailVerificationModal({
         aria-busy={isSubmitting}
       >
         {isSubmitting ? (
-          <S.LoadingIcon src={loadingIcon} alt={loadingAlt} />
+          <S.LoadingIcon role="img" aria-label={loadingAlt} />
         ) : (
           <>
             <S.Form onSubmit={handleSubmit} noValidate>
