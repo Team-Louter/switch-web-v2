@@ -341,6 +341,27 @@ export function useStorePage() {
   const [isActionPending, setIsActionPending] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [loadAttempt, setLoadAttempt] = useState(0)
+  const searchParamsKey = searchParams.toString()
+  const [previousSearchParamsKey, setPreviousSearchParamsKey] =
+    useState(searchParamsKey)
+
+  // URL 쿼리는 페이지가 유지된 채 변경될 수 있으므로 로컬 필터와 모달 상태를 동기화한다.
+  if (previousSearchParamsKey !== searchParamsKey) {
+    setPreviousSearchParamsKey(searchParamsKey)
+
+    const categoryParam = searchParams.get('category')
+    const matchedCategory = STORE_CATEGORIES.find(
+      (category) => category === categoryParam,
+    )
+
+    if (matchedCategory) {
+      setSelectedCategory(matchedCategory)
+    }
+
+    if (shouldOpenCustomizeModal(searchParams)) {
+      setActiveModal('customize')
+    }
+  }
 
   useEffect(() => {
     let shouldIgnore = false

@@ -379,13 +379,13 @@ export function CommunityWritePage() {
   const handleCategorySelect = (nextCategory: PostCategory) => {
     if (category !== nextCategory) {
       setCategoryAnimationKey((animationKey) => animationKey + 1);
+      setCategory(nextCategory);
+      setTag(undefined);
+      setTitle(
+        removeTitleTagPrefix(title, tag).slice(0, COMMUNITY_TITLE_MAX_LENGTH),
+      );
     }
 
-    setCategory(nextCategory);
-    setTag(undefined);
-    setTitle(
-      removeTitleTagPrefix(title, tag).slice(0, COMMUNITY_TITLE_MAX_LENGTH),
-    );
     setIsCategoryMenuOpen(false);
   };
 
@@ -400,6 +400,18 @@ export function CommunityWritePage() {
   const handleTitleKeyDown = (
     event: ReactKeyboardEvent<HTMLInputElement>,
   ) => {
+    if (
+      event.key === 'Enter' &&
+      !event.nativeEvent.isComposing &&
+      !isEditorDisabled
+    ) {
+      event.preventDefault();
+      setIsEditorPlaceholderVisible(true);
+      setSelectedBlockId(null);
+      editor.focus();
+      return;
+    }
+
     if (!titleTagPrefix) {
       return;
     }
