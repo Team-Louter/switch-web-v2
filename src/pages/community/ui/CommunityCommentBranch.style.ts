@@ -596,6 +596,7 @@ export const CommentText = styled.p<CommentTextProps>`
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1.5;
   overflow-wrap: anywhere;
+  white-space: pre-wrap;
 `;
 
 export const CommentMention = styled.span`
