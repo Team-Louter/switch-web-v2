@@ -1,4 +1,4 @@
-import styled, { css } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 
 import { UserName } from '@/entities/user'
 import * as token from '@/shared/styles/values/token'
@@ -111,9 +111,30 @@ export const EffectSections = styled.div`
 `
 
 export const FeedbackMessage = styled.p`
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
   color: ${token.colors.gray.gray50};
   ${token.typography('body', 'sm', 'medium')}
+`
+
+export const RetryButton = styled.button`
+  padding: 0;
+  border: 0;
+  color: ${token.colors.primary.primary70};
+  background: transparent;
+  text-decoration: underline;
+  ${token.typography('body', 'sm', 'semibold')}
+
+  &:hover {
+    color: ${token.colors.primary.primary90};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
 `
 
 export const SectionTitle = styled.h2`
@@ -288,6 +309,14 @@ export const CardActionArea = styled.div`
   ${EffectCard}:hover & {
     height: 33px;
   }
+
+  ${EffectCard}:focus-within & {
+    height: 33px;
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    height: 33px;
+  }
 `
 
 export const StatusText = styled.p<{ $status: StoreEffectStatus }>`
@@ -306,6 +335,14 @@ export const StatusText = styled.p<{ $status: StoreEffectStatus }>`
   transition: opacity 120ms ease;
 
   ${EffectCard}:hover & {
+    opacity: 0;
+  }
+
+  ${EffectCard}:focus-within & {
+    opacity: 0;
+  }
+
+  @media (hover: none), (pointer: coarse) {
     opacity: 0;
   }
 `
@@ -327,6 +364,14 @@ export const PriceRow = styled.div`
   }
 
   ${EffectCard}:hover & {
+    opacity: 0;
+  }
+
+  ${EffectCard}:focus-within & {
+    opacity: 0;
+  }
+
+  @media (hover: none), (pointer: coarse) {
     opacity: 0;
   }
 `
@@ -353,6 +398,16 @@ export const CardButton = styled.button<{ $isDanger?: boolean }>`
   }
 
   ${EffectCard}:hover & {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  ${EffectCard}:focus-within & {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  @media (hover: none), (pointer: coarse) {
     opacity: 1;
     pointer-events: auto;
   }
@@ -546,6 +601,55 @@ export const ModalButtonRow = styled.div`
 `
 
 
+const customizeModalReveal = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+`
+
+const customizeSelectionReveal = keyframes`
+  from {
+    box-shadow: 0 0 0 0 rgb(255 193 7 / 30%);
+    transform: translateY(2px);
+  }
+
+  to {
+    box-shadow: 0 0 0 4px rgb(255 193 7 / 0%);
+    transform: translateY(0);
+  }
+`
+
+const customizeSkeletonShimmer = keyframes`
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+`
+
+const customizeSkeletonSurface = css`
+  background: linear-gradient(
+    90deg,
+    ${token.colors.gray.gray0} 20%,
+    ${token.colors.gray.gray10} 50%,
+    ${token.colors.gray.gray0} 80%
+  );
+  background-size: 200% 100%;
+  animation: ${customizeSkeletonShimmer} 1.4s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
 export const CustomizeModal = styled.div`
   ${token.flexColumn}
   gap: 20px;
@@ -557,78 +661,158 @@ export const CustomizeModal = styled.div`
   border-radius: ${token.shapes.large};
   background: ${token.colors.white};
   box-shadow: 0 20px 60px rgb(14 13 12 / 18%);
+  animation: ${customizeModalReveal} 220ms cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+
+  ${ModalHeader} {
+    box-sizing: border-box;
+    padding-bottom: 16px;
+    border-bottom: 1px solid ${token.colors.gray.gray10};
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 export const CustomizeBody = styled.div`
   ${token.flexRow}
   align-items: flex-start;
-  gap: 20px;
+  gap: 16px;
+  flex: 1 1 auto;
   min-height: 0;
   width: 100%;
-  height: 100%;
+  height: auto;
 `
 
 export const CustomizeTabList = styled.div`
   ${token.flexColumn}
-  gap: 10px;
-  flex: 0 0 200px;
+  gap: 6px;
+  box-sizing: border-box;
+  flex: 0 0 172px;
   height: 100%;
+  padding-right: 16px;
   overflow: hidden;
+  border-right: 1px solid ${token.colors.gray.gray10};
 `
 
 export const CustomizeTabButton = styled.button<{ $isActive: boolean }>`
   width: 100%;
-  padding: 15px 20px;
+  padding: 12px 14px;
   border-radius: ${token.shapes.medium};
   color: ${({ $isActive }) =>
     $isActive ? token.colors.gray.gray90 : token.colors.gray.gray50};
   text-align: left;
   background: ${({ $isActive }) =>
-    $isActive ? token.colors.gray.gray10 : token.colors.white};
-  ${token.typography('body', 'lg', 'medium')}
+    $isActive ? token.colors.primary.primary0 : 'transparent'};
+  ${token.typography('body', 'md', 'medium')}
   transition:
     background-color 120ms ease,
     color 120ms ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     color: ${token.colors.gray.gray90};
-    background: ${token.colors.gray.gray0};
+    background: ${token.colors.primary.primary0};
   }
 `
 
 export const CustomizeEffectPanel = styled.div`
   ${token.flexColumn}
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
+  box-sizing: border-box;
   flex: 1 1 0;
   min-width: 0;
   min-height: 0;
   height: 100%;
+  padding: 16px;
   overflow: hidden;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.large};
+  background: ${token.colors.gray.gray0};
 `
 
 export const CustomizeEffectScrollArea = styled.div`
   ${token.flexColumn}
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
+  box-sizing: border-box;
   flex: 1 1 auto;
   min-height: 0;
-  width: 100%;
+  width: calc(100% + 16px);
+  margin-right: -16px;
+  padding-right: 16px;
   overflow-y: auto;
+  scrollbar-color: ${token.colors.gray.gray30} ${token.colors.gray.gray10};
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${token.colors.gray.gray10};
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: ${token.shapes.circle};
+    background: ${token.colors.gray.gray30};
+  }
 `
 
 export const CustomizeSectionTitle = styled.p`
   margin: 0;
+  box-sizing: border-box;
+  width: 100%;
+  padding-bottom: 8px;
+  border-bottom: 1px solid ${token.colors.gray.gray10};
   color: ${token.colors.gray.gray80};
-  ${token.typography('body', 'lg', 'medium')}
+  ${token.typography('body', 'md', 'semibold')}
 `
 
-const CUSTOMIZE_OPTION_SIZE = 110
+export const CustomizeFeedbackMessage = styled.p`
+  margin: 0;
+  padding: 20px 0;
+  color: ${token.colors.gray.gray50};
+  ${token.typography('body', 'sm', 'medium')}
+`
+
+const CUSTOMIZE_OPTION_SIZE = 100
 const CUSTOMIZE_OPTION_GAP = 10
 const CUSTOMIZE_OPTION_COLUMNS = 3
 const CUSTOMIZE_OPTION_GRID_WIDTH =
   CUSTOMIZE_OPTION_SIZE * CUSTOMIZE_OPTION_COLUMNS +
   CUSTOMIZE_OPTION_GAP * (CUSTOMIZE_OPTION_COLUMNS - 1)
+
+export const CustomizeSkeletonContent = styled.div`
+  ${token.flexColumn}
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+`
+
+export const CustomizeSkeletonHeading = styled.span`
+  ${customizeSkeletonSurface}
+  display: block;
+  width: 82px;
+  height: 22px;
+  border-radius: ${token.shapes.xsmall};
+`
+
+export const CustomizeSkeletonGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, ${CUSTOMIZE_OPTION_SIZE}px);
+  gap: ${CUSTOMIZE_OPTION_GAP}px;
+  width: ${CUSTOMIZE_OPTION_GRID_WIDTH}px;
+`
+
+export const CustomizeSkeletonOption = styled.span`
+  ${customizeSkeletonSurface}
+  display: block;
+  width: ${CUSTOMIZE_OPTION_SIZE}px;
+  height: ${CUSTOMIZE_OPTION_SIZE}px;
+  border-radius: ${token.shapes.medium};
+`
 
 export const CustomizeOptionGrid = styled.div`
   display: flex;
@@ -642,6 +826,7 @@ export const CustomizeOptionGrid = styled.div`
 `
 
 export const CustomizeEffectOption = styled.button<{
+  $isEquipped: boolean
   $isLocked: boolean
   $isSelected: boolean
 }>`
@@ -653,17 +838,30 @@ export const CustomizeEffectOption = styled.button<{
   height: ${CUSTOMIZE_OPTION_SIZE}px;
   padding: 12px;
   overflow: hidden;
-  border: ${({ $isSelected }) =>
-    $isSelected
-      ? `2px solid ${token.colors.primary.primary50}`
-      : '2px solid transparent'};
+  border: ${({ $isEquipped, $isSelected }) =>
+    $isEquipped
+      ? `2px solid ${token.colors.primary.primary30}`
+      : $isSelected
+        ? `2px solid ${token.colors.primary.primary50}`
+        : `1px solid ${token.colors.gray.gray10}`};
   border-radius: ${token.shapes.medium};
-  background: ${({ $isSelected }) =>
-    $isSelected ? token.colors.white : token.colors.gray.gray0};
+  background: ${({ $isEquipped, $isSelected }) =>
+    $isEquipped || $isSelected ? token.colors.white : token.colors.gray.gray0};
   transition:
     border-color 120ms ease,
     background-color 120ms ease,
+    box-shadow 120ms ease,
     transform 120ms ease;
+  animation: ${({ $isEquipped, $isSelected }) =>
+    $isSelected && !$isEquipped
+      ? css`
+          ${customizeSelectionReveal} 180ms ease-out
+        `
+      : 'none'};
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 
   &:hover:not(:disabled) {
     border-color: ${token.colors.primary.primary40};
@@ -672,7 +870,20 @@ export const CustomizeEffectOption = styled.button<{
 
   &:disabled {
     cursor: not-allowed;
+    opacity: 0.65;
   }
+`
+
+export const CustomizeEquippedBadge = styled.span`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  padding: 4px 7px;
+  border-radius: ${token.shapes.circle};
+  color: ${token.colors.primary.primary80};
+  background: ${token.colors.primary.primary10};
+  ${token.typography('caption', 'sm', 'semibold')}
 `
 
 export const CustomizeNonePreview = styled.span`
@@ -722,6 +933,7 @@ export const CustomizeLockOverlay = styled.div`
   inset: 0;
   border-radius: ${token.shapes.medium};
   background: rgb(255 255 255 / 70%);
+  pointer-events: none;
 `
 
 export const CustomizeEmptyText = styled.p`
@@ -739,6 +951,7 @@ export const CustomizeStoreButton = styled.button`
   border: 1px solid ${token.colors.primary.primary80};
   border-radius: ${token.shapes.small};
   color: ${token.colors.primary.primary80};
+  background: ${token.colors.white};
   ${token.typography('body', 'md', 'medium')}
   transition:
     border-color 120ms ease,
@@ -750,52 +963,80 @@ export const CustomizeStoreButton = styled.button`
     color: ${token.colors.primary.primary60};
     transform: translateY(-1px);
   }
+
+  &:disabled {
+    border-color: ${token.colors.gray.gray20};
+    color: ${token.colors.gray.gray50};
+    background: ${token.colors.gray.gray0};
+    cursor: not-allowed;
+    transform: none;
+  }
 `
 
 export const CustomizePreviewPanel = styled.div`
   ${token.flexColumn}
   align-items: stretch;
   justify-content: space-between;
+  box-sizing: border-box;
   flex: 1 1 0;
   min-width: 0;
   height: 100%;
+  padding: 36px 20px 20px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.large};
+  background: ${token.colors.gray.gray0};
 `
 
 export const CustomizePreviewTop = styled.div`
   ${token.flexColumn}
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   width: 100%;
 `
 
 export const CustomizePreviewTextGroup = styled.div`
   ${token.flexColumn}
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   width: 100%;
 `
 export const CustomizePreviewTitle = styled.p`
   margin: 0;
   color: #FFA20A;
-  ${token.typography('body', 'lg', 'regular')}
+  ${token.typography('body', 'md', 'medium')}
 `
 
 export const CustomizePreviewName = styled(UserName)`
   font-family: ${token.fontFamily.system};
-  font-size: ${token.fontSize.heading.xl};
+  font-size: ${token.fontSize.heading.lg};
 `
 
 export const CustomizePreviewDescription = styled.p`
   margin: 0;
   color: ${token.colors.gray.gray60};
   text-align: center;
-  ${token.typography('body', 'lg', 'regular')}
+  ${token.typography('body', 'sm', 'regular')}
 `
 
 export const CustomizeActionGroup = styled.div`
   ${token.flexColumn}
-  gap: 10px;
+  gap: 8px;
   width: 100%;
+  padding-top: 16px;
+  border-top: 1px solid ${token.colors.gray.gray10};
+
+  ${ModalButton} {
+    box-sizing: border-box;
+    height: 40px;
+    min-height: 40px;
+    padding: 10px 12px;
+    white-space: nowrap;
+  }
+
+  > ${ModalButtonRow} {
+    display: grid;
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+  }
 `
 
 export const PointHistoryList = styled.div`

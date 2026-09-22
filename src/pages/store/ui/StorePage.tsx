@@ -83,6 +83,7 @@ export function StorePage() {
     customizeOwnedEffects,
     customizeRecommendedEffects,
     errorMessage,
+    hasCustomizeChanges,
     isActionPending,
     isLoading,
     ownedEffects,
@@ -96,6 +97,7 @@ export function StorePage() {
     onCategorySelect,
     onCustomizeCategorySelect,
     onCustomizeEffectSelect,
+    onCustomizePurchase,
     onCustomizeReset,
     onCustomizeSave,
     onEffectEquip,
@@ -104,6 +106,7 @@ export function StorePage() {
     onPointHistoryOpen,
     onPurchase,
     onPurchaseOpen,
+    onRetry,
   } = useStorePage()
 
   return (
@@ -129,7 +132,12 @@ export function StorePage() {
 
         {(isLoading || errorMessage) && (
           <S.FeedbackMessage role={errorMessage ? 'alert' : 'status'}>
-            {errorMessage || '상점 아이템을 불러오는 중이에요'}
+            <span>{errorMessage || '상점 아이템을 불러오는 중이에요'}</span>
+            {errorMessage && !isLoading && (
+              <S.RetryButton onClick={onRetry} type="button">
+                다시 시도
+              </S.RetryButton>
+            )}
           </S.FeedbackMessage>
         )}
 
@@ -169,7 +177,10 @@ export function StorePage() {
       {activeModal === 'customize' && (
         <StoreProfileCustomizeModal
           categories={customizeCategories}
+          errorMessage={errorMessage}
+          hasUnsavedChanges={hasCustomizeChanges}
           isActionPending={isActionPending}
+          isLoading={isLoading}
           ownedEffects={customizeOwnedEffects}
           profile={profilePreview}
           recommendedEffects={customizeRecommendedEffects}
@@ -182,7 +193,7 @@ export function StorePage() {
             onCategorySelect(category)
             onModalClose()
           }}
-          onPurchaseOpen={onPurchaseOpen}
+          onPurchase={onCustomizePurchase}
           onReset={onCustomizeReset}
           onSave={onCustomizeSave}
         />

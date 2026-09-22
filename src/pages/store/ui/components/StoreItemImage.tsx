@@ -18,13 +18,19 @@ const isApiImageSource = (src: string) => {
   return src.startsWith('/') || Boolean(baseUrl && src.startsWith(baseUrl))
 }
 
+type ResolvedImage = {
+  source: string
+  url: string
+}
+
 // 인증이 필요한 상점 이미지를 API 클라이언트로 받아 브라우저 이미지 URL로 변환한다.
 export function StoreItemImage({ alt, className, src }: StoreItemImageProps) {
-  const [resolvedSrc, setResolvedSrc] = useState(src)
+  const shouldFetchImage =
+    !isDirectImageSource(src) && isApiImageSource(src)
+  const [resolvedImage, setResolvedImage] = useState<ResolvedImage | null>(null)
 
   useEffect(() => {
-    if (isDirectImageSource(src) || !isApiImageSource(src)) {
-      setResolvedSrc(src)
+    if (!shouldFetchImage) {
       return
     }
 
@@ -38,12 +44,15 @@ export function StoreItemImage({ alt, className, src }: StoreItemImageProps) {
         })
         objectUrl = URL.createObjectURL(response.data)
 
-        if (!shouldIgnore) {
-          setResolvedSrc(objectUrl)
+        if (shouldIgnore) {
+          URL.revokeObjectURL(objectUrl)
+          return
         }
+
+        setResolvedImage({ source: src, url: objectUrl })
       } catch {
         if (!shouldIgnore) {
-          setResolvedSrc(src)
+          setResolvedImage({ source: src, url: src })
         }
       }
     }
@@ -57,7 +66,10 @@ export function StoreItemImage({ alt, className, src }: StoreItemImageProps) {
         URL.revokeObjectURL(objectUrl)
       }
     }
-  }, [src])
+  }, [shouldFetchImage, src])
+
+  const resolvedSrc =
+    shouldFetchImage && resolvedImage?.source === src ? resolvedImage.url : src
 
   return <img className={className} src={resolvedSrc} alt={alt} />
 }

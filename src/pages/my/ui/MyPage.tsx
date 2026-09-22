@@ -1,13 +1,17 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import type { EquippedItemsResponse } from '@/entities/store'
 import { clearAccessToken, clearPendingAccessToken } from '@/shared/lib/authToken'
+import { dispatchProfileSync } from '@/shared/lib/profileSync'
 
 import {
   sendWithdrawalVerificationCode,
   verifyWithdrawalCode,
 } from '../api'
 import { useMyPage } from '../model/useMyPage'
+import { useProfileCustomize } from '@/pages/store/model/useProfileCustomize'
+import { StoreProfileCustomizeModal } from '@/pages/store/ui/components/StoreProfileCustomizeModal'
 import {
   MemberActionToast,
   MemberManagementModal,
@@ -32,6 +36,13 @@ export function MyPage() {
   const [isRequestingWithdrawalCode, setIsRequestingWithdrawalCode] =
     useState(false)
   const [isWithdrawing, setIsWithdrawing] = useState(false)
+  const [isProfileCustomizeOpen, setIsProfileCustomizeOpen] = useState(false)
+  const [pointOverride, setPointOverride] = useState<number | undefined>(
+    undefined,
+  )
+  const [equippedItemsOverride, setEquippedItemsOverride] = useState<
+    EquippedItemsResponse | undefined
+  >(undefined)
   const {
     activeTabId,
     activityTabs,
@@ -47,7 +58,36 @@ export function MyPage() {
     setActiveTabId,
   } = useMyPage()
 
+  const profileForDisplay =
+    equippedItemsOverride || pointOverride !== undefined
+      ? {
+          ...profile,
+          ...(pointOverride !== undefined ? { point: pointOverride } : {}),
+          ...(equippedItemsOverride
+            ? { equippedItems: equippedItemsOverride }
+            : {}),
+        }
+      : profile
   const canManageMembers = profile.role === 'LEADER'
+
+  const { onSave: saveProfileCustomize, ...profileCustomize } =
+    useProfileCustomize({
+      currentPoint: profileForDisplay.point ?? 0,
+      isOpen: isProfileCustomizeOpen,
+      onEquippedItemsChange: (equippedItems) => {
+        setEquippedItemsOverride(equippedItems)
+        dispatchProfileSync({ equippedItems })
+      },
+      onPointChange: setPointOverride,
+    })
+
+  const handleProfileCustomizeSave = async () => {
+    const didSave = await saveProfileCustomize()
+
+    if (didSave) {
+      setIsProfileCustomizeOpen(false)
+    }
+  }
 
   const resetWithdrawalVerificationState = () => {
     setVerificationCode('')
@@ -139,6 +179,7 @@ export function MyPage() {
             activityTabs={activityTabs}
             isLoading={isProfileLoading}
             onEdit={() => setIsProfileEditOpen(true)}
+            onCustomize={() => setIsProfileCustomizeOpen(true)}
             onLogout={handleLogout}
             onMemberManage={
               canManageMembers
@@ -146,7 +187,7 @@ export function MyPage() {
                 : undefined
             }
             onWithdraw={handleOpenWithdrawModal}
-            profile={profile}
+            profile={profileForDisplay}
           />
 
           <ProfilePostList
@@ -196,6 +237,32 @@ export function MyPage() {
         <ProfileEditModal
           onClose={() => setIsProfileEditOpen(false)}
           onUpdated={applyProfileUpdate}
+        />
+      )}
+
+      {isProfileCustomizeOpen && (
+        <StoreProfileCustomizeModal
+          categories={profileCustomize.categories}
+          errorMessage={profileCustomize.errorMessage}
+          hasUnsavedChanges={profileCustomize.hasUnsavedChanges}
+          isActionPending={profileCustomize.isActionPending}
+          isLoading={profileCustomize.isLoading}
+          ownedEffects={profileCustomize.ownedEffects}
+          profile={profileForDisplay}
+          recommendedEffects={profileCustomize.recommendedEffects}
+          selectedCategory={profileCustomize.selectedCategory}
+          selectedEffect={profileCustomize.selectedEffect}
+          selectedEffectsByCategory={profileCustomize.selectedEffectsByCategory}
+          onCategorySelect={profileCustomize.onCategorySelect}
+          onClose={() => setIsProfileCustomizeOpen(false)}
+          onEffectSelect={profileCustomize.onEffectSelect}
+          onGoToStore={(category) => {
+            setIsProfileCustomizeOpen(false)
+            navigate(`/store?category=${encodeURIComponent(category)}`)
+          }}
+          onPurchase={profileCustomize.onPurchase}
+          onReset={profileCustomize.onReset}
+          onSave={handleProfileCustomizeSave}
         />
       )}
 
