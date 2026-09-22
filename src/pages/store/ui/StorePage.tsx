@@ -106,6 +106,7 @@ export function StorePage() {
     onPointHistoryOpen,
     onPurchase,
     onPurchaseOpen,
+    onRetry,
   } = useStorePage()
 
   return (
@@ -131,7 +132,12 @@ export function StorePage() {
 
         {(isLoading || errorMessage) && (
           <S.FeedbackMessage role={errorMessage ? 'alert' : 'status'}>
-            {errorMessage || '상점 아이템을 불러오는 중이에요'}
+            <span>{errorMessage || '상점 아이템을 불러오는 중이에요'}</span>
+            {errorMessage && !isLoading && (
+              <S.RetryButton onClick={onRetry} type="button">
+                다시 시도
+              </S.RetryButton>
+            )}
           </S.FeedbackMessage>
         )}
 

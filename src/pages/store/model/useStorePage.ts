@@ -324,6 +324,7 @@ export function useStorePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isActionPending, setIsActionPending] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [loadAttempt, setLoadAttempt] = useState(0)
 
   useEffect(() => {
     let shouldIgnore = false
@@ -367,7 +368,7 @@ export function useStorePage() {
     return () => {
       shouldIgnore = true
     }
-  }, [])
+  }, [loadAttempt])
 
   useEffect(() => {
     const shouldOpenCustomizeModal =
@@ -501,6 +502,12 @@ export function useStorePage() {
 
   const handlePointHistoryOpen = () => {
     setActiveModal('pointHistory')
+  }
+
+  const handleStoreRetry = () => {
+    setErrorMessage('')
+    setIsLoading(true)
+    setLoadAttempt((attempt) => attempt + 1)
   }
 
   const handleCustomizeOpen = () => {
@@ -694,5 +701,6 @@ export function useStorePage() {
     onPointHistoryOpen: handlePointHistoryOpen,
     onPurchase: handlePurchase,
     onPurchaseOpen: handlePurchaseOpen,
+    onRetry: handleStoreRetry,
   }
 }

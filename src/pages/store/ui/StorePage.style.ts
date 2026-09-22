@@ -111,9 +111,30 @@ export const EffectSections = styled.div`
 `
 
 export const FeedbackMessage = styled.p`
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
   color: ${token.colors.gray.gray50};
   ${token.typography('body', 'sm', 'medium')}
+`
+
+export const RetryButton = styled.button`
+  padding: 0;
+  border: 0;
+  color: ${token.colors.primary.primary70};
+  background: transparent;
+  text-decoration: underline;
+  ${token.typography('body', 'sm', 'semibold')}
+
+  &:hover {
+    color: ${token.colors.primary.primary90};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
 `
 
 export const SectionTitle = styled.h2`
