@@ -106,13 +106,6 @@ export const TagField = styled.fieldset`
   border: 0;
 `;
 
-export const TagLegend = styled.legend`
-  padding: 0;
-  color: ${token.colors.gray.gray60};
-  ${token.typography('caption', 'md', 'medium')}
-  line-height: 1;
-`;
-
 export const TagOptions = styled.div`
   display: flex;
   flex-wrap: wrap;

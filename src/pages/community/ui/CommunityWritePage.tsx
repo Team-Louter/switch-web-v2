@@ -1172,7 +1172,6 @@ export function CommunityWritePage() {
 
             {selectedTagOptions.length > 0 && (
               <S.TagField>
-                <S.TagLegend>말머리 (선택)</S.TagLegend>
                 <S.TagOptions aria-label="말머리 선택">
                   {selectedTagOptions.map((option) => (
                     <S.TagOption
