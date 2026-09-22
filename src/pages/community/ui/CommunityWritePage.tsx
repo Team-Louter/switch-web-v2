@@ -27,6 +27,7 @@ import {
   type DragEvent as ReactDragEvent,
   type FocusEvent as ReactFocusEvent,
   type FormEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
@@ -423,6 +424,17 @@ export function CommunityWritePage() {
 
   const handleBackToList = () => {
     navigate(isEditing ? `/community/${editingPostId}` : '/community');
+  };
+
+  const handleTitleKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== 'Enter' || isEditorDisabled) {
+      return;
+    }
+
+    event.preventDefault();
+    setIsEditorPlaceholderVisible(true);
+    setSelectedBlockId(null);
+    editor.focus();
   };
 
   const handleEditorToolClick = (action: EditorAction) => {
@@ -1150,6 +1162,7 @@ export function CommunityWritePage() {
                   required
                   disabled={isEditorDisabled}
                   $isOverLimit={isTitleOverLimit}
+                  onKeyDown={handleTitleKeyDown}
                   onChange={(event) => {
                     setTitle(
                       event.target.value.slice(0, COMMUNITY_TITLE_MAX_LENGTH),

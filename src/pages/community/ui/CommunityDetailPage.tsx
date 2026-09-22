@@ -1,4 +1,5 @@
 import {
+  type ChangeEvent,
   type KeyboardEvent,
   type SyntheticEvent,
   useEffect,
@@ -64,6 +65,7 @@ import {
   type CommunityReplyLoadHandler,
   type CommunityReplySubmitHandler,
 } from '../model/commentTree';
+import { resizeCommunityTextarea } from '../model/commentInput';
 import { CommunityCommentBranch } from './CommunityCommentBranch';
 import { CommunityPostBlockContent } from './CommunityPostBlockContent';
 import { CommunityRollingNumber } from './CommunityRollingNumber';
@@ -255,6 +257,7 @@ export function CommunityDetailPage() {
   const [postActionError, setPostActionError] = useState<string | null>(null);
   const postMenuRef = useRef<HTMLDivElement>(null);
   const attachmentListRef = useRef<HTMLDivElement>(null);
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const isHeartMutatingRef = useRef(false);
   const postStatsRefreshVersionRef = useRef(0);
   const commentDeleteCloseTimerRef = useRef<number | null>(null);
@@ -677,12 +680,18 @@ export function CommunityDetailPage() {
     [],
   );
 
-  const handleCommentKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      void handleCommentSubmit();
+  const handleCommentKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== 'Enter' || event.shiftKey) {
+      return;
     }
+
+    event.preventDefault();
+    void handleCommentSubmit();
   };
+
+  useEffect(() => {
+    resizeCommunityTextarea(commentInputRef.current);
+  }, [commentContent]);
 
   const handlePostMenuKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape') {
@@ -1339,12 +1348,13 @@ export function CommunityDetailPage() {
                   <S.CommentHeading>댓글</S.CommentHeading>
                   <S.CommentInputRow>
                     <S.CommentInput
-                      type="text"
+                      ref={commentInputRef}
+                      rows={1}
                       aria-label="댓글 내용"
                       placeholder="어떤 댓글을 남겨볼까요?"
                       value={commentContent}
                       disabled={isCommentSubmitting}
-                      onChange={(event) =>
+                      onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
                         setCommentContent(event.target.value)
                       }
                       onKeyDown={handleCommentKeyDown}
