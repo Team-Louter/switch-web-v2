@@ -42,6 +42,7 @@ const getInitialSelections = (effects: StoreEffect[]): CategorySelections => {
 }
 
 type UseProfileCustomizeParams = {
+  currentPoint: number
   isOpen: boolean
   onEquippedItemsChange: (equippedItems: EquippedItemsResponse) => void
   onPointChange?: (point: number) => void
@@ -50,6 +51,7 @@ type UseProfileCustomizeParams = {
 // 마이페이지에서 독립적으로 프로필 꾸미기 모달을 여는 로직.
 // useStorePage와 매핑 함수를 공유하되, 상점 목록/필터는 포함하지 않는다.
 export function useProfileCustomize({
+  currentPoint,
   isOpen,
   onEquippedItemsChange,
   onPointChange,
@@ -168,10 +170,9 @@ export function useProfileCustomize({
   }
 
   const onPurchase = async () => {
-    const effectToPurchase =
-      CUSTOMIZE_CATEGORIES.map((category) =>
-        getEffectById(storeEffects, selections[category]),
-      ).find((effect) => effect?.status === 'recommended') ?? null
+    const effectToPurchase = selectedEffect?.status === 'recommended'
+      ? selectedEffect
+      : null
 
     if (
       !effectToPurchase ||
@@ -198,10 +199,11 @@ export function useProfileCustomize({
       )
 
       try {
-        const currentPoint = await getUserPoint()
-        onPointChange?.(currentPoint)
+        const refreshedPoint = await getUserPoint()
+        onPointChange?.(refreshedPoint)
       } catch {
-        // 구매 성공 후 포인트 재조회에 실패해도 보유 효과 상태는 유지한다.
+        // 포인트 재조회 실패 시에도 구매 가격을 차감한 잔액을 표시한다.
+        onPointChange?.(Math.max(0, currentPoint - ownedEffect.price))
       }
 
       return true
