@@ -98,6 +98,110 @@ export const QuickStatValue = styled.span`
   font-variant-numeric: tabular-nums;
 `
 
+export const PointRewardTooltip = styled.div`
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 10;
+  box-sizing: border-box;
+  width: 248px;
+  padding: 14px 16px;
+  border: 1px solid ${color.lightLine};
+  border-radius: 10px;
+  background: ${token.colors.white};
+  box-shadow: 0 6px 18px rgb(0 0 0 / 14%);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease,
+    visibility 120ms ease;
+  visibility: hidden;
+
+  &::before {
+    position: absolute;
+    top: -6px;
+    right: 14px;
+    width: 10px;
+    height: 10px;
+    border-top: 1px solid ${color.lightLine};
+    border-left: 1px solid ${color.lightLine};
+    background: ${token.colors.white};
+    content: '';
+    transform: rotate(45deg);
+  }
+`
+
+export const PointRewardContainer = styled.div`
+  position: relative;
+
+  &:hover ${PointRewardTooltip},
+  &:focus-within ${PointRewardTooltip} {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+    visibility: visible;
+  }
+`
+
+export const PointRewardTrigger = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 0;
+  color: ${color.coolText};
+  line-height: 1;
+  white-space: nowrap;
+  ${token.typography('caption', 'sm', 'medium')}
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 3px;
+  }
+`
+
+export const PointRewardHelpIcon = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 1px;
+  color: ${color.coolText};
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+`
+
+export const PointRewardTooltipTitle = styled.strong`
+  display: block;
+  margin-bottom: 8px;
+  color: ${color.text};
+  ${token.typography('caption', 'md', 'semibold')}
+`
+
+export const PointRewardList = styled.ul`
+  display: grid;
+  gap: 5px;
+`
+
+export const PointRewardItem = styled.li`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: ${color.coolText};
+  line-height: 1.35;
+  ${token.typography('caption', 'sm', 'medium')}
+
+  strong {
+    flex: 0 0 auto;
+    color: ${color.gold};
+    font-variant-numeric: tabular-nums;
+  }
+`
+
 export const ProfileGroup = styled.div`
   display: flex;
   align-items: center;
@@ -109,6 +213,8 @@ export const ProfileGroup = styled.div`
 export const ProfileImageWrapper = styled.div<{
   $hasCustomBorder: boolean
 }>`
+  position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -120,6 +226,55 @@ export const ProfileImageWrapper = styled.div<{
   border-radius: ${token.shapes.circle};
   background: ${token.colors.white};
   box-shadow: 0 2px 6px rgb(0 0 0 / 8%);
+
+  &:hover > button,
+  &:focus-within > button {
+    pointer-events: auto;
+    opacity: 1;
+  }
+`
+
+export const ProfileCustomizeButton = styled.button`
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: ${token.shapes.circle};
+  color: ${token.colors.white};
+  background: rgb(0 0 0 / 52%);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: auto;
+  transition:
+    opacity 120ms ease,
+    background-color 120ms ease;
+
+  @media (hover: hover) and (pointer: fine) {
+    pointer-events: none;
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    opacity: 1;
+  }
+
+  &:hover {
+    background: rgb(0 0 0 / 60%);
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
 `
 
 export const ProfileInfo = styled.div`
