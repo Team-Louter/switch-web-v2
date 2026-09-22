@@ -287,7 +287,7 @@ export const PostMeta = styled.div`
   max-width: 100%;
   min-width: 0;
   gap: 12px;
-  height: 44px;
+  min-height: 44px;
 `;
 
 export const PostAuthor = styled.div`
