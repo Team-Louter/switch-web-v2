@@ -241,7 +241,7 @@ export const mapShopItemToStoreEffect = (item: ShopItemResponse): StoreEffect =>
   }
 }
 
-const mapProfileItemToOwnedEffect = (
+export const mapProfileItemToOwnedEffect = (
   item: ProfileItemResponse,
 ): StoreEffect => {
   const conditionLabels = formatUnlockConditionLabels(item)
@@ -465,6 +465,11 @@ export function useStorePage() {
       : customizeCategoryEffects.find(
           (effect) => effect.id === selectedCustomizeEffectId,
         ) ?? null
+  const equippedCustomizeEffectId =
+    customizeOwnedEffects.find((effect) => effect.status === 'equipped')?.id ?? null
+  const hasCustomizeChanges =
+    selectedCustomizeEffectId !== undefined &&
+    (selectedCustomizeEffectId ?? null) !== equippedCustomizeEffectId
 
   useEffect(() => {
     setSelectedCustomizeEffectId((currentEffectId) => {
@@ -542,10 +547,10 @@ export function useStorePage() {
     setSelectedCustomizeEffectId(null)
   }
 
-  const handlePurchase = async () => {
+  const handlePurchase = async (effectToPurchase = selectedEffect) => {
     if (
-      !selectedEffect ||
-      selectedEffect.canPurchase === false ||
+      !effectToPurchase ||
+      effectToPurchase.canPurchase === false ||
       isActionPending
     ) {
       return
@@ -556,8 +561,8 @@ export function useStorePage() {
 
     try {
       const purchasedItem = await purchaseShopItem(
-        selectedEffect.itemType,
-        selectedEffect.id,
+        effectToPurchase.itemType,
+        effectToPurchase.id,
       )
       const ownedEffect = mapProfileItemToOwnedEffect(purchasedItem)
 
@@ -575,6 +580,8 @@ export function useStorePage() {
       setIsActionPending(false)
     }
   }
+
+  const handleCustomizePurchase = () => handlePurchase(selectedCustomizeEffect)
 
   const handleEquip = async (effectId: number) => {
     const target = storeEffects.find((effect) => effect.id === effectId)
@@ -631,7 +638,7 @@ export function useStorePage() {
   }
 
   const handleCustomizeSave = async () => {
-    if (isActionPending) {
+    if (isActionPending || !hasCustomizeChanges) {
       return
     }
 
@@ -666,6 +673,7 @@ export function useStorePage() {
     customizeOwnedEffects,
     customizeRecommendedEffects,
     errorMessage,
+    hasCustomizeChanges,
     isActionPending,
     isLoading,
     ownedEffects,
@@ -680,6 +688,7 @@ export function useStorePage() {
     onCustomizeCategorySelect: handleCustomizeCategorySelect,
     onCustomizeEffectSelect: handleCustomizeEffectSelect,
     onCustomizeOpen: handleCustomizeOpen,
+    onCustomizePurchase: handleCustomizePurchase,
     onCustomizeReset: handleCustomizeReset,
     onCustomizeSave: handleCustomizeSave,
     onEffectEquip: handleEquip,

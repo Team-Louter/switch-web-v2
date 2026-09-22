@@ -37,6 +37,9 @@ export function MyPage() {
     useState(false)
   const [isWithdrawing, setIsWithdrawing] = useState(false)
   const [isProfileCustomizeOpen, setIsProfileCustomizeOpen] = useState(false)
+  const [pointOverride, setPointOverride] = useState<number | undefined>(
+    undefined,
+  )
   const [equippedItemsOverride, setEquippedItemsOverride] = useState<
     EquippedItemsResponse | undefined
   >(undefined)
@@ -55,9 +58,16 @@ export function MyPage() {
     setActiveTabId,
   } = useMyPage()
 
-  const profileForDisplay = equippedItemsOverride
-    ? { ...profile, equippedItems: equippedItemsOverride }
-    : profile
+  const profileForDisplay =
+    equippedItemsOverride || pointOverride !== undefined
+      ? {
+          ...profile,
+          ...(pointOverride !== undefined ? { point: pointOverride } : {}),
+          ...(equippedItemsOverride
+            ? { equippedItems: equippedItemsOverride }
+            : {}),
+        }
+      : profile
   const canManageMembers = profile.role === 'LEADER'
 
   const { onSave: saveProfileCustomize, ...profileCustomize } =
@@ -67,6 +77,7 @@ export function MyPage() {
         setEquippedItemsOverride(equippedItems)
         dispatchProfileSync({ equippedItems })
       },
+      onPointChange: setPointOverride,
     })
 
   const handleProfileCustomizeSave = async () => {
@@ -232,6 +243,7 @@ export function MyPage() {
         <StoreProfileCustomizeModal
           categories={profileCustomize.categories}
           errorMessage={profileCustomize.errorMessage}
+          hasUnsavedChanges={profileCustomize.hasUnsavedChanges}
           isActionPending={profileCustomize.isActionPending}
           isLoading={profileCustomize.isLoading}
           ownedEffects={profileCustomize.ownedEffects}
@@ -247,6 +259,7 @@ export function MyPage() {
             setIsProfileCustomizeOpen(false)
             navigate(`/store?category=${encodeURIComponent(category)}`)
           }}
+          onPurchase={profileCustomize.onPurchase}
           onReset={profileCustomize.onReset}
           onSave={handleProfileCustomizeSave}
         />

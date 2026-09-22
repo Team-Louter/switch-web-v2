@@ -1,10 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { getShopItems, updateEquippedItem } from '@/entities/store'
+import {
+  getShopItems,
+  getUserPoint,
+  purchaseShopItem,
+  updateEquippedItem,
+} from '@/entities/store'
 
 import {
   STORE_CATEGORY_ITEM_TYPE,
   applyEquippedItems,
+  mapProfileItemToOwnedEffect,
   mapShopItemToStoreEffect,
 } from './useStorePage'
 
@@ -38,6 +44,7 @@ const getInitialSelections = (effects: StoreEffect[]): CategorySelections => {
 type UseProfileCustomizeParams = {
   isOpen: boolean
   onEquippedItemsChange: (equippedItems: EquippedItemsResponse) => void
+  onPointChange?: (point: number) => void
 }
 
 // 마이페이지에서 독립적으로 프로필 꾸미기 모달을 여는 로직.
@@ -45,6 +52,7 @@ type UseProfileCustomizeParams = {
 export function useProfileCustomize({
   isOpen,
   onEquippedItemsChange,
+  onPointChange,
 }: UseProfileCustomizeParams) {
   const [selectedCategory, setSelectedCategory] =
     useState<Exclude<StoreCategory, '전체'>>('이름 색상')
@@ -121,6 +129,20 @@ export function useProfileCustomize({
     }),
     [selections, storeEffects],
   )
+
+  const hasUnsavedChanges = useMemo(
+    () =>
+      CUSTOMIZE_CATEGORIES.some((category) => {
+        const equippedEffectId =
+          storeEffects.find(
+            (effect) =>
+              effect.category === category && effect.status === 'equipped',
+          )?.id ?? null
+
+        return selections[category] !== equippedEffectId
+      }),
+    [selections, storeEffects],
+  )
   
   const onCategorySelect = (category: StoreCategory) => {
     if (category === '전체') {
@@ -145,8 +167,54 @@ export function useProfileCustomize({
     })
   }
 
+  const onPurchase = async () => {
+    const effectToPurchase =
+      CUSTOMIZE_CATEGORIES.map((category) =>
+        getEffectById(storeEffects, selections[category]),
+      ).find((effect) => effect?.status === 'recommended') ?? null
+
+    if (
+      !effectToPurchase ||
+      effectToPurchase.canPurchase === false ||
+      isActionPending
+    ) {
+      return false
+    }
+
+    setIsActionPending(true)
+    setErrorMessage('')
+
+    try {
+      const purchasedItem = await purchaseShopItem(
+        effectToPurchase.itemType,
+        effectToPurchase.id,
+      )
+      const ownedEffect = mapProfileItemToOwnedEffect(purchasedItem)
+
+      setStoreEffects((currentEffects) =>
+        currentEffects.map((effect) =>
+          effect.id === ownedEffect.id ? ownedEffect : effect,
+        ),
+      )
+
+      try {
+        const currentPoint = await getUserPoint()
+        onPointChange?.(currentPoint)
+      } catch {
+        // 구매 성공 후 포인트 재조회에 실패해도 보유 효과 상태는 유지한다.
+      }
+
+      return true
+    } catch {
+      setErrorMessage('효과를 구매하지 못했어요')
+      return false
+    } finally {
+      setIsActionPending(false)
+    }
+  }
+
   const onSave = async () => {
-    if (isActionPending) {
+    if (isActionPending || !hasUnsavedChanges) {
       return false
     }
   
@@ -199,6 +267,7 @@ export function useProfileCustomize({
   return {
     categories: CUSTOMIZE_CATEGORIES,
     errorMessage,
+    hasUnsavedChanges,
     isActionPending,
     isLoading,
     ownedEffects,
@@ -208,6 +277,7 @@ export function useProfileCustomize({
     selectedEffectsByCategory, 
     onCategorySelect,
     onEffectSelect,
+    onPurchase,
     onReset,
     onSave,
   }

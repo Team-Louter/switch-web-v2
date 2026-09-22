@@ -83,6 +83,7 @@ export function StorePage() {
     customizeOwnedEffects,
     customizeRecommendedEffects,
     errorMessage,
+    hasCustomizeChanges,
     isActionPending,
     isLoading,
     ownedEffects,
@@ -96,6 +97,7 @@ export function StorePage() {
     onCategorySelect,
     onCustomizeCategorySelect,
     onCustomizeEffectSelect,
+    onCustomizePurchase,
     onCustomizeReset,
     onCustomizeSave,
     onEffectEquip,
@@ -170,6 +172,7 @@ export function StorePage() {
         <StoreProfileCustomizeModal
           categories={customizeCategories}
           errorMessage={errorMessage}
+          hasUnsavedChanges={hasCustomizeChanges}
           isActionPending={isActionPending}
           isLoading={isLoading}
           ownedEffects={customizeOwnedEffects}
@@ -184,6 +187,7 @@ export function StorePage() {
             onCategorySelect(category)
             onModalClose()
           }}
+          onPurchase={onCustomizePurchase}
           onReset={onCustomizeReset}
           onSave={onCustomizeSave}
         />
