@@ -168,10 +168,9 @@ export function useProfileCustomize({
   }
 
   const onPurchase = async () => {
-    const effectToPurchase =
-      CUSTOMIZE_CATEGORIES.map((category) =>
-        getEffectById(storeEffects, selections[category]),
-      ).find((effect) => effect?.status === 'recommended') ?? null
+    const effectToPurchase = selectedEffect?.status === 'recommended'
+      ? selectedEffect
+      : null
 
     if (
       !effectToPurchase ||
