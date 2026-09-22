@@ -41,6 +41,7 @@ import {
   getCommunityFileKey,
   getPost,
   POST_CATEGORY_OPTIONS,
+  POST_TAG_OPTIONS_BY_CATEGORY,
   type PostCategory,
   type PostTag,
 } from '@/entities/community';
@@ -322,11 +323,15 @@ export function CommunityWritePage() {
   const selectedCategoryLabel =
     POST_CATEGORY_OPTIONS.find((option) => option.value === category)?.label ??
     '카테고리';
+  const selectedTagOptions = category
+    ? POST_TAG_OPTIONS_BY_CATEGORY[category]
+    : [];
   const titleLength = title.length;
   const isTitleOverLimit = titleLength > COMMUNITY_TITLE_MAX_LENGTH;
 
   const handleCategorySelect = (nextCategory: PostCategory) => {
     setCategory(nextCategory);
+    setTag(undefined);
     setIsCategoryMenuOpen(false);
   };
 
@@ -1164,6 +1169,32 @@ export function CommunityWritePage() {
                 </S.TitleCounter>
               </S.TitleField>
             </S.Fields>
+
+            {selectedTagOptions.length > 0 && (
+              <S.TagField>
+                <S.TagLegend>말머리 (선택)</S.TagLegend>
+                <S.TagOptions aria-label="말머리 선택">
+                  {selectedTagOptions.map((option) => (
+                    <S.TagOption
+                      key={option.value}
+                      type="button"
+                      aria-pressed={tag === option.value}
+                      $selected={tag === option.value}
+                      disabled={isEditorDisabled}
+                      onClick={() =>
+                        setTag((currentTag) =>
+                          currentTag === option.value
+                            ? undefined
+                            : option.value,
+                        )
+                      }
+                    >
+                      {option.label}
+                    </S.TagOption>
+                  ))}
+                </S.TagOptions>
+              </S.TagField>
+            )}
           </S.WriteForm>
         </S.Header>
 

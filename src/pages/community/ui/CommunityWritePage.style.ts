@@ -96,6 +96,60 @@ export const Fields = styled.div`
   }
 `;
 
+export const TagField = styled.fieldset`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+`;
+
+export const TagLegend = styled.legend`
+  padding: 0;
+  color: ${token.colors.gray.gray60};
+  ${token.typography('caption', 'md', 'medium')}
+  line-height: 1;
+`;
+
+export const TagOptions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+`;
+
+export const TagOption = styled.button<{ $selected: boolean }>`
+  min-height: 32px;
+  padding: 7px 12px;
+  border: 1px solid
+    ${({ $selected }) =>
+      $selected ? token.colors.primary.primary50 : token.colors.gray.gray20};
+  border-radius: 999px;
+  color: ${({ $selected }) =>
+    $selected ? token.colors.primary.primary80 : token.colors.gray.gray60};
+  background: ${({ $selected }) =>
+    $selected ? token.colors.primary.primary10 : token.colors.white};
+  ${token.typography('body', 'sm', 'medium')}
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: ${token.colors.primary.primary50};
+    background: ${token.colors.primary.primary10};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
+`;
+
 export const CategoryField = styled.div`
   position: relative;
   flex: 0 0 162px;
