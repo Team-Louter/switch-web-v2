@@ -3,6 +3,18 @@ import styled, { css, keyframes } from 'styled-components';
 import { contentReveal } from '@/shared/styles/animations';
 import * as token from '@/shared/styles/values/token';
 
+const contentRevealOnTagRemoval = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
 export const Page = styled.section`
   box-sizing: border-box;
   height: 100dvh;
@@ -310,6 +322,7 @@ export const ContentCounter = styled.span`
 
 interface EditorProps {
   $hasTagOptions: boolean;
+  $shouldAnimate: boolean;
   $selectedBlockId: string | null;
   $showEditorPlaceholder: boolean;
 }
@@ -328,8 +341,15 @@ export const Editor = styled.section<EditorProps>`
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.small};
   background: ${token.colors.white};
-  animation: ${({ $hasTagOptions }) =>
-    $hasTagOptions && css`${contentReveal} 360ms ease-out both`};
+  animation: ${({ $hasTagOptions, $shouldAnimate }) => {
+    if (!$shouldAnimate) {
+      return 'none';
+    }
+
+    return $hasTagOptions
+      ? css`${contentReveal} 360ms ease-out both`
+      : css`${contentRevealOnTagRemoval} 360ms ease-out both`;
+  }};
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
