@@ -3,10 +3,11 @@ import styled, { css, keyframes } from 'styled-components';
 import { contentReveal } from '@/shared/styles/animations';
 import * as token from '@/shared/styles/values/token';
 
-const contentRevealOnTagRemoval = keyframes`
+// 공용 keyframes와 다른 animation-name을 사용해 카테고리 변경마다 재생되도록 합니다.
+const contentRevealAlternate = keyframes`
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translate3d(0, 14px, 0);
   }
 
   to {
@@ -14,6 +15,9 @@ const contentRevealOnTagRemoval = keyframes`
     transform: translateY(0);
   }
 `;
+
+const getContentRevealAnimation = (animationKey: number) =>
+  animationKey % 2 === 0 ? contentReveal : contentRevealAlternate;
 
 export const Page = styled.section`
   box-sizing: border-box;
@@ -109,7 +113,7 @@ export const Fields = styled.div`
   }
 `;
 
-export const TagField = styled.fieldset`
+export const TagField = styled.fieldset<{ $animationKey: number }>`
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -117,7 +121,8 @@ export const TagField = styled.fieldset`
   margin: 0;
   padding: 0;
   border: 0;
-  animation: ${contentReveal} 360ms ease-out both;
+  animation: ${({ $animationKey }) =>
+    css`${getContentRevealAnimation($animationKey)} 360ms ease-out both`};
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
@@ -321,7 +326,7 @@ export const ContentCounter = styled.span`
 `;
 
 interface EditorProps {
-  $hasTagOptions: boolean;
+  $animationKey: number;
   $shouldAnimate: boolean;
   $selectedBlockId: string | null;
   $showEditorPlaceholder: boolean;
@@ -341,14 +346,12 @@ export const Editor = styled.section<EditorProps>`
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.small};
   background: ${token.colors.white};
-  animation: ${({ $hasTagOptions, $shouldAnimate }) => {
+  animation: ${({ $animationKey, $shouldAnimate }) => {
     if (!$shouldAnimate) {
       return 'none';
     }
 
-    return $hasTagOptions
-      ? css`${contentReveal} 360ms ease-out both`
-      : css`${contentRevealOnTagRemoval} 360ms ease-out both`;
+    return css`${getContentRevealAnimation($animationKey)} 360ms ease-out both`;
   }};
 
   @media (prefers-reduced-motion: reduce) {

@@ -298,6 +298,7 @@ export function CommunityWritePage() {
   const draggedBlockIdRef = useRef<string | null>(null);
   const isPostLoadingRef = useRef(false);
   const [category, setCategory] = useState<PostCategory | ''>('');
+  const [categoryAnimationKey, setCategoryAnimationKey] = useState(0);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [tag, setTag] = useState<PostTag | undefined>(undefined);
   const [title, setTitle] = useState('');
@@ -330,6 +331,10 @@ export function CommunityWritePage() {
   const isTitleOverLimit = titleLength > COMMUNITY_TITLE_MAX_LENGTH;
 
   const handleCategorySelect = (nextCategory: PostCategory) => {
+    if (category !== nextCategory) {
+      setCategoryAnimationKey((animationKey) => animationKey + 1);
+    }
+
     setCategory(nextCategory);
     setTag(undefined);
     setIsCategoryMenuOpen(false);
@@ -1171,7 +1176,7 @@ export function CommunityWritePage() {
             </S.Fields>
 
             {selectedTagOptions.length > 0 && (
-              <S.TagField>
+              <S.TagField $animationKey={categoryAnimationKey}>
                 <S.TagOptions aria-label="말머리 선택">
                   {selectedTagOptions.map((option) => (
                     <S.TagOption
@@ -1199,7 +1204,7 @@ export function CommunityWritePage() {
 
         <S.Editor
           ref={editorAreaRef}
-          $hasTagOptions={selectedTagOptions.length > 0}
+          $animationKey={categoryAnimationKey}
           $shouldAnimate={Boolean(category)}
           $selectedBlockId={selectedBlockId}
           $showEditorPlaceholder={isEditorPlaceholderVisible}
