@@ -450,34 +450,29 @@ export function useStorePage() {
       ),
     [customizeCategoryEffects],
   )
+  const resolvedCustomizeEffectId =
+    selectedCustomizeEffectId === null
+      ? null
+      : selectedCustomizeEffectId !== undefined &&
+          customizeCategoryEffects.some(
+            (effect) => effect.id === selectedCustomizeEffectId,
+          )
+        ? selectedCustomizeEffectId
+        : customizeCategoryEffects.find(
+              (effect) => effect.status === 'equipped',
+            )?.id
   const selectedCustomizeEffect =
-    selectedCustomizeEffectId === null || selectedCustomizeEffectId === undefined
+    resolvedCustomizeEffectId === null ||
+    resolvedCustomizeEffectId === undefined
       ? null
       : customizeCategoryEffects.find(
-          (effect) => effect.id === selectedCustomizeEffectId,
+          (effect) => effect.id === resolvedCustomizeEffectId,
         ) ?? null
   const equippedCustomizeEffectId =
     customizeOwnedEffects.find((effect) => effect.status === 'equipped')?.id ?? null
   const hasCustomizeChanges =
-    selectedCustomizeEffectId !== undefined &&
-    (selectedCustomizeEffectId ?? null) !== equippedCustomizeEffectId
-
-  useEffect(() => {
-    setSelectedCustomizeEffectId((currentEffectId) => {
-      if (currentEffectId === null) {
-        return currentEffectId
-      }
-
-      if (
-        currentEffectId !== undefined &&
-        customizeOwnedEffects.some((effect) => effect.id === currentEffectId)
-      ) {
-        return currentEffectId
-      }
-
-      return customizeOwnedEffects.find((effect) => effect.status === 'equipped')?.id
-    })
-  }, [customizeOwnedEffects])
+    resolvedCustomizeEffectId !== undefined &&
+    (resolvedCustomizeEffectId ?? null) !== equippedCustomizeEffectId
 
   const clearCustomizeQuery = () => {
     if (!searchParams.has('customize') && !searchParams.has('category')) {
