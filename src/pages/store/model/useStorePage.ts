@@ -69,6 +69,10 @@ const CUSTOMIZE_CATEGORIES: StoreCategory[] = [
   '칭호',
 ]
 
+const shouldOpenCustomizeModal = (searchParams: URLSearchParams) =>
+  searchParams.get('customize') === '1' ||
+  searchParams.get('customize') === 'true'
+
 const STORE_ITEM_CATEGORY: Record<StoreItemType, StoreCategory> = {
   BORDER: '테두리',
   NAME_COLOR: '이름 색상',
@@ -318,7 +322,9 @@ export function useStorePage() {
   const [storeEffects, setStoreEffects] = useState<StoreEffect[]>([])
   const [profilePreview, setProfilePreview] =
     useState<StoreProfilePreview | null>(null)
-  const [activeModal, setActiveModal] = useState<StoreModalType | null>(null)
+  const [activeModal, setActiveModal] = useState<StoreModalType | null>(() =>
+    shouldOpenCustomizeModal(searchParams) ? 'customize' : null,
+  )
   const [selectedEffect, setSelectedEffect] = useState<StoreEffect | null>(null)
   const [point, setPoint] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
@@ -369,16 +375,6 @@ export function useStorePage() {
       shouldIgnore = true
     }
   }, [loadAttempt])
-
-  useEffect(() => {
-    const shouldOpenCustomizeModal =
-      searchParams.get('customize') === '1' ||
-      searchParams.get('customize') === 'true'
-
-    if (shouldOpenCustomizeModal) {
-      setActiveModal('customize')
-    }
-  }, [searchParams])
 
   useEffect(() => {
     const categoryParam = searchParams.get('category')
