@@ -372,6 +372,13 @@ export function useStorePage() {
 
       if (profileResult.status === 'fulfilled' && !shouldIgnore) {
         setProfilePreview(formatStoreProfile(profileResult.value))
+      } else if (
+        profileResult.status === 'rejected' &&
+        itemsResult.status === 'fulfilled' &&
+        pointResult.status === 'fulfilled' &&
+        !shouldIgnore
+      ) {
+        setErrorMessage('프로필을 불러오지 못했어요')
       }
 
       if (!shouldIgnore) {
