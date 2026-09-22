@@ -1,5 +1,6 @@
-import styled, { keyframes } from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
 
+import { contentReveal } from '@/shared/styles/animations';
 import * as token from '@/shared/styles/values/token';
 
 export const Page = styled.section`
@@ -104,6 +105,11 @@ export const TagField = styled.fieldset`
   margin: 0;
   padding: 0;
   border: 0;
+  animation: ${contentReveal} 360ms ease-out both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `;
 
 export const TagOptions = styled.div`
@@ -303,6 +309,7 @@ export const ContentCounter = styled.span`
 `;
 
 interface EditorProps {
+  $hasTagOptions: boolean;
   $selectedBlockId: string | null;
   $showEditorPlaceholder: boolean;
 }
@@ -321,6 +328,12 @@ export const Editor = styled.section<EditorProps>`
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.small};
   background: ${token.colors.white};
+  animation: ${({ $hasTagOptions }) =>
+    $hasTagOptions && css`${contentReveal} 360ms ease-out both`};
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 
   .community-toolbar-actions {
     display: flex;

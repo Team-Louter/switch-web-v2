@@ -1199,6 +1199,7 @@ export function CommunityWritePage() {
 
         <S.Editor
           ref={editorAreaRef}
+          $hasTagOptions={selectedTagOptions.length > 0}
           $selectedBlockId={selectedBlockId}
           $showEditorPlaceholder={isEditorPlaceholderVisible}
           aria-label="게시글 내용 편집기"
