@@ -288,6 +288,14 @@ export const CardActionArea = styled.div`
   ${EffectCard}:hover & {
     height: 33px;
   }
+
+  ${EffectCard}:focus-within & {
+    height: 33px;
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    height: 33px;
+  }
 `
 
 export const StatusText = styled.p<{ $status: StoreEffectStatus }>`
@@ -306,6 +314,14 @@ export const StatusText = styled.p<{ $status: StoreEffectStatus }>`
   transition: opacity 120ms ease;
 
   ${EffectCard}:hover & {
+    opacity: 0;
+  }
+
+  ${EffectCard}:focus-within & {
+    opacity: 0;
+  }
+
+  @media (hover: none), (pointer: coarse) {
     opacity: 0;
   }
 `
@@ -327,6 +343,14 @@ export const PriceRow = styled.div`
   }
 
   ${EffectCard}:hover & {
+    opacity: 0;
+  }
+
+  ${EffectCard}:focus-within & {
+    opacity: 0;
+  }
+
+  @media (hover: none), (pointer: coarse) {
     opacity: 0;
   }
 `
@@ -353,6 +377,16 @@ export const CardButton = styled.button<{ $isDanger?: boolean }>`
   }
 
   ${EffectCard}:hover & {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  ${EffectCard}:focus-within & {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  @media (hover: none), (pointer: coarse) {
     opacity: 1;
     pointer-events: auto;
   }
