@@ -427,7 +427,11 @@ export function CommunityWritePage() {
   };
 
   const handleTitleKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
-    if (event.key !== 'Enter' || isEditorDisabled) {
+    if (
+      event.key !== 'Enter' ||
+      event.nativeEvent.isComposing ||
+      isEditorDisabled
+    ) {
       return;
     }
 
