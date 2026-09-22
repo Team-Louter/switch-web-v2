@@ -58,6 +58,16 @@ export const POST_TAG_OPTIONS_BY_CATEGORY: Record<
   ],
 }
 
+const POST_TAG_LABELS: Record<PostTag, string> = Object.fromEntries(
+  Object.values(POST_TAG_OPTIONS_BY_CATEGORY)
+    .flat()
+    .map(({ value, label }) => [value, label]),
+) as Record<PostTag, string>
+
+export function getPostTagLabel(tag: PostTag): string {
+  return POST_TAG_LABELS[tag]
+}
+
 const POST_CATEGORY_LABELS: Record<PostCategory, string> = Object.fromEntries(
   POST_CATEGORY_OPTIONS.map(({ value, label }) => [value, label]),
 ) as Record<PostCategory, string>
