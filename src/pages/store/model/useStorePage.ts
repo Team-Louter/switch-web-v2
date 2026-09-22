@@ -484,10 +484,7 @@ export function useStorePage() {
         return currentEffectId
       }
 
-      return (
-        customizeOwnedEffects.find((effect) => effect.status === 'equipped') ??
-        customizeOwnedEffects[0]
-      )?.id
+      return customizeOwnedEffects.find((effect) => effect.status === 'equipped')?.id
     })
   }, [customizeOwnedEffects])
 
