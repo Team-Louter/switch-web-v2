@@ -133,7 +133,7 @@ export function StorePurchaseModal({
           ) : (
             <S.ModalButton
               disabled={!canPurchase || isActionPending}
-              onClick={onPurchase}
+              onClick={() => onPurchase()}
               type="button"
             >
               {canPurchase ? (
