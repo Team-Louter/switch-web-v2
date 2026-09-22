@@ -466,13 +466,13 @@ export const CommentAuthor = styled(UserName)`
   display: block;
   flex: 0 1 auto;
   min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
+  max-width: none;
+  overflow: visible;
   color: #404040;
   ${token.typography('heading', 'sm', 'semibold')}
   line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 `;
 
 export const CommentAuthorTitle = styled(CommunityTitleBadge)`
@@ -596,6 +596,7 @@ export const CommentText = styled.p<CommentTextProps>`
   ${token.typography('body', 'lg', 'medium')}
   line-height: 1.5;
   overflow-wrap: anywhere;
+  white-space: pre-wrap;
 `;
 
 export const CommentMention = styled.span`
@@ -611,10 +612,12 @@ export const CommentEditForm = styled.div`
   width: 100%;
 `;
 
-export const CommentEditInput = styled.input`
+export const CommentEditInput = styled.textarea`
   box-sizing: border-box;
   width: 100%;
+  height: 44px;
   min-height: 44px;
+  max-height: 120px;
   padding: 10px 12px;
   border: 1px solid ${token.colors.gray.gray20};
   border-radius: ${token.shapes.small};
@@ -622,7 +625,10 @@ export const CommentEditInput = styled.input`
   color: ${token.colors.gray.gray100};
   background: ${token.colors.white};
   ${token.typography('body', 'md', 'medium')}
+  font-family: inherit;
   line-height: 1.5;
+  resize: none;
+  overflow-y: auto;
 
   &:focus {
     border-color: ${token.colors.primary.primary50};
@@ -723,10 +729,12 @@ export const ReplyComposerBody = styled.div`
   min-width: 0;
 `;
 
-export const ReplyComposerInput = styled.input`
+export const ReplyComposerInput = styled.textarea`
   box-sizing: border-box;
   width: 100%;
+  height: 48px;
   min-height: 48px;
+  max-height: 120px;
   padding: 0;
   border: 0;
   border-bottom: 2px solid ${token.colors.gray.gray80};
@@ -734,7 +742,10 @@ export const ReplyComposerInput = styled.input`
   color: ${token.colors.gray.gray100};
   background: transparent;
   ${token.typography('body', 'lg', 'medium')}
+  font-family: inherit;
   line-height: 1.5;
+  resize: none;
+  overflow-y: auto;
 
   &::placeholder {
     color: ${token.colors.gray.gray70};

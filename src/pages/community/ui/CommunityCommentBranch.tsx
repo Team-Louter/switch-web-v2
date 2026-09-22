@@ -1,4 +1,5 @@
 import {
+  type ChangeEvent,
   type KeyboardEvent,
   type SyntheticEvent,
   useCallback,
@@ -23,6 +24,7 @@ import {
   type CommunityReplyLoadHandler,
   type CommunityReplySubmitHandler,
 } from '../model/commentTree';
+import { resizeCommunityTextarea } from '../model/commentInput';
 import kebabIcon from '../assets/svg/kebab.svg';
 import * as S from './CommunityCommentBranch.style';
 import { PixelHammerIcon } from './PixelHammerIcon';
@@ -110,6 +112,8 @@ export function CommunityCommentBranch({
   const [editedCommentContent, setEditedCommentContent] = useState('');
   const [isCommentMutating, setIsCommentMutating] = useState(false);
   const commentMenuRef = useRef<HTMLDivElement>(null);
+  const replyInputRef = useRef<HTMLTextAreaElement>(null);
+  const commentEditInputRef = useRef<HTMLTextAreaElement>(null);
   const [dismissedTargetCommentId, setDismissedTargetCommentId] = useState<
     number | null
   >(null);
@@ -226,11 +230,13 @@ export function CommunityCommentBranch({
     setIsRepliesLoading(false);
   }, [comment.commentId, isRepliesLoading, onRepliesLoad]);
 
-  const handleReplyKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      void handleReplyFormSubmit();
+  const handleReplyKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== 'Enter' || event.shiftKey) {
+      return;
     }
+
+    event.preventDefault();
+    void handleReplyFormSubmit();
   };
 
   const handleCommentEditStart = () => {
@@ -267,12 +273,24 @@ export function CommunityCommentBranch({
     setIsCommentMutating(false);
   };
 
-  const handleCommentEditKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      void handleCommentEditSubmit();
+  const handleCommentEditKeyDown = (
+    event: KeyboardEvent<HTMLTextAreaElement>,
+  ) => {
+    if (event.key !== 'Enter' || event.shiftKey) {
+      return;
     }
+
+    event.preventDefault();
+    void handleCommentEditSubmit();
   };
+
+  useEffect(() => {
+    resizeCommunityTextarea(replyInputRef.current);
+  }, [replyContent]);
+
+  useEffect(() => {
+    resizeCommunityTextarea(commentEditInputRef.current);
+  }, [editedCommentContent]);
 
   const handleCommentDeleteRequest = () => {
     if (isCommentMutating) {
@@ -399,7 +417,8 @@ export function CommunityCommentBranch({
             {isCommentEditing ? (
               <S.CommentEditForm>
                 <S.CommentEditInput
-                  type="text"
+                  ref={commentEditInputRef}
+                  rows={1}
                   aria-label="댓글 수정"
                   value={editedCommentContent}
                   disabled={isCommentMutating}
@@ -454,12 +473,13 @@ export function CommunityCommentBranch({
                     />
                     <S.ReplyComposerBody>
                       <S.ReplyComposerInput
-                        type="text"
+                        ref={replyInputRef}
+                        rows={1}
                         aria-label={`${comment.userName} 댓글에 답글 작성`}
                         placeholder="답글을 남겨보세요"
                         value={replyContent}
                         disabled={isReplySubmitting}
-                        onChange={(event) => {
+                        onChange={(event: ChangeEvent<HTMLTextAreaElement>) => {
                           setReplyContent(event.target.value);
                           setReplySubmitError(null);
                         }}
