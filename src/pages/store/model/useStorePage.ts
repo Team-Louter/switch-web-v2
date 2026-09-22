@@ -73,6 +73,16 @@ const shouldOpenCustomizeModal = (searchParams: URLSearchParams) =>
   searchParams.get('customize') === '1' ||
   searchParams.get('customize') === 'true'
 
+const getInitialStoreCategory = (
+  searchParams: URLSearchParams,
+): StoreCategory => {
+  const categoryParam = searchParams.get('category')
+
+  return (
+    STORE_CATEGORIES.find((category) => category === categoryParam) ?? '전체'
+  )
+}
+
 const STORE_ITEM_CATEGORY: Record<StoreItemType, StoreCategory> = {
   BORDER: '테두리',
   NAME_COLOR: '이름 색상',
@@ -314,7 +324,7 @@ export const applyEquippedItems = (
 export function useStorePage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedCategory, setSelectedCategory] =
-    useState<StoreCategory>('전체')
+    useState<StoreCategory>(() => getInitialStoreCategory(searchParams))
   const [selectedCustomizeCategory, setSelectedCustomizeCategory] =
     useState<Exclude<StoreCategory, '전체'>>('이름 색상')
   const [selectedCustomizeEffectId, setSelectedCustomizeEffectId] =
@@ -375,22 +385,6 @@ export function useStorePage() {
       shouldIgnore = true
     }
   }, [loadAttempt])
-
-  useEffect(() => {
-    const categoryParam = searchParams.get('category')
-  
-    if (!categoryParam) {
-      return
-    }
-  
-    const matchedCategory = STORE_CATEGORIES.find(
-      (category) => category === categoryParam,
-    )
-  
-    if (matchedCategory) {
-      setSelectedCategory(matchedCategory)
-    }
-  }, [searchParams])
 
   useEffect(() => {
     if (activeModal !== 'purchaseComplete') {
