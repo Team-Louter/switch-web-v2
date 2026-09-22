@@ -69,6 +69,20 @@ const CUSTOMIZE_CATEGORIES: StoreCategory[] = [
   '칭호',
 ]
 
+const shouldOpenCustomizeModal = (searchParams: URLSearchParams) =>
+  searchParams.get('customize') === '1' ||
+  searchParams.get('customize') === 'true'
+
+const getInitialStoreCategory = (
+  searchParams: URLSearchParams,
+): StoreCategory => {
+  const categoryParam = searchParams.get('category')
+
+  return (
+    STORE_CATEGORIES.find((category) => category === categoryParam) ?? '전체'
+  )
+}
+
 const STORE_ITEM_CATEGORY: Record<StoreItemType, StoreCategory> = {
   BORDER: '테두리',
   NAME_COLOR: '이름 색상',
@@ -310,7 +324,7 @@ export const applyEquippedItems = (
 export function useStorePage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedCategory, setSelectedCategory] =
-    useState<StoreCategory>('전체')
+    useState<StoreCategory>(() => getInitialStoreCategory(searchParams))
   const [selectedCustomizeCategory, setSelectedCustomizeCategory] =
     useState<Exclude<StoreCategory, '전체'>>('이름 색상')
   const [selectedCustomizeEffectId, setSelectedCustomizeEffectId] =
@@ -318,12 +332,15 @@ export function useStorePage() {
   const [storeEffects, setStoreEffects] = useState<StoreEffect[]>([])
   const [profilePreview, setProfilePreview] =
     useState<StoreProfilePreview | null>(null)
-  const [activeModal, setActiveModal] = useState<StoreModalType | null>(null)
+  const [activeModal, setActiveModal] = useState<StoreModalType | null>(() =>
+    shouldOpenCustomizeModal(searchParams) ? 'customize' : null,
+  )
   const [selectedEffect, setSelectedEffect] = useState<StoreEffect | null>(null)
   const [point, setPoint] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isActionPending, setIsActionPending] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [loadAttempt, setLoadAttempt] = useState(0)
 
   useEffect(() => {
     let shouldIgnore = false
@@ -355,6 +372,13 @@ export function useStorePage() {
 
       if (profileResult.status === 'fulfilled' && !shouldIgnore) {
         setProfilePreview(formatStoreProfile(profileResult.value))
+      } else if (
+        profileResult.status === 'rejected' &&
+        itemsResult.status === 'fulfilled' &&
+        pointResult.status === 'fulfilled' &&
+        !shouldIgnore
+      ) {
+        setErrorMessage('프로필을 불러오지 못했어요')
       }
 
       if (!shouldIgnore) {
@@ -367,33 +391,7 @@ export function useStorePage() {
     return () => {
       shouldIgnore = true
     }
-  }, [])
-
-  useEffect(() => {
-    const shouldOpenCustomizeModal =
-      searchParams.get('customize') === '1' ||
-      searchParams.get('customize') === 'true'
-
-    if (shouldOpenCustomizeModal) {
-      setActiveModal('customize')
-    }
-  }, [searchParams])
-
-  useEffect(() => {
-    const categoryParam = searchParams.get('category')
-  
-    if (!categoryParam) {
-      return
-    }
-  
-    const matchedCategory = STORE_CATEGORIES.find(
-      (category) => category === categoryParam,
-    )
-  
-    if (matchedCategory) {
-      setSelectedCategory(matchedCategory)
-    }
-  }, [searchParams])
+  }, [loadAttempt])
 
   useEffect(() => {
     if (activeModal !== 'purchaseComplete') {
@@ -459,37 +457,29 @@ export function useStorePage() {
       ),
     [customizeCategoryEffects],
   )
+  const resolvedCustomizeEffectId =
+    selectedCustomizeEffectId === null
+      ? null
+      : selectedCustomizeEffectId !== undefined &&
+          customizeCategoryEffects.some(
+            (effect) => effect.id === selectedCustomizeEffectId,
+          )
+        ? selectedCustomizeEffectId
+        : customizeCategoryEffects.find(
+              (effect) => effect.status === 'equipped',
+            )?.id
   const selectedCustomizeEffect =
-    selectedCustomizeEffectId === null || selectedCustomizeEffectId === undefined
+    resolvedCustomizeEffectId === null ||
+    resolvedCustomizeEffectId === undefined
       ? null
       : customizeCategoryEffects.find(
-          (effect) => effect.id === selectedCustomizeEffectId,
+          (effect) => effect.id === resolvedCustomizeEffectId,
         ) ?? null
   const equippedCustomizeEffectId =
     customizeOwnedEffects.find((effect) => effect.status === 'equipped')?.id ?? null
   const hasCustomizeChanges =
-    selectedCustomizeEffectId !== undefined &&
-    (selectedCustomizeEffectId ?? null) !== equippedCustomizeEffectId
-
-  useEffect(() => {
-    setSelectedCustomizeEffectId((currentEffectId) => {
-      if (currentEffectId === null) {
-        return currentEffectId
-      }
-
-      if (
-        currentEffectId !== undefined &&
-        customizeOwnedEffects.some((effect) => effect.id === currentEffectId)
-      ) {
-        return currentEffectId
-      }
-
-      return (
-        customizeOwnedEffects.find((effect) => effect.status === 'equipped') ??
-        customizeOwnedEffects[0]
-      )?.id
-    })
-  }, [customizeOwnedEffects])
+    resolvedCustomizeEffectId !== undefined &&
+    (resolvedCustomizeEffectId ?? null) !== equippedCustomizeEffectId
 
   const clearCustomizeQuery = () => {
     if (!searchParams.has('customize') && !searchParams.has('category')) {
@@ -504,6 +494,12 @@ export function useStorePage() {
 
   const handlePointHistoryOpen = () => {
     setActiveModal('pointHistory')
+  }
+
+  const handleStoreRetry = () => {
+    setErrorMessage('')
+    setIsLoading(true)
+    setLoadAttempt((attempt) => attempt + 1)
   }
 
   const handleCustomizeOpen = () => {
@@ -697,5 +693,6 @@ export function useStorePage() {
     onPointHistoryOpen: handlePointHistoryOpen,
     onPurchase: handlePurchase,
     onPurchaseOpen: handlePurchaseOpen,
+    onRetry: handleStoreRetry,
   }
 }

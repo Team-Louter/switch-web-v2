@@ -72,6 +72,7 @@ export function MyPage() {
 
   const { onSave: saveProfileCustomize, ...profileCustomize } =
     useProfileCustomize({
+      currentPoint: profileForDisplay.point ?? 0,
       isOpen: isProfileCustomizeOpen,
       onEquippedItemsChange: (equippedItems) => {
         setEquippedItemsOverride(equippedItems)

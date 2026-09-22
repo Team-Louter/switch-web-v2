@@ -238,21 +238,26 @@ export function StoreProfileCustomizeModal({
         )
   const previewTitle = previewEquippedItems?.title
   const previewTitleText = previewTitle?.valueText ?? previewTitle?.itemName
-  const selectedPurchaseEffect = selectedEffectsByCategory
-    ? Object.values(selectedEffectsByCategory).find(
+  const selectedPurchaseEffect =
+    selectedEffect?.status === 'recommended' ? selectedEffect : null
+  const hasPendingPurchaseEffect = selectedEffectsByCategory
+    ? Object.values(selectedEffectsByCategory).some(
         (effect) => effect?.status === 'recommended',
-      ) ?? null
-    : selectedEffect?.status === 'recommended'
-      ? selectedEffect
-      : null
+      )
+    : false
   const isModalBusy = isActionPending || isLoading
   const isPrimaryActionDisabled =
     isModalBusy ||
     Boolean(selectedPurchaseEffect?.canPurchase === false) ||
+    (hasPendingPurchaseEffect && !selectedPurchaseEffect) ||
     (!selectedPurchaseEffect && !hasUnsavedChanges)
   const handlePrimaryAction = () => {
     if (selectedPurchaseEffect) {
       onPurchase()
+      return
+    }
+
+    if (hasPendingPurchaseEffect) {
       return
     }
 
