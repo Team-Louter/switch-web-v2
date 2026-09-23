@@ -750,7 +750,7 @@ export function CommunityWritePage() {
       return;
     }
 
-    const trimmedTitle = title.trim();
+    const trimmedTitle = removeTitleTagPrefix(title, tag).trim();
 
     if (!trimmedTitle) {
       toast.error('제목을 입력해주세요.');

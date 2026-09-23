@@ -150,11 +150,6 @@ export const TagOption = styled.button<{ $selected: boolean }>`
   line-height: 1;
   cursor: pointer;
 
-  &:hover:not(:disabled) {
-    border-color: ${token.colors.primary.primary50};
-    background: ${token.colors.primary.primary10};
-  }
-
   &:focus-visible {
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: 2px;
