@@ -211,7 +211,7 @@ const mapMessage = (message: MentoringMessageResponse): ChatMessageSummary => ({
 // 멘토링 관리 화면의 서버 데이터와 파생 UI 상태를 관리한다.
 // 1) 멘토링/질문/메시지 목록을 불러온다
 // 2) 서버 enum과 날짜를 화면 표시값으로 변환한다
-// 3) 필터, 검색, 정렬, 사이드시트 상태를 함께 반환한다
+// 3) 필터, 검색, 멘토 정렬과 사이드시트 상태를 함께 반환한다
 export function useMentoringPage() {
   const navigate = useNavigate()
   const currentUserId = useUserStore((state) => state.user?.userId ?? null)
@@ -228,7 +228,6 @@ export function useMentoringPage() {
   const [mentorSearchKeyword, setMentorSearchKeyword] = useState('')
   const [questionSearchKeyword, setQuestionSearchKeyword] = useState('')
   const [mentorSortOrder, setMentorSortOrder] = useState<SortOrder>('latest')
-  const [questionSortOrder, setQuestionSortOrder] = useState<SortOrder>('latest')
   const [overview, setOverview] =
     useState<AdminMentoringOverviewResponse>(initialOverview)
   const [mentors, setMentors] = useState<MentorSummary[]>([])
@@ -494,11 +493,7 @@ export function useMentoringPage() {
 
       return matchesStatus && matchesKeyword
     })
-    .sort((a, b) =>
-      questionSortOrder === 'latest'
-        ? b.createdAtOrder - a.createdAtOrder
-        : a.createdAtOrder - b.createdAtOrder,
-    )
+    .sort((a, b) => b.createdAtOrder - a.createdAtOrder)
 
   const selectedQuestion =
     questions.find((question) => question.id === selectedQuestionId) ??
@@ -591,7 +586,6 @@ export function useMentoringPage() {
     pendingQuestionCount,
     questionFilters,
     questionSearchKeyword,
-    questionSortOrder,
     selectedMentor,
     selectedMentorFilter,
     selectedMessages,
@@ -601,7 +595,6 @@ export function useMentoringPage() {
     setMentorSearchKeyword,
     setMentorSortOrder,
     setQuestionSearchKeyword,
-    setQuestionSortOrder,
     setSelectedMentorFilter,
     setSelectedQuestionFilter,
     shouldRenderChatPanel,

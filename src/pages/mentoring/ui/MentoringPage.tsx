@@ -86,7 +86,6 @@ export function MentoringPage() {
     pendingQuestionCount,
     questionFilters,
     questionSearchKeyword,
-    questionSortOrder,
     selectedMentor,
     selectedMessages,
     selectedQuestion,
@@ -94,7 +93,6 @@ export function MentoringPage() {
     selectedQuestionId,
     setMentorSearchKeyword,
     setQuestionSearchKeyword,
-    setQuestionSortOrder,
     setSelectedMentorFilter,
     setSelectedQuestionFilter,
     shouldRenderChatPanel,
@@ -192,13 +190,11 @@ export function MentoringPage() {
                   title="질문"
                   searchPlaceholder="검색어 입력"
                   questions={filteredQuestions}
-                  sortOrder={questionSortOrder}
                   filterOptions={questionFilters}
                   selectedFilter={selectedQuestionFilter}
                   selectedQuestionId={selectedQuestionId}
                   searchKeyword={questionSearchKeyword}
                   isLoading={isLoading}
-                  onSortOrderChange={setQuestionSortOrder}
                   onFilterChange={setSelectedQuestionFilter}
                   onSearchKeywordChange={setQuestionSearchKeyword}
                   onQuestionSelect={handleQuestionSelect}

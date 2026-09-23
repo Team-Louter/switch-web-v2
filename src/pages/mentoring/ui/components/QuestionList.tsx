@@ -19,19 +19,16 @@ import type { QuestionSummary } from '../types'
 import { MentoringTableRowsSkeleton } from '../MentoringPageSkeleton'
 import { RadioFilterGroup } from './RadioFilterGroup'
 import { SearchInput } from './SearchInput'
-import { SortSelect, type SortOrder } from './SortSelect'
 
 type QuestionListProps<TFilter extends string> = {
   title: string
   searchPlaceholder: string
   questions: QuestionSummary[]
   isLoading: boolean
-  sortOrder: SortOrder
   filterOptions: readonly TFilter[]
   selectedFilter: TFilter
   selectedQuestionId: number | null
   searchKeyword: string
-  onSortOrderChange: (sortOrder: SortOrder) => void
   onFilterChange: (filter: TFilter) => void
   onSearchKeywordChange: (keyword: string) => void
   onQuestionSelect: (question: QuestionSummary) => void
@@ -42,12 +39,10 @@ export function QuestionList<TFilter extends string>({
   searchPlaceholder,
   questions,
   isLoading,
-  sortOrder,
   filterOptions,
   selectedFilter,
   selectedQuestionId,
   searchKeyword,
-  onSortOrderChange,
   onFilterChange,
   onSearchKeywordChange,
   onQuestionSelect,
@@ -66,13 +61,6 @@ export function QuestionList<TFilter extends string>({
       <Toolbar>
         <ToolbarLeft>
           <ToolbarTitle>{title}</ToolbarTitle>
-          <SortSelect
-            ariaLabel={`${title} 정렬`}
-            value={sortOrder}
-            latestLabel="질문 등록 최신순"
-            oldestLabel="질문 등록 오래된 순"
-            onChange={onSortOrderChange}
-          />
         </ToolbarLeft>
         <FilterBar>상태:</FilterBar>
         <RadioFilterGroup
