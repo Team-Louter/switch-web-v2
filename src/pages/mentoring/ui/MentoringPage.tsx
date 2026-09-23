@@ -1,3 +1,5 @@
+import { PiCaretDoubleRight } from 'react-icons/pi'
+
 import profileImage from '@/shared/assets/sidebar/profile.png'
 import backChevronIcon from '../assets/back-chevron.svg'
 
@@ -8,6 +10,7 @@ import {
   ChatMeta,
   ChatPanel,
   ChatPanelHeader,
+  ChatPanelStatus,
   ChatPanelTitle,
   ChatTimestamp,
   ClosePanelButton,
@@ -209,19 +212,18 @@ export function MentoringPage() {
       {shouldRenderChatPanel && selectedQuestion && (
         <ChatPanel aria-label="질문 상세" $isClosing={isChatPanelClosing}>
           <ClosePanelButton type="button" aria-label="질문 상세 닫기" onClick={handleCloseChatPanel}>
-            »
+            <PiCaretDoubleRight aria-hidden="true" />
           </ClosePanelButton>
           <ChatPanelHeader>
-            <StatusText $status={selectedQuestion.status}>{selectedQuestion.status}</StatusText>
+            <ChatPanelStatus $status={selectedQuestion.status}>
+              {selectedQuestion.status}
+            </ChatPanelStatus>
             <ChatPanelTitle>{selectedQuestion.title}</ChatPanelTitle>
           </ChatPanelHeader>
           <ChatTimestamp>{selectedQuestion.createdAt}</ChatTimestamp>
           <ChatCard>
             <ChatLog>
-              <QuestionMessage
-                currentUserId={currentUserId}
-                question={selectedQuestion}
-              />
+              <QuestionMessage question={selectedQuestion} />
               {selectedMessages.length === 0 ? (
                 <StatusMessage>아직 답변 메시지가 없어요</StatusMessage>
               ) : (
@@ -353,26 +355,19 @@ function DetailSummary({ mentor }: DetailSummaryProps) {
 }
 
 type QuestionMessageProps = {
-  currentUserId: number | null
   question: QuestionSummary
 }
 
-function QuestionMessage({ currentUserId, question }: QuestionMessageProps) {
-  const isOwnMessage = currentUserId !== null && question.userId === currentUserId
-
+function QuestionMessage({ question }: QuestionMessageProps) {
   return (
-    <MessageGroup $align={isOwnMessage ? 'right' : undefined}>
-      {!isOwnMessage && (
-        <MentorProfile $size="sm">
-          <img src={question.profileImageUrl || profileImage} alt="" />
-        </MentorProfile>
-      )}
-      <MessageStack $align={isOwnMessage ? 'right' : undefined}>
-        {!isOwnMessage && <MessageAuthor>{question.mentee}</MessageAuthor>}
-        <MessageBubble $fromMentee>{question.content}</MessageBubble>
-        <ChatMeta $align={isOwnMessage ? 'right' : undefined}>
-          {question.createdAt}
-        </ChatMeta>
+    <MessageGroup>
+      <MentorProfile $size="sm">
+        <img src={question.profileImageUrl || profileImage} alt="" />
+      </MentorProfile>
+      <MessageStack>
+        <MessageAuthor>{question.mentee}</MessageAuthor>
+        <MessageBubble $isRoot>{question.content}</MessageBubble>
+        <ChatMeta>{question.createdAt}</ChatMeta>
       </MessageStack>
     </MessageGroup>
   )
@@ -386,7 +381,6 @@ type ChatMessageProps = {
 
 function ChatMessage({ currentUserId, message, question }: ChatMessageProps) {
   const isOwnMessage = currentUserId !== null && message.userId === currentUserId
-  const isQuestionAuthorMessage = message.userId === question.userId
 
   return (
     <MessageGroup $align={isOwnMessage ? 'right' : undefined}>
@@ -399,7 +393,7 @@ function ChatMessage({ currentUserId, message, question }: ChatMessageProps) {
         {!isOwnMessage && (
           <MessageAuthor>{message.authorName || question.mentee}</MessageAuthor>
         )}
-        <MessageBubble $fromMentee={isQuestionAuthorMessage}>{message.content}</MessageBubble>
+        <MessageBubble $isMine={isOwnMessage}>{message.content}</MessageBubble>
         <ChatMeta $align={isOwnMessage ? 'right' : undefined}>
           {message.createdAt}
         </ChatMeta>

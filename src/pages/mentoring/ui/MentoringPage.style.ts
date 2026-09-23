@@ -3,6 +3,7 @@ import styled, { keyframes } from 'styled-components'
 import * as token from '@/shared/styles/values/token'
 
 type Status = '-' | '원활' | '답변 지연' | '비활성' | '대기' | '진행' | '완료'
+type ChatQuestionStatus = Extract<Status, '대기' | '진행' | '완료'>
 
 const statusColor: Record<Status, string> = {
   '-': token.colors.gray.gray50,
@@ -22,6 +23,12 @@ const statusSurface: Record<Status, string> = {
   대기: token.colors.warning.warning0,
   진행: token.colors.info.info0,
   완료: token.colors.gray.gray0,
+}
+
+const chatQuestionStatusColor: Record<ChatQuestionStatus, string> = {
+  대기: token.colors.warning.warning20,
+  진행: token.colors.info.info20,
+  완료: token.colors.success.success20,
 }
 
 const slideInFromRight = keyframes`
@@ -644,18 +651,18 @@ export const ChatPanel = styled.aside<{ $isClosing?: boolean }>`
   position: absolute;
   top: 0;
   right: 0;
+  bottom: 0;
+  z-index: 100;
+  box-sizing: border-box;
   width: 460px;
-  height: 100dvh;
-  gap: 22px;
-  padding: 24px 20px;
+  padding: 24px 16px;
   overflow: hidden;
   border-left: 1px solid ${token.colors.gray.gray10};
   background: ${token.colors.gray.gray0};
-  box-shadow: 0 8px 28px rgb(28 27 23 / 14%);
+  box-shadow: -8px 0 24px rgb(0 0 0 / 10%);
   animation: ${({ $isClosing }) =>
     $isClosing ? slideOutToRight : slideInFromRight}
     180ms ease both;
-  z-index: 2;
 
   @media (max-width: 1180px) {
     position: fixed;
@@ -665,16 +672,22 @@ export const ChatPanel = styled.aside<{ $isClosing?: boolean }>`
 
 export const ClosePanelButton = styled.button`
   ${token.flexCenter}
-  width: 36px;
-  height: 36px;
-  border-radius: ${token.shapes.small};
+  width: 28px;
+  height: 28px;
+  margin: 0 0 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: ${token.colors.gray.gray50};
-  font-size: 26px;
-  line-height: 1;
+  cursor: pointer;
+
+  svg {
+    width: 28px;
+    height: 28px;
+  }
 
   &:hover {
-    background: ${token.colors.gray.gray10};
-    color: ${token.colors.gray.gray90};
+    color: ${token.colors.gray.gray80};
   }
 
   &:focus-visible {
@@ -685,20 +698,30 @@ export const ClosePanelButton = styled.button`
 
 export const ChatPanelHeader = styled.header`
   ${token.flexColumnStart}
-  gap: 12px;
+  gap: 8px;
   width: 100%;
 `
 
+export const ChatPanelStatus = styled.span<{ $status: ChatQuestionStatus }>`
+  color: ${({ $status }) => chatQuestionStatusColor[$status]};
+  line-height: 1;
+  ${token.typography('body', 'sm', 'semibold')}
+`
+
 export const ChatPanelTitle = styled.h2`
+  margin: 0;
+  min-width: 0;
   color: ${token.colors.gray.gray100};
-  line-height: 1.2;
-  ${token.typography('heading', 'sm', 'bold')}
+  line-height: 1.3;
+  word-break: break-word;
+  ${token.typography('body', 'lg', 'semibold')}
 `
 
 export const ChatTimestamp = styled.p`
-  color: ${token.colors.gray.gray50};
+  margin: 28px 0;
+  color: ${token.colors.gray.gray40};
   line-height: 1;
-  ${token.typography('caption', 'lg', 'semibold')}
+  ${token.typography('caption', 'md', 'medium')}
 `
 
 export const ChatCard = styled.section`
@@ -715,8 +738,27 @@ export const ChatCard = styled.section`
 export const ChatLog = styled.div`
   ${token.flexColumnStart}
   width: 100%;
-  gap: 10px;
+  flex: 1 1 0;
+  min-height: 0;
+  gap: 16px;
   overflow-y: auto;
+  scrollbar-color: ${token.colors.gray.gray30} transparent;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: ${token.shapes.circle};
+    background: ${token.colors.gray.gray30};
+    background-clip: padding-box;
+  }
 `
 
 export const MessageGroup = styled.div<{ $align?: 'right' }>`
@@ -730,36 +772,43 @@ export const MessageGroup = styled.div<{ $align?: 'right' }>`
 export const MessageStack = styled.div<{ $align?: 'right' }>`
   ${token.flexColumnStart}
   align-items: ${({ $align }) => ($align === 'right' ? 'flex-end' : 'flex-start')};
-  gap: 8px;
-  max-width: 78%;
-  padding: 8px 0;
+  gap: 6px;
+  max-width: min(78%, 296px);
 `
 
 export const MessageAuthor = styled.span`
-  color: ${token.colors.gray.gray100};
+  color: ${token.colors.gray.gray80};
   line-height: 1;
-  ${token.typography('body', 'sm', 'medium')}
+  ${token.typography('body', 'sm', 'semibold')}
 `
 
-export const MessageBubble = styled.p<{ $fromMentee?: boolean }>`
+export const MessageBubble = styled.p<{
+  $isMine?: boolean
+  $isRoot?: boolean
+}>`
+  margin: 0;
   width: fit-content;
   max-width: 100%;
-  padding: 10px;
-  border: ${({ $fromMentee }) =>
-    $fromMentee ? '0' : `1px solid ${token.colors.gray.gray20}`};
-  border-radius: ${token.shapes.small};
-  background: ${({ $fromMentee }) =>
-    $fromMentee ? token.colors.primary.primary30 : token.colors.white};
-  color: ${token.colors.gray.gray100};
-  line-height: 1.2;
-  word-break: keep-all;
-  overflow-wrap: anywhere;
-  ${token.typography('body', 'md', 'medium')}
+  padding: 10px 12px;
+  border: ${({ $isMine, $isRoot }) =>
+    $isRoot
+      ? `1px solid ${token.colors.primary.primary50}`
+      : $isMine
+        ? `1px solid ${token.colors.primary.primary30}`
+        : `1px solid ${token.colors.gray.gray10}`};
+  border-radius: ${token.shapes.medium};
+  background: ${({ $isMine, $isRoot }) =>
+    $isRoot || !$isMine ? token.colors.white : token.colors.primary.primary10};
+  color: ${token.colors.gray.gray80};
+  line-height: 1.45;
+  word-break: break-word;
+  white-space: pre-wrap;
+  ${token.typography('body', 'sm', 'medium')}
 `
 
 export const ChatMeta = styled.span<{ $align?: 'right' }>`
   width: 100%;
-  color: ${token.colors.gray.gray20};
+  color: ${token.colors.gray.gray40};
   line-height: 1;
   text-align: ${({ $align }) => ($align === 'right' ? 'right' : 'left')};
   ${token.typography('caption', 'md', 'medium')}
