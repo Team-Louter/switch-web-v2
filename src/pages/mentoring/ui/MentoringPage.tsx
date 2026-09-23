@@ -1,10 +1,8 @@
 import profileImage from '@/shared/assets/sidebar/profile.png'
 import backChevronIcon from '../assets/back-chevron.svg'
-import { PiArrowLeft } from 'react-icons/pi'
 
 import { useMentoringPage } from '../model/useMentoringPage'
 import {
-  BackButton,
   ChatCard,
   ChatLog,
   ChatMeta,
@@ -24,11 +22,6 @@ import {
   DetailMetricLabel,
   DetailMetrics,
   DetailMetricValue,
-  Header,
-  HeaderCopy,
-  HeaderDescription,
-  HeaderEyebrow,
-  HeaderTitle,
   MentorCell,
   MentorInfo,
   MentorMeta,
@@ -169,16 +162,13 @@ export function MentoringPage() {
             <MentoringMentorDetailSkeleton onBack={handleBack} />
           ) : (
             <>
-              <Header>
-                <BackButton type="button" aria-label="멘토링 목록으로 돌아가기" onClick={handleBack}>
-                  <PiArrowLeft aria-hidden="true" />
-                </BackButton>
-                <PageHeader
-                  eyebrow="멘토 상세"
-                  title="멘토링 상세 관리"
-                  description="선택한 멘토의 질문 현황과 대화 내용을 확인하세요."
-                />
-              </Header>
+              <DashboardHeader>
+                <DashboardBackButton type="button" onClick={handleBack}>
+                  <DashboardBackIcon src={backChevronIcon} alt="" />
+                  목록 보기
+                </DashboardBackButton>
+                <DashboardHeading>멘토링 상세 관리</DashboardHeading>
+              </DashboardHeader>
               <DetailSummary mentor={selectedMentor} />
               {errorMessage || (filteredQuestions.length === 0 && !isLoading) ? (
                 <StatusMessage>
@@ -239,22 +229,6 @@ export function MentoringPage() {
         </ChatPanel>
       )}
     </MentoringLayout>
-  )
-}
-
-interface PageHeaderProps {
-  eyebrow: string
-  title: string
-  description: string
-}
-
-function PageHeader({ eyebrow, title, description }: PageHeaderProps) {
-  return (
-    <HeaderCopy>
-      <HeaderEyebrow>{eyebrow}</HeaderEyebrow>
-      <HeaderTitle>{title}</HeaderTitle>
-      <HeaderDescription>{description}</HeaderDescription>
-    </HeaderCopy>
   )
 }
 

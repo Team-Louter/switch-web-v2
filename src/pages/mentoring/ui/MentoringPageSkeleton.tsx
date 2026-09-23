@@ -1,12 +1,12 @@
-import { PiArrowLeft } from 'react-icons/pi'
+import backChevronIcon from '../assets/back-chevron.svg'
 
 import {
-  BackButton,
+  DashboardBackButton,
+  DashboardBackIcon,
+  DashboardHeader,
   DetailHeader,
   DetailMetric,
   DetailMetrics,
-  Header,
-  HeaderCopy,
   MentorCell,
   MentorInfo,
   Table,
@@ -77,16 +77,13 @@ export function MentoringMentorDetailSkeleton({
 }: MentoringMentorDetailSkeletonProps) {
   return (
     <S.DetailPageSkeleton role="status" aria-label="멘토 상세를 불러오는 중입니다.">
-      <Header>
-        <BackButton type="button" aria-label="멘토링 목록으로 돌아가기" onClick={onBack}>
-          <PiArrowLeft aria-hidden="true" />
-        </BackButton>
-        <HeaderCopy aria-hidden="true">
-          <S.SkeletonBlock $width="68px" $height="12px" />
-          <S.SkeletonBlock $width="188px" $height="30px" />
-          <S.SkeletonBlock $width="276px" $height="15px" />
-        </HeaderCopy>
-      </Header>
+      <DashboardHeader>
+        <DashboardBackButton type="button" onClick={onBack}>
+          <DashboardBackIcon src={backChevronIcon} alt="" />
+          목록 보기
+        </DashboardBackButton>
+        <S.SkeletonBlock aria-hidden="true" $width="190px" $height="38px" />
+      </DashboardHeader>
       <DetailHeader aria-hidden="true">
         <MentorCell>
           <S.SkeletonAvatar $size="lg" />
