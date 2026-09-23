@@ -1,4 +1,6 @@
 export { MentorStatsRow } from './MentorStatsRow'
+export { MentoringOverviewCard } from './MentoringOverviewCard'
+export type { MentoringOverviewItem } from './MentoringOverviewCard.types'
 export { QuestionList } from './QuestionList'
 export { RadioFilterGroup } from './RadioFilterGroup'
 export { SearchInput } from './SearchInput'

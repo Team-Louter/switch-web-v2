@@ -132,6 +132,40 @@ export const AddButton = styled.button`
   }
 `
 
+export const DashboardButton = styled.button`
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: space-between;
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: 44px;
+  gap: 12px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: ${token.shapes.small};
+  background: ${token.colors.primary.primary50};
+  color: ${token.colors.gray.gray100};
+  cursor: pointer;
+  ${token.typography('body', 'sm', 'semibold')}
+  transition: background-color 120ms ease;
+
+  svg {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: ${token.colors.primary.primary60};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary30};
+    outline-offset: 2px;
+  }
+`
+
 const skeletonShimmer = keyframes`
   from {
     background-position: 100% 0;
@@ -436,10 +470,14 @@ export const SkeletonComposerCount = styled.span`
   height: 12px;
 `
 
-export const ListScroll = styled.div`
-  width: 100%;
+export const ListScroll = styled.div<{ $flushToEnd?: boolean }>`
+  box-sizing: border-box;
+  width: ${({ $flushToEnd }) =>
+    $flushToEnd ? 'calc(100% + 16px)' : '100%'};
   min-height: 0;
   flex: 1 1 0;
+  margin-right: ${({ $flushToEnd }) => ($flushToEnd ? '-16px' : '0')};
+  padding-right: ${({ $flushToEnd }) => ($flushToEnd ? '16px' : '0')};
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-color: ${token.colors.gray.gray30} transparent;
