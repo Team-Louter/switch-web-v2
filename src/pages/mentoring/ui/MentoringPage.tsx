@@ -1,7 +1,7 @@
 import profileImage from '@/shared/assets/sidebar/profile.png'
+import backChevronIcon from '../assets/back-chevron.svg'
 import {
   PiArrowLeft,
-  PiCaretLeft,
   PiCheckCircle,
   PiChatCircleDots,
   PiChatsCircle,
@@ -21,6 +21,7 @@ import {
   ClosePanelButton,
   Content,
   DashboardBackButton,
+  DashboardBackIcon,
   DashboardGrid,
   DashboardHeader,
   DashboardHeading,
@@ -106,7 +107,7 @@ export function MentoringPage() {
           <>
             <DashboardHeader>
               <DashboardBackButton type="button" onClick={handleDashboardBack}>
-                <PiCaretLeft aria-hidden="true" />
+                <DashboardBackIcon src={backChevronIcon} alt="" />
                 목록 보기
               </DashboardBackButton>
               <DashboardHeading>멘토링 관리</DashboardHeading>

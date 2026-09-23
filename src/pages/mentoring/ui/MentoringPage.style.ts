@@ -90,6 +90,7 @@ export const DashboardHeader = styled.header`
   ${token.flexColumnStart}
   gap: 24px;
   width: 100%;
+  zoom: 0.9;
 `
 
 export const DashboardBackButton = styled.button`
@@ -105,20 +106,16 @@ export const DashboardBackButton = styled.button`
   cursor: pointer;
   ${token.typography('body', 'lg', 'medium')}
 
-  svg {
-    flex: 0 0 auto;
-    width: 10px;
-    height: 16px;
-  }
-
-  &:hover {
-    color: ${token.colors.gray.gray90};
-  }
-
   &:focus-visible {
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: 3px;
   }
+`
+
+export const DashboardBackIcon = styled.img`
+  width: 9.257px;
+  height: 16px;
+  transform: rotate(180deg);
 `
 
 export const DashboardHeading = styled.h1`
