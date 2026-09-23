@@ -24,6 +24,7 @@ import { isAxiosError } from 'axios';
 import { MdDragIndicator } from 'react-icons/md';
 import {
   type ChangeEvent,
+  type ClipboardEvent as ReactClipboardEvent,
   type DragEvent as ReactDragEvent,
   type FocusEvent as ReactFocusEvent,
   type FormEvent,
@@ -41,7 +42,9 @@ import {
   getCommunityFileDownloadUrl,
   getCommunityFileKey,
   getPost,
+  getPostTagLabel,
   POST_CATEGORY_OPTIONS,
+  POST_TAG_OPTIONS_BY_CATEGORY,
   type PostCategory,
   type PostTag,
 } from '@/entities/community';
@@ -139,6 +142,48 @@ const COMMUNITY_EDITOR_DICTIONARY = {
 
 const COMMUNITY_TITLE_MAX_LENGTH = 100;
 const COMMUNITY_CONTENT_MAX_LENGTH = 20_000;
+
+function getTitleTagPrefix(tag: PostTag | undefined): string {
+  return tag ? `[${getPostTagLabel(tag)}] ` : '';
+}
+
+function removeTitleTagPrefix(title: string, tag: PostTag | undefined): string {
+  const titleTagPrefix = getTitleTagPrefix(tag);
+  const titleTagMarker = titleTagPrefix.trimEnd();
+
+  if (!titleTagMarker || !title.startsWith(titleTagMarker)) {
+    return title;
+  }
+
+  return title.slice(titleTagMarker.length).trimStart();
+}
+
+function applyTitleTagPrefix(title: string, tag: PostTag | undefined): string {
+  const titleTagPrefix = getTitleTagPrefix(tag);
+  const titleWithoutTag = removeTitleTagPrefix(title, tag);
+
+  return `${titleTagPrefix}${titleWithoutTag}`.slice(
+    0,
+    COMMUNITY_TITLE_MAX_LENGTH,
+  );
+}
+
+function keepTitleCursorAfterPrefix(
+  input: HTMLInputElement,
+  prefixLength: number,
+): void {
+  const selectionStart = input.selectionStart ?? 0;
+  const selectionEnd = input.selectionEnd ?? selectionStart;
+
+  if (selectionStart >= prefixLength && selectionEnd >= prefixLength) {
+    return;
+  }
+
+  input.setSelectionRange(
+    Math.max(prefixLength, selectionStart),
+    Math.max(prefixLength, selectionEnd),
+  );
+}
 
 const EDITOR_TOOLS: EditorTool[] = [
   { action: 'bold', label: '굵게', icon: boldIcon },
@@ -298,6 +343,7 @@ export function CommunityWritePage() {
   const draggedBlockIdRef = useRef<string | null>(null);
   const isPostLoadingRef = useRef(false);
   const [category, setCategory] = useState<PostCategory | ''>('');
+  const [categoryAnimationKey, setCategoryAnimationKey] = useState(0);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [tag, setTag] = useState<PostTag | undefined>(undefined);
   const [title, setTitle] = useState('');
@@ -323,12 +369,130 @@ export function CommunityWritePage() {
   const selectedCategoryLabel =
     POST_CATEGORY_OPTIONS.find((option) => option.value === category)?.label ??
     '카테고리';
+  const selectedTagOptions = category
+    ? POST_TAG_OPTIONS_BY_CATEGORY[category]
+    : [];
+  const titleTagPrefix = getTitleTagPrefix(tag);
   const titleLength = title.length;
   const isTitleOverLimit = titleLength > COMMUNITY_TITLE_MAX_LENGTH;
 
   const handleCategorySelect = (nextCategory: PostCategory) => {
-    setCategory(nextCategory);
+    if (category !== nextCategory) {
+      setCategoryAnimationKey((animationKey) => animationKey + 1);
+      setCategory(nextCategory);
+      setTag(undefined);
+      setTitle(
+        removeTitleTagPrefix(title, tag).slice(0, COMMUNITY_TITLE_MAX_LENGTH),
+      );
+    }
+
     setIsCategoryMenuOpen(false);
+  };
+
+  const handleTagSelect = (nextTag: PostTag) => {
+    const nextSelectedTag = tag === nextTag ? undefined : nextTag;
+    const titleWithoutCurrentTag = removeTitleTagPrefix(title, tag);
+
+    setTag(nextSelectedTag);
+    setTitle(applyTitleTagPrefix(titleWithoutCurrentTag, nextSelectedTag));
+  };
+
+  const handleTitleKeyDown = (
+    event: ReactKeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (
+      event.key === 'Enter' &&
+      !event.nativeEvent.isComposing &&
+      !isEditorDisabled
+    ) {
+      event.preventDefault();
+      setIsEditorPlaceholderVisible(true);
+      setSelectedBlockId(null);
+      editor.focus();
+      return;
+    }
+
+    if (!titleTagPrefix) {
+      return;
+    }
+
+    const input = event.currentTarget;
+    const prefixLength = titleTagPrefix.length;
+    const selectionStart = input.selectionStart ?? 0;
+    const selectionEnd = input.selectionEnd ?? selectionStart;
+    const isPrefixSelected = selectionStart < prefixLength && selectionEnd > 0;
+
+    if (
+      (event.ctrlKey || event.metaKey) &&
+      event.key.toLowerCase() === 'a'
+    ) {
+      event.preventDefault();
+      input.setSelectionRange(prefixLength, input.value.length);
+      return;
+    }
+
+    if (event.key === 'Home') {
+      event.preventDefault();
+      input.setSelectionRange(prefixLength, prefixLength);
+      return;
+    }
+
+    if (event.key === 'Backspace') {
+      const shouldBlock =
+        isPrefixSelected ||
+        (selectionStart === selectionEnd && selectionStart <= prefixLength);
+
+      if (shouldBlock) {
+        event.preventDefault();
+      }
+
+      return;
+    }
+
+    if (event.key === 'Delete') {
+      const shouldBlock =
+        isPrefixSelected ||
+        (selectionStart === selectionEnd && selectionStart < prefixLength);
+
+      if (shouldBlock) {
+        event.preventDefault();
+      }
+
+      return;
+    }
+
+    if (
+      event.key === 'ArrowLeft' &&
+      selectionStart === selectionEnd &&
+      selectionStart <= prefixLength
+    ) {
+      event.preventDefault();
+      input.setSelectionRange(prefixLength, prefixLength);
+      return;
+    }
+
+    if (
+      event.key.length === 1 &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey &&
+      (selectionStart < prefixLength || selectionEnd < prefixLength)
+    ) {
+      event.preventDefault();
+      keepTitleCursorAfterPrefix(input, prefixLength);
+    }
+  };
+
+  const handleTitleCut = (event: ReactClipboardEvent<HTMLInputElement>) => {
+    if (!titleTagPrefix) {
+      return;
+    }
+
+    const selectionStart = event.currentTarget.selectionStart ?? 0;
+
+    if (selectionStart < titleTagPrefix.length) {
+      event.preventDefault();
+    }
   };
 
   const uploadPostFile = useCallback(async (file: File) => {
@@ -424,21 +588,6 @@ export function CommunityWritePage() {
 
   const handleBackToList = () => {
     navigate(isEditing ? `/community/${editingPostId}` : '/community');
-  };
-
-  const handleTitleKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
-    if (
-      event.key !== 'Enter' ||
-      event.nativeEvent.isComposing ||
-      isEditorDisabled
-    ) {
-      return;
-    }
-
-    event.preventDefault();
-    setIsEditorPlaceholderVisible(true);
-    setSelectedBlockId(null);
-    editor.focus();
   };
 
   const handleEditorToolClick = (action: EditorAction) => {
@@ -945,7 +1094,7 @@ export function CommunityWritePage() {
 
         setCategory(post.category);
         setTag(post.tag);
-        setTitle(post.postTitle);
+        setTitle(applyTitleTagPrefix(post.postTitle, post.tag));
         setIsAnonymous(post.isAnonymous);
         setUploadedFiles(
           post.files?.map((file) => ({
@@ -1166,12 +1315,36 @@ export function CommunityWritePage() {
                   required
                   disabled={isEditorDisabled}
                   $isOverLimit={isTitleOverLimit}
-                  onKeyDown={handleTitleKeyDown}
-                  onChange={(event) => {
+                  onChange={(event) =>
                     setTitle(
-                      event.target.value.slice(0, COMMUNITY_TITLE_MAX_LENGTH),
-                    );
-                  }}
+                      event.target.value.startsWith(titleTagPrefix)
+                        ? event.target.value.slice(
+                            0,
+                            COMMUNITY_TITLE_MAX_LENGTH,
+                          )
+                        : applyTitleTagPrefix(event.target.value, tag),
+                    )
+                  }
+                  onKeyDown={handleTitleKeyDown}
+                  onCut={handleTitleCut}
+                  onFocus={(event) =>
+                    keepTitleCursorAfterPrefix(
+                      event.currentTarget,
+                      titleTagPrefix.length,
+                    )
+                  }
+                  onClick={(event) =>
+                    keepTitleCursorAfterPrefix(
+                      event.currentTarget,
+                      titleTagPrefix.length,
+                    )
+                  }
+                  onSelect={(event) =>
+                    keepTitleCursorAfterPrefix(
+                      event.currentTarget,
+                      titleTagPrefix.length,
+                    )
+                  }
                 />
                 <S.TitleCounter
                   id="community-title-length"
@@ -1181,11 +1354,32 @@ export function CommunityWritePage() {
                 </S.TitleCounter>
               </S.TitleField>
             </S.Fields>
+
+            {selectedTagOptions.length > 0 && (
+              <S.TagField $animationKey={categoryAnimationKey}>
+                <S.TagOptions aria-label="말머리 선택">
+                  {selectedTagOptions.map((option) => (
+                    <S.TagOption
+                      key={option.value}
+                      type="button"
+                      aria-pressed={tag === option.value}
+                      $selected={tag === option.value}
+                      disabled={isEditorDisabled}
+                      onClick={() => handleTagSelect(option.value)}
+                    >
+                      {option.label}
+                    </S.TagOption>
+                  ))}
+                </S.TagOptions>
+              </S.TagField>
+            )}
           </S.WriteForm>
         </S.Header>
 
         <S.Editor
           ref={editorAreaRef}
+          $animationKey={categoryAnimationKey}
+          $shouldAnimate={Boolean(category)}
           $selectedBlockId={selectedBlockId}
           $showEditorPlaceholder={isEditorPlaceholderVisible}
           aria-label="게시글 내용 편집기"

@@ -1,6 +1,23 @@
-import styled, { keyframes } from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
 
+import { contentReveal } from '@/shared/styles/animations';
 import * as token from '@/shared/styles/values/token';
+
+// 공용 keyframes와 다른 animation-name을 사용해 카테고리 변경마다 재생되도록 합니다.
+const contentRevealAlternate = keyframes`
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const getContentRevealAnimation = (animationKey: number) =>
+  animationKey % 2 === 0 ? contentReveal : contentRevealAlternate;
 
 export const Page = styled.section`
   box-sizing: border-box;
@@ -93,6 +110,59 @@ export const Fields = styled.div`
   @container community-write (max-width: 560px) {
     flex-direction: column;
     height: auto;
+  }
+`;
+
+export const TagField = styled.fieldset<{ $animationKey: number }>`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  animation: ${({ $animationKey }) =>
+    css`${getContentRevealAnimation($animationKey)} 360ms ease-out both`};
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`;
+
+export const TagOptions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+`;
+
+export const TagOption = styled.button<{ $selected: boolean }>`
+  min-height: 32px;
+  padding: 7px 12px;
+  border: 1px solid
+    ${({ $selected }) =>
+      $selected ? token.colors.primary.primary50 : token.colors.gray.gray20};
+  border-radius: 999px;
+  color: ${({ $selected }) =>
+    $selected ? token.colors.primary.primary80 : token.colors.gray.gray60};
+  background: ${({ $selected }) =>
+    $selected ? token.colors.primary.primary10 : token.colors.white};
+  ${token.typography('body', 'sm', 'medium')}
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: ${token.colors.primary.primary50};
+    background: ${token.colors.primary.primary10};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
   }
 `;
 
@@ -256,6 +326,8 @@ export const ContentCounter = styled.span`
 `;
 
 interface EditorProps {
+  $animationKey: number;
+  $shouldAnimate: boolean;
   $selectedBlockId: string | null;
   $showEditorPlaceholder: boolean;
 }
@@ -274,6 +346,17 @@ export const Editor = styled.section<EditorProps>`
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.small};
   background: ${token.colors.white};
+  animation: ${({ $animationKey, $shouldAnimate }) => {
+    if (!$shouldAnimate) {
+      return 'none';
+    }
+
+    return css`${getContentRevealAnimation($animationKey)} 360ms ease-out both`;
+  }};
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 
   .community-toolbar-actions {
     display: flex;
