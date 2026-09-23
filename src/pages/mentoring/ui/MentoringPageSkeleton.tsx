@@ -186,7 +186,6 @@ function QuestionTableSkeleton() {
       <Toolbar>
         <ToolbarLeft>
           <S.SkeletonBlock $width="42px" $height="20px" />
-          <S.SkeletonFilter $width="126px" />
         </ToolbarLeft>
         <FilterBar>상태:</FilterBar>
         <S.SkeletonFilterGroup>
