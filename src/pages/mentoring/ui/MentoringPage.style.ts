@@ -86,6 +86,48 @@ export const Header = styled.div`
   width: 100%;
 `
 
+export const DashboardHeader = styled.header`
+  ${token.flexColumnStart}
+  gap: 24px;
+  width: 100%;
+`
+
+export const DashboardBackButton = styled.button`
+  ${token.flexLeft}
+  align-self: flex-start;
+  gap: 8px;
+  height: 21px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: ${token.colors.gray.gray50};
+  line-height: 1;
+  cursor: pointer;
+  ${token.typography('body', 'lg', 'medium')}
+
+  svg {
+    flex: 0 0 auto;
+    width: 10px;
+    height: 16px;
+  }
+
+  &:hover {
+    color: ${token.colors.gray.gray90};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 3px;
+  }
+`
+
+export const DashboardHeading = styled.h1`
+  margin: 0;
+  color: ${token.colors.gray.gray100};
+  line-height: 1.18;
+  ${token.typography('heading', 'lg', 'semibold')}
+`
+
 export const HeaderCopy = styled.div`
   ${token.flexColumnStart}
   gap: 9px;

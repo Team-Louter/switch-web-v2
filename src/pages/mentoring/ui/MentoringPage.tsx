@@ -1,6 +1,7 @@
 import profileImage from '@/shared/assets/sidebar/profile.png'
 import {
   PiArrowLeft,
+  PiCaretLeft,
   PiCheckCircle,
   PiChatCircleDots,
   PiChatsCircle,
@@ -19,7 +20,10 @@ import {
   ChatTimestamp,
   ClosePanelButton,
   Content,
+  DashboardBackButton,
   DashboardGrid,
+  DashboardHeader,
+  DashboardHeading,
   DetailHeader,
   DetailMetric,
   DetailMetricLabel,
@@ -71,6 +75,7 @@ export function MentoringPage() {
     filteredQuestions,
     handleBack,
     handleCloseChatPanel,
+    handleDashboardBack,
     handleMentorSelect,
     handleQuestionSelect,
     inProgressQuestionCount,
@@ -99,13 +104,13 @@ export function MentoringPage() {
       <Content>
         {viewMode === 'dashboard' ? (
           <>
-            <Header>
-              <PageHeader
-                eyebrow="운영 대시보드"
-                title="멘토링 관리"
-                description="전체 멘토와 질문의 흐름을 한곳에서 살펴보세요."
-              />
-            </Header>
+            <DashboardHeader>
+              <DashboardBackButton type="button" onClick={handleDashboardBack}>
+                <PiCaretLeft aria-hidden="true" />
+                목록 보기
+              </DashboardBackButton>
+              <DashboardHeading>멘토링 관리</DashboardHeading>
+            </DashboardHeader>
             <DashboardGrid>
               <StatCard $tone="danger">
                 <StatHeader>
