@@ -52,6 +52,12 @@ import {
   QuestionList,
   SearchInput,
 } from './components'
+import {
+  MentoringDashboardSkeleton,
+  MentoringMentorDetailSkeleton,
+  MentoringOverviewCardsSkeleton,
+  MentoringTableRowsSkeleton,
+} from './MentoringPageSkeleton'
 import type { MentoringOverviewItem } from './components'
 import type { ChatMessageSummary, MentorSummary, QuestionSummary } from './types'
 
@@ -69,6 +75,8 @@ export function MentoringPage() {
     handleMentorSelect,
     handleQuestionSelect,
     inProgressQuestionCount,
+    isInitialDashboardLoading,
+    isInitialMentorDetailLoading,
     isChatPanelClosing,
     isLoading,
     mentorStatusCounts,
@@ -114,76 +122,87 @@ export function MentoringPage() {
     <MentoringLayout>
       <Content>
         {viewMode === 'dashboard' ? (
-          <>
-            <DashboardHeader>
-              <DashboardBackButton type="button" onClick={handleDashboardBack}>
-                <DashboardBackIcon src={backChevronIcon} alt="" />
-                목록 보기
-              </DashboardBackButton>
-              <DashboardHeading>멘토링 관리</DashboardHeading>
-            </DashboardHeader>
-            <DashboardOverviewGrid>
-              <MentoringOverviewCard
-                title="질문 처리 현황"
-                centerLabel="완료율"
-                centerValue={`${questionCompletionPercent.toFixed(1)}%`}
-                itemUnit="건"
-                items={questionOverviewItems}
+          isInitialDashboardLoading ? (
+            <MentoringDashboardSkeleton />
+          ) : (
+            <>
+              <DashboardHeader>
+                <DashboardBackButton type="button" onClick={handleDashboardBack}>
+                  <DashboardBackIcon src={backChevronIcon} alt="" />
+                  목록 보기
+                </DashboardBackButton>
+                <DashboardHeading>멘토링 관리</DashboardHeading>
+              </DashboardHeader>
+              {isLoading ? (
+                <MentoringOverviewCardsSkeleton aria-busy />
+              ) : (
+                <DashboardOverviewGrid>
+                  <MentoringOverviewCard
+                    title="질문 처리 현황"
+                    centerLabel="완료율"
+                    centerValue={`${questionCompletionPercent.toFixed(1)}%`}
+                    itemUnit="건"
+                    items={questionOverviewItems}
+                  />
+                  <MentoringOverviewCard
+                    title="멘토 상태 현황"
+                    centerLabel="전체 멘토"
+                    centerValue={`${totalMentorCount}명`}
+                    itemUnit="명"
+                    items={mentorOverviewItems}
+                    attentionCount={attentionNeededMentorCount}
+                  />
+                </DashboardOverviewGrid>
+              )}
+              <MentorTable
+                mentors={filteredMentors}
+                searchKeyword={mentorSearchKeyword}
+                isLoading={isLoading}
+                errorMessage={errorMessage}
+                onSearchKeywordChange={setMentorSearchKeyword}
+                onMentorSelect={handleMentorSelect}
               />
-              <MentoringOverviewCard
-                title="멘토 상태 현황"
-                centerLabel="전체 멘토"
-                centerValue={`${totalMentorCount}명`}
-                itemUnit="명"
-                items={mentorOverviewItems}
-                attentionCount={attentionNeededMentorCount}
-              />
-            </DashboardOverviewGrid>
-            <MentorTable
-              mentors={filteredMentors}
-              searchKeyword={mentorSearchKeyword}
-              isLoading={isLoading}
-              errorMessage={errorMessage}
-              onSearchKeywordChange={setMentorSearchKeyword}
-              onMentorSelect={handleMentorSelect}
-            />
-          </>
+            </>
+          )
         ) : (
-          <>
-            <Header>
-              <BackButton type="button" aria-label="멘토링 목록으로 돌아가기" onClick={handleBack}>
-                <PiArrowLeft aria-hidden="true" />
-              </BackButton>
-              <PageHeader
-                eyebrow="멘토 상세"
-                title="멘토링 상세 관리"
-                description="선택한 멘토의 질문 현황과 대화 내용을 확인하세요."
-              />
-            </Header>
-            <DetailSummary mentor={selectedMentor} />
-            {isLoading || errorMessage || filteredQuestions.length === 0 ? (
-              <StatusMessage>
-                {isLoading && '질문 데이터를 불러오는 중이에요'}
-                {!isLoading && errorMessage && errorMessage}
-                {!isLoading && !errorMessage && '질문이 아직 없어요'}
-              </StatusMessage>
-            ) : (
-              <QuestionList
-                title="질문"
-                searchPlaceholder="검색어 입력"
-                questions={filteredQuestions}
-                sortOrder={questionSortOrder}
-                filterOptions={questionFilters}
-                selectedFilter={selectedQuestionFilter}
-                selectedQuestionId={selectedQuestionId}
-                searchKeyword={questionSearchKeyword}
-                onSortOrderChange={setQuestionSortOrder}
-                onFilterChange={setSelectedQuestionFilter}
-                onSearchKeywordChange={setQuestionSearchKeyword}
-                onQuestionSelect={handleQuestionSelect}
-              />
-            )}
-          </>
+          isInitialMentorDetailLoading ? (
+            <MentoringMentorDetailSkeleton onBack={handleBack} />
+          ) : (
+            <>
+              <Header>
+                <BackButton type="button" aria-label="멘토링 목록으로 돌아가기" onClick={handleBack}>
+                  <PiArrowLeft aria-hidden="true" />
+                </BackButton>
+                <PageHeader
+                  eyebrow="멘토 상세"
+                  title="멘토링 상세 관리"
+                  description="선택한 멘토의 질문 현황과 대화 내용을 확인하세요."
+                />
+              </Header>
+              <DetailSummary mentor={selectedMentor} />
+              {errorMessage || (filteredQuestions.length === 0 && !isLoading) ? (
+                <StatusMessage>
+                  {errorMessage || '질문이 아직 없어요'}
+                </StatusMessage>
+              ) : (
+                <QuestionList
+                  title="질문"
+                  searchPlaceholder="검색어 입력"
+                  questions={filteredQuestions}
+                  sortOrder={questionSortOrder}
+                  filterOptions={questionFilters}
+                  selectedFilter={selectedQuestionFilter}
+                  selectedQuestionId={selectedQuestionId}
+                  searchKeyword={questionSearchKeyword}
+                  isLoading={isLoading}
+                  onSortOrderChange={setQuestionSortOrder}
+                  onFilterChange={setSelectedQuestionFilter}
+                  onSearchKeywordChange={setQuestionSearchKeyword}
+                  onQuestionSelect={handleQuestionSelect}
+                />
+              )}
+            </>
+          )
         )}
       </Content>
 
@@ -257,7 +276,7 @@ function MentorTable({
   onMentorSelect,
 }: MentorTableProps) {
   return (
-    <Table>
+    <Table aria-busy={isLoading}>
       <Toolbar>
         <ToolbarTitle>멘토</ToolbarTitle>
         <SearchInput
@@ -276,11 +295,11 @@ function MentorTable({
         <span>상태</span>
       </TableHeader>
 
-      {isLoading || errorMessage || mentors.length === 0 ? (
+      {isLoading ? (
+        <MentoringTableRowsSkeleton columns="mentor" />
+      ) : errorMessage || mentors.length === 0 ? (
         <StatusMessage>
-          {isLoading && '멘토링 데이터를 불러오는 중이에요'}
-          {!isLoading && errorMessage && errorMessage}
-          {!isLoading && !errorMessage && '멘토링 데이터가 아직 없어요'}
+          {errorMessage || '멘토링 데이터가 아직 없어요'}
         </StatusMessage>
       ) : (
         mentors.map((mentor) => (

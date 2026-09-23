@@ -14,6 +14,7 @@ import {
   ToolbarTitle,
 } from '../MentoringPage.style'
 import type { QuestionSummary } from '../types'
+import { MentoringTableRowsSkeleton } from '../MentoringPageSkeleton'
 import { RadioFilterGroup } from './RadioFilterGroup'
 import { SearchInput } from './SearchInput'
 import { SortSelect, type SortOrder } from './SortSelect'
@@ -22,6 +23,7 @@ type QuestionListProps<TFilter extends string> = {
   title: string
   searchPlaceholder: string
   questions: QuestionSummary[]
+  isLoading: boolean
   sortOrder: SortOrder
   filterOptions: readonly TFilter[]
   selectedFilter: TFilter
@@ -37,6 +39,7 @@ export function QuestionList<TFilter extends string>({
   title,
   searchPlaceholder,
   questions,
+  isLoading,
   sortOrder,
   filterOptions,
   selectedFilter,
@@ -48,7 +51,7 @@ export function QuestionList<TFilter extends string>({
   onQuestionSelect,
 }: QuestionListProps<TFilter>) {
   return (
-    <Table>
+    <Table aria-busy={isLoading}>
       <Toolbar>
         <ToolbarLeft>
           <ToolbarTitle>{title}</ToolbarTitle>
@@ -82,26 +85,30 @@ export function QuestionList<TFilter extends string>({
         <span>상태</span>
       </TableHeader>
 
-      {questions.map((question) => (
-        <TableRow
-          key={question.id}
-          type="button"
-          $columns="question"
-          $active={selectedQuestionId === question.id}
-          onClick={() => onQuestionSelect(question)}
-        >
-          <QuestionTitle>{question.title}</QuestionTitle>
-          <QuestionAuthor>
-            <MentorProfile $size="xs">
-              <img src={question.profileImageUrl || profileImage} alt="" />
-            </MentorProfile>
-            {question.mentee}
-          </QuestionAuthor>
-          <TableCell>{question.createdAt}</TableCell>
-          <TableCell>{question.lastRepliedAt}</TableCell>
-          <StatusText $status={question.status}>{question.status}</StatusText>
-        </TableRow>
-      ))}
+      {isLoading ? (
+        <MentoringTableRowsSkeleton columns="question" />
+      ) : (
+        questions.map((question) => (
+          <TableRow
+            key={question.id}
+            type="button"
+            $columns="question"
+            $active={selectedQuestionId === question.id}
+            onClick={() => onQuestionSelect(question)}
+          >
+            <QuestionTitle>{question.title}</QuestionTitle>
+            <QuestionAuthor>
+              <MentorProfile $size="xs">
+                <img src={question.profileImageUrl || profileImage} alt="" />
+              </MentorProfile>
+              {question.mentee}
+            </QuestionAuthor>
+            <TableCell>{question.createdAt}</TableCell>
+            <TableCell>{question.lastRepliedAt}</TableCell>
+            <StatusText $status={question.status}>{question.status}</StatusText>
+          </TableRow>
+        ))
+      )}
     </Table>
   )
 }

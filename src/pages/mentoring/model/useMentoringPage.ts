@@ -234,6 +234,8 @@ export function useMentoringPage() {
   const [mentors, setMentors] = useState<MentorSummary[]>([])
   const [questions, setQuestions] = useState<QuestionSummary[]>([])
   const [messages, setMessages] = useState<ChatMessageSummary[]>([])
+  const [hasLoadedDashboard, setHasLoadedDashboard] = useState(false)
+  const [loadedMentorDetailId, setLoadedMentorDetailId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -284,6 +286,7 @@ export function useMentoringPage() {
         )
       } finally {
         if (!ignore) {
+          setHasLoadedDashboard(true)
           setIsLoading(false)
         }
       }
@@ -342,6 +345,7 @@ export function useMentoringPage() {
         })
         setQuestions(nextQuestions)
         setMessages([])
+        setLoadedMentorDetailId(mentorDetail.mentorId)
         setSelectedQuestionId((currentQuestionId) =>
           nextQuestions.some((question) => question.id === currentQuestionId)
             ? currentQuestionId
@@ -509,12 +513,21 @@ export function useMentoringPage() {
   const shouldRenderChatPanel =
     viewMode === 'mentor-detail' &&
     (selectedQuestionId !== null || isChatPanelClosing)
+  const isInitialDashboardLoading =
+    viewMode === 'dashboard' && isLoading && !hasLoadedDashboard
+  const isInitialMentorDetailLoading =
+    viewMode === 'mentor-detail' &&
+    selectedMentorId !== null &&
+    isLoading &&
+    loadedMentorDetailId !== selectedMentorId
 
   const handleMentorSelect = (mentor: MentorSummary) => {
     clearCloseChatPanelTimer()
     setIsChatPanelClosing(false)
     setViewMode('mentor-detail')
+    setIsLoading(true)
     setSelectedMentorId(mentor.mentorId)
+    setLoadedMentorDetailId(null)
     setSelectedQuestionId(null)
     setMessages([])
   }
@@ -522,6 +535,7 @@ export function useMentoringPage() {
   const handleBack = () => {
     clearCloseChatPanelTimer()
     setIsChatPanelClosing(false)
+    setIsLoading(false)
     setViewMode('dashboard')
     setSelectedMentorId(null)
     setSelectedQuestionId(null)
@@ -560,6 +574,8 @@ export function useMentoringPage() {
     errorMessage,
     filteredMentors,
     filteredQuestions,
+    isInitialDashboardLoading,
+    isInitialMentorDetailLoading,
     handleBack,
     handleCloseChatPanel,
     handleDashboardBack,
