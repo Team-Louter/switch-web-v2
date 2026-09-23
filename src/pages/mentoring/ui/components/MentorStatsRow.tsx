@@ -26,7 +26,7 @@ export function MentorStatsRow({ mentor, onClick, active = false }: MentorStatsR
       $active={active}
       onClick={() => onClick?.(mentor)}
     >
-      <MentorCell>
+      <MentorCell $centered>
         <MentorProfile>
           <img src={mentor.profileImageUrl || profileImage} alt="" />
         </MentorProfile>

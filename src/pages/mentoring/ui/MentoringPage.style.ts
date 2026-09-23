@@ -204,19 +204,15 @@ export const DashboardOverviewGrid = styled.div`
 
 export const Table = styled.section`
   ${token.flexColumnStart}
-  gap: 10px;
+  box-sizing: border-box;
+  gap: 0;
   width: 100%;
-  padding: 22px;
+  padding: 0;
   overflow-x: auto;
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.xlarge};
   background: ${token.colors.white};
   ${token.elevation('black_1')}
-
-  @media (max-width: 640px) {
-    gap: 14px;
-    padding: 16px 12px;
-  }
 `
 
 export const Toolbar = styled.div`
@@ -224,6 +220,12 @@ export const Toolbar = styled.div`
   flex-wrap: wrap;
   gap: 14px;
   width: 100%;
+  padding: 18px 22px;
+  border-bottom: 1px solid ${token.colors.gray.gray10};
+
+  @media (max-width: 640px) {
+    padding: 16px 12px;
+  }
 `
 
 export const ToolbarLeft = styled.div`
@@ -384,18 +386,18 @@ export const TableHeader = styled.div<{ $columns: keyof typeof tableColumns }>`
   align-items: center;
   width: 100%;
   min-width: ${({ $columns }) => ($columns === 'question' ? '792px' : '634px')};
-  min-height: 42px;
+  min-height: 52px;
   gap: 12px;
-  padding: 10px 12px;
+  padding: 14px 22px;
   border-bottom: 1px solid ${token.colors.gray.gray10};
-  background: ${token.colors.white};
-  color: ${token.colors.gray.gray50};
+  background: ${token.colors.gray.gray0};
+  color: ${token.colors.gray.gray60};
   text-align: center;
   line-height: 1;
   ${token.typography('body', 'sm', 'medium')}
 
-  > :first-child {
-    text-align: left;
+  @media (max-width: 640px) {
+    padding: 14px 12px;
   }
 
   strong {
@@ -413,15 +415,21 @@ export const TableRow = styled.button<{
   align-items: center;
   width: 100%;
   min-width: ${({ $columns }) => ($columns === 'question' ? '792px' : '634px')};
-  min-height: 68px;
+  min-height: 84px;
   gap: 12px;
-  padding: 12px;
-  border-radius: ${token.shapes.small};
+  padding: 18px 22px;
+  border: 0;
+  border-bottom: 1px solid ${token.colors.gray.gray10};
+  border-radius: 0;
   background: ${({ $active }) => ($active ? token.colors.primary.primary0 : token.colors.white)};
   text-align: center;
   transition:
     background-color 120ms ease,
     box-shadow 120ms ease;
+
+  &:last-child {
+    border-bottom: 0;
+  }
 
   &:hover {
     background: ${({ $active }) =>
@@ -431,6 +439,11 @@ export const TableRow = styled.button<{
   &:focus-visible {
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: 2px;
+  }
+
+  @media (max-width: 640px) {
+    min-height: 76px;
+    padding: 14px 12px;
   }
 `
 
@@ -449,8 +462,9 @@ export const StatusMessage = styled.p`
   ${token.typography('body', 'sm', 'medium')}
 `
 
-export const MentorCell = styled.span`
+export const MentorCell = styled.span<{ $centered?: boolean }>`
   ${token.flexLeft}
+  justify-content: ${({ $centered }) => ($centered ? 'center' : 'flex-start')};
   gap: 10px;
   min-width: 0;
   text-align: left;
@@ -592,7 +606,7 @@ export const QuestionTitle = styled.span`
   overflow: hidden;
   color: ${token.colors.gray.gray100};
   line-height: 1;
-  text-align: left;
+  text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
   ${token.typography('body', 'md', 'semibold')}

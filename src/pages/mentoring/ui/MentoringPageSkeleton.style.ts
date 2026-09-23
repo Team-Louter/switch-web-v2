@@ -169,7 +169,7 @@ export const SkeletonAvatar = styled.span<{ $size?: 'small' | 'lg' }>`
 `
 
 export const SkeletonIdentity = styled.div`
-  ${token.flexLeft}
+  ${token.flexCenter}
   min-width: 0;
   gap: 10px;
 `
@@ -183,7 +183,7 @@ export const SkeletonIdentityLines = styled.div`
 export const TableSkeletonRows = styled.div`
   ${token.flexColumnStart}
   width: 100%;
-  gap: 2px;
+  gap: 0;
 `
 
 export const TableSkeletonRow = styled.div<{ $columns: 'mentor' | 'question' }>`
@@ -195,10 +195,19 @@ export const TableSkeletonRow = styled.div<{ $columns: 'mentor' | 'question' }>`
   align-items: center;
   width: 100%;
   min-width: ${({ $columns }) => ($columns === 'question' ? '792px' : '634px')};
-  min-height: 68px;
+  min-height: 84px;
   gap: 12px;
-  padding: 12px;
-  border-radius: ${token.shapes.small};
+  padding: 18px 22px;
+  border-bottom: 1px solid ${token.colors.gray.gray10};
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  @media (max-width: 640px) {
+    min-height: 76px;
+    padding: 14px 12px;
+  }
 `
 
 export const SkeletonSearch = styled.span`
