@@ -132,6 +132,40 @@ export const AddButton = styled.button`
   }
 `
 
+export const DashboardButton = styled.button`
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: space-between;
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: 44px;
+  gap: 12px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: ${token.shapes.small};
+  background: ${token.colors.gray.gray90};
+  color: ${token.colors.white};
+  cursor: pointer;
+  ${token.typography('body', 'sm', 'semibold')}
+  transition: background-color 120ms ease;
+
+  svg {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: ${token.colors.gray.gray100};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary30};
+    outline-offset: 2px;
+  }
+`
+
 const skeletonShimmer = keyframes`
   from {
     background-position: 100% 0;

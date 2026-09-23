@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { PiPlus } from 'react-icons/pi'
+import { PiArrowRight, PiPlus } from 'react-icons/pi'
 import { useLocation, useSearchParams } from 'react-router-dom'
 
 import { getMember } from '@/entities/member'
@@ -29,6 +29,7 @@ import {
 } from '@/features/mentoring'
 import type { MentoringRoomView } from '@/features/mentoring'
 
+import { useMentoringEntryPage } from '../model/useMentoringEntryPage'
 import { MentoringQuestionList } from './components/MentoringQuestionList'
 import { MentoringRoomList } from './components/MentoringRoomList'
 import {
@@ -191,6 +192,7 @@ function applyMentoringData(
 }
 
 export function MentoringEntryPage() {
+  const { handleDashboardClick } = useMentoringEntryPage()
   const { hash } = useLocation()
   const [searchParams] = useSearchParams()
   const targetQuestionId = parsePositiveId(searchParams.get('questionId'))
@@ -219,7 +221,8 @@ export function MentoringEntryPage() {
   const [isStatusUpdating, setIsStatusUpdating] = useState(false)
   const optimisticQuestionIdRef = useRef(-1)
 
-  const isMentor = profile?.role === 'MENTOR' || profile?.role === 'LEADER'
+  const isLeader = profile?.role === 'LEADER'
+  const isMentor = profile?.role === 'MENTOR' || isLeader
 
   const reloadMentoring = useCallback(async () => {
     try {
@@ -571,6 +574,16 @@ export function MentoringEntryPage() {
                 <S.DetailEmpty>등록된 질문이 없습니다.</S.DetailEmpty>
               )}
             </S.ListScroll>
+            {isLeader && (
+              <S.DashboardButton
+                type="button"
+                aria-label="멘토링 관리자 대시보드로 이동"
+                onClick={handleDashboardClick}
+              >
+                <span>관리자 대시보드로 이동</span>
+                <PiArrowRight aria-hidden="true" />
+              </S.DashboardButton>
+            )}
           </S.QuestionContainer>
         </S.LeftArea>
 
