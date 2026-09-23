@@ -144,8 +144,8 @@ export const DashboardButton = styled.button`
   padding: 0 14px;
   border: 0;
   border-radius: ${token.shapes.small};
-  background: ${token.colors.gray.gray90};
-  color: ${token.colors.white};
+  background: ${token.colors.primary.primary50};
+  color: ${token.colors.gray.gray100};
   cursor: pointer;
   ${token.typography('body', 'sm', 'semibold')}
   transition: background-color 120ms ease;
@@ -157,7 +157,7 @@ export const DashboardButton = styled.button`
   }
 
   &:hover {
-    background: ${token.colors.gray.gray100};
+    background: ${token.colors.primary.primary60};
   }
 
   &:focus-visible {
