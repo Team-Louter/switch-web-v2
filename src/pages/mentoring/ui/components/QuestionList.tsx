@@ -1,6 +1,7 @@
 import profileImage from '@/shared/assets/sidebar/profile.png'
 
 import {
+  FilterBar,
   MentorProfile,
   QuestionAuthor,
   QuestionTitle,
@@ -9,6 +10,7 @@ import {
   TableCell,
   TableHeader,
   TableRow,
+  TableSearchRow,
   Toolbar,
   ToolbarLeft,
   ToolbarTitle,
@@ -52,6 +54,15 @@ export function QuestionList<TFilter extends string>({
 }: QuestionListProps<TFilter>) {
   return (
     <Table aria-busy={isLoading}>
+      <TableSearchRow>
+        <SearchInput
+          ariaLabel={`${title} 검색`}
+          value={searchKeyword}
+          placeholder={searchPlaceholder}
+          onChange={onSearchKeywordChange}
+        />
+      </TableSearchRow>
+
       <Toolbar>
         <ToolbarLeft>
           <ToolbarTitle>{title}</ToolbarTitle>
@@ -63,17 +74,12 @@ export function QuestionList<TFilter extends string>({
             onChange={onSortOrderChange}
           />
         </ToolbarLeft>
+        <FilterBar>상태:</FilterBar>
         <RadioFilterGroup
           name={`${title}-filter`}
           options={filterOptions}
           value={selectedFilter}
           onChange={onFilterChange}
-        />
-        <SearchInput
-          ariaLabel={`${title} 검색`}
-          value={searchKeyword}
-          placeholder={searchPlaceholder}
-          onChange={onSearchKeywordChange}
         />
       </Toolbar>
 

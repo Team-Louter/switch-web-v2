@@ -215,23 +215,38 @@ export const Table = styled.section`
   ${token.elevation('black_1')}
 `
 
-export const Toolbar = styled.div`
-  ${token.flexBetween}
-  flex-wrap: wrap;
-  gap: 14px;
+export const TableSearchRow = styled.div`
+  box-sizing: border-box;
   width: 100%;
-  padding: 18px 22px;
+  padding: 12px 14px;
   border-bottom: 1px solid ${token.colors.gray.gray10};
+  background: ${token.colors.white};
 
   @media (max-width: 640px) {
-    padding: 16px 12px;
+    padding: 12px;
+  }
+`
+
+export const Toolbar = styled.div`
+  ${token.flexBetween}
+  box-sizing: border-box;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  width: 100%;
+  padding: 12px 14px;
+  border-bottom: 1px solid ${token.colors.gray.gray10};
+  background: ${token.colors.white};
+
+  @media (max-width: 640px) {
+    gap: 12px;
+    padding: 12px;
   }
 `
 
 export const ToolbarLeft = styled.div`
   ${token.flexLeft}
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 8px 14px;
   flex: 1 1 240px;
 `
 
@@ -243,7 +258,7 @@ export const ToolbarTitle = styled.h2`
 
 export const FilterBar = styled.div`
   ${token.flexLeft}
-  gap: 4px;
+  gap: 6px;
   color: ${token.colors.gray.gray50};
   line-height: 1;
   white-space: nowrap;
@@ -285,11 +300,7 @@ export const SortSelect = styled.select`
 export const RadioFilterList = styled.div`
   ${token.flexLeft}
   flex-wrap: wrap;
-  gap: 3px;
-  padding: 3px;
-  border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.small};
-  background: ${token.colors.gray.gray0};
+  gap: 8px;
   color: ${token.colors.gray.gray50};
   line-height: 1;
   white-space: nowrap;
@@ -299,17 +310,27 @@ export const RadioFilterList = styled.div`
 export const RadioFilterItem = styled.label<{ $checked: boolean }>`
   ${token.flexCenter}
   position: relative;
-  min-height: 32px;
-  padding: 0 10px;
-  border-radius: ${token.shapes.xsmall};
-  background: ${({ $checked }) => ($checked ? token.colors.white : 'transparent')};
-  box-shadow: ${({ $checked }) => ($checked ? token.elevations.black_1 : 'none')};
-  color: ${({ $checked }) => ($checked ? token.colors.gray.gray90 : token.colors.gray.gray50)};
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid
+    ${({ $checked }) =>
+      $checked ? token.colors.primary.primary50 : token.colors.gray.gray10};
+  border-radius: ${token.shapes.small};
+  background: ${({ $checked }) =>
+    $checked ? token.colors.primary.primary50 : token.colors.white};
+  color: ${({ $checked }) =>
+    $checked ? token.colors.primary.primary100 : token.colors.gray.gray70};
   cursor: pointer;
   transition:
     color 120ms ease,
     background-color 120ms ease,
-    box-shadow 120ms ease;
+    border-color 120ms ease;
+
+  &:hover {
+    border-color: ${token.colors.primary.primary40};
+    background: ${({ $checked }) =>
+      $checked ? token.colors.primary.primary50 : token.colors.primary.primary0};
+  }
 
   &:focus-within {
     outline: 2px solid ${token.colors.primary.primary50};
@@ -328,11 +349,11 @@ export const HiddenRadioInput = styled.input`
 
 export const SearchBox = styled.label`
   ${token.flexBetween}
-  flex: 1 1 220px;
-  max-width: 320px;
-  min-width: min(100%, 180px);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
   height: 42px;
-  padding: 0 13px;
+  padding: 0 14px;
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.small};
   background: ${token.colors.white};
@@ -415,9 +436,9 @@ export const TableRow = styled.button<{
   align-items: center;
   width: 100%;
   min-width: ${({ $columns }) => ($columns === 'question' ? '792px' : '634px')};
-  min-height: 84px;
+  min-height: 72px;
   gap: 12px;
-  padding: 18px 22px;
+  padding: 12px 22px;
   border: 0;
   border-bottom: 1px solid ${token.colors.gray.gray10};
   border-radius: 0;
@@ -442,8 +463,8 @@ export const TableRow = styled.button<{
   }
 
   @media (max-width: 640px) {
-    min-height: 76px;
-    padding: 14px 12px;
+    min-height: 68px;
+    padding: 10px 12px;
   }
 `
 
@@ -462,9 +483,11 @@ export const StatusMessage = styled.p`
   ${token.typography('body', 'sm', 'medium')}
 `
 
-export const MentorCell = styled.span<{ $centered?: boolean }>`
+export const MentorCell = styled.span`
   ${token.flexLeft}
-  justify-content: ${({ $centered }) => ($centered ? 'center' : 'flex-start')};
+  box-sizing: border-box;
+  width: 100%;
+  justify-content: flex-start;
   gap: 10px;
   min-width: 0;
   text-align: left;

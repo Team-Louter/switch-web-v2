@@ -7,10 +7,12 @@ import {
   DetailHeader,
   DetailMetric,
   DetailMetrics,
+  FilterBar,
   MentorCell,
   MentorInfo,
   Table,
   TableHeader,
+  TableSearchRow,
   Toolbar,
   ToolbarLeft,
 } from './MentoringPage.style'
@@ -117,7 +119,7 @@ export function MentoringTableRowsSkeleton({
           {columns === 'mentor' ? (
             <>
               <S.SkeletonIdentity>
-                <S.SkeletonAvatar />
+                <S.SkeletonAvatar $size="medium" />
                 <S.SkeletonIdentityLines>
                   <S.SkeletonBlock $width="72px" $height="14px" />
                   <S.SkeletonBlock $width="48px" $height="11px" />
@@ -149,9 +151,19 @@ export function MentoringTableRowsSkeleton({
 function DashboardTableSkeleton() {
   return (
     <Table aria-hidden="true">
-      <Toolbar>
-        <S.SkeletonBlock $width="42px" $height="20px" />
+      <TableSearchRow>
         <S.SkeletonSearch />
+      </TableSearchRow>
+      <Toolbar>
+        <ToolbarLeft>
+          <S.SkeletonBlock $width="42px" $height="20px" />
+          <FilterBar>상태:</FilterBar>
+        </ToolbarLeft>
+        <S.SkeletonFilterGroup>
+          {[54, 54, 82, 68].map((width, index) => (
+            <S.SkeletonFilter key={index} $width={`${width}px`} />
+          ))}
+        </S.SkeletonFilterGroup>
       </Toolbar>
       <TableHeader $columns="mentor">
         <span>멘토 정보</span>
@@ -168,17 +180,20 @@ function DashboardTableSkeleton() {
 function QuestionTableSkeleton() {
   return (
     <Table aria-hidden="true">
+      <TableSearchRow>
+        <S.SkeletonSearch />
+      </TableSearchRow>
       <Toolbar>
         <ToolbarLeft>
           <S.SkeletonBlock $width="42px" $height="20px" />
           <S.SkeletonFilter $width="126px" />
         </ToolbarLeft>
+        <FilterBar>상태:</FilterBar>
         <S.SkeletonFilterGroup>
-          {[36, 44, 44, 44].map((width, index) => (
+          {[54, 54, 54, 54].map((width, index) => (
             <S.SkeletonFilter key={index} $width={`${width}px`} />
           ))}
         </S.SkeletonFilterGroup>
-        <S.SkeletonSearch />
       </Toolbar>
       <TableHeader $columns="question">
         <span>제목</span>

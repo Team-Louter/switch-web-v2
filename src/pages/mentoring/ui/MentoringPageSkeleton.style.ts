@@ -159,12 +159,16 @@ export const DetailPageSkeleton = styled.div`
   }
 `
 
-export const SkeletonAvatar = styled.span<{ $size?: 'small' | 'lg' }>`
+export const SkeletonAvatar = styled.span<{ $size?: 'small' | 'medium' | 'lg' }>`
   ${skeletonSurface}
   display: block;
-  flex: 0 0 ${({ $size }) => ($size === 'lg' ? '52px' : $size === 'small' ? '28px' : '42px')};
-  width: ${({ $size }) => ($size === 'lg' ? '52px' : $size === 'small' ? '28px' : '42px')};
-  height: ${({ $size }) => ($size === 'lg' ? '52px' : $size === 'small' ? '28px' : '42px')};
+  flex: 0 0
+    ${({ $size }) =>
+      $size === 'lg' ? '52px' : $size === 'medium' ? '34px' : $size === 'small' ? '28px' : '42px'};
+  width: ${({ $size }) =>
+    $size === 'lg' ? '52px' : $size === 'medium' ? '34px' : $size === 'small' ? '28px' : '42px'};
+  height: ${({ $size }) =>
+    $size === 'lg' ? '52px' : $size === 'medium' ? '34px' : $size === 'small' ? '28px' : '42px'};
   border-radius: ${token.shapes.circle};
 `
 
@@ -195,9 +199,9 @@ export const TableSkeletonRow = styled.div<{ $columns: 'mentor' | 'question' }>`
   align-items: center;
   width: 100%;
   min-width: ${({ $columns }) => ($columns === 'question' ? '792px' : '634px')};
-  min-height: 84px;
+  min-height: 72px;
   gap: 12px;
-  padding: 18px 22px;
+  padding: 12px 22px;
   border-bottom: 1px solid ${token.colors.gray.gray10};
 
   &:last-child {
@@ -205,18 +209,16 @@ export const TableSkeletonRow = styled.div<{ $columns: 'mentor' | 'question' }>`
   }
 
   @media (max-width: 640px) {
-    min-height: 76px;
-    padding: 14px 12px;
+    min-height: 68px;
+    padding: 10px 12px;
   }
 `
 
 export const SkeletonSearch = styled.span`
   ${skeletonSurface}
   display: block;
-  flex: 0 1 320px;
   width: 100%;
-  max-width: 320px;
-  min-width: min(100%, 180px);
+  box-sizing: border-box;
   height: 42px;
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.small};
@@ -224,17 +226,15 @@ export const SkeletonSearch = styled.span`
 
 export const SkeletonFilterGroup = styled.div`
   ${token.flexLeft}
-  gap: 4px;
-  padding: 3px;
-  border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.small};
-  background: ${token.colors.gray.gray0};
+  flex-wrap: wrap;
+  gap: 8px;
 `
 
 export const SkeletonFilter = styled.span<{ $width: string }>`
   ${skeletonSurface}
   display: block;
   width: ${({ $width }) => $width};
-  height: 30px;
-  border-radius: ${token.shapes.xsmall};
+  height: 36px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.small};
 `

@@ -22,6 +22,7 @@ import {
   DetailMetricLabel,
   DetailMetrics,
   DetailMetricValue,
+  FilterBar,
   MentorCell,
   MentorInfo,
   MentorMeta,
@@ -36,13 +37,16 @@ import {
   StatusText,
   Table,
   TableHeader,
+  TableSearchRow,
   Toolbar,
+  ToolbarLeft,
   ToolbarTitle,
 } from './MentoringPage.style'
 import {
   MentorStatsRow,
   MentoringOverviewCard,
   QuestionList,
+  RadioFilterGroup,
   SearchInput,
 } from './components'
 import {
@@ -73,7 +77,9 @@ export function MentoringPage() {
     isChatPanelClosing,
     isLoading,
     mentorStatusCounts,
+    mentorFilters,
     mentorSearchKeyword,
+    selectedMentorFilter,
     pendingQuestionCount,
     questionFilters,
     questionSearchKeyword,
@@ -86,6 +92,7 @@ export function MentoringPage() {
     setMentorSearchKeyword,
     setQuestionSearchKeyword,
     setQuestionSortOrder,
+    setSelectedMentorFilter,
     setSelectedQuestionFilter,
     shouldRenderChatPanel,
     viewMode,
@@ -152,7 +159,10 @@ export function MentoringPage() {
                 searchKeyword={mentorSearchKeyword}
                 isLoading={isLoading}
                 errorMessage={errorMessage}
+                filterOptions={mentorFilters}
+                selectedFilter={selectedMentorFilter}
                 onSearchKeywordChange={setMentorSearchKeyword}
+                onFilterChange={setSelectedMentorFilter}
                 onMentorSelect={handleMentorSelect}
               />
             </>
@@ -232,32 +242,50 @@ export function MentoringPage() {
   )
 }
 
-interface MentorTableProps {
+interface MentorTableProps<TFilter extends string> {
   mentors: MentorSummary[]
   searchKeyword: string
   isLoading: boolean
   errorMessage: string
+  filterOptions: readonly TFilter[]
+  selectedFilter: TFilter
   onSearchKeywordChange: (keyword: string) => void
+  onFilterChange: (filter: TFilter) => void
   onMentorSelect: (mentor: MentorSummary) => void
 }
 
-function MentorTable({
+function MentorTable<TFilter extends string>({
   mentors,
   searchKeyword,
   isLoading,
   errorMessage,
+  filterOptions,
+  selectedFilter,
   onSearchKeywordChange,
+  onFilterChange,
   onMentorSelect,
-}: MentorTableProps) {
+}: MentorTableProps<TFilter>) {
   return (
     <Table aria-busy={isLoading}>
-      <Toolbar>
-        <ToolbarTitle>멘토</ToolbarTitle>
+      <TableSearchRow>
         <SearchInput
           ariaLabel="멘토 검색"
           value={searchKeyword}
           placeholder="검색어 입력"
           onChange={onSearchKeywordChange}
+        />
+      </TableSearchRow>
+
+      <Toolbar>
+        <ToolbarLeft>
+          <ToolbarTitle>멘토</ToolbarTitle>
+          <FilterBar>상태:</FilterBar>
+        </ToolbarLeft>
+        <RadioFilterGroup
+          name="mentor-status-filter"
+          options={filterOptions}
+          value={selectedFilter}
+          onChange={onFilterChange}
         />
       </Toolbar>
 
