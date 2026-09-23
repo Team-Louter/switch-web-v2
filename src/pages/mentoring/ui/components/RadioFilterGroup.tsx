@@ -2,7 +2,6 @@ import {
   HiddenRadioInput,
   RadioFilterItem,
   RadioFilterList,
-  RadioIndicator,
 } from '../MentoringPage.style'
 
 type RadioFilterGroupProps<TValue extends string> = {
@@ -21,7 +20,7 @@ export function RadioFilterGroup<TValue extends string>({
   return (
     <RadioFilterList role="radiogroup">
       {options.map((option) => (
-        <RadioFilterItem key={option}>
+        <RadioFilterItem key={option} $checked={value === option}>
           <HiddenRadioInput
             type="radio"
             name={name}
@@ -29,7 +28,6 @@ export function RadioFilterGroup<TValue extends string>({
             checked={value === option}
             onChange={() => onChange(option)}
           />
-          <RadioIndicator $checked={value === option} />
           {option}
         </RadioFilterItem>
       ))}

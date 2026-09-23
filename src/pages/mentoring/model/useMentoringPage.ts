@@ -211,10 +211,11 @@ const mapMessage = (message: MentoringMessageResponse): ChatMessageSummary => ({
 // 멘토링 관리 화면의 서버 데이터와 파생 UI 상태를 관리한다.
 // 1) 멘토링/질문/메시지 목록을 불러온다
 // 2) 서버 enum과 날짜를 화면 표시값으로 변환한다
-// 3) 필터, 검색, 정렬, 사이드시트 상태를 함께 반환한다
+// 3) 필터, 검색, 멘토 정렬과 사이드시트 상태를 함께 반환한다
 export function useMentoringPage() {
   const navigate = useNavigate()
   const currentUserId = useUserStore((state) => state.user?.userId ?? null)
+  const hasLoadedMentorStatusCountsRef = useRef(false)
   const closeChatPanelTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   )
@@ -228,12 +229,19 @@ export function useMentoringPage() {
   const [mentorSearchKeyword, setMentorSearchKeyword] = useState('')
   const [questionSearchKeyword, setQuestionSearchKeyword] = useState('')
   const [mentorSortOrder, setMentorSortOrder] = useState<SortOrder>('latest')
-  const [questionSortOrder, setQuestionSortOrder] = useState<SortOrder>('latest')
   const [overview, setOverview] =
     useState<AdminMentoringOverviewResponse>(initialOverview)
   const [mentors, setMentors] = useState<MentorSummary[]>([])
+  const [mentorStatusCounts, setMentorStatusCounts] = useState({
+    active: 0,
+    delayed: 0,
+    inactive: 0,
+    noRecentActivity: 0,
+  })
   const [questions, setQuestions] = useState<QuestionSummary[]>([])
   const [messages, setMessages] = useState<ChatMessageSummary[]>([])
+  const [hasLoadedDashboard, setHasLoadedDashboard] = useState(false)
+  const [loadedMentorDetailId, setLoadedMentorDetailId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -258,12 +266,23 @@ export function useMentoringPage() {
           selectedMentorFilter === '전체'
             ? undefined
             : adminMentorStateMap[selectedMentorFilter]
-        const [overviewResponse, mentorResponses] = await Promise.all([
+        const mentorResponsesPromise = getAdminMentors({
+          mentorName,
+          state,
+        })
+        const unfilteredMentorResponsesPromise = mentorName || state
+          ? hasLoadedMentorStatusCountsRef.current
+            ? Promise.resolve(null)
+            : getAdminMentors()
+          : mentorResponsesPromise
+        const [
+          overviewResponse,
+          mentorResponses,
+          unfilteredMentorResponses,
+        ] = await Promise.all([
           getAdminMentoringOverview(),
-          getAdminMentors({
-            mentorName,
-            state,
-          }),
+          mentorResponsesPromise,
+          unfilteredMentorResponsesPromise,
         ])
 
         if (ignore) {
@@ -272,6 +291,16 @@ export function useMentoringPage() {
 
         setOverview(overviewResponse)
         setMentors(mentorResponses.map(mapAdminMentor))
+        if (unfilteredMentorResponses) {
+          const allMentors = unfilteredMentorResponses.map(mapAdminMentor)
+          setMentorStatusCounts({
+            active: allMentors.filter((mentor) => mentor.status === '원활').length,
+            delayed: allMentors.filter((mentor) => mentor.status === '답변 지연').length,
+            inactive: allMentors.filter((mentor) => mentor.status === '비활성').length,
+            noRecentActivity: allMentors.filter((mentor) => mentor.status === '-').length,
+          })
+          hasLoadedMentorStatusCountsRef.current = true
+        }
       } catch (error) {
         if (ignore) {
           return
@@ -284,6 +313,7 @@ export function useMentoringPage() {
         )
       } finally {
         if (!ignore) {
+          setHasLoadedDashboard(true)
           setIsLoading(false)
         }
       }
@@ -342,6 +372,7 @@ export function useMentoringPage() {
         })
         setQuestions(nextQuestions)
         setMessages([])
+        setLoadedMentorDetailId(mentorDetail.mentorId)
         setSelectedQuestionId((currentQuestionId) =>
           nextQuestions.some((question) => question.id === currentQuestionId)
             ? currentQuestionId
@@ -484,11 +515,7 @@ export function useMentoringPage() {
 
       return matchesStatus && matchesKeyword
     })
-    .sort((a, b) =>
-      questionSortOrder === 'latest'
-        ? b.createdAtOrder - a.createdAtOrder
-        : a.createdAtOrder - b.createdAtOrder,
-    )
+    .sort((a, b) => b.createdAtOrder - a.createdAtOrder)
 
   const selectedQuestion =
     questions.find((question) => question.id === selectedQuestionId) ??
@@ -503,12 +530,21 @@ export function useMentoringPage() {
   const shouldRenderChatPanel =
     viewMode === 'mentor-detail' &&
     (selectedQuestionId !== null || isChatPanelClosing)
+  const isInitialDashboardLoading =
+    viewMode === 'dashboard' && isLoading && !hasLoadedDashboard
+  const isInitialMentorDetailLoading =
+    viewMode === 'mentor-detail' &&
+    selectedMentorId !== null &&
+    isLoading &&
+    loadedMentorDetailId !== selectedMentorId
 
   const handleMentorSelect = (mentor: MentorSummary) => {
     clearCloseChatPanelTimer()
     setIsChatPanelClosing(false)
     setViewMode('mentor-detail')
+    setIsLoading(true)
     setSelectedMentorId(mentor.mentorId)
+    setLoadedMentorDetailId(null)
     setSelectedQuestionId(null)
     setMessages([])
   }
@@ -516,6 +552,7 @@ export function useMentoringPage() {
   const handleBack = () => {
     clearCloseChatPanelTimer()
     setIsChatPanelClosing(false)
+    setIsLoading(false)
     setViewMode('dashboard')
     setSelectedMentorId(null)
     setSelectedQuestionId(null)
@@ -554,6 +591,8 @@ export function useMentoringPage() {
     errorMessage,
     filteredMentors,
     filteredQuestions,
+    isInitialDashboardLoading,
+    isInitialMentorDetailLoading,
     handleBack,
     handleCloseChatPanel,
     handleDashboardBack,
@@ -562,13 +601,13 @@ export function useMentoringPage() {
     inProgressQuestionCount,
     isChatPanelClosing,
     isLoading,
+    mentorStatusCounts,
     mentorFilters,
     mentorSearchKeyword,
     mentorSortOrder,
     pendingQuestionCount,
     questionFilters,
     questionSearchKeyword,
-    questionSortOrder,
     selectedMentor,
     selectedMentorFilter,
     selectedMessages,
@@ -578,7 +617,6 @@ export function useMentoringPage() {
     setMentorSearchKeyword,
     setMentorSortOrder,
     setQuestionSearchKeyword,
-    setQuestionSortOrder,
     setSelectedMentorFilter,
     setSelectedQuestionFilter,
     shouldRenderChatPanel,
