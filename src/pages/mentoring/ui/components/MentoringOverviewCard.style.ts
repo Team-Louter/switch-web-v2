@@ -2,10 +2,7 @@ import styled from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
-import type {
-  MentoringOverviewSegment,
-  MentoringOverviewTone,
-} from './MentoringOverviewCard.types'
+import type { MentoringOverviewTone } from './MentoringOverviewCard.types'
 
 const toneColor: Record<MentoringOverviewTone, string> = {
   success: '#2FBA6D',
@@ -78,48 +75,99 @@ export const OverviewContent = styled.div`
   }
 `
 
-export const OverviewDonut = styled.div<{
-  $segments: MentoringOverviewSegment[]
-  $hasValues: boolean
-}>`
+export const OverviewDonut = styled.div`
   ${token.flexCenter}
   position: relative;
   width: 108px;
   aspect-ratio: 1;
   border-radius: ${token.shapes.circle};
-  background: ${({ $segments, $hasValues }) =>
-    $hasValues
-      ? `conic-gradient(${$segments
-          .map(
-            ({ tone, startPercent, endPercent }) =>
-              `${toneColor[tone]} ${startPercent}% ${endPercent}%`,
-          )
-          .join(', ')})`
-      : token.colors.gray.gray10};
-
-  &::before {
-    position: absolute;
-    inset: 12px;
-    border-radius: inherit;
-    background: ${token.colors.white};
-    content: '';
-  }
 
   @media (max-width: 420px) {
     width: 88px;
+  }
+`
 
-    &::before {
-      inset: 10px;
-    }
+export const OverviewDonutSvg = styled.svg`
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(-90deg);
+`
+
+export const OverviewDonutTrack = styled.circle`
+  fill: none;
+  stroke: ${token.colors.gray.gray10};
+  stroke-width: 11;
+`
+
+export const OverviewDonutSegment = styled.circle<{
+  $tone: MentoringOverviewTone
+}>`
+  fill: none;
+  stroke: ${({ $tone }) => toneColor[$tone]};
+  stroke-width: 11;
+  transition-property: stroke-dasharray, stroke-dashoffset;
+  transition-timing-function: linear;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
   }
 `
 
 export const OverviewDonutCenter = styled.div`
   ${token.flexColumnCenter}
   position: relative;
+  z-index: 1;
   max-width: calc(100% - 12px);
   gap: 3px;
   text-align: center;
+`
+
+export const OverviewRollingDigits = styled.span`
+  display: inline-flex;
+  font-variant-numeric: tabular-nums;
+`
+
+export const OverviewRollingDigit = styled.span`
+  display: inline-block;
+  height: 1em;
+  line-height: 1;
+  overflow: hidden;
+`
+
+export const OverviewRollingStrip = styled.span`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+`
+
+export const OverviewRollingDigitValue = styled.span`
+  height: 1em;
+  line-height: 1;
+`
+
+export const OverviewRollingSeparator = styled.span`
+  height: 1em;
+  line-height: 1;
+`
+
+export const OverviewVisuallyHidden = styled.span`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 `
 
 export const OverviewDonutLabel = styled.span`
