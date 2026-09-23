@@ -1,12 +1,6 @@
 import profileImage from '@/shared/assets/sidebar/profile.png'
 import backChevronIcon from '../assets/back-chevron.svg'
-import {
-  PiArrowLeft,
-  PiCheckCircle,
-  PiChatCircleDots,
-  PiChatsCircle,
-  PiWarningCircle,
-} from 'react-icons/pi'
+import { PiArrowLeft } from 'react-icons/pi'
 
 import { useMentoringPage } from '../model/useMentoringPage'
 import {
@@ -22,9 +16,9 @@ import {
   Content,
   DashboardBackButton,
   DashboardBackIcon,
-  DashboardGrid,
   DashboardHeader,
   DashboardHeading,
+  DashboardOverviewGrid,
   DetailHeader,
   DetailMetric,
   DetailMetricLabel,
@@ -45,13 +39,6 @@ import {
   MessageBubble,
   MessageGroup,
   MessageStack,
-  StatCard,
-  StatHeader,
-  StatHint,
-  StatIcon,
-  StatLabel,
-  StatUnit,
-  StatValue,
   StatusMessage,
   StatusText,
   Table,
@@ -61,9 +48,11 @@ import {
 } from './MentoringPage.style'
 import {
   MentorStatsRow,
+  MentoringOverviewCard,
   QuestionList,
   SearchInput,
 } from './components'
+import type { MentoringOverviewItem } from './components'
 import type { ChatMessageSummary, MentorSummary, QuestionSummary } from './types'
 
 export function MentoringPage() {
@@ -82,6 +71,7 @@ export function MentoringPage() {
     inProgressQuestionCount,
     isChatPanelClosing,
     isLoading,
+    mentorStatusCounts,
     mentorSearchKeyword,
     pendingQuestionCount,
     questionFilters,
@@ -100,6 +90,26 @@ export function MentoringPage() {
     viewMode,
   } = useMentoringPage()
 
+  const totalQuestionCount =
+    pendingQuestionCount + inProgressQuestionCount + completedQuestionCount
+  const totalMentorCount = Object.values(mentorStatusCounts).reduce(
+    (total, count) => total + count,
+    0,
+  )
+  const questionCompletionPercent =
+    totalQuestionCount === 0 ? 0 : (completedQuestionCount / totalQuestionCount) * 100
+  const questionOverviewItems: MentoringOverviewItem[] = [
+    { label: '완료', value: completedQuestionCount, tone: 'success' },
+    { label: '답변 대기', value: pendingQuestionCount, tone: 'danger' },
+    { label: '진행 중', value: inProgressQuestionCount, tone: 'info' },
+  ]
+  const mentorOverviewItems: MentoringOverviewItem[] = [
+    { label: '원활', value: mentorStatusCounts.active, tone: 'success' },
+    { label: '답변 지연', value: mentorStatusCounts.delayed, tone: 'warning' },
+    { label: '비활성', value: mentorStatusCounts.inactive, tone: 'danger' },
+    { label: '활동 정보 없음', value: mentorStatusCounts.noRecentActivity, tone: 'info' },
+  ]
+
   return (
     <MentoringLayout>
       <Content>
@@ -112,60 +122,23 @@ export function MentoringPage() {
               </DashboardBackButton>
               <DashboardHeading>멘토링 관리</DashboardHeading>
             </DashboardHeader>
-            <DashboardGrid>
-              <StatCard $tone="danger">
-                <StatHeader>
-                  <StatLabel>주의 필요 멘토</StatLabel>
-                  <StatIcon $tone="danger">
-                    <PiWarningCircle aria-hidden="true" />
-                  </StatIcon>
-                </StatHeader>
-                <StatValue>
-                  {attentionNeededMentorCount}
-                  <StatUnit>명</StatUnit>
-                </StatValue>
-                <StatHint>답변 흐름을 확인해 주세요</StatHint>
-              </StatCard>
-              <StatCard $tone="warning">
-                <StatHeader>
-                  <StatLabel>답변 대기 질문</StatLabel>
-                  <StatIcon $tone="warning">
-                    <PiChatCircleDots aria-hidden="true" />
-                  </StatIcon>
-                </StatHeader>
-                <StatValue>
-                  {pendingQuestionCount}
-                  <StatUnit>건</StatUnit>
-                </StatValue>
-                <StatHint>멘토의 답변을 기다리고 있어요</StatHint>
-              </StatCard>
-              <StatCard $tone="info">
-                <StatHeader>
-                  <StatLabel>진행 중인 질문</StatLabel>
-                  <StatIcon $tone="info">
-                    <PiChatsCircle aria-hidden="true" />
-                  </StatIcon>
-                </StatHeader>
-                <StatValue>
-                  {inProgressQuestionCount}
-                  <StatUnit>건</StatUnit>
-                </StatValue>
-                <StatHint>대화가 이어지고 있어요</StatHint>
-              </StatCard>
-              <StatCard $tone="success">
-                <StatHeader>
-                  <StatLabel>완료된 질문</StatLabel>
-                  <StatIcon $tone="success">
-                    <PiCheckCircle aria-hidden="true" />
-                  </StatIcon>
-                </StatHeader>
-                <StatValue>
-                  {completedQuestionCount}
-                  <StatUnit>건</StatUnit>
-                </StatValue>
-                <StatHint>멘토링을 마무리했어요</StatHint>
-              </StatCard>
-            </DashboardGrid>
+            <DashboardOverviewGrid>
+              <MentoringOverviewCard
+                title="질문 처리 현황"
+                centerLabel="완료율"
+                centerValue={`${questionCompletionPercent.toFixed(1)}%`}
+                itemUnit="건"
+                items={questionOverviewItems}
+              />
+              <MentoringOverviewCard
+                title="멘토 상태 현황"
+                centerLabel="전체 멘토"
+                centerValue={`${totalMentorCount}명`}
+                itemUnit="명"
+                items={mentorOverviewItems}
+                attentionCount={attentionNeededMentorCount}
+              />
+            </DashboardOverviewGrid>
             <MentorTable
               mentors={filteredMentors}
               searchKeyword={mentorSearchKeyword}

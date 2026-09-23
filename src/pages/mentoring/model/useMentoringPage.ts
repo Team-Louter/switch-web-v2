@@ -435,6 +435,12 @@ export function useMentoringPage() {
   const pendingQuestionCount = overview.waitingQuestions
   const inProgressQuestionCount = overview.progressQuestions
   const attentionNeededMentorCount = overview.attentionMentors
+  const mentorStatusCounts = {
+    active: mentors.filter((mentor) => mentor.status === '원활').length,
+    delayed: mentors.filter((mentor) => mentor.status === '답변 지연').length,
+    inactive: mentors.filter((mentor) => mentor.status === '비활성').length,
+    noRecentActivity: mentors.filter((mentor) => mentor.status === '-').length,
+  }
   const mentorKeyword = mentorSearchKeyword.trim().toLowerCase()
   const questionKeyword = questionSearchKeyword.trim().toLowerCase()
 
@@ -562,6 +568,7 @@ export function useMentoringPage() {
     inProgressQuestionCount,
     isChatPanelClosing,
     isLoading,
+    mentorStatusCounts,
     mentorFilters,
     mentorSearchKeyword,
     mentorSortOrder,

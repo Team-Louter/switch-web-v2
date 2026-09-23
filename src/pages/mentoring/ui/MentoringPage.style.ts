@@ -191,115 +191,15 @@ export const BackButton = styled.button`
   line-height: 1;
 `
 
-export const DashboardGrid = styled.div`
+export const DashboardOverviewGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
   width: 100%;
 
-  @media (max-width: 1180px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @media (max-width: 520px) {
+  @media (max-width: 960px) {
     grid-template-columns: 1fr;
   }
-`
-
-type StatTone = 'danger' | 'warning' | 'info' | 'success'
-
-const statToneColor: Record<StatTone, string> = {
-  danger: token.colors.danger.danger20,
-  warning: token.colors.warning.warning20,
-  info: token.colors.info.info20,
-  success: token.colors.success.success20,
-}
-
-const statToneSurface: Record<StatTone, string> = {
-  danger: token.colors.danger.danger0,
-  warning: token.colors.warning.warning0,
-  info: token.colors.info.info0,
-  success: token.colors.success.success0,
-}
-
-export const StatCard = styled.article<{ $tone: StatTone }>`
-  ${token.flexColumnStart}
-  position: relative;
-  min-height: 164px;
-  gap: 12px;
-  padding: 18px 18px 16px;
-  overflow: hidden;
-  border: 1px solid ${token.colors.gray.gray10};
-  border-top: 3px solid ${({ $tone }) => statToneColor[$tone]};
-  border-radius: ${token.shapes.large};
-  background: ${token.colors.white};
-  ${token.elevation('black_1')}
-
-  @media (hover: hover) {
-    transition:
-      transform 160ms ease,
-      box-shadow 160ms ease;
-
-    &:hover {
-      transform: translateY(-2px);
-      ${token.elevation('black_2')}
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      transition: none;
-
-      &:hover {
-        transform: none;
-      }
-    }
-  }
-`
-
-export const StatHeader = styled.div`
-  ${token.flexBetween}
-  width: 100%;
-`
-
-export const StatLabel = styled.span`
-  color: ${token.colors.gray.gray60};
-  line-height: 1.2;
-  ${token.typography('body', 'sm', 'semibold')}
-`
-
-export const StatIcon = styled.span<{ $tone: StatTone }>`
-  ${token.flexCenter}
-  width: 32px;
-  height: 32px;
-  border-radius: ${token.shapes.small};
-  background: ${({ $tone }) => statToneSurface[$tone]};
-  color: ${({ $tone }) => statToneColor[$tone]};
-
-  svg {
-    width: 18px;
-    height: 18px;
-  }
-`
-
-export const StatValue = styled.strong`
-  ${token.flexLeft}
-  align-items: flex-end;
-  gap: 7px;
-  color: ${token.colors.gray.gray100};
-  line-height: 1;
-  letter-spacing: -0.04em;
-  ${token.typography('heading', 'xl', 'bold')}
-`
-
-export const StatUnit = styled.span`
-  padding-bottom: 3px;
-  color: ${token.colors.gray.gray80};
-  ${token.typography('body', 'md', 'medium')}
-`
-
-export const StatHint = styled.span`
-  color: ${token.colors.gray.gray50};
-  line-height: 1.3;
-  ${token.typography('caption', 'lg', 'medium')}
 `
 
 export const Table = styled.section`
