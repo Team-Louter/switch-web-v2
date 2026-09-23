@@ -555,7 +555,7 @@ export function MentoringEntryPage() {
                 )
               )}
             </S.SectionHeader>
-            <S.ListScroll>
+            <S.ListScroll $flushToEnd>
               {isLoading ? (
                 <MentoringQuestionListSkeleton />
               ) : selectedRoom ? (

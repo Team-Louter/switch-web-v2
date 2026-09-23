@@ -470,10 +470,14 @@ export const SkeletonComposerCount = styled.span`
   height: 12px;
 `
 
-export const ListScroll = styled.div`
-  width: 100%;
+export const ListScroll = styled.div<{ $flushToEnd?: boolean }>`
+  box-sizing: border-box;
+  width: ${({ $flushToEnd }) =>
+    $flushToEnd ? 'calc(100% + 16px)' : '100%'};
   min-height: 0;
   flex: 1 1 0;
+  margin-right: ${({ $flushToEnd }) => ($flushToEnd ? '-16px' : '0')};
+  padding-right: ${({ $flushToEnd }) => ($flushToEnd ? '16px' : '0')};
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-color: ${token.colors.gray.gray30} transparent;
