@@ -215,6 +215,7 @@ const mapMessage = (message: MentoringMessageResponse): ChatMessageSummary => ({
 export function useMentoringPage() {
   const navigate = useNavigate()
   const currentUserId = useUserStore((state) => state.user?.userId ?? null)
+  const hasLoadedMentorStatusCountsRef = useRef(false)
   const closeChatPanelTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   )
@@ -231,6 +232,12 @@ export function useMentoringPage() {
   const [overview, setOverview] =
     useState<AdminMentoringOverviewResponse>(initialOverview)
   const [mentors, setMentors] = useState<MentorSummary[]>([])
+  const [mentorStatusCounts, setMentorStatusCounts] = useState({
+    active: 0,
+    delayed: 0,
+    inactive: 0,
+    noRecentActivity: 0,
+  })
   const [questions, setQuestions] = useState<QuestionSummary[]>([])
   const [messages, setMessages] = useState<ChatMessageSummary[]>([])
   const [hasLoadedDashboard, setHasLoadedDashboard] = useState(false)
@@ -259,12 +266,23 @@ export function useMentoringPage() {
           selectedMentorFilter === '전체'
             ? undefined
             : adminMentorStateMap[selectedMentorFilter]
-        const [overviewResponse, mentorResponses] = await Promise.all([
+        const mentorResponsesPromise = getAdminMentors({
+          mentorName,
+          state,
+        })
+        const unfilteredMentorResponsesPromise = mentorName || state
+          ? hasLoadedMentorStatusCountsRef.current
+            ? Promise.resolve(null)
+            : getAdminMentors()
+          : mentorResponsesPromise
+        const [
+          overviewResponse,
+          mentorResponses,
+          unfilteredMentorResponses,
+        ] = await Promise.all([
           getAdminMentoringOverview(),
-          getAdminMentors({
-            mentorName,
-            state,
-          }),
+          mentorResponsesPromise,
+          unfilteredMentorResponsesPromise,
         ])
 
         if (ignore) {
@@ -273,6 +291,16 @@ export function useMentoringPage() {
 
         setOverview(overviewResponse)
         setMentors(mentorResponses.map(mapAdminMentor))
+        if (unfilteredMentorResponses) {
+          const allMentors = unfilteredMentorResponses.map(mapAdminMentor)
+          setMentorStatusCounts({
+            active: allMentors.filter((mentor) => mentor.status === '원활').length,
+            delayed: allMentors.filter((mentor) => mentor.status === '답변 지연').length,
+            inactive: allMentors.filter((mentor) => mentor.status === '비활성').length,
+            noRecentActivity: allMentors.filter((mentor) => mentor.status === '-').length,
+          })
+          hasLoadedMentorStatusCountsRef.current = true
+        }
       } catch (error) {
         if (ignore) {
           return
@@ -438,12 +466,6 @@ export function useMentoringPage() {
   const pendingQuestionCount = overview.waitingQuestions
   const inProgressQuestionCount = overview.progressQuestions
   const attentionNeededMentorCount = overview.attentionMentors
-  const mentorStatusCounts = {
-    active: mentors.filter((mentor) => mentor.status === '원활').length,
-    delayed: mentors.filter((mentor) => mentor.status === '답변 지연').length,
-    inactive: mentors.filter((mentor) => mentor.status === '비활성').length,
-    noRecentActivity: mentors.filter((mentor) => mentor.status === '-').length,
-  }
   const mentorKeyword = mentorSearchKeyword.trim().toLowerCase()
   const questionKeyword = questionSearchKeyword.trim().toLowerCase()
 
