@@ -1,4 +1,11 @@
 import profileImage from '@/shared/assets/sidebar/profile.png'
+import {
+  PiArrowLeft,
+  PiCheckCircle,
+  PiChatCircleDots,
+  PiChatsCircle,
+  PiWarningCircle,
+} from 'react-icons/pi'
 
 import { useMentoringPage } from '../model/useMentoringPage'
 import {
@@ -21,6 +28,7 @@ import {
   Header,
   HeaderCopy,
   HeaderDescription,
+  HeaderEyebrow,
   HeaderTitle,
   MentorCell,
   MentorInfo,
@@ -33,6 +41,9 @@ import {
   MessageGroup,
   MessageStack,
   StatCard,
+  StatHeader,
+  StatHint,
+  StatIcon,
   StatLabel,
   StatUnit,
   StatValue,
@@ -100,38 +111,66 @@ export function MentoringPage() {
           <>
             <Header>
               <BackButton type="button" aria-label="멘토링으로 돌아가기" onClick={handleDashboardBack}>
-                ‹
+                <PiArrowLeft aria-hidden="true" />
               </BackButton>
-              <PageHeader title="멘토링 관리" />
+              <PageHeader
+                eyebrow="운영 대시보드"
+                title="멘토링 관리"
+                description="전체 멘토와 질문의 흐름을 한곳에서 살펴보세요."
+              />
             </Header>
             <DashboardGrid>
               <StatCard $tone="danger">
-                <StatLabel>주의 필요 멘토</StatLabel>
+                <StatHeader>
+                  <StatLabel>주의 필요 멘토</StatLabel>
+                  <StatIcon $tone="danger">
+                    <PiWarningCircle aria-hidden="true" />
+                  </StatIcon>
+                </StatHeader>
                 <StatValue>
                   {attentionNeededMentorCount}
                   <StatUnit>명</StatUnit>
                 </StatValue>
+                <StatHint>답변 흐름을 확인해 주세요</StatHint>
               </StatCard>
-              <StatCard>
-                <StatLabel>답변 대기 질문</StatLabel>
+              <StatCard $tone="warning">
+                <StatHeader>
+                  <StatLabel>답변 대기 질문</StatLabel>
+                  <StatIcon $tone="warning">
+                    <PiChatCircleDots aria-hidden="true" />
+                  </StatIcon>
+                </StatHeader>
                 <StatValue>
                   {pendingQuestionCount}
                   <StatUnit>건</StatUnit>
                 </StatValue>
+                <StatHint>멘토의 답변을 기다리고 있어요</StatHint>
               </StatCard>
-              <StatCard>
-                <StatLabel>진행중인 질문</StatLabel>
+              <StatCard $tone="info">
+                <StatHeader>
+                  <StatLabel>진행 중인 질문</StatLabel>
+                  <StatIcon $tone="info">
+                    <PiChatsCircle aria-hidden="true" />
+                  </StatIcon>
+                </StatHeader>
                 <StatValue>
                   {inProgressQuestionCount}
                   <StatUnit>건</StatUnit>
                 </StatValue>
+                <StatHint>대화가 이어지고 있어요</StatHint>
               </StatCard>
-              <StatCard>
-                <StatLabel>완료된 질문</StatLabel>
+              <StatCard $tone="success">
+                <StatHeader>
+                  <StatLabel>완료된 질문</StatLabel>
+                  <StatIcon $tone="success">
+                    <PiCheckCircle aria-hidden="true" />
+                  </StatIcon>
+                </StatHeader>
                 <StatValue>
                   {completedQuestionCount}
                   <StatUnit>건</StatUnit>
                 </StatValue>
+                <StatHint>멘토링을 마무리했어요</StatHint>
               </StatCard>
             </DashboardGrid>
             <MentorTable
@@ -152,9 +191,13 @@ export function MentoringPage() {
           <>
             <Header>
               <BackButton type="button" aria-label="멘토링 목록으로 돌아가기" onClick={handleBack}>
-                ‹
+                <PiArrowLeft aria-hidden="true" />
               </BackButton>
-              <PageHeader title="멘토링 상세 관리" />
+              <PageHeader
+                eyebrow="멘토 상세"
+                title="멘토링 상세 관리"
+                description="선택한 멘토의 질문 현황과 대화 내용을 확인하세요."
+              />
             </Header>
             <DetailSummary mentor={selectedMentor} />
             {isLoading || errorMessage || filteredQuestions.length === 0 ? (
@@ -219,15 +262,18 @@ export function MentoringPage() {
   )
 }
 
-type PageHeaderProps = {
+interface PageHeaderProps {
+  eyebrow: string
   title: string
+  description: string
 }
 
-function PageHeader({ title }: PageHeaderProps) {
+function PageHeader({ eyebrow, title, description }: PageHeaderProps) {
   return (
     <HeaderCopy>
+      <HeaderEyebrow>{eyebrow}</HeaderEyebrow>
       <HeaderTitle>{title}</HeaderTitle>
-      <HeaderDescription>전체 멘토링 진행 현황과 멘토별 상태를 확인하세요</HeaderDescription>
+      <HeaderDescription>{description}</HeaderDescription>
     </HeaderCopy>
   )
 }

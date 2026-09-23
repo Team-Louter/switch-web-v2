@@ -7,11 +7,21 @@ type Status = '-' | '원활' | '답변 지연' | '비활성' | '대기' | '진�
 const statusColor: Record<Status, string> = {
   '-': token.colors.gray.gray50,
   원활: token.colors.info.info20,
-  '답변 지연': token.colors.warning.warning20,
+  '답변 지연': token.colors.warning.warning30,
   비활성: token.colors.danger.danger20,
-  대기: token.colors.warning.warning20,
+  대기: token.colors.warning.warning30,
   진행: token.colors.info.info20,
   완료: token.colors.gray.gray50,
+}
+
+const statusSurface: Record<Status, string> = {
+  '-': token.colors.gray.gray0,
+  원활: token.colors.info.info0,
+  '답변 지연': token.colors.warning.warning0,
+  비활성: token.colors.danger.danger0,
+  대기: token.colors.warning.warning0,
+  진행: token.colors.info.info0,
+  완료: token.colors.gray.gray0,
 }
 
 const slideInFromRight = keyframes`
@@ -44,127 +54,249 @@ export const MentoringLayout = styled.section`
   min-height: 100dvh;
   width: 100%;
   overflow: hidden;
-  background: ${token.colors.white};
+  background: ${token.colors.gray.gray0};
 `
 
 export const Content = styled.div`
   ${token.flexColumnStart}
   flex: 1 1 auto;
-  gap: 40px;
+  gap: 28px;
+  width: 100%;
+  max-width: 1660px;
   min-width: 0;
   min-height: 100dvh;
-  padding: 80px 100px;
+  margin: 0 auto;
+  padding: clamp(32px, 4.8vw, 72px) clamp(22px, 5vw, 80px);
 
   @media (max-width: 1180px) {
-    padding: 56px 48px;
+    padding: 48px 36px;
+  }
+
+  @media (max-width: 640px) {
+    gap: 22px;
+    padding: 32px 18px 40px;
   }
 `
 
 export const Header = styled.div`
   ${token.flexLeft}
-  gap: 20px;
+  align-items: flex-start;
+  gap: 16px;
   width: 100%;
 `
 
 export const HeaderCopy = styled.div`
-  ${token.flexLeft}
-  gap: 16px;
+  ${token.flexColumnStart}
+  gap: 9px;
   min-width: 0;
+`
+
+export const HeaderEyebrow = styled.span`
+  color: ${token.colors.gray.gray50};
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  ${token.typography('caption', 'lg', 'bold')}
 `
 
 export const HeaderTitle = styled.h1`
   flex: 0 0 auto;
   color: ${token.colors.gray.gray100};
-  line-height: 1;
-  ${token.typography('heading', 'lg', 'semibold')}
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  ${token.typography('heading', 'xxl', 'bold')}
+
+  @media (max-width: 640px) {
+    ${token.typography('heading', 'xl', 'bold')}
+  }
 `
 
 export const HeaderDescription = styled.p`
-  overflow: hidden;
-  color: ${token.colors.gray.gray50};
-  line-height: 1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  ${token.typography('body', 'lg', 'medium')}
+  color: ${token.colors.gray.gray60};
+  line-height: 1.45;
+  ${token.typography('body', 'md', 'regular')}
 `
 
 export const BackButton = styled.button`
   ${token.flexCenter}
-  flex: 0 0 30px;
-  width: 30px;
-  height: 30px;
-  border-radius: ${token.shapes.circle};
-  background: ${token.colors.gray.gray30};
-  color: ${token.colors.white};
-  font-size: 28px;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  margin-top: 4px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.medium};
+  background: ${token.colors.white};
+  color: ${token.colors.gray.gray80};
+  transition:
+    color 140ms ease,
+    background-color 140ms ease,
+    transform 140ms ease;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    transform: translateX(-2px);
+    background: ${token.colors.primary.primary10};
+    color: ${token.colors.gray.gray100};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
+
   line-height: 1;
 `
 
 export const DashboardGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 20px;
+  gap: 14px;
   width: 100%;
 
   @media (max-width: 1180px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
 `
 
-export const StatCard = styled.article<{ $tone?: 'danger' }>`
+type StatTone = 'danger' | 'warning' | 'info' | 'success'
+
+const statToneColor: Record<StatTone, string> = {
+  danger: token.colors.danger.danger20,
+  warning: token.colors.warning.warning20,
+  info: token.colors.info.info20,
+  success: token.colors.success.success20,
+}
+
+const statToneSurface: Record<StatTone, string> = {
+  danger: token.colors.danger.danger0,
+  warning: token.colors.warning.warning0,
+  info: token.colors.info.info0,
+  success: token.colors.success.success0,
+}
+
+export const StatCard = styled.article<{ $tone: StatTone }>`
   ${token.flexColumnStart}
-  justify-content: center;
-  height: 100px;
-  gap: 5px;
-  padding: 16px;
-  border-radius: ${token.shapes.medium};
-  background: ${({ $tone }) =>
-    $tone === 'danger' ? token.colors.danger.danger0 : token.colors.gray.gray0};
+  position: relative;
+  min-height: 164px;
+  gap: 12px;
+  padding: 18px 18px 16px;
+  overflow: hidden;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-top: 3px solid ${({ $tone }) => statToneColor[$tone]};
+  border-radius: ${token.shapes.large};
+  background: ${token.colors.white};
+  ${token.elevation('black_1')}
+
+  @media (hover: hover) {
+    transition:
+      transform 160ms ease,
+      box-shadow 160ms ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      ${token.elevation('black_2')}
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+
+      &:hover {
+        transform: none;
+      }
+    }
+  }
+`
+
+export const StatHeader = styled.div`
+  ${token.flexBetween}
+  width: 100%;
 `
 
 export const StatLabel = styled.span`
-  color: ${token.colors.gray.gray80};
-  line-height: 1;
-  ${token.typography('body', 'sm', 'medium')}
+  color: ${token.colors.gray.gray60};
+  line-height: 1.2;
+  ${token.typography('body', 'sm', 'semibold')}
+`
+
+export const StatIcon = styled.span<{ $tone: StatTone }>`
+  ${token.flexCenter}
+  width: 32px;
+  height: 32px;
+  border-radius: ${token.shapes.small};
+  background: ${({ $tone }) => statToneSurface[$tone]};
+  color: ${({ $tone }) => statToneColor[$tone]};
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
 `
 
 export const StatValue = styled.strong`
   ${token.flexLeft}
   align-items: flex-end;
-  gap: 5px;
+  gap: 7px;
   color: ${token.colors.gray.gray100};
   line-height: 1;
-  ${token.typography('heading', 'xl', 'semibold')}
+  letter-spacing: -0.04em;
+  ${token.typography('heading', 'xl', 'bold')}
 `
 
 export const StatUnit = styled.span`
-  padding-bottom: 4px;
+  padding-bottom: 3px;
   color: ${token.colors.gray.gray80};
   ${token.typography('body', 'md', 'medium')}
 `
 
+export const StatHint = styled.span`
+  color: ${token.colors.gray.gray50};
+  line-height: 1.3;
+  ${token.typography('caption', 'lg', 'medium')}
+`
+
 export const Table = styled.section`
   ${token.flexColumnStart}
-  gap: 20px;
+  gap: 10px;
   width: 100%;
+  padding: 22px;
+  overflow-x: auto;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.xlarge};
+  background: ${token.colors.white};
+  ${token.elevation('black_1')}
+
+  @media (max-width: 640px) {
+    gap: 14px;
+    padding: 16px 12px;
+  }
 `
 
 export const Toolbar = styled.div`
   ${token.flexBetween}
-  gap: 24px;
+  flex-wrap: wrap;
+  gap: 14px;
   width: 100%;
 `
 
 export const ToolbarLeft = styled.div`
   ${token.flexLeft}
-  gap: 10px;
-  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  flex: 1 1 240px;
 `
 
 export const ToolbarTitle = styled.h2`
   color: ${token.colors.gray.gray100};
-  line-height: 1;
-  ${token.typography('body', 'lg', 'semibold')}
+  line-height: 1.2;
+  ${token.typography('heading', 'sm', 'bold')}
 `
 
 export const FilterBar = styled.div`
@@ -183,7 +315,11 @@ export const FilterIcon = styled.span`
 
 export const SortSelectWrap = styled.label`
   ${token.flexLeft}
-  gap: 4px;
+  gap: 6px;
+  padding: 7px 9px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.small};
+  background: ${token.colors.white};
   color: ${token.colors.gray.gray50};
 `
 
@@ -206,17 +342,37 @@ export const SortSelect = styled.select`
 
 export const RadioFilterList = styled.div`
   ${token.flexLeft}
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.small};
+  background: ${token.colors.gray.gray0};
   color: ${token.colors.gray.gray50};
   line-height: 1;
   white-space: nowrap;
   ${token.typography('body', 'sm', 'medium')}
 `
 
-export const RadioFilterItem = styled.label`
-  ${token.flexLeft}
-  gap: 4px;
+export const RadioFilterItem = styled.label<{ $checked: boolean }>`
+  ${token.flexCenter}
+  position: relative;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: ${token.shapes.xsmall};
+  background: ${({ $checked }) => ($checked ? token.colors.white : 'transparent')};
+  box-shadow: ${({ $checked }) => ($checked ? token.elevations.black_1 : 'none')};
+  color: ${({ $checked }) => ($checked ? token.colors.gray.gray90 : token.colors.gray.gray50)};
   cursor: pointer;
+  transition:
+    color 120ms ease,
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+
+  &:focus-within {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 1px;
+  }
 `
 
 export const HiddenRadioInput = styled.input`
@@ -228,37 +384,23 @@ export const HiddenRadioInput = styled.input`
   white-space: nowrap;
 `
 
-export const RadioIndicator = styled.span<{ $checked?: boolean }>`
-  flex: 0 0 22px;
-  width: 22px;
-  height: 22px;
-  border: 1px solid ${token.colors.primary.primary50};
-  border-radius: ${token.shapes.circle};
-  background: ${({ $checked }) =>
-    $checked ? token.colors.primary.primary50 : token.colors.white};
-  box-shadow: ${({ $checked }) =>
-    $checked ? `inset 0 0 0 3px ${token.colors.white}` : 'none'};
-
-  ${HiddenRadioInput}:focus-visible + & {
-    outline: 2px solid ${token.colors.primary.primary40};
-    outline-offset: 2px;
-  }
-`
-
 export const SearchBox = styled.label`
   ${token.flexBetween}
-  flex: 0 0 347px;
-  height: 38px;
-  padding: 0 12px;
+  flex: 1 1 220px;
+  max-width: 320px;
+  min-width: min(100%, 180px);
+  height: 42px;
+  padding: 0 13px;
+  border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.small};
-  background: ${token.colors.gray.gray0};
+  background: ${token.colors.white};
   color: ${token.colors.gray.gray50};
   line-height: 1;
   ${token.typography('body', 'sm', 'medium')}
 
   &:focus-within {
-    outline: 2px solid ${token.colors.primary.primary40};
-    outline-offset: 2px;
+    border-color: ${token.colors.primary.primary60};
+    box-shadow: 0 0 0 3px ${token.colors.primary.primary10};
   }
 `
 
@@ -301,11 +443,12 @@ export const TableHeader = styled.div<{ $columns: keyof typeof tableColumns }>`
   grid-template-columns: ${({ $columns }) => tableColumns[$columns]};
   align-items: center;
   width: 100%;
-  min-height: 41px;
+  min-width: ${({ $columns }) => ($columns === 'question' ? '792px' : '634px')};
+  min-height: 42px;
   gap: 12px;
-  padding: 12px;
-  border-radius: ${token.shapes.small};
-  background: ${token.colors.gray.gray0};
+  padding: 10px 12px;
+  border-bottom: 1px solid ${token.colors.gray.gray10};
+  background: ${token.colors.white};
   color: ${token.colors.gray.gray50};
   text-align: center;
   line-height: 1;
@@ -329,23 +472,24 @@ export const TableRow = styled.button<{
   grid-template-columns: ${({ $columns }) => tableColumns[$columns]};
   align-items: center;
   width: 100%;
-  min-height: 49px;
+  min-width: ${({ $columns }) => ($columns === 'question' ? '792px' : '634px')};
+  min-height: 68px;
   gap: 12px;
   padding: 12px;
-  border-radius: ${token.shapes.medium};
-  background: ${({ $active }) => ($active ? token.colors.gray.gray0 : token.colors.white)};
+  border-radius: ${token.shapes.small};
+  background: ${({ $active }) => ($active ? token.colors.primary.primary0 : token.colors.white)};
   text-align: center;
   transition:
     background-color 120ms ease,
-    transform 120ms ease;
+    box-shadow 120ms ease;
 
-  &:hover,
-  &:focus-visible {
-    background: ${token.colors.gray.gray0};
+  &:hover {
+    background: ${({ $active }) =>
+      $active ? token.colors.primary.primary10 : token.colors.gray.gray0};
   }
 
   &:focus-visible {
-    outline: 2px solid ${token.colors.primary.primary40};
+    outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: 2px;
   }
 `
@@ -373,9 +517,9 @@ export const MentorCell = styled.span`
 `
 
 export const MentorProfile = styled.span<{ $size?: 'xs' | 'sm' | 'lg' }>`
-  flex: 0 0 ${({ $size }) => ($size === 'lg' ? '50px' : $size === 'sm' ? '32px' : $size === 'xs' ? '25px' : '25px')};
-  width: ${({ $size }) => ($size === 'lg' ? '50px' : $size === 'sm' ? '32px' : $size === 'xs' ? '25px' : '25px')};
-  height: ${({ $size }) => ($size === 'lg' ? '50px' : $size === 'sm' ? '32px' : $size === 'xs' ? '25px' : '25px')};
+  flex: 0 0 ${({ $size }) => ($size === 'lg' ? '52px' : $size === 'sm' ? '34px' : $size === 'xs' ? '28px' : '42px')};
+  width: ${({ $size }) => ($size === 'lg' ? '52px' : $size === 'sm' ? '34px' : $size === 'xs' ? '28px' : '42px')};
+  height: ${({ $size }) => ($size === 'lg' ? '52px' : $size === 'sm' ? '34px' : $size === 'xs' ? '28px' : '42px')};
   overflow: hidden;
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.circle};
@@ -415,37 +559,79 @@ export const MentorMeta = styled.span`
 `
 
 export const StatusText = styled.span<{ $status: Status }>`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: ${token.shapes.circle};
+  background: ${({ $status }) => statusSurface[$status]};
   color: ${({ $status }) => statusColor[$status]};
   line-height: 1;
   text-align: center;
   white-space: nowrap;
-  ${token.typography('body', 'sm', 'medium')}
+  ${token.typography('caption', 'lg', 'semibold')}
 `
 
 export const DetailHeader = styled.section`
-  ${token.flexLeft}
-  gap: 40px;
+  display: grid;
+  grid-template-columns: minmax(210px, 0.8fr) minmax(0, 2fr);
+  align-items: center;
+  gap: 28px;
   width: 100%;
+  padding: 24px;
+  border: 1px solid ${token.colors.gray.gray10};
+  border-radius: ${token.shapes.xlarge};
+  background: ${token.colors.white};
+  ${token.elevation('black_1')}
 
   ${MentorCell} {
-    flex: 0 0 171px;
+    width: 100%;
   }
 
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  @media (max-width: 520px) {
+    padding: 18px 14px;
+  }
 `
 
 export const DetailMetrics = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, minmax(96px, 1fr));
-  flex: 1 1 auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: center;
   min-width: 0;
+
+  @media (max-width: 520px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 0;
+  }
 `
 
 export const DetailMetric = styled.div`
-  ${token.flexColumnCenter}
-  gap: 10px;
+  ${token.flexColumnStart}
+  gap: 8px;
   min-width: 0;
-  text-align: center;
+  padding: 4px 14px;
+  border-left: 1px solid ${token.colors.gray.gray10};
+  text-align: left;
+
+  @media (max-width: 900px) {
+    &:first-child {
+      border-left: 0;
+    }
+  }
+
+  @media (max-width: 520px) {
+    padding: 2px 12px;
+
+    &:nth-child(odd) {
+      border-left: 0;
+    }
+  }
 `
 
 export const DetailMetricLabel = styled.span`
@@ -457,9 +643,9 @@ export const DetailMetricLabel = styled.span`
 
 export const DetailMetricValue = styled.strong`
   color: ${token.colors.gray.gray100};
-  line-height: 1;
+  line-height: 1.2;
   white-space: nowrap;
-  ${token.typography('body', 'md', 'semibold')}
+  ${token.typography('body', 'lg', 'bold')}
 `
 
 export const QuestionTitle = styled.span`
@@ -487,11 +673,12 @@ export const ChatPanel = styled.aside<{ $isClosing?: boolean }>`
   right: 0;
   width: 460px;
   height: 100dvh;
-  gap: 28px;
-  padding: 24px 16px;
+  gap: 22px;
+  padding: 24px 20px;
   overflow: hidden;
+  border-left: 1px solid ${token.colors.gray.gray10};
   background: ${token.colors.gray.gray0};
-  box-shadow: 0 4px 12.6px rgb(0 0 0 / 12%);
+  box-shadow: 0 8px 28px rgb(28 27 23 / 14%);
   animation: ${({ $isClosing }) =>
     $isClosing ? slideOutToRight : slideInFromRight}
     180ms ease both;
@@ -504,9 +691,23 @@ export const ChatPanel = styled.aside<{ $isClosing?: boolean }>`
 `
 
 export const ClosePanelButton = styled.button`
-  color: ${token.colors.gray.gray30};
-  font-size: 32px;
-  line-height: 22px;
+  ${token.flexCenter}
+  width: 36px;
+  height: 36px;
+  border-radius: ${token.shapes.small};
+  color: ${token.colors.gray.gray50};
+  font-size: 26px;
+  line-height: 1;
+
+  &:hover {
+    background: ${token.colors.gray.gray10};
+    color: ${token.colors.gray.gray90};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary50};
+    outline-offset: 2px;
+  }
 `
 
 export const ChatPanelHeader = styled.header`
@@ -516,13 +717,13 @@ export const ChatPanelHeader = styled.header`
 `
 
 export const ChatPanelTitle = styled.h2`
-  color: #404040;
+  color: ${token.colors.gray.gray100};
   line-height: 1.2;
   ${token.typography('heading', 'sm', 'bold')}
 `
 
 export const ChatTimestamp = styled.p`
-  color: ${token.colors.gray.gray30};
+  color: ${token.colors.gray.gray50};
   line-height: 1;
   ${token.typography('caption', 'lg', 'semibold')}
 `
