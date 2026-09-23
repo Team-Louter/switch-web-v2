@@ -1,7 +1,12 @@
-import type { PostCategory } from '../model/types'
+import type { PostCategory, PostTag } from '../model/types'
 
 interface PostCategoryOption {
   value: PostCategory
+  label: string
+}
+
+interface PostTagOption {
+  value: PostTag
   label: string
 }
 
@@ -14,6 +19,54 @@ export const POST_CATEGORY_OPTIONS: readonly PostCategoryOption[] = [
   { value: 'CONTEST', label: '대회' },
   { value: 'QNA', label: 'Q&A' },
 ]
+
+export const POST_TAG_OPTIONS_BY_CATEGORY: Record<
+  PostCategory,
+  readonly PostTagOption[]
+> = {
+  NOTICE: [],
+  FREE: [],
+  ASSIGNMENT: [],
+  INFORMATION: [
+    { value: 'INFO_BACKEND', label: '백엔드' },
+    { value: 'INFO_FRONTEND', label: '프론트엔드' },
+    { value: 'INFO_DESIGN', label: '디자인' },
+    { value: 'INFO_AI', label: 'AI' },
+    { value: 'INFO_ETC', label: '기타' },
+    { value: 'INFO_SCHOOL', label: '학교' },
+  ],
+  ROADMAP: [
+    { value: 'ROADMAP_BACKEND', label: '백엔드' },
+    { value: 'ROADMAP_FRONTEND', label: '프론트엔드' },
+    { value: 'ROADMAP_ETC', label: '기타' },
+  ],
+  CONTEST: [
+    { value: 'HACKATHON', label: '해커톤' },
+    { value: 'IDEA_CONTEST', label: '아이디어 공모전' },
+    { value: 'ALGORITHM', label: '알고리즘' },
+    { value: 'AI_DATA', label: 'AI·데이터' },
+    { value: 'YOUTH_CONTEST', label: '청소년 대회' },
+    { value: 'CONTEST_ETC', label: '기타' },
+    { value: 'RECRUITMENT', label: '모집' },
+  ],
+  QNA: [
+    { value: 'Q_BACKEND', label: '백엔드' },
+    { value: 'Q_FRONTEND', label: '프론트엔드' },
+    { value: 'Q_DESIGN', label: '디자인' },
+    { value: 'Q_PLANNING', label: '기획' },
+    { value: 'Q_ETC', label: '기타' },
+  ],
+}
+
+const POST_TAG_LABELS: Record<PostTag, string> = Object.fromEntries(
+  Object.values(POST_TAG_OPTIONS_BY_CATEGORY)
+    .flat()
+    .map(({ value, label }) => [value, label]),
+) as Record<PostTag, string>
+
+export function getPostTagLabel(tag: PostTag): string {
+  return POST_TAG_LABELS[tag]
+}
 
 const POST_CATEGORY_LABELS: Record<PostCategory, string> = Object.fromEntries(
   POST_CATEGORY_OPTIONS.map(({ value, label }) => [value, label]),

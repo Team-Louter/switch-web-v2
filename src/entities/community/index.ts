@@ -15,7 +15,9 @@ export {
   getCommunityFileKey,
   getCommunityFileDownloadUrl,
   getPostCategoryLabel,
+  getPostTagLabel,
   POST_CATEGORY_OPTIONS,
+  POST_TAG_OPTIONS_BY_CATEGORY,
   resolveCommunityAssetUrl,
 } from './lib/communityDisplay'
 export type {

@@ -287,7 +287,7 @@ export const PostMeta = styled.div`
   max-width: 100%;
   min-width: 0;
   gap: 12px;
-  height: 44px;
+  min-height: 44px;
 `;
 
 export const PostAuthor = styled.div`
@@ -317,13 +317,13 @@ export const PostAuthorName = styled(UserName)`
   display: block;
   flex: 0 1 auto;
   min-width: 0;
-  max-width: 180px;
-  overflow: hidden;
+  max-width: none;
+  overflow: visible;
   color: ${token.colors.gray.gray80};
   ${token.typography('body', 'md', 'medium')}
-  line-height: 1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  white-space: normal;
 `;
 
 export const PostAuthorTitle = styled(CommunityTitleBadge)`
@@ -990,22 +990,30 @@ export const CommentInputRow = styled.div`
   ${token.flexBetween}
   box-sizing: border-box;
   width: 100%;
-  height: 52px;
+  min-height: 52px;
+  max-height: 140px;
   padding: 10px 20px;
   overflow: hidden;
   border-radius: ${token.shapes.medium};
   background: ${token.colors.gray.gray0};
 `;
 
-export const CommentInput = styled.input`
+export const CommentInput = styled.textarea`
   flex: 1 1 0;
   min-width: 0;
+  height: 32px;
+  min-height: 32px;
+  max-height: 120px;
+  padding: 0;
   border: 0;
   outline: 0;
   color: ${token.colors.gray.gray80};
   background: transparent;
   ${token.typography('body', 'lg', 'medium')}
-  line-height: 1;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: none;
+  overflow-y: auto;
 
   &::placeholder {
     color: ${token.colors.gray.gray70};
