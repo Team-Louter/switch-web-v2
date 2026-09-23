@@ -14,11 +14,14 @@ export const Page = styled.section`
   justify-content: flex-start;
   box-sizing: border-box;
   min-height: 100dvh;
-  padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px)
-    0;
+  padding: clamp(20px, 2vw, 30px);
   container-name: community-page;
   container-type: inline-size;
   background: ${token.colors.white};
+
+  @media (max-width: 430px) {
+    padding: 16px;
+  }
 `;
 
 export const Content = styled.div`
@@ -337,6 +340,15 @@ export const PostRow = styled.article`
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: -2px;
   }
+
+  @container community-page (max-width: 430px) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 10px;
+    height: auto;
+    min-height: 108px;
+    padding: 10px 8px;
+  }
 `;
 
 const skeletonShimmer = keyframes`
@@ -374,6 +386,13 @@ export const SkeletonRow = styled.div`
   height: 56px;
   padding: 6px 10px;
   border-bottom: 1px solid ${token.colors.gray.gray10};
+
+  @container community-page (max-width: 430px) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 72px;
+    height: 108px;
+    padding: 10px 8px;
+  }
 `;
 
 export const SkeletonCategory = styled.span`
@@ -382,6 +401,8 @@ export const SkeletonCategory = styled.span`
   height: 29px;
 
   @container community-page (max-width: 430px) {
+    grid-column: 2;
+    grid-row: 1;
     flex-basis: 72px;
   }
 `;
@@ -391,6 +412,11 @@ export const SkeletonTitle = styled.span`
   flex: 1 1 0;
   min-width: 0;
   height: 20px;
+
+  @container community-page (max-width: 430px) {
+    grid-column: 1;
+    grid-row: 1;
+  }
 `;
 
 export const SkeletonAuthor = styled.span`
@@ -403,7 +429,16 @@ export const SkeletonAuthor = styled.span`
   }
 
   @container community-page (max-width: 600px) {
-    display: none;
+    flex: 0 1 auto;
+    height: auto;
+    padding: 0;
+
+  }
+
+  @container community-page (max-width: 430px) {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-start;
   }
 `;
 
@@ -440,7 +475,10 @@ export const SkeletonStats = styled.span`
   }
 
   @container community-page (max-width: 430px) {
-    flex-basis: 120px;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    width: 120px;
+    margin: 0;
   }
 
   @container community-page (max-width: 300px) {
@@ -455,6 +493,8 @@ export const CategoryCell = styled.div`
   overflow: hidden;
 
   @container community-page (max-width: 430px) {
+    grid-column: 2;
+    grid-row: 1;
     flex-basis: 84px;
   }
 `;
@@ -503,6 +543,12 @@ export const PostTitle = styled.p<{ $pinned: boolean }>`
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  @container community-page (max-width: 430px) {
+    grid-column: 1;
+    grid-row: 1;
+    padding: 4px 0;
+  }
 `;
 
 export const PostTitleText = styled.span`
@@ -533,7 +579,17 @@ export const Author = styled.div`
   }
 
   @container community-page (max-width: 600px) {
-    display: none;
+    flex: 0 1 132px;
+    justify-content: flex-start;
+    gap: 5px;
+    padding-inline: 0;
+  }
+
+  @container community-page (max-width: 430px) {
+    grid-column: 1;
+    grid-row: 2;
+    width: min(150px, 100%);
+    height: 24px;
   }
 `;
 
@@ -561,6 +617,8 @@ export const AuthorImage = styled(ProfileAvatar)<{ $hasBorder: boolean }>`
         pointer-events: none;
       }
     `}
+
+  @container community-page (max-width: 600px) { display: none; }
 `;
 
 export const AuthorName = styled(UserName)<{ $pinned: boolean }>`
@@ -579,6 +637,11 @@ export const AuthorName = styled(UserName)<{ $pinned: boolean }>`
 
   @container community-page (max-width: 900px) {
     max-width: 96px;
+  }
+
+  @container community-page (max-width: 430px) {
+    max-width: 120px;
+    color: ${token.colors.gray.gray50};
   }
 `;
 
@@ -633,7 +696,11 @@ export const Stats = styled.div`
   }
 
   @container community-page (max-width: 430px) {
-    flex-basis: 114px;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    width: 132px;
+    height: 24px;
+    padding: 2px 0;
   }
 
   @container community-page (max-width: 300px) {
