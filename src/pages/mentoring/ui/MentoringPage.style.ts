@@ -66,16 +66,12 @@ export const Content = styled.div`
   min-width: 0;
   min-height: 100dvh;
   margin: 0 auto;
-  padding: clamp(32px, 4.8vw, 72px) clamp(22px, 5vw, 80px);
+  padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px)
+    clamp(20px, 2vw, 30px) 0;
   background: ${token.colors.white};
-
-  @media (max-width: 1180px) {
-    padding: 48px 36px;
-  }
 
   @media (max-width: 640px) {
     gap: 22px;
-    padding: 32px 18px 40px;
   }
 `
 
