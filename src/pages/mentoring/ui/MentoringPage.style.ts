@@ -54,7 +54,7 @@ export const MentoringLayout = styled.section`
   min-height: 100dvh;
   width: 100%;
   overflow: hidden;
-  background: ${token.colors.gray.gray0};
+  background: ${token.colors.white};
 `
 
 export const Content = styled.div`
@@ -67,6 +67,7 @@ export const Content = styled.div`
   min-height: 100dvh;
   margin: 0 auto;
   padding: clamp(32px, 4.8vw, 72px) clamp(22px, 5vw, 80px);
+  background: ${token.colors.white};
 
   @media (max-width: 1180px) {
     padding: 48px 36px;

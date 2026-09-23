@@ -52,16 +52,12 @@ import {
   Table,
   TableHeader,
   Toolbar,
-  ToolbarLeft,
   ToolbarTitle,
 } from './MentoringPage.style'
 import {
   MentorStatsRow,
   QuestionList,
-  RadioFilterGroup,
   SearchInput,
-  SortSelect,
-  type SortOrder,
 } from './components'
 import type { ChatMessageSummary, MentorSummary, QuestionSummary } from './types'
 
@@ -75,30 +71,24 @@ export function MentoringPage() {
     filteredQuestions,
     handleBack,
     handleCloseChatPanel,
-    handleDashboardBack,
     handleMentorSelect,
     handleQuestionSelect,
     inProgressQuestionCount,
     isChatPanelClosing,
     isLoading,
-    mentorFilters,
     mentorSearchKeyword,
-    mentorSortOrder,
     pendingQuestionCount,
     questionFilters,
     questionSearchKeyword,
     questionSortOrder,
     selectedMentor,
-    selectedMentorFilter,
     selectedMessages,
     selectedQuestion,
     selectedQuestionFilter,
     selectedQuestionId,
     setMentorSearchKeyword,
-    setMentorSortOrder,
     setQuestionSearchKeyword,
     setQuestionSortOrder,
-    setSelectedMentorFilter,
     setSelectedQuestionFilter,
     shouldRenderChatPanel,
     viewMode,
@@ -110,9 +100,6 @@ export function MentoringPage() {
         {viewMode === 'dashboard' ? (
           <>
             <Header>
-              <BackButton type="button" aria-label="멘토링으로 돌아가기" onClick={handleDashboardBack}>
-                <PiArrowLeft aria-hidden="true" />
-              </BackButton>
               <PageHeader
                 eyebrow="운영 대시보드"
                 title="멘토링 관리"
@@ -175,14 +162,9 @@ export function MentoringPage() {
             </DashboardGrid>
             <MentorTable
               mentors={filteredMentors}
-              sortOrder={mentorSortOrder}
-              selectedFilter={selectedMentorFilter}
               searchKeyword={mentorSearchKeyword}
-              filterOptions={mentorFilters}
               isLoading={isLoading}
               errorMessage={errorMessage}
-              onSortOrderChange={setMentorSortOrder}
-              onFilterChange={setSelectedMentorFilter}
               onSearchKeywordChange={setMentorSearchKeyword}
               onMentorSelect={handleMentorSelect}
             />
@@ -278,54 +260,27 @@ function PageHeader({ eyebrow, title, description }: PageHeaderProps) {
   )
 }
 
-type MentorTableProps = {
+interface MentorTableProps {
   mentors: MentorSummary[]
-  sortOrder: SortOrder
-  selectedFilter: MentorTableFilter
   searchKeyword: string
-  filterOptions: readonly MentorTableFilter[]
   isLoading: boolean
   errorMessage: string
-  onSortOrderChange: (sortOrder: SortOrder) => void
-  onFilterChange: (filter: MentorTableFilter) => void
   onSearchKeywordChange: (keyword: string) => void
   onMentorSelect: (mentor: MentorSummary) => void
 }
 
-type MentorTableFilter = '전체' | Exclude<MentorSummary['status'], '-'>
-
 function MentorTable({
   mentors,
-  sortOrder,
-  selectedFilter,
   searchKeyword,
-  filterOptions,
   isLoading,
   errorMessage,
-  onSortOrderChange,
-  onFilterChange,
   onSearchKeywordChange,
   onMentorSelect,
 }: MentorTableProps) {
   return (
     <Table>
       <Toolbar>
-        <ToolbarLeft>
-          <ToolbarTitle>멘토</ToolbarTitle>
-          <SortSelect
-            ariaLabel="멘토 정렬"
-            value={sortOrder}
-            latestLabel="최근 활동 최신순"
-            oldestLabel="최근 활동 오래된 순"
-            onChange={onSortOrderChange}
-          />
-        </ToolbarLeft>
-        <RadioFilterGroup
-          name="mentor-status-filter"
-          options={filterOptions}
-          value={selectedFilter}
-          onChange={onFilterChange}
-        />
+        <ToolbarTitle>멘토</ToolbarTitle>
         <SearchInput
           ariaLabel="멘토 검색"
           value={searchKeyword}
