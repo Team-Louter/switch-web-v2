@@ -6,8 +6,7 @@ export const Page = styled.section`
   box-sizing: border-box;
   width: 100%;
   min-height: 100dvh;
-  padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px)
-    clamp(20px, 2vw, 30px) 0;
+  padding: clamp(20px, 2vw, 30px);
   overflow-y: auto;
   background: ${token.colors.white};
 `
@@ -42,7 +41,8 @@ export const LeftArea = styled.div`
   ${token.elevation('black_1')}
 
   @media (max-width: 900px) {
-    min-height: 560px;
+    min-height: 0;
+    overflow: visible;
   }
 `
 
@@ -59,6 +59,11 @@ const ListContainer = styled.section`
 
 export const RoomContainer = styled(ListContainer)`
   flex: 1 1 0;
+
+  @media (max-width: 900px) {
+    flex: 0 0 auto;
+    padding: 14px 16px;
+  }
 `
 
 export const QuestionContainer = styled(ListContainer)`
@@ -66,7 +71,45 @@ export const QuestionContainer = styled(ListContainer)`
   border-top: 1px solid ${token.colors.gray.gray10};
 
   @media (max-width: 900px) {
-    min-height: 300px;
+    flex: 0 0 auto;
+    min-height: 0;
+    padding: 14px 16px;
+  }
+`
+
+export const SectionToggle = styled.button`
+  ${token.flexBetween}
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  color: inherit;
+  text-align: left;
+
+  svg {
+    flex: 0 0 auto;
+    transition: transform 160ms ease;
+  }
+
+  &[aria-expanded='true'] svg {
+    transform: rotate(180deg);
+  }
+
+  @media (min-width: 901px) {
+    pointer-events: none;
+
+    svg { display: none; }
+  }
+`
+
+export const CollapsibleContent = styled.div<{ $expanded: boolean }>`
+  display: contents;
+
+  @media (max-width: 900px) {
+    display: ${({ $expanded }) => ($expanded ? 'flex' : 'none')};
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
+    gap: 12px;
   }
 `
 
@@ -75,6 +118,10 @@ export const SectionHeader = styled.div`
   width: 100%;
   min-height: 32px;
   flex-shrink: 0;
+
+  @media (max-width: 900px) {
+    gap: 12px;
+  }
 `
 
 export const SectionHeading = styled.div`
@@ -496,6 +543,14 @@ export const ListScroll = styled.div<{ $flushToEnd?: boolean }>`
     border-radius: ${token.shapes.circle};
     background: ${token.colors.gray.gray30};
     background-clip: padding-box;
+  }
+
+  @media (max-width: 900px) {
+    flex: 0 1 auto;
+    width: 100%;
+    max-height: 320px;
+    margin-right: 0;
+    padding-right: 0;
   }
 `
 
