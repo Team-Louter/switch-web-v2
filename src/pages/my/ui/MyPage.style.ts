@@ -18,9 +18,10 @@ export const Page = styled.section`
   height: 100dvh;
   min-height: 100dvh;
   padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px)
-    clamp(20px, 2vw, 30px) 0;
+    clamp(20px, 2vw, 30px);
   overflow: hidden;
   background: ${token.colors.white};
+  @media (max-width: 768px) { height: auto; padding: 16px; overflow: visible; }
 `
 
 export const Content = styled.div`
@@ -42,7 +43,7 @@ export const Card = styled.div`
   border-radius: 12px;
   background: ${token.colors.white};
   box-shadow: 0 2px 6px rgb(0 0 0 / 8%);
-  zoom: 0.9;
+  @media (max-width: 768px) { flex: 0 0 auto; overflow: visible; }
 `
 
 export const CardTop = styled.section`
@@ -56,6 +57,17 @@ export const CardTop = styled.section`
   padding: clamp(32px, 3.2vw, 48px)
     clamp(16px, calc(6.45vw - 33.5px), 64px)
     clamp(20px, 2.12vw, 32px);
+  @media (max-width: 600px) {
+    align-items: flex-start;
+    gap: 18px;
+    padding: 42px 16px 20px;
+  }
+
+  @media (min-width: 601px) and (max-width: 1100px) {
+    align-items: flex-start;
+    gap: 24px;
+    padding-inline: 32px;
+  }
 `
 
 export const QuickStats = styled.div`
@@ -208,6 +220,12 @@ export const ProfileGroup = styled.div`
   flex: 0 0 auto;
   gap: clamp(12px, calc(1.62vw - 0.5px), 24px);
   min-width: 0;
+  @media (max-width: 600px) {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    width: 100%;
+    gap: 14px;
+  }
 `
 
 export const ProfileImageWrapper = styled.div<{
@@ -226,6 +244,18 @@ export const ProfileImageWrapper = styled.div<{
   border-radius: ${token.shapes.circle};
   background: ${token.colors.white};
   box-shadow: 0 2px 6px rgb(0 0 0 / 8%);
+  @media (max-width: 600px) {
+    flex-basis: 88px;
+    width: 88px;
+    height: 88px;
+
+    > span:first-child {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.76);
+    }
+  }
 
   &:hover > button,
   &:focus-within > button {
@@ -283,6 +313,11 @@ export const ProfileInfo = styled.div`
   gap: 8px;
   min-width: 0;
   max-width: 220px;
+
+  @media (max-width: 600px) {
+    width: 100%;
+    max-width: none;
+  }
 `
 
 export const ProfileTitle = styled.span`
@@ -329,12 +364,25 @@ export const StatsGroup = styled.div`
   flex: 0 0 auto;
   gap: clamp(12px, calc(3.76vw - 16.9px), 40px);
   margin-left: clamp(0px, calc(11.3vw - 86.8px), 84px);
+  @media (max-width: 600px) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    gap: 8px;
+    margin-left: 0;
+  }
+  @media (min-width: 601px) and (max-width: 1100px) { margin-left: 0; }
 `
 
 export const StatItem = styled.div`
   ${token.flexColumn}
   align-items: flex-start;
   gap: 4px;
+
+  @media (max-width: 600px) {
+    align-items: center;
+    text-align: center;
+  }
 `
 
 export const StatValue = styled.span`
@@ -350,6 +398,13 @@ export const StatLabel = styled.span`
   line-height: 1.2;
   white-space: nowrap;
   ${token.typography('body', 'sm', 'medium')}
+
+  @media (max-width: 600px) {
+    min-width: 0;
+    margin-top: 4px;
+    font-size: 13px;
+    white-space: normal;
+  }
 `
 
 export const ActionGroup = styled.div`
@@ -364,7 +419,11 @@ export const ActionGroup = styled.div`
 
   @media (max-width: 1100px) {
     flex-basis: 100%;
+    width: 100%;
+    align-items: flex-start;
+    align-self: auto;
   }
+  @media (max-width: 600px) { width: 100%; align-items: flex-start; }
 `
 
 export const SocialRow = styled.div`
@@ -372,6 +431,7 @@ export const SocialRow = styled.div`
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
+  @media (max-width: 600px) { flex-wrap: wrap; justify-content: flex-start; }
 `
 
 export const SocialLink = styled.a`
@@ -407,6 +467,11 @@ export const ButtonRow = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
+  @media (max-width: 600px) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
 `
 
 export const ActionButton = styled.button<{
@@ -428,6 +493,12 @@ export const ActionButton = styled.button<{
   line-height: 1;
   white-space: nowrap;
   ${token.typography('body', 'sm', 'bold')}
+
+  @media (max-width: 600px) {
+    min-width: 0;
+    padding-inline: 6px;
+    font-size: 13px;
+  }
 
   &:hover {
     background: ${({ $danger, $variant }) =>
@@ -453,11 +524,20 @@ export const InfoSection = styled.section`
   padding: clamp(20px, 2.12vw, 32px)
     clamp(16px, calc(4.3vw - 17px), 48px)
     clamp(28px, calc(4.84vw - 9.2px), 64px);
+
+  @media (max-width: 600px) {
+    gap: 12px;
+    padding: 18px 16px 22px;
+  }
 `
 
 export const InfoRow = styled.div`
   display: flex;
   align-items: center;
+
+  @media (max-width: 600px) {
+    align-items: flex-start;
+  }
 `
 
 export const InfoLabel = styled.span`
@@ -466,6 +546,10 @@ export const InfoLabel = styled.span`
   color: ${color.text};
   line-height: 1.2;
   ${token.typography('body', 'lg', 'medium')}
+
+  @media (max-width: 600px) {
+    font-size: 14px;
+  }
 `
 
 export const InfoValue = styled.span<{ $accent?: boolean }>`
@@ -476,6 +560,10 @@ export const InfoValue = styled.span<{ $accent?: boolean }>`
   line-height: 1.2;
   font-weight: ${({ $accent }) => ($accent ? 600 : 400)};
   ${token.typography('heading', 'sm', 'medium')}
+
+  @media (max-width: 600px) {
+    font-size: 16px;
+  }
 `
 
 export const ActivitySection = styled.section`
@@ -495,6 +583,7 @@ export const TabContent = styled.div`
   &::-webkit-scrollbar {
     display: none;
   }
+  @media (max-width: 768px) { flex: 0 0 auto; overflow: visible; }
 `
 
 export const PostList = styled.div`
@@ -558,6 +647,10 @@ export const SkeletonPostItem = styled.div`
   min-height: 56px;
   padding: 15px clamp(8px, calc(2.69vw - 12.6px), 28px);
   border-bottom: 1px solid ${color.line};
+
+  @media (max-width: 600px) {
+    flex-wrap: wrap;
+  }
 `
 
 export const SkeletonMeta = styled.div`
@@ -565,4 +658,10 @@ export const SkeletonMeta = styled.div`
   align-items: center;
   gap: clamp(8px, calc(1.62vw - 4.4px), 20px);
   margin-left: auto;
+
+  @media (max-width: 600px) {
+    width: 100%;
+    justify-content: flex-end;
+    margin-left: 0;
+  }
 `
