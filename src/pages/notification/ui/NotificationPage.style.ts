@@ -9,7 +9,7 @@ export const Page = styled.main`
   box-sizing: border-box;
   min-height: 100dvh;
   padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px)
-    clamp(20px, 2vw, 30px) 0;
+    clamp(20px, 2vw, 30px);
   background: ${token.colors.white};
 `
 
