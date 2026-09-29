@@ -171,6 +171,7 @@ export function CodeTypingPage() {
   const [errorCount, setErrorCount] = useState(0)
   const roundIdRef = useRef<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
+  const referenceEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
   const inputEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
 
   useEffect(() => {
@@ -257,6 +258,28 @@ export function CodeTypingPage() {
     setTypedCode('')
   }
 
+  const handleInputEditorReady = (editor: monaco.editor.IStandaloneCodeEditor) => {
+    inputEditorRef.current = editor
+
+    editor.onDidChangeCursorPosition(({ position }) => {
+      const inputModel = editor.getModel()
+      const referenceEditor = referenceEditorRef.current
+      const referenceModel = referenceEditor?.getModel()
+
+      if (!inputModel || !referenceEditor || !referenceModel) return
+
+      const cursorOffset = inputModel.getOffsetAt(position)
+      const referencePosition = referenceModel.getPositionAt(
+        Math.min(cursorOffset, referenceModel.getValueLength()),
+      )
+
+      referenceEditor.revealPositionInCenterIfOutsideViewport(
+        referencePosition,
+        monaco.editor.ScrollType.Smooth,
+      )
+    })
+  }
+
   return (
     <S.Page>
       <TypingCountdown onComplete={handleCountdownComplete} />
@@ -271,6 +294,7 @@ export function CodeTypingPage() {
                 lines={codeLines}
                 language={editorLanguage}
                 modelPath={`file:///typing-reference-${currentProblem?.problemId ?? 0}.${modelExtension}`}
+                onReady={editor => { referenceEditorRef.current = editor }}
               />
               <CodeEditor
                 key={`editable-${currentProblem?.problemId ?? 0}`}
@@ -282,7 +306,7 @@ export function CodeTypingPage() {
                 disabled={!isTypingEnabled || isComplete}
                 onChange={setTypedCode}
                 onComplete={handleComplete}
-                onReady={editor => { inputEditorRef.current = editor }}
+                onReady={handleInputEditorReady}
               />
             </S.Screen>
             <S.MonitorNeck aria-hidden="true" />
