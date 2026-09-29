@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import type { TypingProblem } from '@/entities/typing'
 import { getRankingList } from '@/entities/typing/api/getRanking'
 import { endRound, startRound, TypingCompletionModal } from '@/features/typing'
+import { calculateAccuracy } from '@/features/typing/lib/calculateAccuracy'
 
 import * as S from './DailyTypingPage.style'
 import { TypingCountdown } from '../TypingCountdown/TypingCountdown'
@@ -21,6 +22,7 @@ export function DailyTypingPage() {
   const [errorCount, setErrorCount] = useState(0)
   const [firstPlaceName, setFirstPlaceName] = useState('-')
   const roundIdRef = useRef<number | null>(null)
+  const submittedProblemIndexRef = useRef<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
   const typingInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -81,19 +83,20 @@ export function DailyTypingPage() {
   const completedCharacterCount = problems.slice(0, currentProblemIndex).reduce((total, problem) => total + problem.content.length, 0)
   const typingSpeed = elapsedSeconds === 0 ? 0 : Math.round((completedCharacterCount + typedSentence.length) / (elapsedSeconds / 60))
   const totalCharacterCount = completedCharacterCount + typedSentence.length
-  const accuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - errorCount - currentErrorCount) / totalCharacterCount) * 100)
-  const resultAccuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - errorCount) / totalCharacterCount) * 100)
+  const accuracy = calculateAccuracy(totalCharacterCount, errorCount + (isComplete ? 0 : currentErrorCount))
+  const resultAccuracy = calculateAccuracy(totalCharacterCount, errorCount)
   const minutes = Math.floor(elapsedSeconds / 60)
   const seconds = elapsedSeconds % 60
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if ((event.key !== 'Enter' && event.key !== ' ') || !currentProblem || typedSentence.length !== currentSentence.length) return
+    if ((event.key !== 'Enter' && event.key !== ' ') || !currentProblem || typedSentence.length !== currentSentence.length || submittedProblemIndexRef.current === currentProblemIndex) return
 
     event.preventDefault()
+    submittedProblemIndexRef.current = currentProblemIndex
     if (!nextProblem) {
       const finalErrorCount = errorCount + currentErrorCount
-      const finalAccuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - finalErrorCount) / totalCharacterCount) * 100)
+      const finalAccuracy = calculateAccuracy(totalCharacterCount, finalErrorCount)
 
       startTimeRef.current = null
       setErrorCount(finalErrorCount)
@@ -146,7 +149,7 @@ export function DailyTypingPage() {
                     ref={typingInputRef}
                     aria-label="문장 입력"
                     autoFocus
-                    disabled={!isTypingEnabled}
+                    disabled={!isTypingEnabled || isComplete}
                     maxLength={currentSentence.length}
                     value={typedSentence}
                     onChange={event => setTypedSentence(event.target.value)}

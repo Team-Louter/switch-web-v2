@@ -5,6 +5,7 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom'
 
 import type { TypingProblem } from '@/entities/typing'
 import { endRound, startRound, TypingCompletionModal } from '@/features/typing'
+import { calculateAccuracy } from '@/features/typing/lib/calculateAccuracy'
 
 import * as S from './CodeTypingPage.style'
 import { TypingCountdown } from '../TypingCountdown/TypingCountdown'
@@ -170,6 +171,7 @@ export function CodeTypingPage() {
   const [errorCount, setErrorCount] = useState(0)
   const roundIdRef = useRef<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
+  const referenceEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
   const inputEditorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
 
   useEffect(() => {
@@ -227,8 +229,8 @@ export function CodeTypingPage() {
   const completedCharacterCount = problems.slice(0, currentProblemIndex).reduce((total, problem) => total + problem.content.length, 0)
   const typingSpeed = elapsedSeconds === 0 ? 0 : Math.round((completedCharacterCount + typedCode.length) / (elapsedSeconds / 60))
   const totalCharacterCount = completedCharacterCount + typedCode.length
-  const accuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - errorCount - currentErrorCount) / totalCharacterCount) * 100)
-  const resultAccuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - errorCount) / totalCharacterCount) * 100)
+  const accuracy = calculateAccuracy(totalCharacterCount, errorCount + (isComplete ? 0 : currentErrorCount))
+  const resultAccuracy = calculateAccuracy(totalCharacterCount, errorCount)
   const minutes = Math.floor(elapsedSeconds / 60)
   const seconds = elapsedSeconds % 60
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`
@@ -238,7 +240,7 @@ export function CodeTypingPage() {
 
     if (!problems[currentProblemIndex + 1]) {
       const finalErrorCount = errorCount + currentErrorCount
-      const finalAccuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - finalErrorCount) / totalCharacterCount) * 100)
+      const finalAccuracy = calculateAccuracy(totalCharacterCount, finalErrorCount)
 
       startTimeRef.current = null
       setErrorCount(finalErrorCount)
@@ -256,6 +258,28 @@ export function CodeTypingPage() {
     setTypedCode('')
   }
 
+  const handleInputEditorReady = (editor: monaco.editor.IStandaloneCodeEditor) => {
+    inputEditorRef.current = editor
+
+    editor.onDidChangeCursorPosition(({ position }) => {
+      const inputModel = editor.getModel()
+      const referenceEditor = referenceEditorRef.current
+      const referenceModel = referenceEditor?.getModel()
+
+      if (!inputModel || !referenceEditor || !referenceModel) return
+
+      const cursorOffset = inputModel.getOffsetAt(position)
+      const referencePosition = referenceModel.getPositionAt(
+        Math.min(cursorOffset, referenceModel.getValueLength()),
+      )
+
+      referenceEditor.revealPositionInCenterIfOutsideViewport(
+        referencePosition,
+        monaco.editor.ScrollType.Smooth,
+      )
+    })
+  }
+
   return (
     <S.Page>
       <TypingCountdown onComplete={handleCountdownComplete} />
@@ -270,6 +294,7 @@ export function CodeTypingPage() {
                 lines={codeLines}
                 language={editorLanguage}
                 modelPath={`file:///typing-reference-${currentProblem?.problemId ?? 0}.${modelExtension}`}
+                onReady={editor => { referenceEditorRef.current = editor }}
               />
               <CodeEditor
                 key={`editable-${currentProblem?.problemId ?? 0}`}
@@ -278,10 +303,10 @@ export function CodeTypingPage() {
                 language={editorLanguage}
                 modelPath={`file:///typing-input-${currentProblem?.problemId ?? 0}.${modelExtension}`}
                 editable
-                disabled={!isTypingEnabled}
+                disabled={!isTypingEnabled || isComplete}
                 onChange={setTypedCode}
                 onComplete={handleComplete}
-                onReady={editor => { inputEditorRef.current = editor }}
+                onReady={handleInputEditorReady}
               />
             </S.Screen>
             <S.MonitorNeck aria-hidden="true" />
