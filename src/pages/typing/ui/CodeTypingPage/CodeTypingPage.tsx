@@ -279,7 +279,7 @@ export function CodeTypingPage() {
                 language={editorLanguage}
                 modelPath={`file:///typing-input-${currentProblem?.problemId ?? 0}.${modelExtension}`}
                 editable
-                disabled={!isTypingEnabled}
+                disabled={!isTypingEnabled || isComplete}
                 onChange={setTypedCode}
                 onComplete={handleComplete}
                 onReady={editor => { inputEditorRef.current = editor }}

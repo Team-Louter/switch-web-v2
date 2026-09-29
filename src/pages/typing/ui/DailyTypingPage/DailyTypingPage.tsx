@@ -22,6 +22,7 @@ export function DailyTypingPage() {
   const [errorCount, setErrorCount] = useState(0)
   const [firstPlaceName, setFirstPlaceName] = useState('-')
   const roundIdRef = useRef<number | null>(null)
+  const submittedProblemIndexRef = useRef<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
   const typingInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -89,9 +90,10 @@ export function DailyTypingPage() {
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if ((event.key !== 'Enter' && event.key !== ' ') || !currentProblem || typedSentence.length !== currentSentence.length) return
+    if ((event.key !== 'Enter' && event.key !== ' ') || !currentProblem || typedSentence.length !== currentSentence.length || submittedProblemIndexRef.current === currentProblemIndex) return
 
     event.preventDefault()
+    submittedProblemIndexRef.current = currentProblemIndex
     if (!nextProblem) {
       const finalErrorCount = errorCount + currentErrorCount
       const finalAccuracy = calculateAccuracy(totalCharacterCount, finalErrorCount)
@@ -147,7 +149,7 @@ export function DailyTypingPage() {
                     ref={typingInputRef}
                     aria-label="문장 입력"
                     autoFocus
-                    disabled={!isTypingEnabled}
+                    disabled={!isTypingEnabled || isComplete}
                     maxLength={currentSentence.length}
                     value={typedSentence}
                     onChange={event => setTypedSentence(event.target.value)}
