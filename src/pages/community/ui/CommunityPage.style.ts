@@ -464,8 +464,9 @@ export const PostCategory = styled.span`
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  width: 78px;
   min-height: 26px;
-  padding: 3px 10px;
+  padding: 3px 5px;
   border: 1px solid ${token.colors.primary.text};
   border-radius: 999px;
   color: ${token.colors.primary.primary80};
