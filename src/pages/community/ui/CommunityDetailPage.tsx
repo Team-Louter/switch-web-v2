@@ -103,9 +103,13 @@ interface TargetCommentSearchNode {
   path: CommentResponse[];
 }
 
+interface TargetCommentReplyBranch {
+  parentCommentId: number;
+  replies: CommentResponse[];
+}
+
 interface TargetCommentSearchResult {
-  rootCommentId: number;
-  commentPath: CommentResponse[];
+  replyBranches: TargetCommentReplyBranch[];
 }
 
 async function findTargetCommentPath(
@@ -113,6 +117,30 @@ async function findTargetCommentPath(
   rootComments: CommentResponse[],
   targetCommentId: number,
 ): Promise<TargetCommentSearchResult | null> {
+  const targetRootComment = rootComments.find(
+    (comment) => comment.commentId === targetCommentId,
+  );
+
+  if (targetRootComment && targetRootComment.replyCount > 0) {
+    try {
+      const replies = await getCommentReplies(
+        postId,
+        targetRootComment.commentId,
+      );
+
+      return {
+        replyBranches: [
+          {
+            parentCommentId: targetRootComment.commentId,
+            replies: replies.map((reply) => ({ ...reply, depth: 1 })),
+          },
+        ],
+      };
+    } catch {
+      return null;
+    }
+  }
+
   const pendingNodes: TargetCommentSearchNode[] = rootComments
     .filter((comment) => comment.replyCount > 0)
     .map((comment) => ({
@@ -123,6 +151,7 @@ async function findTargetCommentPath(
   const scheduledCommentIds = new Set(
     pendingNodes.map((node) => node.parentCommentId),
   );
+  const repliesByParentCommentId = new Map<number, CommentResponse[]>();
 
   while (pendingNodes.length > 0) {
     const currentNodes = pendingNodes.splice(
@@ -148,25 +177,42 @@ async function findTargetCommentPath(
       }
 
       const depth = response.node.path.length + 1;
+      const repliesWithDepth = response.replies.map((reply) => ({
+        ...reply,
+        depth,
+      }));
 
-      for (const reply of response.replies) {
-        const replyWithDepth = { ...reply, depth };
+      repliesByParentCommentId.set(
+        response.node.parentCommentId,
+        repliesWithDepth,
+      );
+
+      for (const replyWithDepth of repliesWithDepth) {
         const commentPath = [...response.node.path, replyWithDepth];
 
-        if (reply.commentId === targetCommentId) {
+        if (replyWithDepth.commentId === targetCommentId) {
+          const parentCommentIds = [
+            response.node.rootCommentId,
+            ...response.node.path.map((comment) => comment.commentId),
+          ];
+
           return {
-            rootCommentId: response.node.rootCommentId,
-            commentPath,
+            replyBranches: parentCommentIds.flatMap((parentCommentId) => {
+              const replies =
+                repliesByParentCommentId.get(parentCommentId);
+
+              return replies ? [{ parentCommentId, replies }] : [];
+            }),
           };
         }
 
         if (
-          reply.replyCount > 0 &&
-          !scheduledCommentIds.has(reply.commentId)
+          replyWithDepth.replyCount > 0 &&
+          !scheduledCommentIds.has(replyWithDepth.commentId)
         ) {
-          scheduledCommentIds.add(reply.commentId);
+          scheduledCommentIds.add(replyWithDepth.commentId);
           pendingNodes.push({
-            parentCommentId: reply.commentId,
+            parentCommentId: replyWithDepth.commentId,
             rootCommentId: response.node.rootCommentId,
             path: commentPath,
           });
@@ -178,22 +224,15 @@ async function findTargetCommentPath(
   return null;
 }
 
-function appendTargetCommentPath(
+function appendTargetCommentReplies(
   comments: CommentResponse[],
-  rootCommentId: number,
-  targetCommentPath: CommentResponse[],
+  replyBranches: TargetCommentSearchResult['replyBranches'],
 ): CommentResponse[] {
-  let nextComments = comments;
-  let parentCommentId = rootCommentId;
-
-  for (const comment of targetCommentPath) {
-    nextComments = appendCommentReplies(nextComments, parentCommentId, [
-      comment,
-    ]);
-    parentCommentId = comment.commentId;
-  }
-
-  return nextComments;
+  return replyBranches.reduce(
+    (nextComments, { parentCommentId, replies }) =>
+      appendCommentReplies(nextComments, parentCommentId, replies),
+    comments,
+  );
 }
 
 async function withTotalReplyCount(
@@ -967,13 +1006,25 @@ export function CommunityDetailPage() {
       isCommentsLoading ||
       targetCommentId === null ||
       !Number.isSafeInteger(postId) ||
-      postId <= 0 ||
-      comments.some((comment) => comment.commentId === targetCommentId)
+      postId <= 0
     ) {
       return;
     }
 
     const targetId = targetCommentId;
+    const targetComment = comments.find(
+      (comment) => comment.commentId === targetId,
+    );
+
+    if (
+      targetComment &&
+      (targetComment.depth > 0 ||
+        targetComment.replyCount <= 0 ||
+        loadedReplyCommentIds.has(targetComment.commentId))
+    ) {
+      return;
+    }
+
     const searchKey = `${postId}:${targetId}:${commentReloadKey}`;
 
     if (targetCommentSearchKeyRef.current === searchKey) {
@@ -997,23 +1048,16 @@ export function CommunityDetailPage() {
 
       targetCommentSearchKeyRef.current = searchKey;
       setComments((currentComments) =>
-        appendTargetCommentPath(
+        appendTargetCommentReplies(
           currentComments,
-          targetCommentResult.rootCommentId,
-          targetCommentResult.commentPath,
+          targetCommentResult.replyBranches,
         ),
       );
       setLoadedReplyCommentIds((currentIds) => {
         const nextIds = new Set(currentIds);
-        const loadedCommentIds = [
-          targetCommentResult.rootCommentId,
-          ...targetCommentResult.commentPath
-            .slice(0, -1)
-            .map((comment) => comment.commentId),
-        ];
 
-        for (const commentId of loadedCommentIds) {
-          nextIds.add(commentId);
+        for (const { parentCommentId } of targetCommentResult.replyBranches) {
+          nextIds.add(parentCommentId);
         }
 
         return nextIds;
@@ -1033,6 +1077,7 @@ export function CommunityDetailPage() {
     comments,
     commentReloadKey,
     isCommentsLoading,
+    loadedReplyCommentIds,
     postId,
     targetCommentId,
   ]);
