@@ -5,6 +5,7 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom'
 
 import type { TypingProblem } from '@/entities/typing'
 import { endRound, startRound, TypingCompletionModal } from '@/features/typing'
+import { calculateAccuracy } from '@/features/typing/lib/calculateAccuracy'
 
 import * as S from './CodeTypingPage.style'
 import { TypingCountdown } from '../TypingCountdown/TypingCountdown'
@@ -227,8 +228,8 @@ export function CodeTypingPage() {
   const completedCharacterCount = problems.slice(0, currentProblemIndex).reduce((total, problem) => total + problem.content.length, 0)
   const typingSpeed = elapsedSeconds === 0 ? 0 : Math.round((completedCharacterCount + typedCode.length) / (elapsedSeconds / 60))
   const totalCharacterCount = completedCharacterCount + typedCode.length
-  const accuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - errorCount - currentErrorCount) / totalCharacterCount) * 100)
-  const resultAccuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - errorCount) / totalCharacterCount) * 100)
+  const accuracy = calculateAccuracy(totalCharacterCount, errorCount + (isComplete ? 0 : currentErrorCount))
+  const resultAccuracy = calculateAccuracy(totalCharacterCount, errorCount)
   const minutes = Math.floor(elapsedSeconds / 60)
   const seconds = elapsedSeconds % 60
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`
@@ -238,7 +239,7 @@ export function CodeTypingPage() {
 
     if (!problems[currentProblemIndex + 1]) {
       const finalErrorCount = errorCount + currentErrorCount
-      const finalAccuracy = totalCharacterCount === 0 ? 100 : Math.round(((totalCharacterCount - finalErrorCount) / totalCharacterCount) * 100)
+      const finalAccuracy = calculateAccuracy(totalCharacterCount, finalErrorCount)
 
       startTimeRef.current = null
       setErrorCount(finalErrorCount)
