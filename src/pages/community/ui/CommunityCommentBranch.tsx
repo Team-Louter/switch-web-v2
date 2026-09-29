@@ -134,7 +134,8 @@ export function CommunityCommentBranch({
   const shouldExpandToTarget =
     targetCommentId !== null &&
     targetCommentId !== dismissedTargetCommentId &&
-    hasTargetDescendant(node, targetCommentId);
+    ((comment.depth === 0 && comment.commentId === targetCommentId) ||
+      hasTargetDescendant(node, targetCommentId));
   const isRepliesVisible = isRepliesOpen || shouldExpandToTarget;
   const shouldShowReplies =
     hasReplies && (!hasCollapseControl || isRepliesVisible);
