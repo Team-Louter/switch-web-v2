@@ -1,5 +1,5 @@
 import type { Block } from '@blocknote/core';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, type MouseEvent, useEffect, useState } from 'react';
 
 import {
   getCommunityFileDownloadUrl,
@@ -9,6 +9,10 @@ import {
 import { getYouTubeTitle } from '@/shared/api';
 
 import * as S from './CommunityPostBlockContent.style';
+import {
+  CommunityPostImageViewer,
+  type CommunityPostImagePreview,
+} from './CommunityPostImageViewer';
 
 const BlockFallback = lazy(() =>
   import('./CommunityPostBlockFallback').then(
@@ -177,6 +181,7 @@ interface PostImageProps {
   loading: 'eager' | 'lazy';
   src: string;
   width?: number;
+  onPreview?: (image: CommunityPostImagePreview) => void;
 }
 
 function PostImage({
@@ -186,11 +191,36 @@ function PostImage({
   loading,
   src,
   width,
+  onPreview,
 }: PostImageProps) {
   const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>(
     'loading',
   );
   const isLoading = status === 'loading';
+
+  const image = (
+    <img
+      src={src}
+      alt={alt}
+      width={width}
+      fetchPriority={fetchPriority}
+      loading={loading}
+      decoding="async"
+      onLoad={() => setStatus('loaded')}
+      onError={() => setStatus('error')}
+    />
+  );
+
+  function handlePreview(event: MouseEvent<HTMLButtonElement>) {
+    const image = event.currentTarget.querySelector('img');
+    if (!image || !image.naturalWidth || !image.naturalHeight) return;
+    onPreview?.({
+      src: image.currentSrc,
+      alt,
+      width: image.naturalWidth,
+      height: image.naturalHeight,
+    });
+  }
 
   return (
     <S.Figure $width={width} aria-busy={isLoading}>
@@ -199,18 +229,17 @@ function PostImage({
           <S.ImageError role="status">
             이미지를 불러오지 못했습니다.
           </S.ImageError>
-        ) : (
-          <img
-            src={src}
-            alt={alt}
-            width={width}
-            fetchPriority={fetchPriority}
-            loading={loading}
-            decoding="async"
-            onLoad={() => setStatus('loaded')}
-            onError={() => setStatus('error')}
-          />
-        )}
+        ) : onPreview ? (
+          <S.ImageButton
+            type="button"
+            aria-label={`${alt} 크게 보기`}
+            aria-haspopup="dialog"
+            disabled={status !== 'loaded'}
+            onClick={handlePreview}
+          >
+            {image}
+          </S.ImageButton>
+        ) : image}
       </S.ImageSurface>
       {caption && <figcaption>{caption}</figcaption>}
     </S.Figure>
@@ -221,6 +250,8 @@ export function CommunityPostBlockContent({
   blocks,
   files,
 }: CommunityPostBlockContentProps) {
+  const [previewImage, setPreviewImage] =
+    useState<CommunityPostImagePreview | null>(null);
   // 목록 등 연속된 복합 블록은 함께 렌더링해 기존 서식을 유지합니다.
   const groups: Block[][] = [];
   for (const block of blocks) {
@@ -237,6 +268,8 @@ export function CommunityPostBlockContent({
   }
 
   const firstImageId = blocks.find((block) => block.type === 'image')?.id;
+
+  const handleClosePreview = () => setPreviewImage(null);
 
   return (
     <S.Content aria-label="게시글 본문">
@@ -255,7 +288,11 @@ export function CommunityPostBlockContent({
                 </S.LoadingSkeleton>
               }
             >
-              <BlockFallback blocks={group} files={files} />
+              <BlockFallback
+                blocks={group}
+                files={files}
+                onImagePreview={setPreviewImage}
+              />
             </Suspense>
           );
         }
@@ -280,6 +317,7 @@ export function CommunityPostBlockContent({
               width={Number.isFinite(width) && width > 0 ? width : undefined}
               fetchPriority={block.id === firstImageId ? 'high' : 'auto'}
               loading={block.id === firstImageId ? 'eager' : 'lazy'}
+              onPreview={setPreviewImage}
             />
           );
         }
@@ -306,6 +344,12 @@ export function CommunityPostBlockContent({
         }
         return <p key={block.id}>{text || <br />}</p>;
       })}
+      {previewImage && (
+        <CommunityPostImageViewer
+          image={previewImage}
+          onClose={handleClosePreview}
+        />
+      )}
     </S.Content>
   );
 }

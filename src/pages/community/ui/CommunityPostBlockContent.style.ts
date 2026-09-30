@@ -83,6 +83,20 @@ export const ImageSurface = styled.div<{ $isLoading: boolean }>`
   }
 `;
 
+export const ImageButton = styled.button`
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+
+  &:focus-visible {
+    outline: 2px solid ${token.colors.primary.primary60};
+    outline-offset: -2px;
+  }
+`;
+
 export const ImageError = styled.div`
   display: grid;
   place-items: center;
