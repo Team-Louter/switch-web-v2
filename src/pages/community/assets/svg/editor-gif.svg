@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="20" viewBox="0 0 24 20" fill="none">
-  <rect x="1" y="2" width="22" height="16" rx="3" stroke="#8A8676" stroke-width="1.7"/>
-  <path d="M8.5 7H6V13H8.5V10H7.3M11.5 7V13M15 13V7H18M15 10H17.5" stroke="#8A8676" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+  <rect width="20" height="20" rx="4" fill="#8A8676"/>
+  <text x="10" y="13.2" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="700" text-anchor="middle">GIF</text>
 </svg>
