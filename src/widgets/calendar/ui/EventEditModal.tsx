@@ -15,10 +15,9 @@ export interface EventEditModalProps {
     selectedEndDate?: Date | null;
     modalMode: string;
     event: EventInput | null;
-    setEvents: React.Dispatch<React.SetStateAction<EventInput[]>>;
 }
 
-export function EventEditModal({ selectedDate, selectedEndDate, setIsModalOpen, modalMode, event, setEvents }: EventEditModalProps) {
+export function EventEditModal({ selectedDate, selectedEndDate, setIsModalOpen, modalMode, event }: EventEditModalProps) {
     const [title, setTitle] = useState<string>(event?.title || '');
     const [content, setContent] = useState<string>(event?.extendedProps?.description || '');
     const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>(
@@ -31,7 +30,7 @@ export function EventEditModal({ selectedDate, selectedEndDate, setIsModalOpen, 
 
     const { handleSubmit, handleDelete, isSubmitting, isDeleting, error } = useEventEditor({
         modalMode, event, title, content, startDate, endDate,
-        selectedColor, selectedMemberIds, allMembers, setEvents, setIsModalOpen,
+        selectedColor, selectedMemberIds, allMembers, setIsModalOpen,
     });
 
     const isActionPending = isSubmitting || isDeleting;

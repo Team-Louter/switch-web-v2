@@ -1,4 +1,6 @@
 import { apiClient } from '@/shared/api'
+import { mentoringQueryKeys } from '@/entities/mentoring'
+import { queryClient } from '@/shared/lib/queryClient'
 import type { CreateMessageRequest, MentoringMessage } from '@/entities/mentoring'
 
 /**
@@ -13,5 +15,6 @@ export const createMessage = async (
     '/mentoring/messages',
     data,
   )
+  await queryClient.invalidateQueries({ queryKey: mentoringQueryKeys.all })
   return response.data
 }

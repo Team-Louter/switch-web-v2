@@ -1,4 +1,6 @@
 import { apiClient } from '@/shared/api'
+import { mentoringQueryKeys } from '@/entities/mentoring'
+import { queryClient } from '@/shared/lib/queryClient'
 import type {
   CreateQuestionRequest,
   MentoringQuestion,
@@ -17,6 +19,7 @@ export const createQuestion = async (
     '/mentoring/questions',
     data,
   )
+  await queryClient.invalidateQueries({ queryKey: mentoringQueryKeys.all })
   return response.data
 }
 
@@ -35,6 +38,7 @@ export const changeQuestionStatus = async (
     undefined,
     { params: { status } },
   )
+  await queryClient.invalidateQueries({ queryKey: mentoringQueryKeys.all })
 }
 
 /**
@@ -44,4 +48,5 @@ export const changeQuestionStatus = async (
  */
 export const deleteQuestion = async (questionId: number): Promise<void> => {
   await apiClient.delete<void>(`/mentoring/questions/${questionId}`)
+  await queryClient.invalidateQueries({ queryKey: mentoringQueryKeys.all })
 }

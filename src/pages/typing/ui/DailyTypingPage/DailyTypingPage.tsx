@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 
 import type { TypingProblem } from '@/entities/typing'
-import { getRankingList } from '@/entities/typing/api/getRanking'
+import { typingRankingOptions } from '@/entities/typing'
+import { useUserStore } from '@/entities/profile'
 import { endRound, startRound, TypingCompletionModal } from '@/features/typing'
 import { calculateAccuracy } from '@/features/typing/lib/calculateAccuracy'
 
@@ -12,6 +14,11 @@ import { TypingPracticeHeader } from '../TypingPracticeHeader/TypingPracticeHead
 
 export function DailyTypingPage() {
   const navigate = useNavigate()
+  const userId = useUserStore((state) => state.user?.userId ?? null)
+  const { data: rankingList } = useQuery({
+    ...typingRankingOptions(userId, 'DAILY'),
+    enabled: userId !== null,
+  })
   const [problems, setProblems] = useState<TypingProblem[]>([])
   const [currentProblemIndex, setCurrentProblemIndex] = useState(0)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
@@ -20,7 +27,6 @@ export function DailyTypingPage() {
   const [isComplete, setIsComplete] = useState(false)
   const [isTypingEnabled, setIsTypingEnabled] = useState(false)
   const [errorCount, setErrorCount] = useState(0)
-  const [firstPlaceName, setFirstPlaceName] = useState('-')
   const roundIdRef = useRef<number | null>(null)
   const submittedProblemIndexRef = useRef<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
@@ -38,22 +44,14 @@ export function DailyTypingPage() {
       }
     }
 
-    const getFirstPlace = async () => {
-      const rankingList = await getRankingList('DAILY')
-      const firstPlace = rankingList.topRankings.find(ranking => ranking.rank === 1)
-
-      if (isMounted) {
-        setFirstPlaceName(firstPlace?.userName ?? '-')
-      }
-    }
-
     void beginRound()
-    void getFirstPlace()
 
     return () => {
       isMounted = false
     }
   }, [])
+
+  const firstPlaceName = rankingList?.topRankings.find(ranking => ranking.rank === 1)?.userName ?? '-'
 
   const handleCountdownComplete = useCallback(() => {
     startTimeRef.current = performance.now()

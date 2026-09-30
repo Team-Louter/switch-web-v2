@@ -7,7 +7,9 @@ import {
   PiX,
 } from 'react-icons/pi'
 
-import { getMember } from '@/entities/member'
+import { memberDirectoryOptions } from '@/entities/member'
+import { useUserStore } from '@/entities/profile'
+import { queryClient } from '@/shared/lib/queryClient'
 import type { Member, MemberRole } from '@/entities/member/model/types'
 
 import { createMentoring, modifyMentoring } from '../../api/createMentoring'
@@ -66,6 +68,7 @@ function CreateRoomModalContent({
   onSaveSuccess,
   room,
 }: CreateRoomModalProps) {
+  const userId = useUserStore((state) => state.user?.userId ?? null)
   const [members, setMembers] = useState<Member[]>([])
   const [isMembersLoading, setIsMembersLoading] = useState(true)
   const [hasMemberLoadError, setHasMemberLoadError] = useState(false)
@@ -80,7 +83,7 @@ function CreateRoomModalContent({
   useEffect(() => {
     let isCancelled = false
 
-    getMember()
+    queryClient.fetchQuery(memberDirectoryOptions(userId))
       .then((allMembers) => {
         if (!isCancelled) {
           setMembers(allMembers)
@@ -102,7 +105,7 @@ function CreateRoomModalContent({
     return () => {
       isCancelled = true
     }
-  }, [])
+  }, [userId])
 
   const searchedMembers = useMemo(() => {
     const trimmedKeyword = keyword.trim()
