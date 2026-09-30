@@ -13,7 +13,10 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev -- --host 127.0.0.1 --port 4173 --strictPort',
     url: 'http://127.0.0.1:4173',
-    env: { VITE_API_BASE_URL: 'http://127.0.0.1:4173/api' },
+    env: {
+      VITE_API_BASE_URL: 'http://127.0.0.1:4173/api',
+      VITE_KLIPY_APP_KEY: 'gif-picker-test',
+    },
     reuseExistingServer: false,
   },
 })
