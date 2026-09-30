@@ -115,3 +115,80 @@ test('조회 실패 후 재시도하면 GIF 목록을 복구한다', async ({ pa
   await expect(page.getByRole('button', { name: '복구 고양이 삽입' })).toBeVisible()
   await expect(page.getByRole('alert')).toHaveCount(0)
 })
+
+test('조회·이미지·추가 목록 로딩을 표시하고 작은 화면 안에 모달을 유지한다', async ({ page, api }) => {
+  void api
+  let releaseList = () => {}
+  let releaseImage = () => {}
+  let releaseNextPage = () => {}
+  const listGate = new Promise<void>((resolve) => { releaseList = resolve })
+  const imageGate = new Promise<void>((resolve) => { releaseImage = resolve })
+  const nextPageGate = new Promise<void>((resolve) => { releaseNextPage = resolve })
+
+  await page.route(gifApiPattern, async (route) => {
+    const pageNumber = Number(new URL(route.request().url()).searchParams.get('page'))
+    await (pageNumber === 1 ? listGate : nextPageGate)
+    await route.fulfill({ json: {
+      result: true,
+      data: {
+        data: [gifItem(`loading-cat-${pageNumber}`, `로딩 고양이 ${pageNumber}`)],
+        has_next: pageNumber === 1,
+      },
+    } })
+  })
+  await page.route(gifUrl, async (route) => {
+    await imageGate
+    await route.fallback()
+  })
+
+  await page.goto('/community/write')
+  await page.getByRole('button', { name: 'GIF 선택', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'GIF 선택' })
+  const loading = dialog.getByRole('status', { name: 'GIF를 불러오는 중입니다.' })
+  await expect(loading).toBeVisible()
+  await expect(loading.locator('[aria-hidden="true"]')).toHaveCount(6)
+  const desktopBox = await dialog.boundingBox()
+  expect(desktopBox?.width).toBeLessThan(560)
+  expect(desktopBox?.height).toBeLessThan(700)
+
+  await page.setViewportSize({ width: 390, height: 480 })
+  const mobileBox = await dialog.boundingBox()
+  expect(mobileBox).not.toBeNull()
+  expect(mobileBox!.x).toBeGreaterThanOrEqual(20)
+  expect(mobileBox!.y).toBeGreaterThanOrEqual(20)
+  expect(mobileBox!.x + mobileBox!.width).toBeLessThanOrEqual(370)
+  expect(mobileBox!.y + mobileBox!.height).toBeLessThanOrEqual(460)
+
+  releaseList()
+  const firstGif = dialog.getByRole('button', { name: '로딩 고양이 1 삽입' })
+  await expect(loading).toHaveCount(0)
+  await expect(firstGif).toHaveAttribute('aria-busy', 'true')
+  await expect(firstGif).toBeDisabled()
+  releaseImage()
+  await expect(firstGif).toBeEnabled()
+  await expect(firstGif).toHaveAttribute('aria-busy', 'false')
+  await expect(firstGif.getByRole('img')).toHaveCSS('opacity', '1')
+
+  await dialog.getByRole('button', { name: '더 보기' }).click()
+  await expect(loading.locator('[aria-hidden="true"]')).toHaveCount(3)
+  await expect(firstGif).toBeEnabled()
+  releaseNextPage()
+  await expect(dialog.getByRole('button', { name: '로딩 고양이 2 삽입' })).toBeEnabled()
+  await expect(loading).toHaveCount(0)
+})
+
+test('GIF 이미지 조회에 실패하면 로딩을 끝내고 해당 GIF 선택을 차단한다', async ({ page, api }) => {
+  void api
+  await page.route(gifApiPattern, (route) => route.fulfill({ json: {
+    result: true,
+    data: { data: [gifItem('broken-cat', '실패 고양이')], has_next: false },
+  } }))
+  await page.route(gifUrl, (route) => route.fulfill({ status: 404, body: '' }))
+
+  await page.goto('/community/write')
+  await page.getByRole('button', { name: 'GIF 선택', exact: true }).click()
+  const gif = page.getByRole('button', { name: '실패 고양이 삽입' })
+  await expect(gif.getByText('미리보기 없음')).toBeVisible()
+  await expect(gif).toBeDisabled()
+  await expect(gif).toHaveAttribute('aria-busy', 'false')
+})
