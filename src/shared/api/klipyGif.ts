@@ -204,9 +204,13 @@ export async function getKlipyGifPreview(
     throw new Error('KLIPY GIF 응답 형식이 올바르지 않습니다.');
   }
 
-  const item = items
-    .map(asRecord)
-    .find((candidate) => candidate?.slug === slug) as KlipyGifApiItem | undefined;
+  const candidates = items.map(asRecord);
+  // 목록의 slug에는 공유용 접미사가 붙지만 Items 응답은 이를 제외한 slug를 반환할 수 있습니다.
+  const canonicalSlug = slug.replace(/--[a-z0-9]+$/i, '');
+  const item = (
+    candidates.find((candidate) => candidate?.slug === slug)
+    ?? candidates.find((candidate) => candidate?.slug === canonicalSlug)
+  ) as KlipyGifApiItem | undefined;
   if (!item) return null;
 
   const media = getKlipyMediaUrl(item.file);
