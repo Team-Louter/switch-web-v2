@@ -539,6 +539,11 @@ export const BodyText = styled.div`
     object-fit: contain;
   }
 
+  .community-post-blocks [data-content-type='image'] .bn-visual-media {
+    width: 100% !important;
+    max-height: none;
+  }
+
   .community-post-blocks [data-content-type='file'] .bn-file-name-with-icon {
     cursor: pointer;
   }
