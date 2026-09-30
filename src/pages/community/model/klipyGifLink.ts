@@ -41,6 +41,11 @@ const webUrlPattern = /https?:\/\/[^\s<>"']+/gi;
 const trailingUrlPunctuationPattern = /[.,!?;:)\]]+$/;
 const klipyGifPathPattern = /^\/gifs\/([a-z0-9-]+)\/?$/i;
 
+export function buildCommunityGifCommentContent(content: string, gifSlug?: string): string {
+  const gifLink = gifSlug ? `https://klipy.com/gifs/${encodeURIComponent(gifSlug)}` : '';
+  return [content.trim(), gifLink].filter(Boolean).join('\n');
+}
+
 function parseKlipyGifLink(value: string): CommunityKlipyGifLink | null {
   try {
     const url = new URL(value);

@@ -1000,16 +1000,28 @@ export const CommentHeading = styled.h2`
   line-height: 1.2;
 `;
 
+export const CommentInputBox = styled.div`
+  ${token.flexColumn}
+  box-sizing: border-box;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: ${token.shapes.medium};
+  background: ${token.colors.gray.gray0};
+
+  &:focus-within {
+    outline: 1px solid ${token.colors.primary.primary30};
+  }
+`;
+
 export const CommentInputRow = styled.div`
   ${token.flexBetween}
   box-sizing: border-box;
   width: 100%;
-  min-height: 52px;
+  gap: 8px;
+  min-height: 32px;
   max-height: 140px;
-  padding: 10px 20px;
   overflow: hidden;
-  border-radius: ${token.shapes.medium};
-  background: ${token.colors.gray.gray0};
 `;
 
 export const CommentInput = styled.textarea`

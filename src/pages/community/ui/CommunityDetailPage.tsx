@@ -38,6 +38,7 @@ import {
   togglePostHeart,
   updateComment,
 } from '@/features/community';
+import type { KlipyGif } from '@/shared/api';
 import eyeIcon from '@/shared/assets/my/eye-icon.svg';
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png';
 import { parseBlockNotePostContent } from '@/shared/lib/blockNotePostContent';
@@ -67,12 +68,17 @@ import {
   type CommunityReplySubmitHandler,
 } from '../model/commentTree';
 import { resizeCommunityTextarea } from '../model/commentInput';
+import { buildCommunityGifCommentContent } from '../model/klipyGifLink';
 import { getCommunityListReturnTo } from '../model/useCommunityListNavigation';
 import { CommunityCommentBranch } from './CommunityCommentBranch';
 import { CommunityPostBlockContent } from './CommunityPostBlockContent';
 import { CommunityRollingNumber } from './CommunityRollingNumber';
 import * as S from './CommunityDetailPage.style';
 import { PixelHammerIcon } from './PixelHammerIcon';
+import {
+  CommunityCommentGifAttachment,
+  CommunityCommentGifButton,
+} from './CommunityCommentGif';
 
 const markdownSanitizeSchema = {
   ...defaultSchema,
@@ -271,6 +277,7 @@ export function CommunityDetailPage() {
   const [commentLoadError, setCommentLoadError] = useState<string | null>(null);
   const [commentReloadKey, setCommentReloadKey] = useState(0);
   const [commentContent, setCommentContent] = useState('');
+  const [commentGif, setCommentGif] = useState<KlipyGif | null>(null);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
   const [isHeartMutating, setIsHeartMutating] = useState(false);
@@ -330,6 +337,10 @@ export function CommunityDetailPage() {
     [serializedPostContent],
   );
   const commentTree = useMemo(() => buildCommentTree(comments), [comments]);
+  const commentSubmitContent = buildCommunityGifCommentContent(
+    commentContent,
+    commentGif?.slug,
+  );
   const targetCommentId = getTargetCommentId(hash);
   const postEquippedItems = post?.isAnonymous
     ? undefined
@@ -435,7 +446,7 @@ export function CommunityDetailPage() {
   };
 
   const handleCommentSubmit = async () => {
-    const trimmedContent = commentContent.trim();
+    const trimmedContent = commentSubmitContent;
 
     if (!post || !trimmedContent || isCommentSubmitting) {
       return;
@@ -457,6 +468,7 @@ export function CommunityDetailPage() {
           : currentPost,
       );
       setCommentContent('');
+      setCommentGif(null);
       setIsAnonymous(false);
     } catch {
       setActionError('댓글을 등록하지 못했습니다.');
@@ -1420,28 +1432,44 @@ export function CommunityDetailPage() {
               <S.CommentComposer>
                 <S.CommentForm>
                   <S.CommentHeading>댓글</S.CommentHeading>
-                  <S.CommentInputRow>
-                    <S.CommentInput
-                      ref={commentInputRef}
-                      rows={1}
-                      aria-label="댓글 내용"
-                      placeholder="어떤 댓글을 남겨볼까요?"
-                      value={commentContent}
-                      disabled={isCommentSubmitting}
-                      onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
-                        setCommentContent(event.target.value)
-                      }
-                      onKeyDown={handleCommentKeyDown}
-                    />
-                    <S.SendButton
-                      type="button"
-                      aria-label="댓글 등록"
-                      disabled={!commentContent.trim() || isCommentSubmitting}
-                      onClick={handleCommentSubmit}
-                    >
-                      <S.SendIcon src={sendIcon} alt="" />
-                    </S.SendButton>
-                  </S.CommentInputRow>
+                  <S.CommentInputBox>
+                    <S.CommentInputRow>
+                      <S.CommentInput
+                        ref={commentInputRef}
+                        rows={1}
+                        aria-label="댓글 내용"
+                        placeholder="어떤 댓글을 남겨볼까요?"
+                        value={commentContent}
+                        disabled={isCommentSubmitting}
+                        onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
+                          setCommentContent(event.target.value)
+                        }
+                        onKeyDown={handleCommentKeyDown}
+                      />
+                      <CommunityCommentGifButton
+                        label="댓글 GIF 선택"
+                        disabled={isCommentSubmitting}
+                        onSelect={setCommentGif}
+                      />
+                      <S.SendButton
+                        type="button"
+                        aria-label="댓글 등록"
+                        disabled={!commentSubmitContent || isCommentSubmitting}
+                        onClick={handleCommentSubmit}
+                      >
+                        <S.SendIcon src={sendIcon} alt="" />
+                      </S.SendButton>
+                    </S.CommentInputRow>
+                    {commentGif && (
+                      <CommunityCommentGifAttachment
+                        key={commentGif.slug}
+                        gif={commentGif}
+                        label="댓글 GIF 미리보기"
+                        disabled={isCommentSubmitting}
+                        onRemove={() => setCommentGif(null)}
+                      />
+                    )}
+                  </S.CommentInputBox>
                 </S.CommentForm>
                 <S.AnonymousLabel>
                   <S.AnonymousCheckbox
