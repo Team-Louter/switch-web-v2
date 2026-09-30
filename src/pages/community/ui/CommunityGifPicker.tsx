@@ -114,7 +114,7 @@ export function CommunityGifPicker({
           <S.SearchInput
             type="search"
             aria-label="GIF 검색어"
-            placeholder="Search KLIPY"
+            placeholder="GIF 검색하기"
             value={searchInput}
             maxLength={100}
             disabled={!isConfigured}
