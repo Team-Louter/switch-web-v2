@@ -66,8 +66,8 @@ export function extractCommunityKlipyGifLinks(
   }
 
   text = text
-    .replace(/^[\t ]*\n+/, '')
-    .replace(/\n+[\t ]*$/, '')
+    .replace(/[\t ]{2,}/g, ' ')
+    .trim()
     .replace(/\n{3,}/g, '\n\n');
 
   return { text, klipyGifLinks };
