@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test'
 
 import { accessToken, expect, test } from './fixtures'
+import type { CommentResponse } from '../../src/entities/community/model/types'
 
 const list = (page: Page) => page.getByRole('region', { name: '게시글 목록' })
 const skeleton = (page: Page) =>
@@ -11,6 +12,26 @@ const postRow = (page: Page, title: string) =>
 async function openPost(page: Page, title: string) {
   await postRow(page, title).click()
   await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible()
+}
+
+function createComment(
+  commentId: number,
+  content: string,
+  depth = 0,
+  replyCount = 0,
+): CommentResponse {
+  return {
+    commentId,
+    userId: 42,
+    userName: '테스트 작성자',
+    userProfileImageUrl: '',
+    content,
+    depth,
+    createdAt: '2026-09-30T01:00:00Z',
+    isAnonymous: false,
+    deleted: false,
+    replyCount,
+  }
 }
 
 test('최초 조회는 스켈레톤을 표시하고 전체글 첫 페이지를 한 번만 요청한다', async ({ page, api }) => {
@@ -37,6 +58,20 @@ test('최초 조회 실패 시 오류를 표시하고 중복 요청 없이 재�
   await page.getByRole('button', { name: '다시 시도' }).click()
   await expect(postRow(page, '게시글 1')).toBeVisible()
   expect(api.listRequests.length).toBe(2)
+})
+
+test('프로필 조회 실패 시 다시 시도에서 프로필을 재조회하고 목록을 복구한다', async ({ page, api }) => {
+  api.failProfile = true
+  await page.goto('/community')
+  await expect(list(page).getByRole('alert')).toContainText('사용자 정보를 불러오지 못했습니다.')
+  const initialProfileRequests = api.profileRequests
+
+  api.failProfile = false
+  await page.getByRole('button', { name: '다시 시도' }).click()
+
+  await expect(postRow(page, '게시글 1')).toBeVisible()
+  await expect.poll(() => api.profileRequests).toBeGreaterThan(initialProfileRequests)
+  expect(api.listRequests.length).toBe(1)
 })
 
 test('빈 목록은 로딩 완료 후 빈 상태를 표시한다', async ({ page, api }) => {
@@ -253,6 +288,31 @@ test('댓글 등록과 삭제 후 목록의 댓글 수를 갱신한다', async (
 
   await expect(postRow(page, '게시글 1').getByLabel('좋아요 0, 댓글 0, 조회 10')).toBeVisible()
   expect(api.listRequests.length).toBe(3)
+})
+
+test('알림 해시로 새 답글에 이동하면 댓글과 답글 캐시를 갱신한다', async ({ page, api }) => {
+  api.comments.push(createComment(501, '기존 댓글'))
+  api.replies.set(501, [])
+
+  await page.goto('/community/1')
+  await expect(page.locator('#comment-501')).toBeVisible()
+  await expect.poll(() => api.commentRequests).toBe(1)
+  await expect.poll(() => api.replyCountRequests.length).toBeGreaterThan(0)
+
+  api.replies.set(501, [createComment(502, '새 알림 답글', 1)])
+  await page.evaluate(() => {
+    const nextUrl = new URL(window.location.href)
+    nextUrl.hash = 'comment-502'
+    window.history.pushState(window.history.state, '', nextUrl)
+    window.dispatchEvent(
+      new PopStateEvent('popstate', { state: window.history.state }),
+    )
+  })
+
+  await expect(page.locator('#comment-502')).toContainText('새 알림 답글')
+  await expect.poll(() => api.commentRequests).toBe(2)
+  expect(api.replyCountRequests.filter((commentId) => commentId === 501)).toHaveLength(2)
+  expect(api.replyRequests).toContain(501)
 })
 
 test('유효하지 않은 URL 필터는 전체글 첫 페이지로 안전하게 처리한다', async ({ page, api }) => {

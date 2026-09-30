@@ -38,9 +38,16 @@ async function mockCommunityApi(page: Page) {
       createPost(102, true),
       ...Array.from({ length: 70 }, (_, index) => createPost(index + 1)),
     ],
+    comments,
+    replies: new Map<number, CommentResponse[]>(),
     listRequests: [] as { category: string | null; page: number }[],
+    profileRequests: 0,
+    commentRequests: 0,
+    replyCountRequests: [] as number[],
+    replyRequests: [] as number[],
     typingRankingRequests: [] as string[],
     typingPreviousResultRequests: 0,
+    failProfile: false,
     failLists: false,
     failMutations: false,
     pauseLists() {
@@ -69,6 +76,12 @@ async function mockCommunityApi(page: Page) {
     const method = request.method()
 
     if (path === '/me') {
+      api.profileRequests += 1
+      if (api.failProfile) {
+        await route.fulfill({ status: 503, json: { message: '프로필 조회 실패' } })
+        return
+      }
+
       await route.fulfill({
         json: {
           userId: 42,
@@ -217,7 +230,8 @@ async function mockCommunityApi(page: Page) {
       post.pinned = url.searchParams.get('pinned') === 'true'
       await route.fulfill({ status: 204 })
     } else if (suffix === '/comments' && method === 'GET') {
-      await route.fulfill({ json: comments })
+      api.commentRequests += 1
+      await route.fulfill({ json: structuredClone(comments) })
     } else if (suffix === '/comments' && method === 'POST') {
       const body = request.postDataJSON()
       const comment: CommentResponse = {
@@ -239,8 +253,19 @@ async function mockCommunityApi(page: Page) {
       comments.splice(0, comments.length)
       post.commentCount = 0
       await route.fulfill({ status: 204 })
-    } else if (suffix?.endsWith('/total-reply-count')) {
-      await route.fulfill({ json: { commentId: 501, count: 0 } })
+    } else if (suffix?.match(/^\/comments\/(\d+)\/replies$/) && method === 'GET') {
+      const commentId = Number(suffix.split('/')[2])
+      api.replyRequests.push(commentId)
+      await route.fulfill({ json: structuredClone(api.replies.get(commentId) ?? []) })
+    } else if (suffix?.match(/^\/comments\/(\d+)\/total-reply-count$/) && method === 'GET') {
+      const commentId = Number(suffix.split('/')[2])
+      api.replyCountRequests.push(commentId)
+      await route.fulfill({
+        json: {
+          commentId,
+          count: api.replies.get(commentId)?.length ?? 0,
+        },
+      })
     } else {
       await route.fulfill({ status: 404, json: { message: '지원하지 않는 테스트 경로' } })
     }
