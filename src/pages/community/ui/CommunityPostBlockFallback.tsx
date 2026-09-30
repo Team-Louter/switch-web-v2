@@ -18,6 +18,7 @@ import {
 } from '@/entities/community';
 
 import type { CommunityPostImagePreview } from './CommunityPostImageViewer';
+import { communityBlockNoteSchema } from '../model/communityBlockNoteSchema';
 
 interface CommunityPostBlockContentProps {
   blocks: readonly Block[];
@@ -93,6 +94,7 @@ export function CommunityPostBlockFallback({
   const contentRef = useRef<HTMLDivElement>(null);
   const normalizedBlocks = normalizeMediaUrls(blocks, files);
   const editor = useCreateBlockNote({
+    schema: communityBlockNoteSchema,
     initialContent: normalizedBlocks,
     domAttributes: {
       editor: { 'aria-label': '게시글 본문' },

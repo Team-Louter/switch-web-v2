@@ -6,7 +6,7 @@ import {
   type PostFileResponse,
 } from '@/entities/community';
 
-import { getYouTubeTitle } from '@/shared/api';
+import { getYouTubeTitle, isKlipyMediaUrl } from '@/shared/api';
 
 import * as S from './CommunityPostBlockContent.style';
 import {
@@ -197,10 +197,13 @@ function PostImage({
     'loading',
   );
   const isLoading = status === 'loading';
+  const isKlipyGif = isKlipyMediaUrl(src);
 
   const image = (
     <img
       src={src}
+      referrerPolicy={isKlipyGif ? 'no-referrer' : undefined}
+      crossOrigin={isKlipyGif ? 'anonymous' : undefined}
       alt={alt}
       width={width}
       fetchPriority={fetchPriority}

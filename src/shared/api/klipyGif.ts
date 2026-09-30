@@ -69,6 +69,15 @@ function asTrimmedString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
 }
 
+export function isKlipyMediaUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && KLIPY_MEDIA_HOSTS.has(url.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
 function getKlipyMediaUrl(file: unknown): KlipyGifFileVariant | null {
   const sizes = asRecord(file);
   if (!sizes) return null;
@@ -78,15 +87,7 @@ function getKlipyMediaUrl(file: unknown): KlipyGifFileVariant | null {
     const variant = size?.gif ?? size?.webp;
     if (!variant || typeof variant.url !== 'string') continue;
 
-    try {
-      const url = new URL(variant.url);
-      if (url.protocol !== 'https:' || !KLIPY_MEDIA_HOSTS.has(url.hostname.toLowerCase())) {
-        continue;
-      }
-      return variant;
-    } catch {
-      continue;
-    }
+    if (isKlipyMediaUrl(variant.url)) return variant;
   }
 
   return null;

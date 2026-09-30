@@ -63,6 +63,7 @@ import type { KlipyGif } from '@/shared/api';
 import { Button } from '@/shared/ui';
 
 import { getCommunityListReturnTo } from '../model/useCommunityListNavigation';
+import { communityBlockNoteSchema } from '../model/communityBlockNoteSchema';
 
 import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg';
 import backChevronIcon from '../assets/svg/back-chevron.svg';
@@ -551,6 +552,7 @@ export function CommunityWritePage() {
 
   const editor = useCreateBlockNote(
     {
+      schema: communityBlockNoteSchema,
       dictionary: COMMUNITY_EDITOR_DICTIONARY,
       domAttributes: {
         editor: { 'aria-label': '게시글 내용' },
@@ -687,7 +689,13 @@ export function CommunityWritePage() {
 
     const currentBlock = editor.getTextCursorPosition().block;
     const [imageBlock] = editor.insertBlocks(
-      [{ type: 'image', props: { url: gif.url, name: gif.title || 'GIF' } }],
+      [{
+        type: 'image',
+        props: {
+          url: gif.url,
+          name: gif.contentDescription || gif.title || 'GIF',
+        },
+      }],
       currentBlock,
       'after',
     );

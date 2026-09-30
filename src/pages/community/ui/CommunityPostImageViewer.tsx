@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { MdClose } from 'react-icons/md';
 
 import { Modal } from '@/shared/ui';
+import { isKlipyMediaUrl } from '@/shared/api';
 
 import * as S from './CommunityPostImageViewer.style';
 
@@ -23,6 +24,7 @@ export function CommunityPostImageViewer({
 }: CommunityPostImageViewerProps) {
   const [hasError, setHasError] = useState(false);
   const aspectRatio = image.width / image.height;
+  const isKlipyGif = isKlipyMediaUrl(image.src);
 
   return (
     <Modal label="본문 이미지 보기" variant="media" onClose={onClose}>
@@ -38,6 +40,8 @@ export function CommunityPostImageViewer({
       ) : (
         <S.Image
           src={image.src}
+          referrerPolicy={isKlipyGif ? 'no-referrer' : undefined}
+          crossOrigin={isKlipyGif ? 'anonymous' : undefined}
           alt={image.alt}
           $aspectRatio={aspectRatio}
           onError={() => setHasError(true)}

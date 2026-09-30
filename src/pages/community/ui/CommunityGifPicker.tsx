@@ -41,7 +41,7 @@ function CommunityGifOption({ gif, onSelect }: CommunityGifOptionProps) {
   return (
     <S.GifButton
       type="button"
-      aria-label={`${gif.title || 'GIF'} 삽입`}
+      aria-label={`${gif.contentDescription || gif.title || 'GIF'} 삽입`}
       aria-busy={imageState === 'loading'}
       disabled={imageState !== 'loaded'}
       onClick={() => onSelect(gif)}
@@ -51,6 +51,7 @@ function CommunityGifOption({ gif, onSelect }: CommunityGifOptionProps) {
         alt={gif.contentDescription || gif.title || 'GIF'}
         loading="lazy"
         referrerPolicy="no-referrer"
+        crossOrigin="anonymous"
         $loaded={imageState === 'loaded'}
         onLoad={() => setImageState('loaded')}
         onError={() => setImageState('error')}
