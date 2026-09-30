@@ -110,3 +110,66 @@ test('댓글 GIF 이미지를 불러오지 못하면 원본 링크를 표시한�
   await expect(page.getByRole('button', { name: '고양이 크게 보기' })).toHaveCount(0)
   await expect(page.getByRole('dialog', { name: 'GIF 크게 보기', exact: true })).toHaveCount(0)
 })
+
+test('공유용 접미사와 API 응답 slug가 달라도 기존 댓글 GIF를 표시하고 새로고침 후 유지한다', async ({ page, api }) => {
+  const sharedSlug = 'cute-dog-181--k9DMkoX1H'
+  const href = `https://klipy.com/gifs/${sharedSlug}`
+  api.comments[0].content = `기존 댓글 ${href}`
+  const requestedSlugs: string[] = []
+  await page.route(gifApiPattern, (route) => {
+    requestedSlugs.push(new URL(route.request().url()).searchParams.get('slugs') ?? '')
+    return route.fulfill({ json: {
+      result: true,
+      data: { data: [{
+        slug: 'cute-dog-181', title: '웃는 강아지',
+        file: { sm: { gif: { url: gifUrl, width: 160, height: 160 } } },
+      }] },
+    } })
+  })
+  await page.goto('/community/1')
+  const image = page.locator('#comment-501').getByRole('img', { name: '웃는 강아지' })
+  await expect(image).toBeVisible()
+  await expect.poll(() => image.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0)
+  await expect(page.getByRole('link', { name: href })).toHaveCount(0)
+  await page.reload()
+  await expect(image).toBeVisible()
+  await expect(page.getByRole('link', { name: href })).toHaveCount(0)
+  expect(requestedSlugs.length).toBeGreaterThanOrEqual(2)
+  expect(new Set(requestedSlugs)).toEqual(new Set([sharedSlug]))
+})
+
+test('접미사와 다른 식별자의 응답은 표시하지 않고 원본 링크를 유지한다', async ({ page, api }) => {
+  const href = 'https://klipy.com/gifs/cute-dog-181--k9DMkoX1H'
+  api.comments[0].content = href
+  await page.route(gifApiPattern, (route) => route.fulfill({ json: {
+    result: true,
+    data: { data: [{
+      slug: 'another-dog', title: '다른 강아지',
+      file: { sm: { gif: { url: gifUrl, width: 160, height: 160 } } },
+    }] },
+  } }))
+  const responsePromise = page.waitForResponse(gifApiPattern)
+  await page.goto('/community/1')
+  const response = await responsePromise
+  await response.finished()
+  await page.evaluate(() => new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+  }))
+  await expect(page.getByRole('link', { name: href })).toHaveAttribute('href', href)
+  await expect(page.getByRole('img', { name: '다른 강아지' })).toHaveCount(0)
+})
+
+test('원본 slug와 접미사를 제외한 slug 응답이 함께 있으면 원본 일치 항목을 우선한다', async ({ page, api }) => {
+  const sharedSlug = 'cute-dog-181--k9DMkoX1H'
+  api.comments[0].content = `https://klipy.com/gifs/${sharedSlug}`
+  await page.route(gifApiPattern, (route) => route.fulfill({ json: {
+    result: true,
+    data: { data: ['cute-dog-181', sharedSlug].map((slug) => ({
+      slug, title: slug === sharedSlug ? '원본 강아지' : '기본 강아지',
+      file: { sm: { gif: { url: gifUrl, width: 160, height: 160 } } },
+    })) },
+  } }))
+  await page.goto('/community/1')
+  await expect(page.getByRole('img', { name: '원본 강아지' })).toBeVisible()
+  await expect(page.getByRole('img', { name: '기본 강아지' })).toHaveCount(0)
+})

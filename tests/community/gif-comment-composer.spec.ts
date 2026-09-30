@@ -6,8 +6,9 @@ import type { CreateCommentRequest } from '../../src/features/community/model/ty
 import { expect, test } from './fixtures'
 
 const gifUrl = 'https://static.klipy.com/test/comment-cat.gif'
-const gifHref = 'https://klipy.com/gifs/comment-cat'
-const gifItems = ['comment-cat', 'second-cat'].map((slug, index) => ({
+const gifSlug = 'cute-dog-181--k9DMkoX1H'
+const gifHref = `https://klipy.com/gifs/${gifSlug}`
+const gifItems = [gifSlug, 'second-cat'].map((slug, index) => ({
   slug, type: 'gif', title: index === 0 ? '고양이' : '두 번째 고양이',
   content_description: index === 0 ? '웃는 고양이' : '두 번째 고양이',
   file: { sm: { gif: { url: gifUrl, width: 160, height: 160 } } },
@@ -30,9 +31,14 @@ async function chooseGif(page: Page, label: string, name = '웃는 고양이') {
 
 test.beforeEach(async ({ page, api }) => {
   void api
-  await page.route(/^https:\/\/api\.klipy\.com\/api\/v1\/[^/]+\/gifs\/(trending|search|items)/, (route) => route.fulfill({
-    json: { result: true, data: { data: gifItems, has_next: false } },
-  }))
+  await page.route(/^https:\/\/api\.klipy\.com\/api\/v1\/[^/]+\/gifs\/(trending|search|items)/, (route) => {
+    const isPreview = new URL(route.request().url()).pathname.endsWith('/items')
+    // 실제 API처럼 목록은 공유용 slug를, Items 조회는 접미사가 없는 slug를 반환합니다.
+    const items = isPreview
+      ? gifItems.map((item) => ({ ...item, slug: item.slug.replace(/--[a-z0-9]+$/i, '') }))
+      : gifItems
+    return route.fulfill({ json: { result: true, data: { data: items, has_next: false } } })
+  })
   await page.route(gifUrl, (route) => route.fulfill({
     contentType: 'image/gif', headers: { 'Access-Control-Allow-Origin': '*' },
     body: Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64'),
@@ -87,6 +93,7 @@ test('GIF만 선택한 댓글도 Enter로 전송한다', async ({ page, api }) =
   await page.getByRole('textbox', { name: '댓글 내용' }).press('Enter')
   await expect.poll(() => api.comments.length).toBe(1)
   expect(api.comments[0].content).toBe(gifHref)
+  await expect(page.locator('#comment-501').getByRole('img', { name: '웃는 고양이' })).toBeVisible()
   await expect(page.getByRole('group', { name: '댓글 GIF 미리보기' })).toHaveCount(0)
 })
 
@@ -154,6 +161,7 @@ test('대댓글에 GIF만 익명으로 전송하고 취소 시 첨부를 초기�
   await child.getByRole('checkbox', { name: '익명', exact: true }).check()
   await child.getByRole('button', { name: '답글', exact: true }).click()
   await expect(page.locator('#comment-701').getByRole('button', { name: '웃는 고양이 크게 보기' })).toBeVisible()
+  await expect(page.locator('#comment-701').getByRole('link', { name: gifHref })).toHaveCount(0)
   expect(requests).toEqual([{ content: gifHref, isAnonymous: true, parentId: 601 }])
   await expect(child.getByRole('group', { name: '답글 GIF 미리보기' })).toHaveCount(0)
 })
