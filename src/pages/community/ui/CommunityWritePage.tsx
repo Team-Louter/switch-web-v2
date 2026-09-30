@@ -59,6 +59,7 @@ import {
   parseBlockNotePostContent,
   serializeBlockNotePostContent,
 } from '@/shared/lib/blockNotePostContent';
+import type { KlipyGif } from '@/shared/api';
 import { Button } from '@/shared/ui';
 
 import { getCommunityListReturnTo } from '../model/useCommunityListNavigation';
@@ -67,6 +68,7 @@ import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg';
 import backChevronIcon from '../assets/svg/back-chevron.svg';
 import boldIcon from '../assets/svg/editor-bold.svg';
 import codeIcon from '../assets/svg/editor-code.svg';
+import gifIcon from '../assets/svg/editor-gif.svg';
 import headingOneIcon from '../assets/svg/editor-heading-one.svg';
 import headingTwoIcon from '../assets/svg/editor-heading-two.svg';
 import imageIcon from '../assets/svg/editor-image.svg';
@@ -80,6 +82,7 @@ import underlineIcon from '../assets/svg/editor-underline.svg';
 import unorderedListIcon from '../assets/svg/editor-unordered-list.svg';
 
 import * as S from './CommunityWritePage.style';
+import { CommunityGifPicker } from './CommunityGifPicker';
 
 interface UploadedFile {
   id: string;
@@ -127,6 +130,7 @@ type EditorAction =
   | 'quote'
   | 'link'
   | 'image'
+  | 'gif'
   | 'file';
 
 interface EditorTool {
@@ -206,6 +210,7 @@ const EDITOR_TOOLS: EditorTool[] = [
   { action: 'quote', label: '인용문', icon: quoteIcon },
   { action: 'link', label: '링크', icon: linkIcon },
   { action: 'image', label: '이미지', icon: imageIcon },
+  { action: 'gif', label: 'GIF 선택', icon: gifIcon },
   { action: 'file', label: '파일 첨부', icon: paperclipIcon },
 ];
 
@@ -357,6 +362,7 @@ export function CommunityWritePage() {
   const [contentLength, setContentLength] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
   const [pendingFileUploadCount, setPendingFileUploadCount] = useState(0);
   const [fileUploadError, setFileUploadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -600,6 +606,11 @@ export function CommunityWritePage() {
   };
 
   const handleEditorToolClick = (action: EditorAction) => {
+    if (action === 'gif') {
+      setIsGifPickerOpen(true);
+      return;
+    }
+
     if (action === 'image') {
       imageInputRef.current?.click();
       return;
@@ -664,6 +675,25 @@ export function CommunityWritePage() {
         break;
     }
 
+    editor.focus();
+  };
+
+  const handleGifPickerClose = useCallback(() => {
+    setIsGifPickerOpen(false);
+  }, []);
+
+  const handleGifSelect = (gif: KlipyGif) => {
+    if (isEditorDisabled || isUploadingFile) return;
+
+    const currentBlock = editor.getTextCursorPosition().block;
+    const [imageBlock] = editor.insertBlocks(
+      [{ type: 'image', props: { url: gif.url, name: gif.title || 'GIF' } }],
+      currentBlock,
+      'after',
+    );
+
+    editor.setTextCursorPosition(imageBlock, 'end');
+    setIsGifPickerOpen(false);
     editor.focus();
   };
 
@@ -1517,6 +1547,12 @@ export function CommunityWritePage() {
           <S.SubmitError role="alert">{visiblePostLoadError}</S.SubmitError>
         )}
       </S.Content>
+      {isGifPickerOpen && (
+        <CommunityGifPicker
+          onSelect={handleGifSelect}
+          onClose={handleGifPickerClose}
+        />
+      )}
     </S.Page>
   );
 }
