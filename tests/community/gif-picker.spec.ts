@@ -24,7 +24,6 @@ test.beforeEach(async ({ page }) => {
 
 async function searchGifs(page: Page, query: string) {
   await page.getByRole('searchbox', { name: 'GIF 검색어' }).fill(query)
-  await page.getByRole('button', { name: 'GIF 검색', exact: true }).click()
 }
 
 test('추가 목록의 GIF를 선택하고 저장·수정 화면에서도 유지한다', async ({ page, api }) => {
@@ -114,6 +113,55 @@ test('조회 실패 후 재시도하면 GIF 목록을 복구한다', async ({ pa
   await page.getByRole('button', { name: '다시 시도', exact: true }).click()
   await expect(page.getByRole('button', { name: '복구 고양이 삽입' })).toBeVisible()
   await expect(page.getByRole('alert')).toHaveCount(0)
+})
+
+test('입력 즉시 검색하고 이전 요청을 취소하며 검색어를 지우면 인기 GIF로 돌아간다', async ({ page, api }) => {
+  void api
+  const queries: string[] = []
+  let releaseOldSearch = () => {}
+  let finishOldResponse = () => {}
+  const oldSearchGate = new Promise<void>((resolve) => { releaseOldSearch = resolve })
+  const oldResponseFinished = new Promise<void>((resolve) => { finishOldResponse = resolve })
+
+  await page.route(gifApiPattern, async (route) => {
+    const query = new URL(route.request().url()).searchParams.get('q') ?? ''
+    queries.push(query)
+    if (query === '고') await oldSearchGate
+    await route.fulfill({ json: {
+      result: true,
+      data: {
+        data: [gifItem(query ? `cat-${query === '고' ? 'old' : 'new'}` : 'popular-cat',
+          query === '고' ? '이전 검색 고양이' : query ? '최신 검색 고양이' : '인기 고양이')],
+        has_next: false,
+      },
+    } })
+    if (query === '고') finishOldResponse()
+  })
+
+  await page.goto('/community/write')
+  await page.getByRole('button', { name: 'GIF 선택', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'GIF 선택' })
+  const input = dialog.getByRole('searchbox', { name: 'GIF 검색어' })
+  await expect(dialog.getByRole('button', { name: '인기 고양이 삽입' })).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'GIF 검색', exact: true })).toHaveCount(0)
+
+  await input.fill('고')
+  await expect.poll(() => queries).toContain('고')
+  const canceledRequest = page.waitForEvent('requestfailed', (request) =>
+    new URL(request.url()).searchParams.get('q') === '고')
+  await input.fill('고양이')
+  await canceledRequest
+  await expect(dialog.getByRole('button', { name: '최신 검색 고양이 삽입' })).toBeVisible()
+  expect(queries).toContain('고양이')
+  releaseOldSearch()
+  await oldResponseFinished
+  await expect(dialog.getByRole('button', { name: '이전 검색 고양이 삽입' })).toHaveCount(0)
+  await expect(dialog.getByRole('button', { name: '최신 검색 고양이 삽입' })).toBeVisible()
+
+  await input.fill('')
+  await expect(dialog.getByText('인기 GIF', { exact: true })).toBeVisible()
+  await expect(dialog.getByRole('button', { name: '인기 고양이 삽입' })).toBeVisible()
+  await expect(dialog.getByRole('button', { name: '최신 검색 고양이 삽입' })).toHaveCount(0)
 })
 
 test('조회·이미지·추가 목록 로딩을 표시하고 작은 화면 안에 모달을 유지한다', async ({ page, api }) => {
