@@ -26,7 +26,7 @@ for (const alignment of ['left', 'center', 'right'] as const) {
     const gif = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64')
     gif.writeUInt16LE(165, 6)
     gif.writeUInt16LE(199, 8)
-    await page.route(gifUrl, (route) => route.fulfill({ contentType: 'image/gif', body: gif }))
+    await page.route(gifUrl, (route) => route.fulfill({ contentType: 'image/gif', headers: { 'Access-Control-Allow-Origin': '*' }, body: gif }))
 
     await page.goto('/community/1')
     const preview = page.getByRole('button', { name: '본문 고양이 크게 보기' })

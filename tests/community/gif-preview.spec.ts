@@ -28,7 +28,7 @@ test.beforeEach(async ({ page, api }) => {
     }] },
   } }))
   await page.route(gifUrl, (route) => route.fulfill({
-    contentType: 'image/gif',
+    contentType: 'image/gif', headers: { 'Access-Control-Allow-Origin': '*' },
     body: Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64'),
   }))
 })

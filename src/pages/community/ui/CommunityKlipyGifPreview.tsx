@@ -79,6 +79,7 @@ export function CommunityKlipyGifPreview({
             loading="lazy"
             decoding="async"
             referrerPolicy="no-referrer"
+            crossOrigin="anonymous"
             onError={() => setLoadedPreview({ slug, preview: null })}
           />
         </S.PreviewButton>
@@ -101,6 +102,7 @@ export function CommunityKlipyGifPreview({
             src={preview.url}
             alt={description}
             referrerPolicy="no-referrer"
+            crossOrigin="anonymous"
             onError={() => setLoadedPreview({ slug, preview: null })}
           />
         </Modal>

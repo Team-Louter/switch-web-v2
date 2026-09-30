@@ -19,13 +19,39 @@ function gifItem(slug: string, title: string, url = gifUrl) {
 
 test.beforeEach(async ({ page }) => {
   await page.route('https://static.klipy.com/**', (route) => route.fulfill({
-    contentType: 'image/gif',
+    contentType: 'image/gif', headers: { 'Access-Control-Allow-Origin': '*' },
     body: Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64'),
   }))
 })
 
 async function searchGifs(page: Page, query: string) {
   await page.getByRole('searchbox', { name: 'GIF 검색어' }).fill(query)
+}
+
+for (const { title, description, expected } of [
+  { title: '짧은 제목', description: '치즈를 먹는 고양이', expected: '치즈를 먹는 고양이' },
+  { title: '고양이 제목', description: '', expected: '고양이 제목' },
+  { title: '', description: '', expected: 'GIF' },
+]) {
+  test(`GIF 설명을 ${expected}(으)로 저장하고 상세·수정 화면에서 복원한다`, async ({ page, api }) => {
+    await page.route(gifApiPattern, (route) => route.fulfill({ json: {
+      result: true,
+      data: { data: [{ ...gifItem('described-cat', title), content_description: description }], has_next: false },
+    } }))
+    await page.goto('/community/write')
+    await page.getByRole('button', { name: 'GIF 선택', exact: true }).click()
+    await page.getByRole('button', { name: `${expected} 삽입`, exact: true }).click()
+    await expect(page.getByRole('img', { name: expected, exact: true })).toHaveAttribute('alt', expected)
+    await page.getByRole('textbox', { name: '게시글 제목' }).fill('GIF 설명 보존')
+    await page.getByRole('combobox', { name: '카테고리' }).click()
+    await page.getByRole('option', { name: '자유게시판' }).click()
+    await page.getByRole('button', { name: '게시하기', exact: true }).click()
+    await page.waitForURL('**/community/200')
+    expect(api.posts.find((post) => post.postId === 200)?.postContent).toContain(`"name":"${expected}"`)
+    await expect(page.getByRole('img', { name: expected, exact: true })).toHaveAttribute('alt', expected)
+    await page.goto('/community/200/edit')
+    await expect(page.getByRole('img', { name: expected, exact: true })).toHaveAttribute('alt', expected)
+  })
 }
 
 test('추가 목록의 GIF를 선택하고 저장·수정 화면에서도 유지한다', async ({ page, api }) => {
@@ -77,7 +103,7 @@ test('드래그로 GIF의 실제 크기를 늘리고 저장·상세·수정 화�
   gif.writeUInt16LE(150, 8)
   const verticalGif = gifItem('resizable-cat', '크기 조절 고양이')
   verticalGif.file.sm.gif.height = 150
-  await page.route(gifUrl, (route) => route.fulfill({ contentType: 'image/gif', body: gif }))
+  await page.route(gifUrl, (route) => route.fulfill({ contentType: 'image/gif', headers: { 'Access-Control-Allow-Origin': '*' }, body: gif }))
   await page.route(gifApiPattern, (route) => route.fulfill({ json: {
     result: true,
     data: { data: [verticalGif], has_next: false },
@@ -154,7 +180,7 @@ for (const alignment of ['center', 'right'] as const) {
     const gif = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64')
     gif.writeUInt16LE(100, 6)
     gif.writeUInt16LE(150, 8)
-    await page.route(gifUrl, (route) => route.fulfill({ contentType: 'image/gif', body: gif }))
+    await page.route(gifUrl, (route) => route.fulfill({ contentType: 'image/gif', headers: { 'Access-Control-Allow-Origin': '*' }, body: gif }))
 
     await page.goto('/community/1')
     const body = page.getByRole('textbox', { name: '게시글 본문' })

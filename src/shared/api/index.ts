@@ -22,5 +22,6 @@ export {
   getKlipyGifs,
   getKlipyGifPreview,
   isKlipyGifApiConfigured,
+  isKlipyMediaUrl,
 } from './klipyGif'
 export type { KlipyGif, KlipyGifPage, KlipyGifPreview } from './klipyGif'
