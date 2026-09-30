@@ -255,7 +255,9 @@ export function CommunityDetailPage() {
   const { postId: postIdParam } = useParams();
   const postId = Number(postIdParam);
   const currentUser = useUserStore((state) => state.user)
+  const profileLoadState = useUserStore((state) => state.profileLoadState)
   const userId = currentUser?.userId ?? null
+  const canLoadCommunityData = userId !== null || profileLoadState === 'error'
   const [post, setPost] = useState<PostResponse | null>(null);
   const [comments, setComments] = useState<CommentResponse[]>([]);
   const [loadedReplyCommentIds, setLoadedReplyCommentIds] = useState<
@@ -835,7 +837,7 @@ export function CommunityDetailPage() {
     let isCancelled = false;
 
     async function loadPost() {
-      if (userId === null) {
+      if (!canLoadCommunityData) {
         return
       }
 
@@ -899,7 +901,7 @@ export function CommunityDetailPage() {
     return () => {
       isCancelled = true;
     };
-  }, [postId, reloadKey, userId]);
+  }, [canLoadCommunityData, postId, reloadKey, userId]);
 
   useEffect(() => {
     if (!isPostStatsPollingReady) {
@@ -952,7 +954,7 @@ export function CommunityDetailPage() {
     let isCancelled = false;
 
     async function loadComments() {
-      if (userId === null) {
+      if (!canLoadCommunityData) {
         return
       }
 
@@ -1017,7 +1019,14 @@ export function CommunityDetailPage() {
     return () => {
       isCancelled = true;
     };
-  }, [postId, reloadKey, commentReloadKey, targetCommentId, userId]);
+  }, [
+    canLoadCommunityData,
+    postId,
+    reloadKey,
+    commentReloadKey,
+    targetCommentId,
+    userId,
+  ]);
 
   useEffect(() => {
     if (
