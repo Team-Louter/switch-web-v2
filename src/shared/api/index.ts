@@ -19,7 +19,8 @@ export {
 
 export { getYouTubeTitle } from './youtubeMetadata'
 export {
+  getKlipyGifs,
   getKlipyGifPreview,
   isKlipyGifApiConfigured,
 } from './klipyGif'
-export type { KlipyGifPreview } from './klipyGif'
+export type { KlipyGif, KlipyGifPage, KlipyGifPreview } from './klipyGif'
