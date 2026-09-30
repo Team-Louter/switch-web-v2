@@ -39,6 +39,8 @@ async function mockCommunityApi(page: Page) {
       ...Array.from({ length: 70 }, (_, index) => createPost(index + 1)),
     ],
     listRequests: [] as { category: string | null; page: number }[],
+    typingRankingRequests: [] as string[],
+    typingPreviousResultRequests: 0,
     failLists: false,
     failMutations: false,
     pauseLists() {
@@ -87,6 +89,56 @@ async function mockCommunityApi(page: Page) {
       return
     }
 
+    if (method !== 'GET' && api.failMutations) {
+      await route.fulfill({ status: 503, json: { message: '변경 실패' } })
+      return
+    }
+
+    if (method === 'GET' && path === '/typing/results/previous') {
+      api.typingPreviousResultRequests += 1
+      await route.fulfill({
+        json: {
+          resultId: 7,
+          accuracy: 98,
+          elapsedTime: 60,
+          averageSpeed: 120,
+          problemType: 'DAILY',
+          rank: 1,
+          totalPracticeCount: 5,
+        },
+      })
+      return
+    }
+
+    const typingRankingMatch = path.match(/^\/typing\/results\/rankings\/([^/]+)$/)
+    if (method === 'GET' && typingRankingMatch) {
+      const type = typingRankingMatch[1]
+      api.typingRankingRequests.push(type)
+      await route.fulfill({
+        json: {
+          problemType: type,
+          topRankings: [
+            { rank: 1, userId: 42, userName: '테스트 작성자', averageSpeed: 120 },
+          ],
+          myRanking: null,
+        },
+      })
+      return
+    }
+
+    if (method === 'POST' && path === '/typing/rounds/DAILY') {
+      await route.fulfill({
+        json: {
+          roundId: 8,
+          userId: 42,
+          problems: [{ problemId: 1, problemType: 'DAILY', content: 'Hello world.' }],
+          resultId: 0,
+          problemType: 'DAILY',
+        },
+      })
+      return
+    }
+
     if (method === 'GET' && /^\/posts(?:\/category\/[^/]+)?$/.test(path)) {
       const category = path.startsWith('/posts/category/')
         ? path.split('/').at(-1) ?? null
@@ -120,11 +172,6 @@ async function mockCommunityApi(page: Page) {
           ? { status: 503, json: { message: '목록 조회 실패' } }
           : { json: response },
       )
-      return
-    }
-
-    if (method !== 'GET' && api.failMutations) {
-      await route.fulfill({ status: 503, json: { message: '변경 실패' } })
       return
     }
 
