@@ -26,6 +26,8 @@ export function CommunityKlipyGifPreview({
   const [isExpanded, setIsExpanded] = useState(false);
   const preview = loadedPreview?.slug === slug ? loadedPreview.preview : null;
   const description = preview?.contentDescription || preview?.title || 'KLIPY GIF';
+  const aspectRatio = preview?.width && preview.height && preview.width > 0 && preview.height > 0
+    ? preview.width / preview.height : 1;
 
   const handleClose = () => setIsExpanded(false);
 
@@ -90,21 +92,17 @@ export function CommunityKlipyGifPreview({
         )}
       </S.Preview>
       {isExpanded && (
-        <Modal label="GIF 크게 보기" width={720} onClose={handleClose}>
-          <S.ExpandedView>
-            <S.ExpandedHeader>
-              <S.ExpandedTitle>GIF 크게 보기</S.ExpandedTitle>
-              <S.CloseButton type="button" aria-label="GIF 크게 보기 닫기" onClick={handleClose}>
-                <MdClose size={22} />
-              </S.CloseButton>
-            </S.ExpandedHeader>
-            <S.ExpandedImage
-              src={preview.url}
-              alt={description}
-              referrerPolicy="no-referrer"
-              onError={() => setLoadedPreview({ slug, preview: null })}
-            />
-          </S.ExpandedView>
+        <Modal label="GIF 크게 보기" variant="media" onClose={handleClose}>
+          <S.CloseButton type="button" aria-label="GIF 크게 보기 닫기" onClick={handleClose}>
+            <MdClose size={24} />
+          </S.CloseButton>
+          <S.ExpandedImage
+            $aspectRatio={aspectRatio}
+            src={preview.url}
+            alt={description}
+            referrerPolicy="no-referrer"
+            onError={() => setLoadedPreview({ slug, preview: null })}
+          />
         </Modal>
       )}
     </>

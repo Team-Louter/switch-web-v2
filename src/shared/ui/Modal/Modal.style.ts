@@ -2,7 +2,10 @@ import styled, { css, keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
-export const Overlay = styled.div<{ $placement: 'center' | 'bottom-right' }>`
+export const Overlay = styled.div<{
+  $placement: 'center' | 'bottom-right'
+  $variant: 'default' | 'media'
+}>`
   ${token.flexCenter}
   position: fixed;
   z-index: 100;
@@ -13,7 +16,9 @@ export const Overlay = styled.div<{ $placement: 'center' | 'bottom-right' }>`
   justify-content: ${({ $placement }) => $placement === 'bottom-right' ? 'flex-end' : 'center'};
   pointer-events: ${({ $placement }) =>
     $placement === 'bottom-right' ? 'none' : 'auto'};
-  background: ${({ $placement }) => $placement === 'bottom-right' ? 'transparent' : 'rgba(0, 0, 0, 0.5)'};
+  background: ${({ $placement, $variant }) =>
+    $placement === 'bottom-right' ? 'transparent'
+      : $variant === 'media' ? 'rgba(0, 0, 0, 0.85)' : 'rgba(0, 0, 0, 0.5)'};
 `
 
 const floatingCardEnter = keyframes`
@@ -44,19 +49,22 @@ export const Card = styled.div<{
   $width: number
   $minHeight?: number
   $placement: 'center' | 'bottom-right'
+  $variant: 'default' | 'media'
   $isClosing: boolean
 }>`
   ${token.flexColumnStart}
   box-sizing: border-box;
-  width: ${({ $width }) => $width}px;
+  width: ${({ $width, $variant }) => $variant === 'media' ? 'fit-content' : `${$width}px`};
   max-width: 100%;
   min-height: ${({ $minHeight }) => ($minHeight ? `${$minHeight}px` : 'auto')};
   overflow: hidden;
-  padding: ${({ $placement }) => $placement === 'bottom-right' ? '20px' : '30px'};
+  padding: ${({ $placement, $variant }) =>
+    $variant === 'media' ? '0' : $placement === 'bottom-right' ? '20px' : '30px'};
   box-shadow: ${({ $placement }) => $placement === 'bottom-right' ? '0 4px 20px rgba(0, 0, 0, 0.06)' : 'none'};
   border: ${({ $placement }) => $placement === 'bottom-right' ? `1px solid ${token.colors.gray.gray0}` : 'none'};
-  border-radius: ${({ $placement }) => $placement === 'bottom-right' ? '20px' : token.shapes.large};
-  background: ${token.colors.white};
+  border-radius: ${({ $placement, $variant }) =>
+    $variant === 'media' ? '0' : $placement === 'bottom-right' ? '20px' : token.shapes.large};
+  background: ${({ $variant }) => $variant === 'media' ? 'transparent' : token.colors.white};
   pointer-events: auto;
   animation: ${({ $placement, $isClosing }) =>
     $placement === 'bottom-right'

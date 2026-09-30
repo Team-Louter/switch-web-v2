@@ -14,6 +14,7 @@ type ModalProps = {
   width?: number
   minHeight?: number
   placement?: 'center' | 'bottom-right'
+  variant?: 'default' | 'media'
   isClosing?: boolean
   onClose: () => void
 }
@@ -24,6 +25,7 @@ export function Modal({
   width = 486,
   minHeight,
   placement = 'center',
+  variant = 'default',
   isClosing = false,
   onClose,
 }: ModalProps) {
@@ -118,6 +120,7 @@ export function Modal({
   return createPortal(
     <Overlay
       $placement={placement}
+      $variant={variant}
       onMouseDown={handleOverlayMouseDown}
       onClick={handleOverlayClick}
     >
@@ -129,6 +132,7 @@ export function Modal({
         tabIndex={-1}
         $width={width}
         $placement={placement}
+        $variant={variant}
         $isClosing={isClosing}
         $minHeight={minHeight}
       >

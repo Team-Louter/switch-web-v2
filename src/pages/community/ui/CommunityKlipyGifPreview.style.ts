@@ -45,40 +45,24 @@ export const Attribution = styled.span`
   ${token.typography('body', 'sm', 'medium')}
 `;
 
-export const ExpandedView = styled.div`
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  gap: 16px;
-`;
-
-export const ExpandedHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-`;
-
-export const ExpandedTitle = styled.h2`
-  margin: 0;
-  ${token.typography('heading', 'sm', 'bold')}
-`;
-
 export const CloseButton = styled.button`
   display: flex;
-  width: 36px;
-  height: 36px;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
   align-items: center;
   justify-content: center;
   padding: 0;
   border: 0;
   border-radius: ${token.shapes.small};
-  color: ${token.colors.gray.gray70};
-  background: transparent;
+  color: ${token.colors.white};
+  background: rgba(255, 255, 255, 0.12);
   cursor: pointer;
 
   &:hover {
-    background: ${token.colors.gray.gray0};
+    background: rgba(255, 255, 255, 0.2);
   }
 
   &:focus-visible {
@@ -87,10 +71,11 @@ export const CloseButton = styled.button`
   }
 `;
 
-export const ExpandedImage = styled.img`
+export const ExpandedImage = styled.img<{ $aspectRatio: number }>`
   display: block;
-  width: 100%;
-  max-height: min(560px, calc(100dvh - 152px));
+  width: min(720px, calc(100vw - 40px), calc(min(560px, calc(100dvh - 80px)) * ${({ $aspectRatio }) => $aspectRatio}));
+  height: auto;
+  max-height: min(560px, calc(100dvh - 80px));
   border-radius: ${token.shapes.small};
   object-fit: contain;
 `;
