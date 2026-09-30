@@ -1,11 +1,14 @@
 import { useRef, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import type { EventInput } from '@fullcalendar/core'
+import { useUserStore } from '@/entities/profile'
+import { scheduleQueryKeys } from '@/entities/schedule'
+import { queryClient } from '@/shared/lib/queryClient'
 import type { Member } from '@/shared/types/member'
-import type { ScheduleColor } from '@/shared/types/schedule'
+import type { ScheduleColor, ScheduleResponse } from '@/shared/types/schedule'
 import { toEndDateTime, toStartDateTime } from '@/shared/utils/schedule'
 import { createSchedule, deleteSchedule, modifySchedule } from '../api/scheduleApi'
-import { formatEvents, getScheduleTarget } from '../lib/calendarEvents'
+import { getScheduleTarget } from '../lib/calendarEvents'
 
 interface EditorParams {
   modalMode: string
@@ -17,7 +20,6 @@ interface EditorParams {
   selectedColor: string
   selectedMemberIds: number[]
   allMembers: Member[]
-  setEvents: Dispatch<SetStateAction<EventInput[]>>
   setIsModalOpen: Dispatch<SetStateAction<boolean>>
 }
 
@@ -26,6 +28,7 @@ export function useEventEditor(params: EditorParams) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState('')
   const pending = useRef(false)
+  const userId = useUserStore((state) => state.user?.userId ?? null)
 
   const handleSubmit = async () => {
     if (pending.current) return
@@ -44,18 +47,23 @@ export function useEventEditor(params: EditorParams) {
       const savedSchedule = params.modalMode === '추가'
         ? await createSchedule(payload)
         : await modifySchedule(Number(params.event?.scheduleId), payload)
-      const savedEvent = formatEvents([savedSchedule])[0]
+      queryClient.setQueryData<ScheduleResponse[]>(
+        scheduleQueryKeys.list(userId),
+        (currentSchedules) => {
+          if (!currentSchedules) return currentSchedules
+          if (params.modalMode === '추가') {
+            return [...currentSchedules, savedSchedule]
+          }
 
-      params.setEvents((currentEvents) => {
-        if (params.modalMode === '추가') {
-          return [...currentEvents, savedEvent]
-        }
-
-        return currentEvents.map((currentEvent) =>
-          currentEvent.scheduleId === savedEvent.scheduleId
-            ? savedEvent
-            : currentEvent,
-        )
+          return currentSchedules.map((schedule) =>
+            schedule.scheduleId === savedSchedule.scheduleId
+              ? savedSchedule
+              : schedule,
+          )
+        },
+      )
+      void queryClient.invalidateQueries({
+        queryKey: scheduleQueryKeys.list(userId),
       })
       params.setIsModalOpen(false)
     } catch {
@@ -73,11 +81,16 @@ export function useEventEditor(params: EditorParams) {
 
     try {
       await deleteSchedule(scheduleId)
-      params.setEvents((currentEvents) =>
-        currentEvents.filter((currentEvent) =>
-          currentEvent.scheduleId !== scheduleId && currentEvent.id !== String(scheduleId),
-        ),
+      queryClient.setQueryData<ScheduleResponse[]>(
+        scheduleQueryKeys.list(userId),
+        (currentSchedules) =>
+          currentSchedules?.filter(
+            (schedule) => schedule.scheduleId !== scheduleId,
+          ),
       )
+      void queryClient.invalidateQueries({
+        queryKey: scheduleQueryKeys.list(userId),
+      })
       params.setIsModalOpen(false)
     } catch {
       setError('일정 삭제에 실패했습니다. 다시 시도해 주세요.')

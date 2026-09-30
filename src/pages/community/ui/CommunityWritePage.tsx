@@ -39,15 +39,17 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import {
+  communityPostDetailOptions,
   getCommunityFileDownloadUrl,
   getCommunityFileKey,
-  getPost,
   getPostTagLabel,
   POST_CATEGORY_OPTIONS,
   POST_TAG_OPTIONS_BY_CATEGORY,
   type PostCategory,
   type PostTag,
 } from '@/entities/community';
+import { useUserStore } from '@/entities/profile'
+import { queryClient } from '@/shared/lib/queryClient'
 import {
   createPost,
   updatePost,
@@ -337,6 +339,7 @@ export function CommunityWritePage() {
   const { postId: postIdParam } = useParams();
   const isEditRoute = postIdParam !== undefined;
   const editingPostId = Number(postIdParam);
+  const userId = useUserStore((state) => state.user?.userId ?? null)
   const isEditing =
     isEditRoute && Number.isSafeInteger(editingPostId) && editingPostId > 0;
   const invalidEditRoute = isEditRoute && !isEditing;
@@ -1083,6 +1086,9 @@ export function CommunityWritePage() {
       isPostLoadingRef.current = false;
       return;
     }
+    if (userId === null) {
+      return
+    }
 
     let isCancelled = false;
 
@@ -1092,7 +1098,9 @@ export function CommunityWritePage() {
       setPostLoadError(null);
 
       try {
-        const post = await getPost(editingPostId);
+        const post = await queryClient.fetchQuery(
+          communityPostDetailOptions(editingPostId, userId),
+        );
         const postBlocks = parseBlockNotePostContent(post.postContent);
         const contentBlocks =
           postBlocks ?? editor.tryParseHTMLToBlocks(post.postContent);
@@ -1141,7 +1149,7 @@ export function CommunityWritePage() {
       isCancelled = true;
       isPostLoadingRef.current = false;
     };
-  }, [editor, editingPostId, isEditing, isEditRoute]);
+  }, [editor, editingPostId, isEditing, isEditRoute, userId]);
 
   useEffect(() => {
     if (!isCategoryMenuOpen) {

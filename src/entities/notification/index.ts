@@ -2,6 +2,12 @@ export { getNotificationSettings } from './api/getNotificationSettings'
 export { getNotifications } from './api/getNotifications'
 export { getUnreadNotificationCount } from './api/getUnreadNotificationCount'
 export { mapNotificationResponse } from './lib/mapNotificationResponse'
+export {
+  notificationPageOptions,
+  notificationQueryKeys,
+  notificationSettingsOptions,
+  unreadNotificationCountOptions,
+} from './model/notificationQueries'
 export type {
   GetNotificationsParams,
   Notification,

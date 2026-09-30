@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { queryOptions } from '@tanstack/react-query'
 import { PiArrowRight, PiPlus } from 'react-icons/pi'
 import { useLocation, useSearchParams } from 'react-router-dom'
 
-import { getMember } from '@/entities/member'
-import { getProfile } from '@/entities/member/getProfile'
-import type { Profile } from '@/entities/member/model/profile'
+import { memberDirectoryOptions } from '@/entities/member'
 import type { Member } from '@/entities/member/model/types'
 import {
-  getMessages,
-  getMentoringMembers,
-  getMentorings,
-  getQuestions,
+  mentoringMessagesOptions,
+  mentoringQuestionsOptions,
+  mentoringQueryKeys,
+  mentoringRoomMembersOptions,
+  mentoringRoomsOptions,
 } from '@/entities/mentoring'
 import type {
   MentoringMessage,
@@ -28,6 +28,9 @@ import {
   uploadMentoringFile,
 } from '@/features/mentoring'
 import type { MentoringRoomView } from '@/features/mentoring'
+import { queryClient } from '@/shared/lib/queryClient'
+import { profileMeOptions, useUserStore } from '@/entities/profile'
+import type { ProfileResponse } from '@/entities/profile'
 
 import { useMentoringEntryPage } from '../model/useMentoringEntryPage'
 import { MentoringQuestionList } from './components/MentoringQuestionList'
@@ -76,10 +79,12 @@ const wait = (durationMs: number) =>
     setTimeout(resolve, durationMs)
   })
 
-async function fetchMentoringBase(): Promise<MentoringBaseData> {
+async function fetchMentoringBase(
+  userId: number | null,
+): Promise<MentoringBaseData> {
   const [mentorings, questions] = await Promise.all([
-    getMentorings(),
-    getQuestions(),
+    queryClient.fetchQuery(mentoringRoomsOptions(userId)),
+    queryClient.fetchQuery(mentoringQuestionsOptions(userId)),
   ])
 
   return { mentorings, questions }
@@ -88,6 +93,7 @@ async function fetchMentoringBase(): Promise<MentoringBaseData> {
 async function hydrateRoomViews(
   mentorings: MentoringRoom[],
   members: Member[],
+  userId: number | null,
 ): Promise<MentoringRoomView[]> {
   const memberByUserId = new Map(
     members.map((member) => [member.userId, member]),
@@ -100,9 +106,21 @@ async function hydrateRoomViews(
   return Promise.all(
     mentorings.map(async (room: MentoringRoom) => {
       const [leaders, mentors, mentees] = await Promise.all([
-        getMentoringMembers(room.mentoringId, 'LEADER').catch(() => []),
-        getMentoringMembers(room.mentoringId, 'MENTOR').catch(() => []),
-        getMentoringMembers(room.mentoringId, 'MENTEE').catch(() => []),
+        queryClient
+          .fetchQuery(
+            mentoringRoomMembersOptions(userId, room.mentoringId, 'LEADER'),
+          )
+          .catch(() => []),
+        queryClient
+          .fetchQuery(
+            mentoringRoomMembersOptions(userId, room.mentoringId, 'MENTOR'),
+          )
+          .catch(() => []),
+        queryClient
+          .fetchQuery(
+            mentoringRoomMembersOptions(userId, room.mentoringId, 'MENTEE'),
+          )
+          .catch(() => []),
       ])
       const leaderMembers = toMembers(leaders.map(({ userId }) => userId))
       const mentorMembers = toMembers(mentors.map(({ userId }) => userId))
@@ -163,12 +181,12 @@ async function preloadMemberImages(members: Member[]): Promise<void> {
 /**
  * 멘토링 방, 방별 멤버, 질문을 v1 화면이 요구하는 단위로 구성한다.
  */
-async function fetchMentoring(): Promise<MentoringData> {
+async function fetchMentoring(userId: number | null): Promise<MentoringData> {
   const [{ mentorings, questions }, members] = await Promise.all([
-    fetchMentoringBase(),
-    getMember(),
+    fetchMentoringBase(userId),
+    queryClient.fetchQuery(memberDirectoryOptions(userId)),
   ])
-  const rooms = await hydrateRoomViews(mentorings, members)
+  const rooms = await hydrateRoomViews(mentorings, members, userId)
   await preloadMemberImages(
     rooms.flatMap(({ members: roomMembers }) => roomMembers),
   )
@@ -178,6 +196,13 @@ async function fetchMentoring(): Promise<MentoringData> {
     questions,
     rooms,
   }
+}
+
+function mentoringEntryOptions(userId: number | null) {
+  return queryOptions({
+    queryKey: mentoringQueryKeys.entry(userId),
+    queryFn: () => fetchMentoring(userId),
+  })
 }
 
 function applyMentoringData(
@@ -193,11 +218,12 @@ function applyMentoringData(
 
 export function MentoringEntryPage() {
   const { handleDashboardClick } = useMentoringEntryPage()
+  const userId = useUserStore((state) => state.user?.userId ?? null)
   const { hash } = useLocation()
   const [searchParams] = useSearchParams()
   const targetQuestionId = parsePositiveId(searchParams.get('questionId'))
   const targetMessageId = getTargetMessageId(hash)
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [profile, setProfile] = useState<ProfileResponse | null>(null)
   const [members, setMembers] = useState<Member[]>([])
   const [rooms, setRooms] = useState<MentoringRoomView[]>([])
   const [questions, setQuestions] = useState<MentoringQuestion[]>([])
@@ -226,23 +252,39 @@ export function MentoringEntryPage() {
 
   const reloadMentoring = useCallback(async () => {
     try {
-      const data = await fetchMentoring()
+      await queryClient.invalidateQueries({
+        queryKey: mentoringQueryKeys.all,
+      })
+      const data = await queryClient.fetchQuery({
+        ...mentoringEntryOptions(userId),
+        staleTime: 0,
+      })
       applyMentoringData(data, setMembers, setQuestions, setRooms)
       return data
     } catch {
       return null
     }
-  }, [])
+  }, [userId])
 
   useEffect(() => {
-    let isCancelled = false
-    const minimumSkeleton = wait(INITIAL_SKELETON_MIN_DURATION_MS)
-    // 방/질문과 답변 요청을 멤버 상세 조회와 동시에 시작한다.
-    const baseDataPromise = fetchMentoringBase()
-    const membersPromise = getMember().catch(() => [])
-    const messagesPromise = getMessages().catch(() => [])
+    if (userId === null) {
+      return
+    }
 
-    getProfile()
+    let isCancelled = false
+    const entryOptions = mentoringEntryOptions(userId)
+    const cachedData = queryClient.getQueryData<MentoringData>(
+      entryOptions.queryKey,
+    )
+    const minimumSkeleton = cachedData
+      ? Promise.resolve()
+      : wait(INITIAL_SKELETON_MIN_DURATION_MS)
+    const messagesPromise = queryClient
+      .fetchQuery(mentoringMessagesOptions(userId))
+      .catch(() => [])
+
+    queryClient
+      .fetchQuery(profileMeOptions(userId))
       .then((myProfile) => {
         if (!isCancelled) {
           setProfile(myProfile)
@@ -252,8 +294,8 @@ export function MentoringEntryPage() {
 
     const loadInitialData = async () => {
       try {
-        const [{ mentorings, questions }] = await Promise.all([
-          baseDataPromise,
+        const [data] = await Promise.all([
+          queryClient.fetchQuery(entryOptions),
           minimumSkeleton,
         ])
 
@@ -261,25 +303,7 @@ export function MentoringEntryPage() {
           return
         }
 
-        setQuestions(questions)
-
-        const members = await membersPromise
-
-        if (isCancelled) {
-          return
-        }
-
-        setMembers(members)
-        const hydratedRooms = await hydrateRoomViews(mentorings, members)
-        await preloadMemberImages(
-          hydratedRooms.flatMap(({ members: roomMembers }) => roomMembers),
-        )
-
-        if (isCancelled) {
-          return
-        }
-
-        setRooms(hydratedRooms)
+        applyMentoringData(data, setMembers, setQuestions, setRooms)
         setInitialMessagesPromise(messagesPromise)
         setIsLoading(false)
       } catch {
@@ -296,7 +320,7 @@ export function MentoringEntryPage() {
     return () => {
       isCancelled = true
     }
-  }, [])
+  }, [userId])
 
   const activeRoomId =
     selectedRoomId !== null &&

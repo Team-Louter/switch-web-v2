@@ -1,6 +1,15 @@
 export { getMyStatus, getWeekStatus } from './api/getStatus'
 export { getAllStudies, getStudy } from './api/getStudy'
 export { getAllTotalStudies, getTotalStudy } from './api/getTotalStudy'
+export {
+  allManagementStudiesOptions,
+  managementStudyWeekOptions,
+  myStudyMonthOptions,
+  myStudyRecordOptions,
+  studyQueryKeys,
+  totalStudyReportOptions,
+  totalStudyReportsOptions,
+} from './model/studyQueries'
 export type {
   CreateStudyRequest,
   StudyRecord,

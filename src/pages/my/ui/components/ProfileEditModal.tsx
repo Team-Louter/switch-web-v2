@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { useUserStore } from '@/entities/profile'
+import { profileQueryKeys } from '@/entities/profile'
 import { uploadFile } from '@/shared/api'
+import { queryClient } from '@/shared/lib/queryClient'
 
 import { updateMyProfile } from '../../api'
 import {
@@ -60,6 +62,7 @@ export function ProfileEditModal({
   onUpdated,
 }: ProfileEditModalProps) {
   const storedUser = useUserStore((state) => state.user)
+  const userId = storedUser?.userId ?? null
   const fetchUser = useUserStore((state) => state.fetchUser)
   const setUser = useUserStore((state) => state.setUser)
   const profileImageInputRef = useRef<HTMLInputElement>(null)
@@ -255,6 +258,7 @@ export function ProfileEditModal({
         userName: nextUserName,
       })
 
+      queryClient.setQueryData(profileQueryKeys.me(userId), updatedProfile)
       setUser(updatedProfile)
       onUpdated(updatedProfile)
       onClose()

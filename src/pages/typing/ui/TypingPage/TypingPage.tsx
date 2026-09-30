@@ -11,17 +11,18 @@ import secondMedal from "@/shared/assets/2nd.svg";
 import thirdMedal from "@/shared/assets/3rd.svg";
 import { ModeButton } from "../ModeButton/ModeButton";
 import { TYPING_MODES } from "../../model/typingModes";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from "react-router-dom";
 import { TypingSentenceModal, type TypingSentenceModalType } from "@/features/typing";
 import {
-  getPreviousResult,
-  getRankingList,
+  typingPreviousResultOptions,
+  typingRankingOptions,
   type Ranking,
-  type RankingList,
   type TypingProblem,
-  type TypingResult,
+  type TypingProblemType,
 } from "@/entities/typing";
+import { useUserStore } from '@/entities/profile'
 
 const MEDALS: Partial<Record<Ranking['rank'], string>> = {
   1: firstMedal,
@@ -40,24 +41,30 @@ const formatElapsedTime = (elapsedTime: number) => {
 
 export function TypingPage() {
   const navigate = useNavigate();
+  const userId = useUserStore((state) => state.user?.userId ?? null)
   const [selectedMode, setSelectedMode] = useState<string>("DAILY");
   const [sentenceModal, setSentenceModal] = useState<TypingSentenceModalType>(null);
   const [editingSentence, setEditingSentence] = useState<TypingProblem | null>(null);
-  const [rankings, setRankings] = useState<RankingList | null>(null);
-  const getRanking = (rank: number) => rankings?.topRankings.find((ranking) => ranking.rank === rank);
-  const selectedModeName = TYPING_MODES.find(
-    (mode) => mode.serverValue === selectedMode,
-  )?.mode;
-  const [previousResult, setPreviousResult] = useState<TypingResult>({
+  const { data: rankings } = useQuery({
+    ...typingRankingOptions(userId, selectedMode as TypingProblemType),
+    enabled: userId !== null,
+  })
+  const { data: previousResult = {
     resultId: 0,
     accuracy: 0,
     elapsedTime: 0,
     averageSpeed: 0,
-    problemType: 'DAILY',
+    problemType: 'DAILY' as const,
     rank: 0,
-    totalPracticeCount: 0
-  });
-
+    totalPracticeCount: 0,
+  } } = useQuery({
+    ...typingPreviousResultOptions(userId),
+    enabled: userId !== null,
+  })
+  const getRanking = (rank: number) => rankings?.topRankings.find((ranking) => ranking.rank === rank);
+  const selectedModeName = TYPING_MODES.find(
+    (mode) => mode.serverValue === selectedMode,
+  )?.mode;
   const handleStart = () => {
     if (selectedMode === "DAILY") {
       navigate("/typing/daily");
@@ -81,24 +88,6 @@ export function TypingPage() {
     setEditingSentence(item);
     setSentenceModal('delete');
   };
-
-  useEffect(() => {
-    const getPrevious = async () => {
-      const data = await getPreviousResult();
-      setPreviousResult(data);
-    }
-
-    void getPrevious();
-  }, [])
-
-  useEffect(() => {
-    const getRankings = async () => {
-      const data = await getRankingList(selectedMode);
-      setRankings(data);
-    }
-
-    void getRankings();
-  }, [selectedMode])
 
   return (
     <S.TypingContainer>

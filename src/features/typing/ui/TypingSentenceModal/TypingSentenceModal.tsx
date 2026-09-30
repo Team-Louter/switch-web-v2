@@ -1,6 +1,7 @@
 import MonacoEditor, { loader } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
 import { type MouseEvent, useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import {
   IoChevronDown,
   IoClose,
@@ -9,7 +10,8 @@ import {
 } from 'react-icons/io5'
 import { LuPlus } from 'react-icons/lu'
 
-import { getProblems, type TypingProblem } from '@/entities/typing'
+import { typingProblemsOptions, type TypingProblem } from '@/entities/typing'
+import { useUserStore } from '@/entities/profile'
 
 import { createProblem } from '../../api/createProblem'
 import { deleteProblem } from '../../api/deleteProblem'
@@ -86,20 +88,12 @@ export function TypingSentenceModal({
 type SettingsModalProps = Pick<TypingSentenceModalProps, 'onDelete' | 'onEdit' | 'onOpenEditor'>
 
 function SettingsModal({ onDelete, onEdit, onOpenEditor }: SettingsModalProps) {
-  const [problems, setProblems] = useState<TypingProblem[]>([])
-
-  useEffect(() => {
-    const fetchProblems = async () => {
-      try {
-        const data = await getProblems()
-        setProblems([...data].sort((a, b) => b.problemId - a.problemId))
-      } catch {
-        // 조회 실패 시 빈 목록을 유지한다.
-      }
-    }
-
-    void fetchProblems()
-  }, [])
+  const userId = useUserStore((state) => state.user?.userId ?? null)
+  const { data: problems = [] } = useQuery({
+    ...typingProblemsOptions(userId),
+    enabled: userId !== null,
+    select: (items) => [...items].sort((a, b) => b.problemId - a.problemId),
+  })
 
   const getProblemLabel = (problemType: string) => {
     if (problemType === 'DAILY') return '일상'

@@ -8,9 +8,15 @@ import {
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
-import { getUnreadNotificationCount } from '@/entities/notification'
-import { formatProfileClassInfo, useUserStore } from '@/entities/profile'
+import {
+  formatProfileClassInfo,
+  profileMeOptions,
+  profileQueryKeys,
+  useUserStore,
+} from '@/entities/profile'
+import { unreadNotificationCountOptions } from '@/entities/notification'
 import { SIDEBAR_MENU } from '@/shared/constants/sidebar'
+import { queryClient } from '@/shared/lib/queryClient'
 import {
   getProfileSyncPayload,
   PROFILE_SYNC_EVENT_NAME,
@@ -58,6 +64,8 @@ export function AppLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const fetchUser = useUserStore((state) => state.fetchUser)
+  const setUser = useUserStore((state) => state.setUser)
+  const userId = useUserStore((state) => state.user?.userId ?? null)
   const [notificationCount, setNotificationCount] = useState(
     getStoredUnreadNotificationCount,
   )
@@ -113,7 +121,14 @@ export function AppLayout() {
 
     const synchronizeProfile = async () => {
       try {
-        const profile = await fetchUser()
+        const profile = userId === null
+          ? await fetchUser()
+          : await queryClient.fetchQuery(profileMeOptions(userId))
+        queryClient.setQueryData(profileQueryKeys.me(profile.userId), profile)
+
+        if (useUserStore.getState().user !== profile) {
+          setUser(profile)
+        }
         const nextProfile: SidebarProfile = {
           classInfo: formatProfileClassInfo(profile),
           name: profile.userName,
@@ -161,14 +176,20 @@ export function AppLayout() {
       isCancelled = true
       window.removeEventListener(PROFILE_SYNC_EVENT_NAME, handleProfileSync)
     }
-  }, [fetchUser, location.pathname])
+  }, [fetchUser, location.pathname, setUser, userId])
 
   useEffect(() => {
     let isCancelled = false
 
     const synchronizeNotificationCount = async () => {
+      if (userId === null) {
+        return
+      }
+
       try {
-        const unreadCount = await getUnreadNotificationCount()
+        const unreadCount = await queryClient.fetchQuery(
+          unreadNotificationCountOptions(userId),
+        )
 
         if (!isCancelled) {
           updateNotificationCount(unreadCount)
@@ -199,7 +220,7 @@ export function AppLayout() {
       window.clearInterval(pollingTimer)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [updateNotificationCount])
+  }, [updateNotificationCount, userId])
 
   return (
     <Layout>

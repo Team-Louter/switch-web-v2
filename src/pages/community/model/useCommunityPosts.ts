@@ -2,12 +2,14 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 
 import { communityPostListOptions, type PostCategory } from '@/entities/community'
+import { useUserStore } from '@/entities/profile'
 
 export function useCommunityPosts(category: PostCategory | null, page: number) {
+  const userId = useUserStore((state) => state.user?.userId ?? null)
   const postsQuery = useQuery(
-    communityPostListOptions({ category: category ?? undefined, page }),
+    communityPostListOptions({ category: category ?? undefined, page, userId }),
   )
-  const pinnedQuery = useQuery(communityPostListOptions())
+  const pinnedQuery = useQuery(communityPostListOptions({ userId }))
   const hasData = Boolean(postsQuery.data && pinnedQuery.data)
   const isLoading =
     !hasData && (postsQuery.isPending || pinnedQuery.isPending)

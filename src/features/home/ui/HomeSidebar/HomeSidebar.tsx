@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { MdOutlineRemoveRedEye } from 'react-icons/md';
-import { getHotPosts, getRecentHomePost } from '@/entities/post';
+import { popularHomePostsOptions, recentHomePostOptions } from '@/entities/post';
 import type { Post, RecentHomePost } from '@/entities/post';
 import { useUserStore, formatProfileClassInfo } from '@/entities/profile';
 import { UserName } from '@/entities/user';
-import { getRankingList } from '@/entities/typing';
+import { typingRankingOptions } from '@/entities/typing';
 import type { Ranking, TypingProblemType } from '@/entities/typing';
 import { getNameStyleKey } from '@/shared/styles';
 import medal1stIcon from '../../assets/medal-1st.svg';
@@ -18,6 +19,7 @@ import * as S from './HomeSidebar.style';
 export function HomeSidebar() {
   const navigate = useNavigate();
   const user = useUserStore((state) => state.user);
+  const userId = user?.userId ?? null;
   const equippedItems = user?.equippedItems;
   const profileNameColor = equippedItems?.nameColor;
   const profileNameStyleKey = getNameStyleKey(
@@ -37,74 +39,29 @@ export function HomeSidebar() {
   const hasCustomBorder = Boolean(profileBorderImageUrl?.trim());
   const profileTitle = equippedItems?.title;
   const profileTitleText = profileTitle?.valueText ?? profileTitle?.itemName;
-  const [recent, setRecent] = useState<RecentHomePost | null>(null);
-  const [popular, setPopular] = useState<Post[]>([]);
-  const [rankings, setRankings] = useState<Ranking[]>([]);
-  const [myRanking, setMyRanking] = useState<Ranking | null>(null);
   const [rankingType, setRankingType] = useState<TypingProblemType>(DEFAULT_TYPING_RANKING_TAB);
-  const [recentStatus, setRecentStatus] = useState('불러오는 중입니다.');
-  const [popularStatus, setPopularStatus] = useState('불러오는 중입니다.');
-  const [rankingStatus, setRankingStatus] = useState('불러오는 중입니다.');
-  const [isRecentLoading, setIsRecentLoading] = useState(true);
-  const [isPopularLoading, setIsPopularLoading] = useState(true);
-  const [isRankingLoading, setIsRankingLoading] = useState(true);
+  const recentQuery = useQuery(recentHomePostOptions(userId));
+  const popularQuery = useQuery(popularHomePostsOptions());
+  const rankingQuery = useQuery(typingRankingOptions(userId, rankingType));
+  const recent = recentQuery.data ?? null;
+  const popular = popularQuery.data ?? [];
+  const rankings = rankingQuery.data?.topRankings ?? [];
+  const myRanking = rankingQuery.data?.myRanking ?? null;
+  const recentStatus = recentQuery.isError
+    ? '최근 글을 불러오지 못했습니다.'
+    : '작성한 게시글이 없습니다.';
+  const popularStatus = popularQuery.isError
+    ? '인기글을 불러오지 못했습니다.'
+    : '인기글이 없습니다.';
+  const rankingStatus = rankingQuery.isError ? '랭킹을 불러오지 못했습니다.' : '랭킹이 없습니다.';
+  const isRecentLoading = recentQuery.isPending;
+  const isPopularLoading = popularQuery.isPending;
+  const isRankingLoading = rankingQuery.isPending;
   const topRankings = rankings.slice(0, 2);
   const isMyRankingInTop = myRanking !== null && topRankings.some((ranking) => ranking.userId === myRanking.userId);
 
-  useEffect(() => {
-    let cancelled = false;
-    getRecentHomePost()
-      .then((post) => {
-        if (cancelled) return;
-        setRecent(post);
-        setRecentStatus('작성한 게시글이 없습니다.');
-      })
-      .catch(() => {
-        if (!cancelled) setRecentStatus('최근 글을 불러오지 못했습니다.');
-      })
-      .finally(() => {
-        if (!cancelled) setIsRecentLoading(false);
-      });
-    getHotPosts()
-      .then((posts) => {
-        if (cancelled) return;
-        setPopular(posts);
-        setPopularStatus('인기글이 없습니다.');
-      })
-      .catch(() => {
-        if (!cancelled) setPopularStatus('인기글을 불러오지 못했습니다.');
-      })
-      .finally(() => {
-        if (!cancelled) setIsPopularLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    getRankingList(rankingType)
-      .then((response) => {
-        if (cancelled) return;
-        setRankings(response.topRankings);
-        setMyRanking(response.myRanking);
-        setRankingStatus('랭킹이 없습니다.');
-      })
-      .catch(() => {
-        if (!cancelled) setRankingStatus('랭킹을 불러오지 못했습니다.');
-      })
-      .finally(() => {
-        if (!cancelled) setIsRankingLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [rankingType]);
-
   function handleRankingTypeChange(type: TypingProblemType) {
     if (type === rankingType) return;
-    setIsRankingLoading(true);
     setRankingType(type);
   }
 

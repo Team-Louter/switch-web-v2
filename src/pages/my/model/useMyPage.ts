@@ -1,16 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { queryClient } from '@/shared/lib/queryClient'
 
 import { getPostCategoryLabel, resolveCommunityAssetUrl } from '@/entities/community'
 import { formatProfileClassInfo, useUserStore } from '@/entities/profile'
 
-import {
-  getMyComments,
-  getMyLikedPosts,
-  getMyPoint,
-  getMyPosts,
-  getMyReceivedLikeCount,
+import type {
+  MyCommentResponse,
+  MyPostResponse,
+  PageResponse,
+  ProfileResponse,
 } from '../api'
-import type { MyCommentResponse, MyPostResponse, ProfileResponse } from '../api'
 import type {
   MyActivityTab,
   MyActivityTabId,
@@ -18,6 +17,13 @@ import type {
   MyProfile,
   ProfileMajor,
 } from '../types'
+import {
+  myActivityPageOptions,
+  myPageQueryKeys,
+  myPointsOptions,
+  myProfileOptions,
+  myReceivedLikesOptions,
+} from './myPageQueries'
 
 const PAGE_SIZE = 5
 
@@ -192,6 +198,7 @@ const getActivityTabLabel = (tabId: MyActivityTabId) =>
 // v1 프로필 화면의 탭별 캐시와 무한 스크롤 동작을 v2 API에 맞춰 유지한다.
 export function useMyPage() {
   const fetchUser = useUserStore((state) => state.fetchUser)
+  const userId = useUserStore((state) => state.user?.userId ?? null)
   const [activeTabId, setActiveTabId] = useState<MyActivityTabId>('posts')
   const [profile, setProfile] = useState<MyProfile>(initialProfile)
   const [activityTabs, setActivityTabs] = useState<MyActivityTab[]>(
@@ -208,6 +215,8 @@ export function useMyPage() {
 
   const applyProfileUpdate = useCallback((profileResponse: ProfileResponse) => {
     const nextProfile = formatProfile(profileResponse)
+
+    queryClient.setQueryData(myPageQueryKeys.profile(userId), profileResponse)
 
     setProfile((currentProfile) => ({
       ...nextProfile,
@@ -229,7 +238,7 @@ export function useMyPage() {
         count: profileResponse.likedPostCount,
       },
     ])
-  }, [])
+  }, [userId])
 
   const loadActivityPage = useCallback(
     async (tabId: MyActivityTabId, page: number, signal?: AbortSignal) => {
@@ -242,12 +251,9 @@ export function useMyPage() {
       }))
 
       try {
-        const response =
-          tabId === 'comments'
-            ? await getMyComments({ page, size: PAGE_SIZE }, signal)
-            : tabId === 'likes'
-              ? await getMyLikedPosts({ page, size: PAGE_SIZE }, signal)
-              : await getMyPosts({ page, size: PAGE_SIZE }, signal)
+        const response = await queryClient.fetchQuery(
+          myActivityPageOptions(userId, tabId, page),
+        )
 
         if (signal?.aborted) {
           return
@@ -295,23 +301,28 @@ export function useMyPage() {
         }))
       }
     },
-    [],
+    [userId],
   )
 
   useEffect(() => {
     const controller = new AbortController()
 
+    if (userId === null) {
+      return () => controller.abort()
+    }
+
     const fetchMyPage = async () => {
       setIsLoading(true)
 
       try {
-        const [profileResponse, postsResponse, receivedLikeCount, point] =
+        const [profileResponse, postsResponseResult, receivedLikeCount, point] =
           await Promise.all([
-            fetchUser(),
-            getMyPosts({ page: 0, size: PAGE_SIZE }, controller.signal),
-            getMyReceivedLikeCount(controller.signal),
-            getMyPoint(controller.signal).catch(() => undefined),
+            queryClient.fetchQuery(myProfileOptions(userId, fetchUser)),
+            queryClient.fetchQuery(myActivityPageOptions(userId, 'posts', 0)),
+            queryClient.fetchQuery(myReceivedLikesOptions(userId)),
+            queryClient.fetchQuery(myPointsOptions(userId)).catch(() => undefined),
           ])
+        const postsResponse = postsResponseResult as PageResponse<MyPostResponse>
 
         if (controller.signal.aborted) {
           return
@@ -375,7 +386,7 @@ export function useMyPage() {
     void fetchMyPage()
 
     return () => controller.abort()
-  }, [fetchUser])
+  }, [fetchUser, userId])
 
   useEffect(() => {
     if (activeTabId === 'posts' || loadedTabs[activeTabId]) {

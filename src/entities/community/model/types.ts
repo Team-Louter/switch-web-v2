@@ -118,4 +118,5 @@ export interface GetPostsParams {
   category?: PostCategory
   page?: number
   size?: number
+  userId?: number | null
 }

@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import * as S from "./MemberDropdown.style.ts";
 import type { Member } from "@/shared/types/member";
+import { memberDirectoryOptions } from "@/entities/member";
+import { useUserStore } from "@/entities/profile";
 import { IoIosArrowBack } from "react-icons/io";
 import { getGenerations } from "../lib/calendarEvents";
 import { formatAssignees } from "../lib/calendarEvents";
-import { getMembers } from "../api/memberApi";
 
 export interface MemberDropdownProps {
   selectedMemberIds: number[];
@@ -16,22 +18,13 @@ export function MemberDropdown({ selectedMemberIds, onSelectChange, onMembersLoa
     const [isOpen, setIsOpen] = useState(false); // 담당자 선택 드롭다운 열림 여부
     const [expandedGenerations, setExpandedGenerations] = useState<Set<number | 'all'>>(new Set()); // 기수별 드롭다운 열림 여부
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const [members, setMembers] = useState<Member[]>([]);
-    const [loadError, setLoadError] = useState(false);
+    const userId = useUserStore((state) => state.user?.userId ?? null);
+    const membersQuery = useQuery(memberDirectoryOptions(userId));
+    const members: Member[] = membersQuery.data ?? [];
 
     useEffect(() => {
-        const getMembersInfo = async () => {
-            try{
-                const data = await getMembers();
-                setMembers(data);
-                onMembersLoad(data);
-            } catch {
-                setLoadError(true);
-            }
-        };
-
-        getMembersInfo();
-    }, [onMembersLoad])
+        if (membersQuery.data) onMembersLoad(membersQuery.data);
+    }, [membersQuery.data, onMembersLoad])
 
     const generationLabels = getGenerations(members); // 기수 뽑아내기
 
@@ -143,7 +136,7 @@ export function MemberDropdown({ selectedMemberIds, onSelectChange, onMembersLoa
 
     return (
         <S.Container ref={dropdownRef}>
-            {loadError && <p role="alert">담당자 목록을 불러오지 못했습니다.</p>}
+            {membersQuery.isError && <p role="alert">담당자 목록을 불러오지 못했습니다.</p>}
             <S.DropdownButton
                 onClick={() => setIsOpen(!isOpen)}
                 $isOpen={isOpen}
