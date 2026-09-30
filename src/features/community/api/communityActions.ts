@@ -1,4 +1,5 @@
 import type { CommentResponse, PostResponse } from '@/entities/community'
+import { invalidateCommunityPostLists } from '@/entities/community'
 import { apiClient } from '@/shared/api'
 
 import type {
@@ -19,6 +20,7 @@ export async function createPost(
   request: CreatePostRequest,
 ): Promise<PostResponse> {
   const response = await apiClient.post<PostResponse>('/posts', request)
+  await invalidateCommunityPostLists()
 
   return response.data
 }
@@ -28,12 +30,14 @@ export async function updatePost(
   request: CreatePostRequest,
 ): Promise<PostResponse> {
   const response = await apiClient.put<PostResponse>(`/posts/${postId}`, request)
+  await invalidateCommunityPostLists()
 
   return response.data
 }
 
 export async function deletePost(postId: number): Promise<void> {
   await apiClient.delete(`/posts/${postId}`)
+  await invalidateCommunityPostLists()
 }
 
 export async function uploadCommunityFile(
@@ -56,6 +60,7 @@ export async function uploadCommunityFile(
 
 export async function togglePostHeart(postId: number): Promise<void> {
   await apiClient.post(`/posts/${postId}/heart`)
+  await invalidateCommunityPostLists()
 }
 
 export async function setPostPinned(
@@ -65,6 +70,7 @@ export async function setPostPinned(
   await apiClient.put<void>(`/posts/${postId}/pin`, null, {
     params: { pinned },
   })
+  await invalidateCommunityPostLists()
 }
 
 export async function createComment(
@@ -75,6 +81,7 @@ export async function createComment(
     `/posts/${postId}/comments`,
     request,
   )
+  await invalidateCommunityPostLists()
 
   return response.data
 }
@@ -97,4 +104,5 @@ export async function deleteComment(
   commentId: number,
 ): Promise<void> {
   await apiClient.delete(`/posts/${postId}/comments/${commentId}`)
+  await invalidateCommunityPostLists()
 }

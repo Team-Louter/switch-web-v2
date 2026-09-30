@@ -66,6 +66,7 @@ import {
   type CommunityReplySubmitHandler,
 } from '../model/commentTree';
 import { resizeCommunityTextarea } from '../model/commentInput';
+import { getCommunityListReturnTo } from '../model/useCommunityListNavigation';
 import { CommunityCommentBranch } from './CommunityCommentBranch';
 import { CommunityPostBlockContent } from './CommunityPostBlockContent';
 import { CommunityRollingNumber } from './CommunityRollingNumber';
@@ -257,7 +258,9 @@ async function withTotalReplyCount(
 }
 
 export function CommunityDetailPage() {
-  const { hash } = useLocation();
+  const location = useLocation();
+  const { hash } = location;
+  const listReturn = getCommunityListReturnTo(location.state);
   const navigate = useNavigate();
   const { postId: postIdParam } = useParams();
   const postId = Number(postIdParam);
@@ -358,7 +361,7 @@ export function CommunityDetailPage() {
   const hasPostCustomBorder = Boolean(postBorderImageUrl?.trim());
 
   const handleBackToList = () => {
-    navigate('/community');
+    navigate(listReturn.to, { state: listReturn.state });
   };
 
   const handleRetry = () => {
@@ -745,7 +748,7 @@ export function CommunityDetailPage() {
     }
 
     setIsPostMenuOpen(false);
-    navigate(`/community/${post.postId}/edit`);
+    navigate(`/community/${post.postId}/edit`, { state: listReturn.state });
   };
 
   const handlePostDeleteRequest = () => {
@@ -768,7 +771,7 @@ export function CommunityDetailPage() {
     try {
       await deletePost(post.postId);
       setIsPostDeleteConfirmOpen(false);
-      navigate('/community', { replace: true });
+      navigate(listReturn.to, { replace: true, state: listReturn.state });
     } catch {
       setPostActionError(
         '게시글을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.',

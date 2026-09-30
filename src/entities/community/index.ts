@@ -7,6 +7,10 @@ export {
   getPosts,
 } from './api/getCommunity'
 export {
+  communityPostListOptions,
+  invalidateCommunityPostLists,
+} from './model/postQueries'
+export {
   formatCommunityCount,
   formatCommunityDate,
   formatCommunityRelativeDate,

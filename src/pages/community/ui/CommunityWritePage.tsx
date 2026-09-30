@@ -35,7 +35,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import {
@@ -58,6 +58,8 @@ import {
   serializeBlockNotePostContent,
 } from '@/shared/lib/blockNotePostContent';
 import { Button } from '@/shared/ui';
+
+import { getCommunityListReturnTo } from '../model/useCommunityListNavigation';
 
 import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg';
 import backChevronIcon from '../assets/svg/back-chevron.svg';
@@ -330,6 +332,8 @@ function CommunityBlockSideMenu({
 
 export function CommunityWritePage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const listReturn = getCommunityListReturnTo(location.state);
   const { postId: postIdParam } = useParams();
   const isEditRoute = postIdParam !== undefined;
   const editingPostId = Number(postIdParam);
@@ -587,7 +591,9 @@ export function CommunityWritePage() {
   );
 
   const handleBackToList = () => {
-    navigate(isEditing ? `/community/${editingPostId}` : '/community');
+    navigate(isEditing ? `/community/${editingPostId}` : listReturn.to, {
+      state: listReturn.state,
+    });
   };
 
   const handleEditorToolClick = (action: EditorAction) => {
@@ -809,7 +815,10 @@ export function CommunityWritePage() {
         ? await updatePost(editingPostId, postRequest)
         : await createPost(postRequest);
 
-      navigate(`/community/${post.postId}`, { replace: true });
+      navigate(`/community/${post.postId}`, {
+        replace: true,
+        state: listReturn.state,
+      });
     } catch (error: unknown) {
       const fallbackMessage = isEditing
         ? '게시글을 수정하지 못했습니다. 잠시 후 다시 시도해주세요.'
