@@ -74,6 +74,19 @@ test('프로필 조회 실패 시 다시 시도에서 프로필을 재조회하�
   expect(api.listRequests.length).toBe(1)
 })
 
+test('프로필 조회 실패 시에도 상세 게시글과 댓글을 불러온다', async ({ page, api }) => {
+  api.failProfile = true
+  api.comments.push(createComment(501, '프로필 조회 실패 중 확인할 댓글'))
+
+  await page.goto('/community/1')
+
+  await expect(page.getByRole('heading', { name: '게시글 1', exact: true })).toBeVisible()
+  await expect(page.getByText('프로필 조회 실패 중 확인할 댓글', { exact: true })).toBeVisible()
+  await expect(page.getByRole('status', { name: '게시글을 불러오는 중입니다.' })).toHaveCount(0)
+  await expect(page.getByRole('status', { name: '댓글을 불러오는 중입니다.' })).toHaveCount(0)
+  expect(api.commentRequests).toBeGreaterThan(0)
+})
+
 test('빈 목록은 로딩 완료 후 빈 상태를 표시한다', async ({ page, api }) => {
   api.posts = []
   await page.goto('/community')
