@@ -1,4 +1,7 @@
 import { apiClient } from '@/shared/api'
+import { queryClient } from '@/shared/lib/queryClient'
+import { profileQueryKeys } from '@/entities/profile'
+import { storeQueryKeys } from '../model/storeQueryKeys'
 
 import type {
   CustomizePageResponse,
@@ -33,6 +36,11 @@ export const purchaseShopItem = async (
     `/shop/${itemType}/${itemId}`,
   )
 
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: storeQueryKeys.all }),
+    queryClient.invalidateQueries({ queryKey: profileQueryKeys.meRoot }),
+  ])
+
   return response.data
 }
 
@@ -43,6 +51,11 @@ export const updateEquippedItem = async (
     '/profile/equip',
     request,
   )
+
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: storeQueryKeys.all }),
+    queryClient.invalidateQueries({ queryKey: profileQueryKeys.meRoot }),
+  ])
 
   return response.data
 }

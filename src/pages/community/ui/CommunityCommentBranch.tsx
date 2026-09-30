@@ -24,9 +24,11 @@ import {
   type CommunityReplyLoadHandler,
   type CommunityReplySubmitHandler,
 } from '../model/commentTree';
+import { extractCommunityKlipyGifLinks } from '../model/klipyGifLink';
 import { resizeCommunityTextarea } from '../model/commentInput';
 import kebabIcon from '../assets/svg/kebab.svg';
 import * as S from './CommunityCommentBranch.style';
+import { CommunityKlipyGifPreview } from './CommunityKlipyGifPreview';
 import { PixelHammerIcon } from './PixelHammerIcon';
 
 interface ReplyLoadingSkeletonProps {
@@ -96,6 +98,9 @@ export function CommunityCommentBranch({
   hasNextSibling = false,
 }: CommunityCommentBranchProps) {
   const { comment } = node;
+  const commentContent = comment.deleted
+    ? { text: comment.content, klipyGifLinks: [] }
+    : extractCommunityKlipyGifLinks(comment.content);
   const [isRepliesOpen, setIsRepliesOpen] = useState(false);
   const [isReplyComposerOpen, setIsReplyComposerOpen] = useState(false);
   const [replyContent, setReplyContent] = useState('');
@@ -134,7 +139,8 @@ export function CommunityCommentBranch({
   const shouldExpandToTarget =
     targetCommentId !== null &&
     targetCommentId !== dismissedTargetCommentId &&
-    hasTargetDescendant(node, targetCommentId);
+    ((comment.depth === 0 && comment.commentId === targetCommentId) ||
+      hasTargetDescendant(node, targetCommentId));
   const isRepliesVisible = isRepliesOpen || shouldExpandToTarget;
   const shouldShowReplies =
     hasReplies && (!hasCollapseControl || isRepliesVisible);
@@ -228,7 +234,7 @@ export function CommunityCommentBranch({
       setIsRepliesOpen(true);
     }
     setIsRepliesLoading(false);
-  }, [comment.commentId, isRepliesLoading, onRepliesLoad]);
+  }, [comment.commentId, isRepliesLoading, onRepliesLoad, setIsRepliesOpen]);
 
   const handleReplyKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key !== 'Enter' || event.shiftKey) {
@@ -446,12 +452,21 @@ export function CommunityCommentBranch({
               </S.CommentEditForm>
             ) : (
               <>
-                <S.CommentText $isDeleted={comment.deleted}>
-                  {replyToUserName && (
-                    <S.CommentMention>@{replyToUserName}</S.CommentMention>
-                  )}
-                  {comment.content}
-                </S.CommentText>
+                {(commentContent.text || replyToUserName) && (
+                  <S.CommentText $isDeleted={comment.deleted}>
+                    {replyToUserName && (
+                      <S.CommentMention>@{replyToUserName}</S.CommentMention>
+                    )}
+                    {commentContent.text}
+                  </S.CommentText>
+                )}
+                {commentContent.klipyGifLinks.map((gifLink, index) => (
+                  <CommunityKlipyGifPreview
+                    key={`${gifLink.slug}-${index}`}
+                    href={gifLink.href}
+                    slug={gifLink.slug}
+                  />
+                ))}
                 <S.ReplyActionButton
                   type="button"
                   aria-expanded={isReplyComposerOpen}

@@ -6,16 +6,18 @@ import {
   type SetStateAction,
 } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
+import { queryClient } from '@/shared/lib/queryClient'
 
 import {
-  getNotificationSettings,
-  getNotifications,
-  getUnreadNotificationCount,
   mapNotificationResponse,
   NotificationItem,
+  notificationPageOptions,
+  notificationSettingsOptions,
+  unreadNotificationCountOptions,
   type Notification,
   type NotificationType,
 } from '@/entities/notification'
+import { useUserStore } from '@/entities/profile'
 import {
   deleteNotification,
   DeleteNotificationModal,
@@ -131,6 +133,7 @@ function getNotificationTargetPath(notification: Notification): string | null {
 
 export function NotificationPage() {
   const navigate = useNavigate()
+  const userId = useUserStore((state) => state.user?.userId ?? null)
   const { setNotificationCount } =
     useOutletContext<NotificationOutletContext>()
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -209,8 +212,8 @@ export function NotificationPage() {
 
     try {
       const [response, unreadCount] = await Promise.all([
-        getNotifications(),
-        getUnreadNotificationCount(),
+        queryClient.fetchQuery(notificationPageOptions(userId)),
+        queryClient.fetchQuery(unreadNotificationCountOptions(userId)),
       ])
       const nextNotifications = response.content.map((notification) =>
         mapNotificationResponse(notification),
@@ -231,13 +234,20 @@ export function NotificationPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [setNotificationCount])
+  }, [setNotificationCount, userId])
 
   const refreshNotifications = useCallback(async () => {
+    if (userId === null) {
+      return
+    }
+
     try {
       const [response, unreadCount] = await Promise.all([
-        getNotifications(),
-        getUnreadNotificationCount(),
+        queryClient.fetchQuery({
+          ...notificationPageOptions(userId),
+          staleTime: 0,
+        }),
+        queryClient.fetchQuery(unreadNotificationCountOptions(userId)),
       ])
       const refreshedNotifications = response.content.map((notification) =>
         mapNotificationResponse(notification),
@@ -278,7 +288,7 @@ export function NotificationPage() {
     } catch {
       // Keep the currently visible notifications until the next refresh.
     }
-  }, [setNotificationCount])
+  }, [setNotificationCount, userId])
 
   const handleLoadMore = useCallback(async () => {
     if (!hasNextPage || isLoadingMore) {
@@ -289,7 +299,9 @@ export function NotificationPage() {
     setActionError(null)
 
     try {
-      const response = await getNotifications({ page: nextPage })
+      const response = await queryClient.fetchQuery(
+        notificationPageOptions(userId, nextPage),
+      )
       const nextNotifications = response.content.map((notification) =>
         mapNotificationResponse(notification),
       )
@@ -321,14 +333,16 @@ export function NotificationPage() {
     } finally {
       setIsLoadingMore(false)
     }
-  }, [hasNextPage, isLoadingMore, nextPage])
+  }, [hasNextPage, isLoadingMore, nextPage, userId])
 
   const loadSettings = useCallback(async () => {
     setIsSettingsLoading(true)
     setSettingsError(null)
 
     try {
-      const response = await getNotificationSettings()
+      const response = await queryClient.fetchQuery(
+        notificationSettingsOptions(userId),
+      )
 
       setNotificationSettings(response)
     } catch {
@@ -336,7 +350,7 @@ export function NotificationPage() {
     } finally {
       setIsSettingsLoading(false)
     }
-  }, [])
+  }, [userId])
 
   const handleReadAll = async () => {
     if (!hasUnreadNotification || isNotificationMutating) {
@@ -544,9 +558,16 @@ export function NotificationPage() {
   }
 
   useEffect(() => {
+    if (userId === null) {
+      return
+    }
+
     let isCancelled = false
 
-    Promise.all([getNotifications(), getUnreadNotificationCount()])
+    Promise.all([
+      queryClient.fetchQuery(notificationPageOptions(userId)),
+      queryClient.fetchQuery(unreadNotificationCountOptions(userId)),
+    ])
       .then(([response, unreadCount]) => {
         if (isCancelled) {
           return
@@ -577,7 +598,7 @@ export function NotificationPage() {
         }
       })
 
-    getNotificationSettings()
+    queryClient.fetchQuery(notificationSettingsOptions(userId))
       .then((response) => {
         if (!isCancelled) {
           setNotificationSettings(response)
@@ -597,7 +618,7 @@ export function NotificationPage() {
     return () => {
       isCancelled = true
     }
-  }, [setNotificationCount])
+  }, [setNotificationCount, userId])
 
   const handleNewNotificationAnimationEnd = useCallback(
     (notificationId: number) => {

@@ -7,6 +7,7 @@ import {
 } from 'react'
 import { flushSync } from 'react-dom'
 import { toast } from 'react-toastify'
+import { queryClient } from '@/shared/lib/queryClient'
 
 import {
   MonthlyStudyWeeks,
@@ -15,7 +16,7 @@ import {
 } from '@/features/study'
 import type { WeekStatus } from '@/features/study'
 import { useUserStore } from '@/entities/profile'
-import { getMyStatus, getStudy } from '@/entities/study'
+import { myStudyMonthOptions, myStudyRecordOptions } from '@/entities/study'
 import type { StudyRecord, StudyStatus } from '@/entities/study'
 import {
   getCurrentKoreaDate,
@@ -39,6 +40,7 @@ const HISTORY_SCROLL_THRESHOLD = 240
 
 export function MenteeLearningPage() {
   const user = useUserStore((state) => state.user)
+  const userId = user?.userId ?? null
   const studentNumber = user
     ? `${user.grade}${user.classRoom}${String(user.number).padStart(2, '0')}`
     : ''
@@ -100,7 +102,9 @@ export function MenteeLearningPage() {
       const key = `${currentYear}-${currentMonth}`
 
       try {
-        const statuses = await getMyStatus(currentYear, currentMonth)
+        const statuses = await queryClient.fetchQuery(
+          myStudyMonthOptions(userId, currentYear, currentMonth),
+        )
 
         if (!isCancelled) {
           setStatusesByMonth((previous) => ({
@@ -123,7 +127,7 @@ export function MenteeLearningPage() {
     return () => {
       isCancelled = true
     }
-  }, [currentMonth, currentYear, months])
+  }, [currentMonth, currentYear, months, userId])
 
   useEffect(() => {
     isMountedRef.current = true
@@ -167,7 +171,9 @@ export function MenteeLearningPage() {
       const key = `${currentYear}-${month}`
 
       try {
-        const statuses = await getMyStatus(currentYear, month)
+        const statuses = await queryClient.fetchQuery(
+          myStudyMonthOptions(userId, currentYear, month),
+        )
 
         if (isMountedRef.current) {
           setStatusesByMonth((previous) => ({
@@ -187,7 +193,7 @@ export function MenteeLearningPage() {
       loadHistoryStatus,
       STATUS_REQUEST_CONCURRENCY,
     )
-  }, [currentYear, loadedHistoryMonths])
+  }, [currentYear, loadedHistoryMonths, userId])
 
   useLayoutEffect(() => {
     if (isInitialStatusLoading) return
@@ -204,7 +210,10 @@ export function MenteeLearningPage() {
 
   const refreshMonthStatuses = async (month: number) => {
     try {
-      const statuses = await getMyStatus(currentYear, month)
+      const statuses = await queryClient.fetchQuery({
+        ...myStudyMonthOptions(userId, currentYear, month),
+        staleTime: 0,
+      })
 
       setStatusesByMonth((previous) => ({
         ...previous,
@@ -456,10 +465,13 @@ export function MenteeLearningPage() {
                         }
 
                         try {
-                          const study = await getStudy(
-                            currentYear,
-                            month,
-                            selectedWeek.weekNumber,
+                          const study = await queryClient.fetchQuery(
+                            myStudyRecordOptions(
+                              userId,
+                              currentYear,
+                              month,
+                              selectedWeek.weekNumber,
+                            ),
                           )
 
                           if (

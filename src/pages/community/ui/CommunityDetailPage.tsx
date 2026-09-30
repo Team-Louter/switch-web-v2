@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 import { isAxiosError } from 'axios';
+import { queryClient } from '@/shared/lib/queryClient'
 import ReactMarkdown from 'react-markdown';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import rehypeRaw from 'rehype-raw';
@@ -17,18 +18,18 @@ import remarkGfm from 'remark-gfm';
 import {
   formatCommunityDate,
   formatCommunityRelativeDate,
+  communityCommentRepliesOptions,
+  communityCommentsOptions,
+  communityPostDetailOptions,
+  communityPostQueryKeys,
+  communityPostStatsOptions,
   getCommunityFileDownloadUrl,
-  getCommentReplies,
-  getCommentTotalReplyCount,
-  getComments,
-  getPost,
   getPostCategoryLabel,
-  getPostStats,
   resolveCommunityAssetUrl,
   type CommentResponse,
   type PostResponse,
 } from '@/entities/community';
-import { getCurrentMember } from '@/entities/member';
+import { useUserStore } from '@/entities/profile';
 import {
   createComment,
   deleteComment,
@@ -66,6 +67,7 @@ import {
   type CommunityReplySubmitHandler,
 } from '../model/commentTree';
 import { resizeCommunityTextarea } from '../model/commentInput';
+import { getCommunityListReturnTo } from '../model/useCommunityListNavigation';
 import { CommunityCommentBranch } from './CommunityCommentBranch';
 import { CommunityPostBlockContent } from './CommunityPostBlockContent';
 import { CommunityRollingNumber } from './CommunityRollingNumber';
@@ -103,16 +105,48 @@ interface TargetCommentSearchNode {
   path: CommentResponse[];
 }
 
+interface TargetCommentReplyBranch {
+  parentCommentId: number;
+  replies: CommentResponse[];
+}
+
 interface TargetCommentSearchResult {
-  rootCommentId: number;
-  commentPath: CommentResponse[];
+  replyBranches: TargetCommentReplyBranch[];
 }
 
 async function findTargetCommentPath(
   postId: number,
   rootComments: CommentResponse[],
   targetCommentId: number,
+  userId: number | null,
 ): Promise<TargetCommentSearchResult | null> {
+  const targetRootComment = rootComments.find(
+    (comment) => comment.commentId === targetCommentId,
+  );
+
+  if (targetRootComment && targetRootComment.replyCount > 0) {
+    try {
+      const replies = await queryClient.fetchQuery(
+        communityCommentRepliesOptions(
+          postId,
+          targetRootComment.commentId,
+          userId,
+        ),
+      );
+
+      return {
+        replyBranches: [
+          {
+            parentCommentId: targetRootComment.commentId,
+            replies: replies.map((reply) => ({ ...reply, depth: 1 })),
+          },
+        ],
+      };
+    } catch {
+      return null;
+    }
+  }
+
   const pendingNodes: TargetCommentSearchNode[] = rootComments
     .filter((comment) => comment.replyCount > 0)
     .map((comment) => ({
@@ -123,6 +157,7 @@ async function findTargetCommentPath(
   const scheduledCommentIds = new Set(
     pendingNodes.map((node) => node.parentCommentId),
   );
+  const repliesByParentCommentId = new Map<number, CommentResponse[]>();
 
   while (pendingNodes.length > 0) {
     const currentNodes = pendingNodes.splice(
@@ -134,7 +169,13 @@ async function findTargetCommentPath(
         try {
           return {
             node,
-            replies: await getCommentReplies(postId, node.parentCommentId),
+            replies: await queryClient.fetchQuery(
+              communityCommentRepliesOptions(
+                postId,
+                node.parentCommentId,
+                userId,
+              ),
+            ),
           };
         } catch {
           return null;
@@ -148,25 +189,42 @@ async function findTargetCommentPath(
       }
 
       const depth = response.node.path.length + 1;
+      const repliesWithDepth = response.replies.map((reply) => ({
+        ...reply,
+        depth,
+      }));
 
-      for (const reply of response.replies) {
-        const replyWithDepth = { ...reply, depth };
+      repliesByParentCommentId.set(
+        response.node.parentCommentId,
+        repliesWithDepth,
+      );
+
+      for (const replyWithDepth of repliesWithDepth) {
         const commentPath = [...response.node.path, replyWithDepth];
 
-        if (reply.commentId === targetCommentId) {
+        if (replyWithDepth.commentId === targetCommentId) {
+          const parentCommentIds = [
+            response.node.rootCommentId,
+            ...response.node.path.map((comment) => comment.commentId),
+          ];
+
           return {
-            rootCommentId: response.node.rootCommentId,
-            commentPath,
+            replyBranches: parentCommentIds.flatMap((parentCommentId) => {
+              const replies =
+                repliesByParentCommentId.get(parentCommentId);
+
+              return replies ? [{ parentCommentId, replies }] : [];
+            }),
           };
         }
 
         if (
-          reply.replyCount > 0 &&
-          !scheduledCommentIds.has(reply.commentId)
+          replyWithDepth.replyCount > 0 &&
+          !scheduledCommentIds.has(replyWithDepth.commentId)
         ) {
-          scheduledCommentIds.add(reply.commentId);
+          scheduledCommentIds.add(replyWithDepth.commentId);
           pendingNodes.push({
-            parentCommentId: reply.commentId,
+            parentCommentId: replyWithDepth.commentId,
             rootCommentId: response.node.rootCommentId,
             path: commentPath,
           });
@@ -178,50 +236,28 @@ async function findTargetCommentPath(
   return null;
 }
 
-function appendTargetCommentPath(
+function appendTargetCommentReplies(
   comments: CommentResponse[],
-  rootCommentId: number,
-  targetCommentPath: CommentResponse[],
+  replyBranches: TargetCommentSearchResult['replyBranches'],
 ): CommentResponse[] {
-  let nextComments = comments;
-  let parentCommentId = rootCommentId;
-
-  for (const comment of targetCommentPath) {
-    nextComments = appendCommentReplies(nextComments, parentCommentId, [
-      comment,
-    ]);
-    parentCommentId = comment.commentId;
-  }
-
-  return nextComments;
-}
-
-async function withTotalReplyCount(
-  postId: number,
-  comment: CommentResponse,
-): Promise<CommentResponse> {
-  try {
-    const { count } = await getCommentTotalReplyCount(
-      postId,
-      comment.commentId,
-    );
-
-    return {
-      ...comment,
-      replyCount: Number.isSafeInteger(count)
-        ? Math.max(0, count)
-        : comment.replyCount,
-    };
-  } catch {
-    return comment;
-  }
+  return replyBranches.reduce(
+    (nextComments, { parentCommentId, replies }) =>
+      appendCommentReplies(nextComments, parentCommentId, replies),
+    comments,
+  );
 }
 
 export function CommunityDetailPage() {
-  const { hash } = useLocation();
+  const location = useLocation();
+  const { hash } = location;
+  const listReturn = getCommunityListReturnTo(location.state);
   const navigate = useNavigate();
   const { postId: postIdParam } = useParams();
   const postId = Number(postIdParam);
+  const currentUser = useUserStore((state) => state.user)
+  const profileLoadState = useUserStore((state) => state.profileLoadState)
+  const userId = currentUser?.userId ?? null
+  const canLoadCommunityData = userId !== null || profileLoadState === 'error'
   const [post, setPost] = useState<PostResponse | null>(null);
   const [comments, setComments] = useState<CommentResponse[]>([]);
   const [loadedReplyCommentIds, setLoadedReplyCommentIds] = useState<
@@ -238,10 +274,6 @@ export function CommunityDetailPage() {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
   const [isHeartMutating, setIsHeartMutating] = useState(false);
-  const [currentMemberId, setCurrentMemberId] = useState<number | null>(null);
-  const [currentMemberProfileImageUrl, setCurrentMemberProfileImageUrl] =
-    useState<string | undefined>(undefined);
-  const [canManagePostPin, setCanManagePostPin] = useState(false);
   const [isPinMutating, setIsPinMutating] = useState(false);
   const [isPostDeleting, setIsPostDeleting] = useState(false);
   const [isPostDeleteConfirmOpen, setIsPostDeleteConfirmOpen] = useState(false);
@@ -263,6 +295,10 @@ export function CommunityDetailPage() {
   const commentDeleteCloseTimerRef = useRef<number | null>(null);
   const targetCommentSearchKeyRef = useRef<string | null>(null);
 
+  const currentMemberId = currentUser?.userId ?? null
+  const currentMemberProfileImageUrl = currentUser?.profileImageUrl
+  const canManagePostPin =
+    currentUser?.role === 'LEADER' || currentUser?.role === 'MENTOR'
   const canManagePost = currentMemberId === post?.userId;
   const canDeletePost = canManagePost || canManagePostPin;
   const canOpenPostMenu = canManagePostPin || canManagePost;
@@ -319,7 +355,7 @@ export function CommunityDetailPage() {
   const hasPostCustomBorder = Boolean(postBorderImageUrl?.trim());
 
   const handleBackToList = () => {
-    navigate('/community');
+    navigate(listReturn.to, { state: listReturn.state });
   };
 
   const handleRetry = () => {
@@ -494,7 +530,13 @@ export function CommunityDetailPage() {
         }
 
         requestedCommentIds.add(comment.commentId);
-        const replies = await getCommentReplies(replyPostId, comment.commentId);
+        const replies = await queryClient.fetchQuery(
+          communityCommentRepliesOptions(
+            replyPostId,
+            comment.commentId,
+            userId,
+          ),
+        );
         const replyBranches = await Promise.all(
           replies.map((reply) => loadReplyBranch(reply, depth + 1)),
         );
@@ -502,7 +544,9 @@ export function CommunityDetailPage() {
         return [currentComment, ...replyBranches.flat()];
       }
 
-      const replies = await getCommentReplies(replyPostId, parentCommentId);
+      const replies = await queryClient.fetchQuery(
+        communityCommentRepliesOptions(replyPostId, parentCommentId, userId),
+      );
       const replyBranches = await Promise.all(
         replies.map((reply) => loadReplyBranch(reply, parentComment.depth + 1)),
       );
@@ -706,7 +750,7 @@ export function CommunityDetailPage() {
     }
 
     setIsPostMenuOpen(false);
-    navigate(`/community/${post.postId}/edit`);
+    navigate(`/community/${post.postId}/edit`, { state: listReturn.state });
   };
 
   const handlePostDeleteRequest = () => {
@@ -729,7 +773,7 @@ export function CommunityDetailPage() {
     try {
       await deletePost(post.postId);
       setIsPostDeleteConfirmOpen(false);
-      navigate('/community', { replace: true });
+      navigate(listReturn.to, { replace: true, state: listReturn.state });
     } catch {
       setPostActionError(
         '게시글을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요.',
@@ -746,36 +790,6 @@ export function CommunityDetailPage() {
       window.open(attachmentUrl, '_blank', 'noopener,noreferrer');
     }
   };
-
-  useEffect(() => {
-    let isCancelled = false;
-
-    async function loadCurrentMember() {
-      try {
-        const currentMember = await getCurrentMember();
-        const canManagePin =
-          currentMember.role === 'LEADER' || currentMember.role === 'MENTOR';
-
-        if (!isCancelled) {
-          setCurrentMemberId(currentMember.userId);
-          setCurrentMemberProfileImageUrl(currentMember.profileImageUrl);
-          setCanManagePostPin(canManagePin);
-        }
-      } catch {
-        if (!isCancelled) {
-          setCurrentMemberId(null);
-          setCurrentMemberProfileImageUrl(undefined);
-          setCanManagePostPin(false);
-        }
-      }
-    }
-
-    void loadCurrentMember();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     if (!isPostMenuOpen) {
@@ -823,6 +837,10 @@ export function CommunityDetailPage() {
     let isCancelled = false;
 
     async function loadPost() {
+      if (!canLoadCommunityData) {
+        return
+      }
+
       if (!Number.isSafeInteger(postId) || postId <= 0) {
         setLoadError('삭제되었거나 존재하지 않는 게시글입니다.');
         setIsPostNotFound(true);
@@ -835,7 +853,24 @@ export function CommunityDetailPage() {
       setIsPostNotFound(false);
 
       try {
-        const postResponse = await getPost(postId);
+        const postQuery = communityPostDetailOptions(postId, userId);
+        const cachedPost = queryClient.getQueryData<PostResponse>(
+          postQuery.queryKey,
+        );
+
+        if (cachedPost) {
+          setPost(cachedPost);
+          setIsLoading(false);
+        }
+
+        if (reloadKey > 0) {
+          await queryClient.invalidateQueries({
+            queryKey: postQuery.queryKey,
+            refetchType: 'none',
+          });
+        }
+
+        const postResponse = await queryClient.fetchQuery(postQuery);
 
         if (!isCancelled) {
           setPost(postResponse);
@@ -866,7 +901,7 @@ export function CommunityDetailPage() {
     return () => {
       isCancelled = true;
     };
-  }, [postId, reloadKey]);
+  }, [canLoadCommunityData, postId, reloadKey, userId]);
 
   useEffect(() => {
     if (!isPostStatsPollingReady) {
@@ -879,7 +914,9 @@ export function CommunityDetailPage() {
       const refreshVersion = postStatsRefreshVersionRef.current;
 
       try {
-        const refreshedStats = await getPostStats(postId);
+        const refreshedStats = await queryClient.fetchQuery(
+          communityPostStatsOptions(postId, userId),
+        );
 
         if (
           isCancelled ||
@@ -911,12 +948,16 @@ export function CommunityDetailPage() {
       isCancelled = true;
       window.clearInterval(refreshIntervalId);
     };
-  }, [isPostStatsPollingReady, postId]);
+  }, [isPostStatsPollingReady, postId, userId]);
 
   useEffect(() => {
     let isCancelled = false;
 
     async function loadComments() {
+      if (!canLoadCommunityData) {
+        return
+      }
+
       if (!Number.isSafeInteger(postId) || postId <= 0) {
         setComments([]);
         setCommentLoadError(null);
@@ -930,9 +971,27 @@ export function CommunityDetailPage() {
       setLoadedReplyCommentIds(new Set());
 
       try {
-        const rootComments = await getComments(postId);
-        const commentsWithReplyCounts = await Promise.all(
-          rootComments.map((comment) => withTotalReplyCount(postId, comment)),
+        const commentsQuery = communityCommentsOptions(postId, userId);
+        const cachedComments = queryClient.getQueryData<CommentResponse[]>(
+          commentsQuery.queryKey,
+        );
+
+        if (cachedComments) {
+          setComments(
+            cachedComments.map((comment) => ({ ...comment, depth: 0 })),
+          );
+          setIsCommentsLoading(false);
+        }
+
+        if (commentReloadKey > 0 || targetCommentId !== null) {
+          await queryClient.invalidateQueries({
+            queryKey: communityPostQueryKeys.forPost(postId),
+            refetchType: 'none',
+          });
+        }
+
+        const commentsWithReplyCounts = await queryClient.fetchQuery(
+          commentsQuery,
         );
 
         if (!isCancelled) {
@@ -960,20 +1019,39 @@ export function CommunityDetailPage() {
     return () => {
       isCancelled = true;
     };
-  }, [postId, reloadKey, commentReloadKey]);
+  }, [
+    canLoadCommunityData,
+    postId,
+    reloadKey,
+    commentReloadKey,
+    targetCommentId,
+    userId,
+  ]);
 
   useEffect(() => {
     if (
       isCommentsLoading ||
       targetCommentId === null ||
       !Number.isSafeInteger(postId) ||
-      postId <= 0 ||
-      comments.some((comment) => comment.commentId === targetCommentId)
+      postId <= 0
     ) {
       return;
     }
 
     const targetId = targetCommentId;
+    const targetComment = comments.find(
+      (comment) => comment.commentId === targetId,
+    );
+
+    if (
+      targetComment &&
+      (targetComment.depth > 0 ||
+        targetComment.replyCount <= 0 ||
+        loadedReplyCommentIds.has(targetComment.commentId))
+    ) {
+      return;
+    }
+
     const searchKey = `${postId}:${targetId}:${commentReloadKey}`;
 
     if (targetCommentSearchKeyRef.current === searchKey) {
@@ -989,6 +1067,7 @@ export function CommunityDetailPage() {
         postId,
         rootComments,
         targetId,
+        userId,
       );
 
       if (isCancelled || !targetCommentResult) {
@@ -997,23 +1076,16 @@ export function CommunityDetailPage() {
 
       targetCommentSearchKeyRef.current = searchKey;
       setComments((currentComments) =>
-        appendTargetCommentPath(
+        appendTargetCommentReplies(
           currentComments,
-          targetCommentResult.rootCommentId,
-          targetCommentResult.commentPath,
+          targetCommentResult.replyBranches,
         ),
       );
       setLoadedReplyCommentIds((currentIds) => {
         const nextIds = new Set(currentIds);
-        const loadedCommentIds = [
-          targetCommentResult.rootCommentId,
-          ...targetCommentResult.commentPath
-            .slice(0, -1)
-            .map((comment) => comment.commentId),
-        ];
 
-        for (const commentId of loadedCommentIds) {
-          nextIds.add(commentId);
+        for (const { parentCommentId } of targetCommentResult.replyBranches) {
+          nextIds.add(parentCommentId);
         }
 
         return nextIds;
@@ -1033,8 +1105,10 @@ export function CommunityDetailPage() {
     comments,
     commentReloadKey,
     isCommentsLoading,
+    loadedReplyCommentIds,
     postId,
     targetCommentId,
+    userId,
   ]);
 
   useEffect(() => {

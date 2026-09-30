@@ -1,4 +1,6 @@
 import { apiClient } from '@/shared/api'
+import { mentoringQueryKeys } from '@/entities/mentoring'
+import { queryClient } from '@/shared/lib/queryClient'
 import type { MentoringRequest, MentoringRoom } from '@/entities/mentoring'
 
 /**
@@ -10,6 +12,7 @@ export const createMentoring = async (
   data: MentoringRequest,
 ): Promise<MentoringRoom> => {
   const response = await apiClient.post<MentoringRoom>('/mentoring', data)
+  await queryClient.invalidateQueries({ queryKey: mentoringQueryKeys.all })
   return response.data
 }
 
@@ -27,6 +30,7 @@ export const modifyMentoring = async (
     `/mentoring/${mentoringId}`,
     data,
   )
+  await queryClient.invalidateQueries({ queryKey: mentoringQueryKeys.all })
   return response.data
 }
 
@@ -37,4 +41,5 @@ export const modifyMentoring = async (
  */
 export const deleteMentoring = async (mentoringId: number): Promise<void> => {
   await apiClient.delete<void>(`/mentoring/${mentoringId}`)
+  await queryClient.invalidateQueries({ queryKey: mentoringQueryKeys.all })
 }

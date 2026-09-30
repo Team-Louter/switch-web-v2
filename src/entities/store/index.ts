@@ -5,6 +5,8 @@ export {
   purchaseShopItem,
   updateEquippedItem,
 } from './api/storeApi'
+export { storeItemsOptions, storePointsOptions } from './model/storeQueries'
+export { storeQueryKeys } from './model/storeQueryKeys'
 export type {
   CustomizePageResponse,
   EquipItemRequest,

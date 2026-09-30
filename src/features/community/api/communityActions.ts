@@ -1,5 +1,13 @@
 import type { CommentResponse, PostResponse } from '@/entities/community'
+import {
+  communityActivityQueryKeys,
+  invalidateCommunityPostData,
+  invalidateCommunityPostLists,
+} from '@/entities/community'
+import { homePostQueryKeys } from '@/entities/post'
+import { profileQueryKeys } from '@/entities/profile'
 import { apiClient } from '@/shared/api'
+import { queryClient } from '@/shared/lib/queryClient'
 
 import type {
   CreateCommentRequest,
@@ -15,10 +23,28 @@ interface FileUploadResponse {
   fileSize: number
 }
 
+async function invalidateCommunityWriteViews(postId?: number) {
+  const invalidations: Promise<unknown>[] = [
+    invalidateCommunityPostLists(),
+    queryClient.invalidateQueries({
+      queryKey: communityActivityQueryKeys.mine,
+    }),
+    queryClient.invalidateQueries({ queryKey: profileQueryKeys.meRoot }),
+    queryClient.invalidateQueries({ queryKey: homePostQueryKeys.all }),
+  ]
+
+  if (postId !== undefined) {
+    invalidations.push(invalidateCommunityPostData(postId))
+  }
+
+  await Promise.all(invalidations)
+}
+
 export async function createPost(
   request: CreatePostRequest,
 ): Promise<PostResponse> {
   const response = await apiClient.post<PostResponse>('/posts', request)
+  await invalidateCommunityWriteViews(response.data.postId)
 
   return response.data
 }
@@ -28,12 +54,14 @@ export async function updatePost(
   request: CreatePostRequest,
 ): Promise<PostResponse> {
   const response = await apiClient.put<PostResponse>(`/posts/${postId}`, request)
+  await invalidateCommunityWriteViews(postId)
 
   return response.data
 }
 
 export async function deletePost(postId: number): Promise<void> {
   await apiClient.delete(`/posts/${postId}`)
+  await invalidateCommunityWriteViews(postId)
 }
 
 export async function uploadCommunityFile(
@@ -56,6 +84,7 @@ export async function uploadCommunityFile(
 
 export async function togglePostHeart(postId: number): Promise<void> {
   await apiClient.post(`/posts/${postId}/heart`)
+  await invalidateCommunityWriteViews(postId)
 }
 
 export async function setPostPinned(
@@ -65,6 +94,7 @@ export async function setPostPinned(
   await apiClient.put<void>(`/posts/${postId}/pin`, null, {
     params: { pinned },
   })
+  await invalidateCommunityWriteViews(postId)
 }
 
 export async function createComment(
@@ -75,6 +105,7 @@ export async function createComment(
     `/posts/${postId}/comments`,
     request,
   )
+  await invalidateCommunityWriteViews(postId)
 
   return response.data
 }
@@ -88,6 +119,7 @@ export async function updateComment(
     `/posts/${postId}/comments/${commentId}`,
     request,
   )
+  await invalidateCommunityWriteViews(postId)
 
   return response.data
 }
@@ -97,4 +129,5 @@ export async function deleteComment(
   commentId: number,
 ): Promise<void> {
   await apiClient.delete(`/posts/${postId}/comments/${commentId}`)
+  await invalidateCommunityWriteViews(postId)
 }
