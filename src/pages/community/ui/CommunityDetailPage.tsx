@@ -981,7 +981,7 @@ export function CommunityDetailPage() {
           setIsCommentsLoading(false);
         }
 
-        if (commentReloadKey > 0) {
+        if (commentReloadKey > 0 || targetCommentId !== null) {
           await queryClient.invalidateQueries({
             queryKey: communityPostQueryKeys.forPost(postId),
             refetchType: 'none',
@@ -1017,7 +1017,7 @@ export function CommunityDetailPage() {
     return () => {
       isCancelled = true;
     };
-  }, [postId, reloadKey, commentReloadKey, userId]);
+  }, [postId, reloadKey, commentReloadKey, targetCommentId, userId]);
 
   useEffect(() => {
     if (
