@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { type FormEvent, useState } from 'react';
-import { MdClose, MdSearch } from 'react-icons/md';
+import { useState } from 'react';
+import { MdClose } from 'react-icons/md';
 
 import {
   getKlipyGifs,
@@ -66,7 +66,7 @@ export function CommunityGifPicker({
   onClose,
 }: CommunityGifPickerProps) {
   const [searchInput, setSearchInput] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const searchQuery = searchInput.trim();
   const isConfigured = isKlipyGifApiConfigured();
   const {
     data,
@@ -96,11 +96,6 @@ export function CommunityGifPicker({
     data?.pages.flatMap((page) => page.items).map((gif) => [gif.slug, gif]),
   ).values()];
 
-  const handleSearch = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSearchQuery(searchInput.trim());
-  };
-
   return (
     <Modal label="GIF 선택" width={440} onClose={onClose}>
       <S.Picker>
@@ -110,7 +105,7 @@ export function CommunityGifPicker({
             <MdClose size={22} />
           </S.IconButton>
         </S.Header>
-        <S.SearchForm role="search" onSubmit={handleSearch}>
+        <S.SearchField role="search">
           <S.SearchInput
             type="search"
             aria-label="GIF 검색어"
@@ -120,10 +115,7 @@ export function CommunityGifPicker({
             disabled={!isConfigured}
             onChange={(event) => setSearchInput(event.target.value)}
           />
-          <S.IconButton type="submit" aria-label="GIF 검색" disabled={!isConfigured}>
-            <MdSearch size={24} />
-          </S.IconButton>
-        </S.SearchForm>
+        </S.SearchField>
         <S.ResultsHeader>{searchQuery ? '검색 결과' : '인기 GIF'}</S.ResultsHeader>
         <S.Results aria-busy={isConfigured && isFetching}>
           {!isConfigured ? (

@@ -49,10 +49,9 @@ export const IconButton = styled.button`
   }
 `;
 
-export const SearchForm = styled.form`
+export const SearchField = styled.div`
   ${token.flexRow}
   flex-shrink: 0;
-  gap: 8px;
   padding: 4px 8px;
   border: 1px solid ${token.colors.gray.gray20};
   border-radius: ${token.shapes.medium};
@@ -74,6 +73,10 @@ export const SearchInput = styled.input`
 
   &::placeholder {
     color: ${token.colors.gray.gray40};
+  }
+
+  &::-webkit-search-cancel-button {
+    appearance: none;
   }
 `;
 
