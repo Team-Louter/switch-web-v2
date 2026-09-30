@@ -1,6 +1,8 @@
 import { Buffer } from 'node:buffer'
 import type { Page } from '@playwright/test'
 
+import { serializeBlockNotePostContent } from '../../src/shared/lib/blockNotePostContent'
+
 import { expect, test } from './fixtures'
 
 const gifApiPattern = /^https:\/\/api\.klipy\.com\/api\/v1\/[^/]+\/gifs\/(trending|search)/
@@ -130,6 +132,51 @@ test('드래그로 GIF의 실제 크기를 늘리고 저장·상세·수정 화�
   await expect(restoredImage).toHaveAttribute('width', resizedWidth!)
   await expect.poll(async () => (await restoredImage.boundingBox())?.width).toBeCloseTo(resizedBox!.width, 0)
 })
+
+for (const alignment of ['center', 'right'] as const) {
+  test(`${alignment} 정렬한 GIF의 저장된 폭과 비율을 상세 화면에서 유지한다`, async ({ page, api }) => {
+    const post = api.posts.find((item) => item.postId === 1)!
+    post.postContent = serializeBlockNotePostContent([{
+      id: 'aligned-gif',
+      type: 'image',
+      props: {
+        backgroundColor: 'default',
+        textAlignment: alignment,
+        name: '정렬한 고양이',
+        url: gifUrl,
+        caption: 'GIF 설명',
+        showPreview: true,
+        previewWidth: 745,
+      },
+      content: undefined,
+      children: [],
+    }])
+    const gif = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64')
+    gif.writeUInt16LE(100, 6)
+    gif.writeUInt16LE(150, 8)
+    await page.route(gifUrl, (route) => route.fulfill({ contentType: 'image/gif', body: gif }))
+
+    await page.goto('/community/1')
+    const body = page.getByRole('textbox', { name: '게시글 본문' })
+    const image = body.getByRole('img', { name: '정렬한 고양이' })
+    await expect(image).toHaveAttribute('width', '745')
+    await expect.poll(() => image.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBe(100)
+    const wrapper = body.locator('[data-content-type="image"] .bn-file-block-content-wrapper')
+    const imageBox = (await image.boundingBox())!
+    const wrapperBox = (await wrapper.boundingBox())!
+    expect(imageBox.width).toBeCloseTo(wrapperBox.width, 0)
+    expect(imageBox.width).toBeGreaterThan(640)
+    expect(imageBox.height / imageBox.width).toBeCloseTo(1.5, 2)
+    await expect(body.locator('[data-content-type="image"]')).toHaveAttribute('data-text-alignment', alignment)
+    await expect(body.getByText('GIF 설명')).toBeVisible()
+
+    await page.setViewportSize({ width: 390, height: 700 })
+    const mobileImage = (await image.boundingBox())!
+    const mobileBody = (await body.boundingBox())!
+    expect(mobileImage.width).toBeLessThanOrEqual(mobileBody.width)
+    expect(mobileImage.height / mobileImage.width).toBeCloseTo(1.5, 2)
+  })
+}
 
 test('검색어를 전달하고 외부 미디어·광고를 제외하며 빈 결과를 안내한다', async ({ page, api }) => {
   void api
