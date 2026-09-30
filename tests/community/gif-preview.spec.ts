@@ -33,7 +33,7 @@ test.beforeEach(async ({ page, api }) => {
   }))
 })
 
-test('댓글 GIF는 외부 이동 없이 확대되고 닫기·포커스 복귀·작은 화면 배치를 유지한다', async ({ page }) => {
+test('댓글 GIF만 확대하고 외부 이동 방지·닫기·포커스 복귀·작은 화면 배치를 유지한다', async ({ page }) => {
   await page.goto('/community/1')
   const preview = page.getByRole('button', { name: '고양이 크게 보기' })
   await expect(preview).toBeVisible()
@@ -47,6 +47,13 @@ test('댓글 GIF는 외부 이동 없이 확대되고 닫기·포커스 복귀·
   const dialog = page.getByRole('dialog', { name: 'GIF 크게 보기', exact: true })
   const expandedImage = dialog.getByRole('img', { name: '고양이' })
   await expect(expandedImage).toHaveAttribute('src', gifUrl)
+  await expect(dialog.getByRole('heading')).toHaveCount(0)
+  const closeButton = dialog.getByRole('button', { name: 'GIF 크게 보기 닫기' })
+  await expect(closeButton).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(closeButton).toBeFocused()
+  await page.keyboard.press('Shift+Tab')
+  await expect(closeButton).toBeFocused()
   const expandedBox = await expandedImage.boundingBox()
   expect(expandedBox).not.toBeNull()
   expect(expandedBox!.width).toBeGreaterThan(previewBox!.width)
@@ -72,7 +79,11 @@ test('댓글 GIF는 외부 이동 없이 확대되고 닫기·포커스 복귀·
   expect(mobileBox!.y).toBeGreaterThanOrEqual(0)
   expect(mobileBox!.x + mobileBox!.width).toBeLessThanOrEqual(390)
   expect(mobileBox!.y + mobileBox!.height).toBeLessThanOrEqual(320)
-  await expect(dialog.getByRole('button', { name: 'GIF 크게 보기 닫기' })).toBeInViewport()
+  await expect(closeButton).toBeInViewport()
+  const closeBox = await closeButton.boundingBox()
+  expect(closeBox).not.toBeNull()
+  expect(closeBox!.y).toBeLessThanOrEqual(20)
+  expect(closeBox!.x + closeBox!.width).toBeGreaterThanOrEqual(370)
 })
 
 test('Powered 문구를 제거해도 API가 제공하는 제작자와 콘텐츠 출처는 표시한다', async ({ page }) => {
