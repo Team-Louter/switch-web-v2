@@ -6,14 +6,19 @@ import { useUserStore } from '@/entities/profile'
 
 export function useCommunityPosts(category: PostCategory | null, page: number) {
   const userId = useUserStore((state) => state.user?.userId ?? null)
+  const profileLoadState = useUserStore((state) => state.profileLoadState)
+  const fetchUser = useUserStore((state) => state.fetchUser)
   const postsQuery = useQuery(
     communityPostListOptions({ category: category ?? undefined, page, userId }),
   )
   const pinnedQuery = useQuery(communityPostListOptions({ userId }))
   const hasData = Boolean(postsQuery.data && pinnedQuery.data)
+  const hasProfileError = userId === null && profileLoadState === 'error'
   const isLoading =
-    !hasData && (postsQuery.isPending || pinnedQuery.isPending)
-  const hasError = postsQuery.isError || pinnedQuery.isError
+    !hasData &&
+    !hasProfileError &&
+    (postsQuery.isPending || pinnedQuery.isPending)
+  const hasError = hasProfileError || postsQuery.isError || pinnedQuery.isError
   const posts = useMemo(() => {
     if (!postsQuery.data || !pinnedQuery.data) {
       return []
@@ -26,6 +31,11 @@ export function useCommunityPosts(category: PostCategory | null, page: number) {
   }, [postsQuery.data, pinnedQuery.data])
 
   const retry = () => {
+    if (hasProfileError) {
+      void fetchUser().catch(() => {})
+      return
+    }
+
     // 전체글 첫 페이지는 두 observer가 같은 요청을 공유한다.
     void Promise.all([
       postsQuery.refetch({ cancelRefetch: false }),
@@ -42,7 +52,9 @@ export function useCommunityPosts(category: PostCategory | null, page: number) {
     loadError: hasError
       ? hasData
         ? '목록을 갱신하지 못했습니다. 이전 데이터를 표시합니다.'
-        : '게시글을 불러오지 못했습니다.'
+        : hasProfileError
+          ? '사용자 정보를 불러오지 못했습니다.'
+          : '게시글을 불러오지 못했습니다.'
       : null,
     retry,
   }

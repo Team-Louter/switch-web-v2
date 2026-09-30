@@ -8,6 +8,7 @@ import type { ProfileResponse } from './types'
 
 interface UserState {
   user: ProfileResponse | null
+  profileLoadState: 'idle' | 'loading' | 'loaded' | 'error'
   fetchUser: () => Promise<ProfileResponse>
   resetUser: () => void
   setUser: (user: ProfileResponse) => void
@@ -15,15 +16,23 @@ interface UserState {
 
 export const useUserStore = create<UserState>((set) => ({
   user: null,
+  profileLoadState: 'idle',
   fetchUser: async () => {
-    const user = await getMyProfile()
+    set({ profileLoadState: 'loading' })
 
-    set({ user })
+    try {
+      const user = await getMyProfile()
+      set({ user, profileLoadState: 'loaded' })
 
-    return user
+      return user
+    } catch (error) {
+      set({ profileLoadState: 'error' })
+
+      throw error
+    }
   },
-  resetUser: () => set({ user: null }),
-  setUser: (user) => set({ user }),
+  resetUser: () => set({ user: null, profileLoadState: 'idle' }),
+  setUser: (user) => set({ user, profileLoadState: 'loaded' }),
 }))
 
 window.addEventListener(AUTH_STATE_CHANGED_EVENT, () => {
