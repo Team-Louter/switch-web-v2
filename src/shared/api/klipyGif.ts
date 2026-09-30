@@ -36,29 +36,6 @@ export interface KlipyGifPreview {
   height?: number;
 }
 
-export interface KlipyGif extends KlipyGifPreview {
-  slug: string;
-}
-
-interface KlipyGifListRequest {
-  query: string;
-  page: number;
-  signal: AbortSignal;
-}
-
-interface KlipyGifListApiResponse {
-  result: true;
-  data: {
-    data: unknown[];
-    has_next: boolean;
-  };
-}
-
-export interface KlipyGifPage {
-  items: KlipyGif[];
-  hasNext: boolean;
-}
-
 function asRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === 'object' && value !== null
     ? value as Record<string, unknown>
@@ -108,70 +85,6 @@ function getOptionalAttribution(item: KlipyGifApiItem): {
 
 export function isKlipyGifApiConfigured(): boolean {
   return Boolean(import.meta.env.VITE_KLIPY_APP_KEY?.trim());
-}
-
-export async function getKlipyGifs({
-  query,
-  page,
-  signal,
-}: KlipyGifListRequest): Promise<KlipyGifPage> {
-  const appKey = import.meta.env.VITE_KLIPY_APP_KEY?.trim();
-  if (!appKey) throw new Error('GIF 검색을 사용할 수 없습니다.');
-
-  const searchQuery = query.trim();
-  const params = new URLSearchParams({
-    page: String(page),
-    per_page: '24',
-    locale: 'kr',
-  });
-  if (searchQuery) params.set('q', searchQuery);
-
-  // 외부 GIF 조회에는 서비스의 인증 토큰과 쿠키를 전달하지 않습니다.
-  const response = await fetch(
-    `${KLIPY_API_BASE_URL}/${encodeURIComponent(appKey)}/gifs/${searchQuery ? 'search' : 'trending'}?${params}`,
-    {
-      cache: 'no-store',
-      credentials: 'omit',
-      referrerPolicy: 'no-referrer',
-      signal,
-    },
-  );
-  if (!response.ok) throw new Error('GIF를 불러오지 못했습니다.');
-
-  const payload: unknown = await response.json();
-  const root = asRecord(payload);
-  const data = asRecord(root?.data);
-  if (root?.result !== true || !Array.isArray(data?.data)
-    || typeof data.has_next !== 'boolean') {
-    throw new Error('GIF 응답 형식이 올바르지 않습니다.');
-  }
-
-  const result: KlipyGifListApiResponse = {
-    result: root.result,
-    data: { data: data.data, has_next: data.has_next },
-  };
-  const items: KlipyGif[] = [];
-
-  for (const value of result.data.data) {
-    const item = asRecord(value);
-    const slug = asTrimmedString(item?.slug);
-    if (!item || item.type !== 'gif' || !/^[a-z0-9-]+$/i.test(slug)) continue;
-
-    const media = getKlipyMediaUrl(item.file);
-    if (!media || typeof media.url !== 'string') continue;
-
-    items.push({
-      slug,
-      url: media.url,
-      title: asTrimmedString(item.title),
-      contentDescription: asTrimmedString(item.content_description),
-      ...getOptionalAttribution(item),
-      width: typeof media.width === 'number' ? media.width : undefined,
-      height: typeof media.height === 'number' ? media.height : undefined,
-    });
-  }
-
-  return { items, hasNext: result.data.has_next };
 }
 
 export async function getKlipyGifPreview(
