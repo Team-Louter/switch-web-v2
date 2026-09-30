@@ -1,18 +1,19 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 import { tokens as token } from '@/shared/styles';
 
 export const Picker = styled.section`
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
   min-height: 0;
-  max-height: calc(100dvh - 100px);
+  height: min(480px, calc(100dvh - 100px));
 `;
 
 export const Header = styled.header`
   ${token.flexBetween}
+  flex-shrink: 0;
   gap: 16px;
 `;
 
@@ -50,6 +51,7 @@ export const IconButton = styled.button`
 
 export const SearchForm = styled.form`
   ${token.flexRow}
+  flex-shrink: 0;
   gap: 8px;
   padding: 4px 8px;
   border: 1px solid ${token.colors.gray.gray20};
@@ -76,6 +78,7 @@ export const SearchInput = styled.input`
 `;
 
 export const ResultsHeader = styled.p`
+  flex-shrink: 0;
   margin: 0;
   color: ${token.colors.gray.gray60};
   ${token.typography('body', 'sm', 'medium')}
@@ -85,13 +88,15 @@ export const Results = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
-  min-height: min(300px, 30dvh);
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
 `;
 
 export const Grid = styled.div`
   display: grid;
+  flex-shrink: 0;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 
@@ -116,13 +121,59 @@ export const GifButton = styled.button`
     border-color: ${token.colors.primary.primary50};
     outline: none;
   }
+
+  &:disabled {
+    border-color: transparent;
+    cursor: default;
+  }
 `;
 
-export const GifImage = styled.img`
+const skeletonShimmer = keyframes`
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+`;
+
+export const GifSkeleton = styled.span`
   display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: ${token.shapes.small};
+  background: linear-gradient(
+    90deg,
+    ${token.colors.gray.gray0} 25%,
+    ${token.colors.gray.gray10} 50%,
+    ${token.colors.gray.gray0} 75%
+  );
+  background-size: 200% 100%;
+  animation: ${skeletonShimmer} 1.4s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`;
+
+export const ImageSkeleton = styled(GifSkeleton)`
+  position: absolute;
+  inset: 0;
+`;
+
+export const ImageError = styled.span`
+  ${token.flexCenter}
+  position: absolute;
+  inset: 0;
+  padding: 8px;
+  color: ${token.colors.gray.gray60};
+  ${token.typography('caption', 'sm', 'medium')}
+`;
+
+export const GifImage = styled.img<{ $loaded: boolean }>`
+  display: block;
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: ${({ $loaded }) => ($loaded ? 1 : 0)};
 `;
 
 export const Status = styled.div`
@@ -162,6 +213,7 @@ export const MoreButton = styled.button`
 `;
 
 export const Attribution = styled.p`
+  flex-shrink: 0;
   margin: 0;
   color: ${token.colors.gray.gray40};
   ${token.typography('caption', 'sm', 'medium')}

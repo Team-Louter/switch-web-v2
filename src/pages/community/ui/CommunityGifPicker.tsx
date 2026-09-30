@@ -16,6 +16,51 @@ interface CommunityGifPickerProps {
   onClose: () => void;
 }
 
+interface CommunityGifOptionProps {
+  gif: KlipyGif;
+  onSelect: (gif: KlipyGif) => void;
+}
+
+interface CommunityGifSkeletonProps {
+  count?: number;
+}
+
+function CommunityGifSkeleton({ count = 6 }: CommunityGifSkeletonProps) {
+  return (
+    <S.Grid role="status" aria-label="GIF를 불러오는 중입니다.">
+      {Array.from({ length: count }, (_, index) => (
+        <S.GifSkeleton key={index} aria-hidden="true" />
+      ))}
+    </S.Grid>
+  );
+}
+
+function CommunityGifOption({ gif, onSelect }: CommunityGifOptionProps) {
+  const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading');
+
+  return (
+    <S.GifButton
+      type="button"
+      aria-label={`${gif.title || 'GIF'} 삽입`}
+      aria-busy={imageState === 'loading'}
+      disabled={imageState !== 'loaded'}
+      onClick={() => onSelect(gif)}
+    >
+      <S.GifImage
+        src={gif.url}
+        alt={gif.contentDescription || gif.title || 'GIF'}
+        loading="lazy"
+        referrerPolicy="no-referrer"
+        $loaded={imageState === 'loaded'}
+        onLoad={() => setImageState('loaded')}
+        onError={() => setImageState('error')}
+      />
+      {imageState === 'loading' && <S.ImageSkeleton aria-hidden="true" />}
+      {imageState === 'error' && <S.ImageError>미리보기 없음</S.ImageError>}
+    </S.GifButton>
+  );
+}
+
 export function CommunityGifPicker({
   onSelect,
   onClose,
@@ -57,7 +102,7 @@ export function CommunityGifPicker({
   };
 
   return (
-    <Modal label="GIF 선택" width={560} onClose={onClose}>
+    <Modal label="GIF 선택" width={440} onClose={onClose}>
       <S.Picker>
         <S.Header>
           <S.Title>GIF 선택</S.Title>
@@ -84,25 +129,17 @@ export function CommunityGifPicker({
           {!isConfigured ? (
             <S.Status role="status">지금은 GIF 검색을 사용할 수 없어요.</S.Status>
           ) : isPending ? (
-            <S.Status role="status">GIF를 불러오고 있어요.</S.Status>
+            <CommunityGifSkeleton />
           ) : (
             <>
               {gifs.length > 0 && (
                 <S.Grid>
                   {gifs.map((gif) => (
-                    <S.GifButton
+                    <CommunityGifOption
                       key={gif.slug}
-                      type="button"
-                      aria-label={`${gif.title || 'GIF'} 삽입`}
-                      onClick={() => onSelect(gif)}
-                    >
-                      <S.GifImage
-                        src={gif.url}
-                        alt={gif.contentDescription || gif.title || 'GIF'}
-                        loading="lazy"
-                        referrerPolicy="no-referrer"
-                      />
-                    </S.GifButton>
+                      gif={gif}
+                      onSelect={onSelect}
+                    />
                   ))}
                 </S.Grid>
               )}
@@ -120,6 +157,7 @@ export function CommunityGifPicker({
               ) : gifs.length === 0 && (
                 <S.Status role="status">검색 결과가 없어요. 다른 검색어를 입력해주세요.</S.Status>
               )}
+              {isFetchingNextPage && <CommunityGifSkeleton count={3} />}
               {hasNextPage && !isError && (
                 <S.MoreButton
                   type="button"
