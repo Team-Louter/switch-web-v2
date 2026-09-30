@@ -18,3 +18,8 @@ export {
 } from './client'
 
 export { getYouTubeTitle } from './youtubeMetadata'
+export {
+  getKlipyGifPreview,
+  isKlipyGifApiConfigured,
+} from './klipyGif'
+export type { KlipyGifPreview } from './klipyGif'
