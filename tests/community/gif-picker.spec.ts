@@ -67,6 +67,70 @@ test('추가 목록의 GIF를 선택하고 저장·수정 화면에서도 유지
   await expect(page.getByRole('img', { name: '두 번째 고양이' })).toHaveAttribute('src', gifUrl)
 })
 
+test('드래그로 GIF의 실제 크기를 늘리고 저장·상세·수정 화면에서 유지한다', async ({ page, api }) => {
+  void api
+  // 세로 GIF를 520px 이상으로 확대해 기존 높이 제한으로 비율이 깨지는 회귀를 검증합니다.
+  const gif = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64')
+  gif.writeUInt16LE(100, 6)
+  gif.writeUInt16LE(150, 8)
+  const verticalGif = gifItem('resizable-cat', '크기 조절 고양이')
+  verticalGif.file.sm.gif.height = 150
+  await page.route(gifUrl, (route) => route.fulfill({ contentType: 'image/gif', body: gif }))
+  await page.route(gifApiPattern, (route) => route.fulfill({ json: {
+    result: true,
+    data: { data: [verticalGif], has_next: false },
+  } }))
+
+  await page.goto('/community/write')
+  await page.getByRole('button', { name: 'GIF 선택', exact: true }).click()
+  await page.getByRole('button', { name: '크기 조절 고양이 삽입' }).click()
+  const editor = page.getByRole('region', { name: '게시글 내용 편집기' })
+  const image = editor.getByRole('img', { name: '크기 조절 고양이' })
+  await expect(image).toBeVisible()
+  const initialBox = await image.boundingBox()
+  expect(initialBox).not.toBeNull()
+  const naturalWidth = await image.evaluate((element) => (element as HTMLImageElement).naturalWidth)
+  expect(naturalWidth).toBe(100)
+  const renderScale = initialBox!.width / naturalWidth
+  await image.hover()
+  const wrapper = editor.locator('[data-content-type="image"] .bn-file-block-content-wrapper')
+  const resizeHandle = wrapper.locator('.bn-resize-handle').last()
+  await expect(resizeHandle).toBeVisible()
+  const handleBox = await resizeHandle.boundingBox()
+  expect(handleBox).not.toBeNull()
+  const handleX = handleBox!.x + handleBox!.width / 2
+  const handleY = handleBox!.y + handleBox!.height / 2
+  await page.mouse.move(handleX, handleY)
+  await page.mouse.down()
+  await page.mouse.move(handleX + 260, handleY, { steps: 12 })
+  await page.mouse.up()
+  await expect.poll(async () => Number(await image.getAttribute('width'))).toBeGreaterThan(350)
+  const resizedBox = await image.boundingBox()
+  const wrapperBox = await wrapper.boundingBox()
+  expect(resizedBox).not.toBeNull()
+  expect(wrapperBox).not.toBeNull()
+  expect(resizedBox!.width).toBeGreaterThan(initialBox!.width + 200)
+  expect(resizedBox!.width).toBeCloseTo(wrapperBox!.width, 0)
+  expect(resizedBox!.height / resizedBox!.width).toBeCloseTo(1.5, 2)
+  expect(resizedBox!.height).toBeGreaterThan(520 * renderScale)
+  const resizedWidth = await image.getAttribute('width')
+
+  await page.getByRole('textbox', { name: '게시글 제목' }).fill('GIF 크기 조절')
+  await page.getByRole('combobox', { name: '카테고리' }).click()
+  await page.getByRole('option', { name: '자유게시판' }).click()
+  await page.getByRole('button', { name: '게시하기', exact: true }).click()
+  await page.waitForURL('**/community/200')
+  const savedImage = page.getByRole('img', { name: '크기 조절 고양이' })
+  await expect(savedImage).toHaveAttribute('width', resizedWidth!)
+  const savedBox = await savedImage.boundingBox()
+  expect(savedBox?.width).toBeCloseTo(resizedBox!.width, 0)
+
+  await page.goto('/community/200/edit')
+  const restoredImage = page.getByRole('img', { name: '크기 조절 고양이' })
+  await expect(restoredImage).toHaveAttribute('width', resizedWidth!)
+  await expect.poll(async () => (await restoredImage.boundingBox())?.width).toBeCloseTo(resizedBox!.width, 0)
+})
+
 test('검색어를 전달하고 외부 미디어·광고를 제외하며 빈 결과를 안내한다', async ({ page, api }) => {
   void api
   const queries: string[] = []
