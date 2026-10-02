@@ -9,6 +9,19 @@ export const TypingContainer = styled.section`
   padding: 48px;
   background: ${token.colors.white};
   height: 100dvh;
+
+  @media (min-width: 769px) and (max-width: 1180px) {
+    align-items: flex-start;
+    height: auto;
+    min-height: 100dvh;
+    padding: 28px 24px 40px;
+  }
+
+  @media (max-width: 768px) {
+    align-items: flex-start;
+    height: auto;
+    padding: 24px 16px 48px;
+  }
 `
 
 export const PageContainer = styled.section`
@@ -17,6 +30,13 @@ export const PageContainer = styled.section`
   overflow: hidden;
   background: ${token.colors.white};
   display: flex;
+
+  @media (max-width: 768px) { height: auto; overflow: visible; }
+
+  @media (min-width: 769px) and (max-width: 1180px) {
+    height: auto;
+    overflow: visible;
+  }
 `
 
 export const Column = styled.div`
@@ -30,6 +50,7 @@ export const Column = styled.div`
 export const TitleContainer = styled.div`
   ${token.flexRow};
   align-items: center;
+  @media (max-width: 600px) { flex-wrap: wrap; gap: 8px 12px; }
 `;
 
 export const Title = styled.h1`
@@ -57,6 +78,16 @@ export const SummaryContainer = styled.div`
   background-color: ${token.colors.primary.primary0};
   padding: 16px;
   border-radius: ${token.shapes.medium};
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  @media (min-width: 769px) and (max-width: 1180px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
 `;
 
 export const RankingContainer = styled.div`
@@ -69,6 +100,19 @@ export const RankingContainer = styled.div`
   align-items: center;
   padding: 30px 50px;
   justify-content: space-between;
+
+  @media (min-width: 769px) and (max-width: 1180px) {
+    height: auto;
+    min-height: 460px;
+    gap: 24px;
+    padding: 28px 32px;
+  }
+
+  @media (max-width: 768px) {
+    height: auto;
+    gap: 24px;
+    padding: 24px 16px;
+  }
 `;
 
 export const RankingTitle = styled.h2`
@@ -80,6 +124,16 @@ export const Top = styled.div`
   gap: 80px;
   width: 100%;
   justify-content: center;
+  @media (max-width: 768px) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: 10px;
+  }
+
+  @media (min-width: 769px) and (max-width: 1180px) {
+    gap: clamp(20px, 5vw, 52px);
+  }
 `;
 
 export const RankingList = styled.div`
@@ -87,6 +141,7 @@ export const RankingList = styled.div`
   height: 50%;
   ${token.flexColumnCenter};
   gap: 10px;
+  @media (max-width: 768px) { height: auto; }
 `
 
 export const RankingItem = styled.div`
@@ -99,6 +154,7 @@ export const RankingItem = styled.div`
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.large};
   width: 100%;
+  @media (max-width: 768px) { min-height: 52px; flex: 0 0 auto; }
 `;
 
 export const Rank = styled.span`
@@ -108,6 +164,10 @@ export const Rank = styled.span`
 
 export const RankName = styled.span`
   ${token.typography('body', 'md', 'medium')};
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 export const RankValue = styled.span`
@@ -122,6 +182,10 @@ export const ModeContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+  padding-block: 4px;
+  @media (min-width: 601px) and (max-width: 1180px) { height: auto; gap: 14px; }
+  @media (min-width: 601px) and (max-width: 1050px) { grid-template-columns: 1fr; }
+  @media (max-width: 600px) { height: auto; grid-template-columns: 1fr; gap: 12px; padding-block: 8px; }
 `;
 
 export const StartButton = styled.button`

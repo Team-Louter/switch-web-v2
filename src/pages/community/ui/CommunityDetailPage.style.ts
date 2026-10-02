@@ -69,11 +69,16 @@ export const Page = styled.section`
   container-name: community-detail;
   container-type: inline-size;
   background: ${token.colors.white};
+  overflow-x: hidden;
   animation: ${communityDetailEnter} 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
 
   @media (max-width: 760px) {
     padding-right: 18px;
     padding-left: 18px;
+  }
+
+  @media (max-width: 430px) {
+    padding: 24px 16px;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -88,6 +93,11 @@ export const Content = styled.div`
   max-width: calc(1003px / 0.9);
   margin: 0 auto;
   zoom: 0.9;
+
+  @container community-detail (max-width: 430px) {
+    min-width: 0;
+    zoom: 1;
+  }
 
   @container community-detail (max-width: 700px) {
     gap: 28px;
@@ -189,6 +199,7 @@ export const Article = styled.article`
   ${token.flexColumn}
   gap: 28px;
   width: 100%;
+  min-width: 0;
 `;
 
 export const ArticleHeading = styled.div`
@@ -288,6 +299,11 @@ export const PostMeta = styled.div`
   min-width: 0;
   gap: 12px;
   min-height: 44px;
+
+  @container community-detail (max-width: 430px) {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 `;
 
 export const PostAuthor = styled.div`
@@ -295,6 +311,10 @@ export const PostAuthor = styled.div`
   flex: 0 1 auto;
   min-width: 0;
   gap: 8px;
+
+  @container community-detail (max-width: 430px) {
+    flex-basis: calc(100% - 42px);
+  }
 `;
 
 export const PostAuthorImage = styled(ProfileAvatar)<{ $hasBorder: boolean }>`

@@ -14,6 +14,7 @@ export const Backdrop = styled.div`
   align-items: center;
   justify-content: center;
   padding: 20px 32px;
+  overflow-y: auto;
   background-color: rgb(14 13 12 / 70%);
   ${studyModalBackdropAnimation}
 `
@@ -22,7 +23,7 @@ export const Modal = styled.div`
   position: relative;
   display: flex;
   width: min(600px, 100%);
-  height: 270px;
+  min-height: 270px;
   flex-direction: column;
   justify-content: space-between;
   padding: 40px;
@@ -30,6 +31,12 @@ export const Modal = styled.div`
   background-color: ${token.colors.white};
   box-shadow: 0 16px 48px rgb(0 0 0 / 20%);
   ${studyModalContentAnimation}
+
+  @media (max-width: 480px) {
+    min-height: 0;
+    padding: 24px 20px;
+    gap: 24px;
+  }
 `
 
 export const GeneratedModal = styled.div`
@@ -89,6 +96,12 @@ export const FormRow = styled.div`
   grid-template-columns: 160px minmax(0, 530px);
   align-items: center;
   gap: 26px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 10px;
+  }
 `
 
 export const Label = styled.label`
@@ -100,6 +113,10 @@ export const ButtonContainer = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 20px;
+
+  @media (max-width: 480px) {
+    gap: 10px;
+  }
 `
 
 export const GeneratedButtonContainer = styled.div`
@@ -119,6 +136,11 @@ const ActionButton = styled.button`
   border-radius: ${token.shapes.xsmall};
   ${token.typography('body', 'sm', 'bold')};
   cursor: pointer;
+
+  @media (max-width: 480px) {
+    flex: 1 1 0;
+    padding-inline: 16px;
+  }
 `
 
 export const CancelButton = styled(ActionButton)`

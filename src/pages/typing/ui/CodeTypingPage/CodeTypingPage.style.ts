@@ -5,10 +5,15 @@ import * as token from '@/shared/styles/values/token'
 
 export const Page = styled.main`
   width: 100%;
-  min-width: 1024px;
   height: 100dvh;
   padding: clamp(28px, 5.2vh, 50px);
   background: ${token.colors.white};
+
+  @media (max-width: 768px) {
+    height: auto;
+    min-height: 100dvh;
+    padding: 16px;
+  }
 `
 
 export const PracticeFrame = styled.section`
@@ -25,6 +30,12 @@ export const PracticeFrame = styled.section`
   * {
     user-select: none;
   }
+
+  @media (max-width: 768px) {
+    min-height: calc(100dvh - 32px);
+    padding: 20px 16px 36px;
+    overflow: visible;
+  }
 `
 
 export const Workspace = styled.div`
@@ -33,12 +44,20 @@ export const Workspace = styled.div`
   min-height: 0;
   justify-content: center;
   padding-top: clamp(52px, 6.4vh, 63px);
+
+  @media (max-width: 768px) {
+    padding-top: 28px;
+  }
 `
 
 export const Monitor = styled.div`
   position: relative;
   width: 100%;
   height: 100%;
+
+  @media (max-width: 768px) {
+    min-height: 760px;
+  }
 `
 
 export const Screen = styled.div`
@@ -53,6 +72,17 @@ export const Screen = styled.div`
   border: 17px solid #d9d9d9;
   border-radius: 20px;
   background: url(${codeTypingBackground}) center / cover no-repeat;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 16px;
+    height: 680px;
+    min-height: 0;
+    padding: 24px 18px;
+    border-width: 10px;
+    border-radius: 14px;
+  }
 `
 
 export const Editor = styled.div`
@@ -62,6 +92,11 @@ export const Editor = styled.div`
   border-radius: 10px;
   background: #212326;
   color: #e0e0e0;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    min-height: 0;
+  }
 `
 
 export const EditorHeader = styled.div`
@@ -113,6 +148,10 @@ export const MonitorNeck = styled.div`
   background: #d9d9d9;
 
   &::before { content: ''; display: block; width: 100%; height: 22px; background: #c6c6c6; }
+
+  @media (max-width: 768px) {
+    top: 680px;
+  }
 `
 
 export const MonitorBase = styled.div`
@@ -124,4 +163,8 @@ export const MonitorBase = styled.div`
   height: 108px;
   border-radius: 50% 50% 0 0;
   background: #d9d9d9;
+
+  @media (max-width: 768px) {
+    top: 758px;
+  }
 `

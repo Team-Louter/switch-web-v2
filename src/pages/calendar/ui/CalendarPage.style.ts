@@ -7,14 +7,27 @@ export const CalendarContainer = styled.div`
   width: 100%;
   height: 100dvh;
   padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px)
-    clamp(20px, 2vw, 30px) 0;
+    clamp(20px, 2vw, 30px);
   ${token.flexCenter}
+
+  @media (max-width: 768px) {
+    align-items: flex-start;
+    height: calc(100dvh - 60px);
+    min-height: 0;
+    padding: 16px;
+    overflow: hidden;
+  }
 `
 
 export const CalendarContent = styled.div`
   width: 100%;
   height: 100%;
   min-width: 0;
+
+  @media (max-width: 768px) {
+    height: 100%;
+    min-height: 0;
+  }
 `
 
 export const Container = styled.section`

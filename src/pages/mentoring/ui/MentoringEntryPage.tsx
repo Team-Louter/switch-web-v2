@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { queryOptions } from '@tanstack/react-query'
-import { PiArrowRight, PiPlus } from 'react-icons/pi'
+import { PiArrowRight, PiCaretDown, PiPlus } from 'react-icons/pi'
 import { useLocation, useSearchParams } from 'react-router-dom'
 
 import { memberDirectoryOptions } from '@/entities/member'
@@ -246,6 +246,8 @@ export function MentoringEntryPage() {
   )
   const [isStatusUpdating, setIsStatusUpdating] = useState(false)
   const optimisticQuestionIdRef = useRef(-1)
+  const [isRoomListExpanded, setIsRoomListExpanded] = useState(false)
+  const [isQuestionListExpanded, setIsQuestionListExpanded] = useState(false)
 
   const isLeader = profile?.role === 'LEADER'
   const isMentor = profile?.role === 'MENTOR' || isLeader
@@ -509,14 +511,21 @@ export function MentoringEntryPage() {
         <S.LeftArea aria-busy={isLoading}>
           <S.RoomContainer>
             <S.SectionHeader>
-              <S.SectionHeading>
-                <S.SectionTitle>방</S.SectionTitle>
-                {isLoading ? (
-                  <S.SkeletonCount aria-hidden="true" />
-                ) : (
-                  <S.SectionCount>{rooms.length}</S.SectionCount>
-                )}
-              </S.SectionHeading>
+              <S.SectionToggle
+                type="button"
+                aria-expanded={isRoomListExpanded}
+                onClick={() => setIsRoomListExpanded((expanded) => !expanded)}
+              >
+                <S.SectionHeading>
+                  <S.SectionTitle>방</S.SectionTitle>
+                  {isLoading ? (
+                    <S.SkeletonCount aria-hidden="true" />
+                  ) : (
+                    <S.SectionCount>{rooms.length}</S.SectionCount>
+                  )}
+                </S.SectionHeading>
+                <PiCaretDown aria-hidden="true" />
+              </S.SectionToggle>
               {isLoading ? (
                 <S.SkeletonAction aria-hidden="true" />
               ) : (
@@ -535,35 +544,44 @@ export function MentoringEntryPage() {
                 )
               )}
             </S.SectionHeader>
-            <S.ListScroll>
-              {isLoading ? (
-                <MentoringRoomListSkeleton />
-              ) : (
-                <MentoringRoomList
-                  rooms={rooms}
-                  selectedRoomId={activeRoomId}
-                  canManageRoom={Boolean(isMentor)}
-                  onSelect={handleSelectRoom}
-                  onEdit={(room) => {
-                    setEditingRoom(room)
-                    setIsRoomModalOpen(true)
-                  }}
-                  onDelete={handleDeleteRoom}
-                />
-              )}
-            </S.ListScroll>
+            <S.CollapsibleContent $expanded={isRoomListExpanded}>
+              <S.ListScroll>
+                {isLoading ? (
+                  <MentoringRoomListSkeleton />
+                ) : (
+                  <MentoringRoomList
+                    rooms={rooms}
+                    selectedRoomId={activeRoomId}
+                    canManageRoom={Boolean(isMentor)}
+                    onSelect={handleSelectRoom}
+                    onEdit={(room) => {
+                      setEditingRoom(room)
+                      setIsRoomModalOpen(true)
+                    }}
+                    onDelete={handleDeleteRoom}
+                  />
+                )}
+              </S.ListScroll>
+            </S.CollapsibleContent>
           </S.RoomContainer>
 
           <S.QuestionContainer>
             <S.SectionHeader>
-              <S.SectionHeading>
-                <S.SectionTitle>질문</S.SectionTitle>
-                {isLoading ? (
-                  <S.SkeletonCount aria-hidden="true" />
-                ) : (
-                  <S.SectionCount>{roomQuestions.length}</S.SectionCount>
-                )}
-              </S.SectionHeading>
+              <S.SectionToggle
+                type="button"
+                aria-expanded={isQuestionListExpanded}
+                onClick={() => setIsQuestionListExpanded((expanded) => !expanded)}
+              >
+                <S.SectionHeading>
+                  <S.SectionTitle>질문</S.SectionTitle>
+                  {isLoading ? (
+                    <S.SkeletonCount aria-hidden="true" />
+                  ) : (
+                    <S.SectionCount>{roomQuestions.length}</S.SectionCount>
+                  )}
+                </S.SectionHeading>
+                <PiCaretDown aria-hidden="true" />
+              </S.SectionToggle>
               {isLoading ? (
                 <S.SkeletonAction aria-hidden="true" />
               ) : (
@@ -579,6 +597,7 @@ export function MentoringEntryPage() {
                 )
               )}
             </S.SectionHeader>
+            <S.CollapsibleContent $expanded={isQuestionListExpanded}>
             <S.ListScroll $flushToEnd>
               {isLoading ? (
                 <MentoringQuestionListSkeleton />
@@ -608,6 +627,7 @@ export function MentoringEntryPage() {
                 <PiArrowRight aria-hidden="true" />
               </S.DashboardButton>
             )}
+            </S.CollapsibleContent>
           </S.QuestionContainer>
         </S.LeftArea>
 
