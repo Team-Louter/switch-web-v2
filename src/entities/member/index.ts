@@ -5,6 +5,10 @@ export {
   quitAdminMembers,
 } from './api/adminMemberApi'
 export { getCurrentMember, getMember } from './api/getMember'
+export {
+  memberDirectoryOptions,
+  memberQueryKeys,
+} from './model/memberQueries'
 export type {
   AdminMemberResponse,
   AdminMemberRole,

@@ -66,7 +66,7 @@ export function Calendar({
   const blockPopover = useRef(false);
   const isSelectionMode = selectionMode === 'clubReport';
 
-  const { eventsInfo, setEventsInfo, isLoading, error } = useEvent();
+  const { eventsInfo, isLoading, error } = useEvent();
 
   const today = new Date();
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
@@ -414,7 +414,6 @@ export function Calendar({
           setIsModalOpen={setIsModalOpen}
           modalMode={modalMode}
           event={selectedEvent}
-          setEvents={setEventsInfo}
         />
       )}
     </>

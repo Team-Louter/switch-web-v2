@@ -755,6 +755,7 @@ export const ReplyComposerInput = styled.textarea`
 export const ReplyComposerFooter = styled.div`
   ${token.flexBetween}
   gap: 16px;
+  flex-wrap: wrap;
   min-height: 44px;
 `;
 
@@ -810,6 +811,7 @@ export const ReplyComposerActions = styled.div`
   ${token.flexLeft}
   flex: 0 0 auto;
   gap: 12px;
+  margin-left: auto;
 `;
 
 export const ReplyCancelButton = styled.button`

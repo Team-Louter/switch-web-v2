@@ -1,22 +1,20 @@
-import { useEffect, useState } from 'react'
-import type { EventInput } from '@fullcalendar/core'
-import { getAllSchedules } from '../api/scheduleApi'
+import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { scheduleListOptions } from '@/entities/schedule'
+import { useUserStore } from '@/entities/profile'
 import { formatEvents } from '../lib/calendarEvents'
 
 export function useEvent() {
-  const [eventsInfo, setEventsInfo] = useState<EventInput[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
-  useEffect(() => {
-    let cancelled = false
-    getAllSchedules().then((events) => {
-      if (!cancelled) setEventsInfo(formatEvents(events))
-    }).catch(() => {
-      if (!cancelled) setError('일정을 불러오지 못했습니다.')
-    }).finally(() => {
-      if (!cancelled) setIsLoading(false)
-    })
-    return () => { cancelled = true }
-  }, [])
-  return { eventsInfo, setEventsInfo, isLoading, error }
+  const userId = useUserStore((state) => state.user?.userId ?? null)
+  const schedulesQuery = useQuery(scheduleListOptions(userId))
+  const eventsInfo = useMemo(
+    () => formatEvents(schedulesQuery.data ?? []),
+    [schedulesQuery.data],
+  )
+
+  return {
+    eventsInfo,
+    isLoading: schedulesQuery.isPending,
+    error: schedulesQuery.isError ? '일정을 불러오지 못했습니다.' : '',
+  }
 }

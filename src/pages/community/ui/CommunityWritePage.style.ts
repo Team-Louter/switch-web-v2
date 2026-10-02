@@ -538,6 +538,11 @@ export const Editor = styled.section<EditorProps>`
     object-fit: contain;
   }
 
+  .community-block-editor [data-content-type='image'] .bn-visual-media {
+    width: 100% !important;
+    max-height: none;
+  }
+
   .community-block-editor .bn-block-content[data-content-type='heading'] {
     padding-top: 12px;
     font-weight: ${token.fontWeight.semibold};

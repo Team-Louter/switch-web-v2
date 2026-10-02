@@ -7,6 +7,7 @@ import {
 } from 'react'
 import { flushSync } from 'react-dom'
 import { PiPencilSimpleLine } from 'react-icons/pi'
+import { queryClient } from '@/shared/lib/queryClient'
 
 import {
   MentorStudyModal,
@@ -16,12 +17,12 @@ import {
   WriteModal,
 } from '@/features/study'
 import {
-  getAllStudies,
-  getAllTotalStudies,
-  getWeekStatus,
+  allManagementStudiesOptions,
+  managementStudyWeekOptions,
+  totalStudyReportsOptions,
 } from '@/entities/study'
 import type { StudyRecord, StudyResponse, StudyStatus } from '@/entities/study'
-import { getMember } from '@/entities/member/api/getMember'
+import { memberDirectoryOptions } from '@/entities/member'
 import type { Member } from '@/entities/member/model/types'
 import { useUserStore } from '@/entities/profile'
 import { tokens } from '@/shared/styles'
@@ -44,7 +45,9 @@ function formatMenteeDisplayName(
 }
 
 export function MentorLearningPage() {
-  const isLeader = useUserStore((state) => state.user?.role === 'LEADER')
+  const user = useUserStore((state) => state.user)
+  const userId = user?.userId ?? null
+  const isLeader = user?.role === 'LEADER'
   const weeks = useMemo(() => getWeeksForCurrentYear(), [])
   const [statusesByWeek, setStatusesByWeek] = useState<
     Record<string, StudyStatus[]>
@@ -205,7 +208,7 @@ export function MentorLearningPage() {
   useEffect(() => {
     let isCancelled = false
 
-    getMember()
+    queryClient.fetchQuery(memberDirectoryOptions(userId))
       .then((members) => {
         if (!isCancelled) {
           setMentees(
@@ -221,7 +224,7 @@ export function MentorLearningPage() {
     return () => {
       isCancelled = true
     }
-  }, [])
+  }, [userId])
 
   useEffect(() => {
     let isCancelled = false
@@ -235,10 +238,13 @@ export function MentorLearningPage() {
 
     const loadCurrentStatus = async () => {
       try {
-        const statuses = await getWeekStatus(
-          currentWeek.year,
-          currentWeek.month,
-          currentWeek.weekNumber,
+        const statuses = await queryClient.fetchQuery(
+          managementStudyWeekOptions(
+            userId,
+            currentWeek.year,
+            currentWeek.month,
+            currentWeek.weekNumber,
+          ),
         )
 
         if (!isCancelled) {
@@ -265,7 +271,7 @@ export function MentorLearningPage() {
     return () => {
       isCancelled = true
     }
-  }, [weeks])
+  }, [weeks, userId])
 
   useEffect(() => {
     const weeksToLoad = loadedHistoryWeeks.filter(
@@ -285,7 +291,9 @@ export function MentorLearningPage() {
       weekNumber,
     }: StudyWeek) => {
       try {
-        const statuses = await getWeekStatus(year, month, weekNumber)
+        const statuses = await queryClient.fetchQuery(
+          managementStudyWeekOptions(userId, year, month, weekNumber),
+        )
 
         if (isMountedRef.current) {
           setStatusesByWeek((previous) => ({
@@ -305,14 +313,14 @@ export function MentorLearningPage() {
       loadHistoryStatus,
       STATUS_REQUEST_CONCURRENCY,
     )
-  }, [loadedHistoryWeeks])
+  }, [loadedHistoryWeeks, userId])
 
   useEffect(() => {
     if (!isLeader) return
 
     let isCancelled = false
 
-    getAllTotalStudies()
+    queryClient.fetchQuery(totalStudyReportsOptions(userId))
       .then((reports) => {
         if (!isCancelled) setTotalStudies(reports)
       })
@@ -321,7 +329,7 @@ export function MentorLearningPage() {
     return () => {
       isCancelled = true
     }
-  }, [isLeader])
+  }, [isLeader, userId])
 
   const isStudyInWeek = (
     study: StudyRecord,
@@ -338,9 +346,11 @@ export function MentorLearningPage() {
       return studiesRequestRef.current
     }
 
-    const request = getAllStudies().finally(() => {
-      studiesRequestRef.current = null
-    })
+    const request = queryClient
+      .fetchQuery(allManagementStudiesOptions(userId))
+      .finally(() => {
+        studiesRequestRef.current = null
+      })
 
     studiesRequestRef.current = request
     return request

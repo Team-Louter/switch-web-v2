@@ -1,5 +1,7 @@
 import type { NotificationSettingsResponse } from '@/entities/notification'
+import { notificationQueryKeys } from '@/entities/notification'
 import { apiClient } from '@/shared/api'
+import { queryClient } from '@/shared/lib/queryClient'
 
 import type {
   PatchNotificationSettingRequest,
@@ -18,6 +20,9 @@ export async function updateNotificationSettings(
     '/notification/settings',
     request,
   )
+  await queryClient.invalidateQueries({
+    queryKey: notificationQueryKeys.settingsRoot,
+  })
 
   return response.data
 }

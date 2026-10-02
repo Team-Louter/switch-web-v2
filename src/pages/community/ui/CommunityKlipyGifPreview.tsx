@@ -1,0 +1,112 @@
+import { useEffect, useState } from 'react';
+import { MdClose } from 'react-icons/md';
+
+import {
+  getKlipyGifPreview,
+  isKlipyGifApiConfigured,
+  type KlipyGifPreview as KlipyGifPreviewData,
+} from '@/shared/api';
+import { Modal } from '@/shared/ui';
+
+import * as S from './CommunityKlipyGifPreview.style';
+
+interface CommunityKlipyGifPreviewProps {
+  href: string;
+  slug: string;
+}
+
+export function CommunityKlipyGifPreview({
+  href,
+  slug,
+}: CommunityKlipyGifPreviewProps) {
+  const [loadedPreview, setLoadedPreview] = useState<{
+    slug: string;
+    preview: KlipyGifPreviewData | null;
+  } | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const preview = loadedPreview?.slug === slug ? loadedPreview.preview : null;
+  const description = preview?.contentDescription || preview?.title || 'KLIPY GIF';
+  const aspectRatio = preview?.width && preview.height && preview.width > 0 && preview.height > 0
+    ? preview.width / preview.height : 1;
+
+  const handleClose = () => setIsExpanded(false);
+
+  useEffect(() => {
+    if (!isKlipyGifApiConfigured()) return;
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 8000);
+    getKlipyGifPreview(slug, controller.signal)
+      .then((result) => {
+        if (!controller.signal.aborted) {
+          setLoadedPreview({ slug, preview: result });
+        }
+      })
+      .catch(() => {
+        // Keep the original link available when the API is unavailable or the GIF was removed.
+        if (!controller.signal.aborted) setLoadedPreview({ slug, preview: null });
+      })
+      .finally(() => window.clearTimeout(timeoutId));
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
+  }, [slug]);
+
+  if (!preview) {
+    return (
+      <S.FallbackLink href={href} target="_blank" rel="noopener noreferrer">
+        {href}
+      </S.FallbackLink>
+    );
+  }
+
+  return (
+    <>
+      <S.Preview>
+        <S.PreviewButton
+          type="button"
+          aria-label={`${description} 크게 보기`}
+          aria-haspopup="dialog"
+          onClick={() => setIsExpanded(true)}
+        >
+          <S.PreviewImage
+            src={preview.url}
+            alt={description}
+            width={preview.width}
+            height={preview.height}
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
+            crossOrigin="anonymous"
+            onError={() => setLoadedPreview({ slug, preview: null })}
+          />
+        </S.PreviewButton>
+        {(preview.creatorName || preview.source) && (
+          <S.Attribution>
+            {preview.creatorName && <span>출처: {preview.creatorName}</span>}
+            {preview.source && (
+              <span>{preview.creatorName ? '· ' : ''}{preview.source}</span>
+            )}
+          </S.Attribution>
+        )}
+      </S.Preview>
+      {isExpanded && (
+        <Modal label="GIF 크게 보기" variant="media" onClose={handleClose}>
+          <S.CloseButton type="button" aria-label="GIF 크게 보기 닫기" onClick={handleClose}>
+            <MdClose size={24} />
+          </S.CloseButton>
+          <S.ExpandedImage
+            $aspectRatio={aspectRatio}
+            src={preview.url}
+            alt={description}
+            referrerPolicy="no-referrer"
+            crossOrigin="anonymous"
+            onError={() => setLoadedPreview({ slug, preview: null })}
+          />
+        </Modal>
+      )}
+    </>
+  );
+}

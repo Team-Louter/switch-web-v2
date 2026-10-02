@@ -397,8 +397,8 @@ export const SkeletonRow = styled.div`
 
 export const SkeletonCategory = styled.span`
   ${skeletonSurface}
-  flex: 0 0 80px;
-  height: 29px;
+  flex: 0 0 72px;
+  height: 26px;
 
   @container community-page (max-width: 430px) {
     grid-column: 2;
@@ -504,8 +504,10 @@ export const PostCategory = styled.span`
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  flex: 0 0 72px;
+  width: 72px;
   min-height: 26px;
-  padding: 3px 10px;
+  padding: 3px 0;
   border: 1px solid ${token.colors.primary.text};
   border-radius: 999px;
   color: ${token.colors.primary.primary80};

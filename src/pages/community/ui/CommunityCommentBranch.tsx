@@ -13,6 +13,7 @@ import {
   formatCommunityRelativeDate,
   resolveCommunityAssetUrl,
 } from '@/entities/community';
+import type { KlipyGif } from '@/shared/api';
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png';
 import { getNameStyleKey } from '@/shared/styles';
 
@@ -24,10 +25,19 @@ import {
   type CommunityReplyLoadHandler,
   type CommunityReplySubmitHandler,
 } from '../model/commentTree';
+import {
+  buildCommunityGifCommentContent,
+  extractCommunityKlipyGifLinks,
+} from '../model/klipyGifLink';
 import { resizeCommunityTextarea } from '../model/commentInput';
 import kebabIcon from '../assets/svg/kebab.svg';
 import * as S from './CommunityCommentBranch.style';
+import { CommunityKlipyGifPreview } from './CommunityKlipyGifPreview';
 import { PixelHammerIcon } from './PixelHammerIcon';
+import {
+  CommunityCommentGifAttachment,
+  CommunityCommentGifButton,
+} from './CommunityCommentGif';
 
 interface ReplyLoadingSkeletonProps {
   isWithinReplies?: boolean;
@@ -96,9 +106,13 @@ export function CommunityCommentBranch({
   hasNextSibling = false,
 }: CommunityCommentBranchProps) {
   const { comment } = node;
+  const commentContent = comment.deleted
+    ? { text: comment.content, klipyGifLinks: [] }
+    : extractCommunityKlipyGifLinks(comment.content);
   const [isRepliesOpen, setIsRepliesOpen] = useState(false);
   const [isReplyComposerOpen, setIsReplyComposerOpen] = useState(false);
   const [replyContent, setReplyContent] = useState('');
+  const [replyGif, setReplyGif] = useState<KlipyGif | null>(null);
   const [isReplyAnonymous, setIsReplyAnonymous] = useState(false);
   const [isReplySubmitting, setIsReplySubmitting] = useState(false);
   const [replySubmitError, setReplySubmitError] = useState<string | null>(null);
@@ -119,6 +133,10 @@ export function CommunityCommentBranch({
   >(null);
 
   const loadedReplyCount = node.children.length;
+  const replySubmitContent = buildCommunityGifCommentContent(
+    replyContent,
+    replyGif?.slug,
+  );
   const totalReplyCount = Math.max(0, comment.replyCount);
   const hasReplies = totalReplyCount > 0 || loadedReplyCount > 0;
   const canManageComment =
@@ -181,12 +199,13 @@ export function CommunityCommentBranch({
   const handleReplyComposerCancel = () => {
     setIsReplyComposerOpen(false);
     setReplyContent('');
+    setReplyGif(null);
     setIsReplyAnonymous(false);
     setReplySubmitError(null);
   };
 
   const handleReplyFormSubmit = async () => {
-    const trimmedContent = replyContent.trim();
+    const trimmedContent = replySubmitContent;
 
     if (!trimmedContent || isReplySubmitting) {
       return;
@@ -229,7 +248,7 @@ export function CommunityCommentBranch({
       setIsRepliesOpen(true);
     }
     setIsRepliesLoading(false);
-  }, [comment.commentId, isRepliesLoading, onRepliesLoad]);
+  }, [comment.commentId, isRepliesLoading, onRepliesLoad, setIsRepliesOpen]);
 
   const handleReplyKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key !== 'Enter' || event.shiftKey) {
@@ -447,12 +466,21 @@ export function CommunityCommentBranch({
               </S.CommentEditForm>
             ) : (
               <>
-                <S.CommentText $isDeleted={comment.deleted}>
-                  {replyToUserName && (
-                    <S.CommentMention>@{replyToUserName}</S.CommentMention>
-                  )}
-                  {comment.content}
-                </S.CommentText>
+                {(commentContent.text || replyToUserName) && (
+                  <S.CommentText $isDeleted={comment.deleted}>
+                    {replyToUserName && (
+                      <S.CommentMention>@{replyToUserName}</S.CommentMention>
+                    )}
+                    {commentContent.text}
+                  </S.CommentText>
+                )}
+                {commentContent.klipyGifLinks.map((gifLink, index) => (
+                  <CommunityKlipyGifPreview
+                    key={`${gifLink.slug}-${index}`}
+                    href={gifLink.href}
+                    slug={gifLink.slug}
+                  />
+                ))}
                 <S.ReplyActionButton
                   type="button"
                   aria-expanded={isReplyComposerOpen}
@@ -486,8 +514,22 @@ export function CommunityCommentBranch({
                         }}
                         onKeyDown={handleReplyKeyDown}
                       />
+                      {replyGif && (
+                        <CommunityCommentGifAttachment
+                          key={replyGif.slug}
+                          gif={replyGif}
+                          label="답글 GIF 미리보기"
+                          disabled={isReplySubmitting}
+                          onRemove={() => setReplyGif(null)}
+                        />
+                      )}
                       <S.ReplyComposerFooter>
                         <S.ReplyComposerTools>
+                          <CommunityCommentGifButton
+                            label="답글 GIF 선택"
+                            disabled={isReplySubmitting}
+                            onSelect={setReplyGif}
+                          />
                           <S.ReplyAnonymousLabel>
                             <S.ReplyAnonymousCheckbox
                               type="checkbox"
@@ -510,7 +552,7 @@ export function CommunityCommentBranch({
                           </S.ReplyCancelButton>
                           <S.ReplySubmitButton
                             type="button"
-                            disabled={!replyContent.trim() || isReplySubmitting}
+                            disabled={!replySubmitContent || isReplySubmitting}
                             onClick={() => void handleReplyFormSubmit()}
                           >
                             답글

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { FaGithub, FaLinkedin } from 'react-icons/fa'
 
-import { getMember } from '@/entities/member'
-import type { Member } from '@/entities/member'
+import { memberDirectoryOptions, type Member } from '@/entities/member'
+import { useUserStore } from '@/entities/profile'
 import { UserName } from '@/entities/user'
 import { getNameStyleKey } from '@/shared/styles'
 import * as S from './HomeMemberSection.style'
@@ -12,38 +13,41 @@ const DEFAULT_GENERATIONS = [1, 2, 3]
 const MEMBER_BATCH_SIZE = 5
 
 export function HomeMemberSection() {
-  const [members, setMembers] = useState<Member[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const userId = useUserStore((state) => state.user?.userId ?? null)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [shouldLoad, setShouldLoad] = useState(false)
   const [visibleCount, setVisibleCount] = useState(0)
   const [selectedGeneration, setSelectedGeneration] = useState(ALL_GENERATIONS)
   const [isVisible, setIsVisible] = useState(false)
+  const membersQuery = useQuery({
+    ...memberDirectoryOptions(userId),
+    enabled: shouldLoad && userId !== null,
+  })
+  const members = useMemo(() => membersQuery.data ?? [], [membersQuery.data])
+  const isPreparingInitialMembers =
+    shouldLoad && membersQuery.data !== undefined && members.length > 0 && visibleCount === 0
+  const isLoading =
+    shouldLoad && (membersQuery.isPending || isPreparingInitialMembers)
   const sectionRef = useRef<HTMLElement>(null)
   const loadMoreRef = useRef<HTMLDivElement>(null)
   const preloadRequestRef = useRef(0)
 
   useEffect(() => {
-    if (!shouldLoad) return
+    if (!shouldLoad || !membersQuery.data) return
 
     let cancelled = false
+    const initialMembers = membersQuery.data.slice(0, MEMBER_BATCH_SIZE)
 
-    getMember()
-      .then(async (response) => {
-        const initialMembers = response.slice(0, MEMBER_BATCH_SIZE)
-        await preloadMemberImages(initialMembers)
-        if (!cancelled) {
-          setMembers(response)
-          setVisibleCount(initialMembers.length)
-        }
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
+    void preloadMemberImages(initialMembers).finally(() => {
+      if (!cancelled) {
+        setVisibleCount((currentCount) =>
+          currentCount === 0 ? initialMembers.length : currentCount,
+        )
+      }
+    })
 
     return () => { cancelled = true }
-  }, [shouldLoad])
+  }, [membersQuery.data, shouldLoad])
 
   useEffect(() => {
     const section = sectionRef.current
@@ -52,7 +56,6 @@ export function HomeMemberSection() {
     const observer = new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting) return
       setIsVisible(true)
-      setIsLoading(true)
       setShouldLoad(true)
       observer.unobserve(entry.target)
     }, { rootMargin: '240px 0px', threshold: 0.01 })
@@ -126,9 +129,9 @@ export function HomeMemberSection() {
           </S.FilterButton>
         ))}
       </S.FilterList>
-      <S.MemberList key={selectedGeneration} $loaded={shouldLoad && !isLoading}>
-        {isLoading
-          ? Array.from({ length: 5 }, (_, index) => <MemberSkeleton key={index} />)
+    <S.MemberList key={selectedGeneration} $loaded={shouldLoad && !isLoading}>
+      {isLoading
+        ? Array.from({ length: 5 }, (_, index) => <MemberSkeleton key={index} />)
           : shouldLoad && renderedMembers.map((member) => <MemberRow key={member.userId} member={member} />)}
         {isLoadingMore && Array.from({ length: Math.min(MEMBER_BATCH_SIZE, visibleMembers.length - visibleCount) }, (_, index) => <MemberSkeleton key={`more-${index}`} />)}
         {shouldLoad && hasMoreMembers && <S.LoadMoreTrigger ref={loadMoreRef} aria-label="다음 멤버 불러오는 중" />}

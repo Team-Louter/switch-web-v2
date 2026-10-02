@@ -7,13 +7,15 @@ import {
   useState,
 } from 'react'
 import { PiCaretDoubleRight } from 'react-icons/pi'
+import { queryClient } from '@/shared/lib/queryClient'
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
 
 import { Button } from '@/shared/ui'
 import type { Member } from '@/entities/member/model/types'
-import { getMessages } from '@/entities/mentoring'
+import { mentoringMessagesOptions } from '@/entities/mentoring'
+import { useUserStore } from '@/entities/profile'
 import type {
   MentoringFile,
   MentoringMessage,
@@ -149,6 +151,7 @@ export function QuestionDetailPanel({
   onComplete,
   onStatusChange,
 }: QuestionDetailPanelProps) {
+  const userId = useUserStore((state) => state.user?.userId ?? null)
   const [loadedMessages, setLoadedMessages] =
     useState<LoadedQuestionMessages | null>(null)
   const [isSending, setIsSending] = useState(false)
@@ -245,7 +248,9 @@ export function QuestionDetailPanel({
       // 서버에 질문 단위 조회가 없어 전체 메시지에서 해당 질문만 추린다.
       const request =
         allMessagesPromiseRef.current ??
-        (allMessagesPromiseRef.current = getMessages())
+        (allMessagesPromiseRef.current = queryClient.fetchQuery(
+          mentoringMessagesOptions(userId),
+        ))
 
       try {
         const allMessages = await request
@@ -281,7 +286,7 @@ export function QuestionDetailPanel({
         }
       }
     },
-    [mergePendingMessages],
+    [mergePendingMessages, userId],
   )
 
   useEffect(() => {
@@ -333,7 +338,10 @@ export function QuestionDetailPanel({
       }
 
       isPolling = true
-      const request = getMessages()
+      const request = queryClient.fetchQuery({
+        ...mentoringMessagesOptions(userId),
+        staleTime: 0,
+      })
       pollingRequestRef.current = request
 
       try {
@@ -387,7 +395,7 @@ export function QuestionDetailPanel({
       window.clearInterval(pollingTimer)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [appendNewQuestionMessages, loadedMessages?.questionId, question.questionId])
+  }, [appendNewQuestionMessages, loadedMessages?.questionId, question.questionId, userId])
 
   useLayoutEffect(() => {
     scrollToBottomQuestionIdRef.current = null
@@ -411,7 +419,7 @@ export function QuestionDetailPanel({
     messageListRef.current?.scrollTo({
       top: messageListRef.current.scrollHeight,
     })
-  }, [loadedMessages, question.questionId])
+  }, [loadedMessages, question.questionId, userId])
 
   useEffect(() => {
     targetMessageScrollKeyRef.current = null

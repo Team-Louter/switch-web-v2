@@ -10,7 +10,6 @@ import type {
 } from '../model/types'
 
 const DEFAULT_POST_PAGE_SIZE = 32
-const inFlightPostRequests = new Map<number, Promise<PostResponse>>()
 
 export async function getPosts({
   category,
@@ -33,22 +32,8 @@ export async function getPosts({
 }
 
 export async function getPost(postId: number): Promise<PostResponse> {
-  const inFlightRequest = inFlightPostRequests.get(postId)
-
-  if (inFlightRequest) {
-    return inFlightRequest
-  }
-
-  const request = apiClient
-    .get<PostResponse>(`/posts/${postId}`)
-    .then((response) => response.data)
-    .finally(() => {
-      inFlightPostRequests.delete(postId)
-    })
-
-  inFlightPostRequests.set(postId, request)
-
-  return request
+  const response = await apiClient.get<PostResponse>(`/posts/${postId}`)
+  return response.data
 }
 
 export async function getComments(

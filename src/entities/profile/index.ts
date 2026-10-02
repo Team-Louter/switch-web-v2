@@ -6,6 +6,7 @@ export {
 } from './api/profileApi'
 export { formatProfileClassInfo } from './lib/formatProfileClassInfo'
 export { useUserStore } from './model/userStore'
+export { profileMeOptions, profileQueryKeys } from './model/profileQueries'
 export type {
   ProfileMajor,
   ProfileEquippedItem,

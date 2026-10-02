@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { queryClient } from '@/shared/lib/queryClient'
 
 import type { StudyResponse } from '@/entities/study'
-import { getAllSchedules } from '@/entities/schedule'
+import { scheduleListOptions } from '@/entities/schedule'
 import type { Schedule } from '@/entities/schedule'
+import { useUserStore } from '@/entities/profile'
 
 import {
   createTotalStudy,
@@ -58,6 +60,7 @@ export function MentorTotalStudyModal({
   totalStudy,
   onGenerated,
 }: MentorTotalStudyModalProps) {
+  const userId = useUserStore((state) => state.user?.userId ?? null)
   const [schedules, setSchedules] = useState<ScheduleOption[]>([])
   const [selectedScheduleIds, setSelectedScheduleIds] = useState<number[]>(
     totalStudy?.scheduleIds ?? [],
@@ -71,7 +74,7 @@ export function MentorTotalStudyModal({
 
     let isCancelled = false
 
-    getAllSchedules()
+    queryClient.fetchQuery(scheduleListOptions(userId))
       .then((allSchedules) => {
         if (!isCancelled) {
           setSchedules(
@@ -86,7 +89,7 @@ export function MentorTotalStudyModal({
     return () => {
       isCancelled = true
     }
-  }, [isOpen, month, year])
+  }, [isOpen, month, userId, year])
 
   if (!isOpen) return null
 

@@ -1,10 +1,12 @@
 import { createPortal } from 'react-dom'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useUserStore } from '@/entities/profile'
+import { memberDirectoryOptions } from '@/entities/member'
+import { queryClient } from '@/shared/lib/queryClient'
 
 import {
   changeAdminMemberRole,
   getAdminMemberEmail,
-  getMember,
   quitAdminMembers,
 } from '@/entities/member'
 
@@ -40,6 +42,7 @@ export function MemberManagementModal({
   onClose,
   onComplete,
 }: MemberManagementModalProps) {
+  const userId = useUserStore((state) => state.user?.userId ?? null)
   const menuRef = useRef<HTMLDivElement>(null)
   const [members, setMembers] = useState<ManagedMember[]>([])
   const [openedMenuMemberId, setOpenedMenuMemberId] = useState<number | null>(
@@ -73,7 +76,9 @@ export function MemberManagementModal({
     const fetchMembers = async () => {
       try {
         setIsLoading(true)
-        const response = await getMember()
+        const response = await queryClient.fetchQuery(
+          memberDirectoryOptions(userId),
+        )
 
         if (!shouldIgnore) {
           setMembers(response.map(formatManagedMember))
@@ -95,7 +100,7 @@ export function MemberManagementModal({
     return () => {
       shouldIgnore = true
     }
-  }, [])
+  }, [userId])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
+import { queryClient } from '@/shared/lib/queryClient'
 import { useSearchParams } from 'react-router-dom'
 
-import { formatProfileClassInfo, getMyProfile } from '@/entities/profile'
+import {
+  formatProfileClassInfo,
+  profileMeOptions,
+  useUserStore,
+} from '@/entities/profile'
 import { dispatchProfileSync } from '@/shared/lib/profileSync'
 import { getNameStyleKey } from '@/shared/styles'
 import {
-  getShopItems,
-  getUserPoint,
+  storeItemsOptions,
+  storePointsOptions,
   purchaseShopItem,
   updateEquippedItem,
 } from '@/entities/store'
@@ -323,6 +328,7 @@ export const applyEquippedItems = (
 // 3) 구매/장착/초기화 API 성공 후 카드 상태를 갱신한다
 export function useStorePage() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const userId = useUserStore((state) => state.user?.userId ?? null)
   const [selectedCategory, setSelectedCategory] =
     useState<StoreCategory>(() => getInitialStoreCategory(searchParams))
   const [selectedCustomizeCategory, setSelectedCustomizeCategory] =
@@ -364,14 +370,18 @@ export function useStorePage() {
   }
 
   useEffect(() => {
+    if (userId === null) {
+      return
+    }
+
     let shouldIgnore = false
 
     const loadStoreData = async () => {
       const [itemsResult, pointResult, profileResult] =
         await Promise.allSettled([
-          getShopItems(),
-          getUserPoint(),
-          getMyProfile(),
+          queryClient.fetchQuery(storeItemsOptions(userId)),
+          queryClient.fetchQuery(storePointsOptions(userId)),
+          queryClient.fetchQuery(profileMeOptions(userId)),
         ] as const)
 
       if (itemsResult.status === 'fulfilled') {
@@ -412,7 +422,7 @@ export function useStorePage() {
     return () => {
       shouldIgnore = true
     }
-  }, [loadAttempt])
+  }, [loadAttempt, userId])
 
   useEffect(() => {
     if (activeModal !== 'purchaseComplete') {
@@ -423,7 +433,10 @@ export function useStorePage() {
 
     const refreshPoint = async () => {
       try {
-        const currentPoint = await getUserPoint()
+        const currentPoint = await queryClient.fetchQuery({
+          ...storePointsOptions(userId),
+          staleTime: 0,
+        })
 
         if (!shouldIgnore) {
           setPoint(currentPoint)
@@ -438,7 +451,7 @@ export function useStorePage() {
     return () => {
       shouldIgnore = true
     }
-  }, [activeModal])
+  }, [activeModal, userId])
 
 
 

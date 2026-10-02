@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
+import { queryClient } from '@/shared/lib/queryClient'
 
 import {
-  getShopItems,
-  getUserPoint,
   purchaseShopItem,
+  storeItemsOptions,
+  storePointsOptions,
   updateEquippedItem,
 } from '@/entities/store'
+import { useUserStore } from '@/entities/profile'
 
 import {
   STORE_CATEGORY_ITEM_TYPE,
@@ -56,6 +58,7 @@ export function useProfileCustomize({
   onEquippedItemsChange,
   onPointChange,
 }: UseProfileCustomizeParams) {
+  const userId = useUserStore((state) => state.user?.userId ?? null)
   const [selectedCategory, setSelectedCategory] =
     useState<Exclude<StoreCategory, '전체'>>('이름 색상')
   const [selections, setSelections] = useState<CategorySelections>(
@@ -78,7 +81,9 @@ export function useProfileCustomize({
       setErrorMessage('')
     
       try {
-        const response = await getShopItems()
+        const response = await queryClient.fetchQuery(
+          storeItemsOptions(userId),
+        )
         const effects = response.items.map(mapShopItemToStoreEffect)
     
         if (!shouldIgnore) {
@@ -101,7 +106,7 @@ export function useProfileCustomize({
     return () => {
       shouldIgnore = true
     }
-  }, [isOpen])
+  }, [isOpen, userId])
 
 
   const categoryEffects = useMemo(
@@ -199,7 +204,10 @@ export function useProfileCustomize({
       )
 
       try {
-        const refreshedPoint = await getUserPoint()
+        const refreshedPoint = await queryClient.fetchQuery({
+          ...storePointsOptions(userId),
+          staleTime: 0,
+        })
         onPointChange?.(refreshedPoint)
       } catch {
         // 포인트 재조회 실패 시에도 구매 가격을 차감한 잔액을 표시한다.

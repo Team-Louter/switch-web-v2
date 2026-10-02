@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
+import { scheduleListOptions } from '@/entities/schedule'
 import { useUserStore } from '@/entities/profile'
-import { getAllSchedules } from '@/entities/schedule'
-import type { Schedule } from '@/entities/schedule'
 import { RecoveryEmailModal } from '@/features/auth'
 import { HomeCalendar, HomeSidebar } from '@/features/home'
 import {
@@ -34,8 +34,9 @@ export function HomePage() {
   const viewport = useRef<HTMLDivElement>(null)
   const [searchParams, setSearchParams] = useSearchParams()
   const [scale, setScale] = useState(1)
-  const [schedules, setSchedules] = useState<Schedule[]>([])
-  const [loading, setLoading] = useState(true)
+  const userId = useUserStore((state) => state.user?.userId ?? null)
+  const schedulesQuery = useQuery(scheduleListOptions(userId))
+  const schedules = schedulesQuery.data ?? []
   const [isRecoveryEmailModalOpen, setIsRecoveryEmailModalOpen] = useState(
     () =>
       Boolean(getPendingAccessToken()) &&
@@ -88,16 +89,6 @@ export function HomePage() {
     return () => observer.disconnect()
   }, [])
 
-  useEffect(() => {
-    let cancelled = false
-
-    getAllSchedules()
-      .then((data) => { if (!cancelled) setSchedules(data) })
-      .catch(() => {})
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
-  }, [])
-
   return (
     <S.PageContainer>
       <S.Viewport ref={viewport} style={{ height: HOME_TOP_CONTENT_HEIGHT * scale }}>
@@ -105,7 +96,7 @@ export function HomePage() {
           <S.CalendarArea>
             <HomeCalendar
               schedules={schedules}
-              loading={loading}
+              loading={schedulesQuery.isPending}
               selectedScheduleId={selectedScheduleId}
               onScheduleDetailClose={handleScheduleDetailClose}
             />

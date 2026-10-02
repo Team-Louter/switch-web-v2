@@ -4,16 +4,46 @@ import '@blocknote/mantine/style.css';
 import type { Block } from '@blocknote/core';
 import { BlockNoteView } from '@blocknote/mantine';
 import { useCreateBlockNote } from '@blocknote/react';
-import { type MouseEvent, type SyntheticEvent, useEffect, useRef } from 'react';
+import {
+  type KeyboardEvent,
+  type MouseEvent,
+  type SyntheticEvent,
+  useEffect,
+  useRef,
+} from 'react';
 
 import {
   getCommunityFileDownloadUrl,
   type PostFileResponse,
 } from '@/entities/community';
 
+import type { CommunityPostImagePreview } from './CommunityPostImageViewer';
+import { communityBlockNoteSchema } from '../model/communityBlockNoteSchema';
+
 interface CommunityPostBlockContentProps {
   blocks: readonly Block[];
   files: readonly PostFileResponse[];
+  onImagePreview: (image: CommunityPostImagePreview) => void;
+}
+
+function syncImagePreviewAccessibility(image: HTMLImageElement) {
+  const wrapper = image.closest<HTMLElement>(
+    '[data-content-type="image"] .bn-visual-media-wrapper',
+  );
+  if (!wrapper) return;
+
+  // BlockNote가 생성한 읽기 전용 이미지에도 키보드로 뷰어를 열 수 있도록 합니다.
+  if (image.complete && image.naturalWidth > 0) {
+    wrapper.setAttribute('role', 'button');
+    wrapper.setAttribute('aria-label', `${image.alt || '본문 이미지'} 크게 보기`);
+    wrapper.setAttribute('aria-haspopup', 'dialog');
+    wrapper.tabIndex = 0;
+  } else {
+    wrapper.removeAttribute('role');
+    wrapper.removeAttribute('aria-label');
+    wrapper.removeAttribute('aria-haspopup');
+    wrapper.removeAttribute('tabindex');
+  }
 }
 
 function resolveMediaUrl(
@@ -59,17 +89,37 @@ function normalizeMediaUrls(
 export function CommunityPostBlockFallback({
   blocks,
   files,
+  onImagePreview,
 }: CommunityPostBlockContentProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const normalizedBlocks = normalizeMediaUrls(blocks, files);
   const editor = useCreateBlockNote({
+    schema: communityBlockNoteSchema,
     initialContent: normalizedBlocks,
     domAttributes: {
       editor: { 'aria-label': '게시글 본문' },
     },
   });
 
-  function handleFileBlockClick(event: MouseEvent<HTMLDivElement>) {
+  function openImagePreview(target: EventTarget) {
+    if (!(target instanceof Element)) return false;
+    const wrapper = target.closest(
+      '[data-content-type="image"] .bn-visual-media-wrapper[role="button"]',
+    );
+    const image = wrapper?.querySelector('img');
+    if (!image?.naturalWidth || !image.naturalHeight) return false;
+
+    onImagePreview({
+      src: image.currentSrc,
+      alt: image.alt || '본문 이미지',
+      width: image.naturalWidth,
+      height: image.naturalHeight,
+    });
+    return true;
+  }
+
+  function handleMediaBlockClick(event: MouseEvent<HTMLDivElement>) {
+    if (openImagePreview(event.target)) return;
     if (!(event.target instanceof Element)) {
       return;
     }
@@ -94,6 +144,15 @@ export function CommunityPostBlockFallback({
     window.open(downloadUrl, '_blank', 'noopener,noreferrer');
   }
 
+  function handleImageKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (
+      (event.key === 'Enter' || event.key === ' ') &&
+      openImagePreview(event.target)
+    ) {
+      event.preventDefault();
+    }
+  }
+
   function handleMediaLoadState(event: SyntheticEvent<HTMLDivElement>) {
     if (!(event.target instanceof HTMLImageElement)) {
       return;
@@ -106,6 +165,7 @@ export function CommunityPostBlockFallback({
     if (mediaWrapper) {
       mediaWrapper.dataset.mediaLoading = 'false';
     }
+    syncImagePreviewAccessibility(event.target);
   }
 
   useEffect(() => {
@@ -126,6 +186,7 @@ export function CommunityPostBlockFallback({
           if (mediaWrapper) {
             mediaWrapper.dataset.mediaLoading = String(!image.complete);
           }
+          syncImagePreviewAccessibility(image);
         });
     };
 
@@ -147,7 +208,8 @@ export function CommunityPostBlockFallback({
   return (
     <div
       ref={contentRef}
-      onClick={handleFileBlockClick}
+      onClick={handleMediaBlockClick}
+      onKeyDown={handleImageKeyDown}
       onLoadCapture={handleMediaLoadState}
       onErrorCapture={handleMediaLoadState}
     >

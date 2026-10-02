@@ -2,7 +2,6 @@ import {
   type KeyboardEvent,
   type SyntheticEvent,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
@@ -17,11 +16,9 @@ import {
   formatCommunityCount,
   formatCommunityListRecentDate,
   getPostCategoryLabel,
-  getPosts,
   POST_CATEGORY_OPTIONS,
   resolveCommunityAssetUrl,
   type PostCategory,
-  type PostResponse,
 } from '@/entities/community';
 import fallbackProfileImage from '@/shared/assets/sidebar/profile.png';
 import eyeIcon from '@/shared/assets/my/eye-icon.svg';
@@ -34,6 +31,11 @@ import heartOutlineIcon from '../assets/svg/heart-outline.svg';
 import fileAttachmentIcon from '../assets/svg/file-attachment.svg';
 import imageAttachmentIcon from '../assets/svg/image-attachment.svg';
 import pinIcon from '../assets/svg/pin-solid.svg';
+import {
+  useCommunityListNavigation,
+  useCommunityListScroll,
+} from '../model/useCommunityListNavigation';
+import { useCommunityPosts } from '../model/useCommunityPosts';
 import {
   Author,
   AuthorImage,
@@ -98,15 +100,16 @@ const RELATIVE_TIME_REFRESH_INTERVAL_MS = 30_000;
 
 export function CommunityPage() {
   const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState<PostCategory | null>(
-    null,
-  );
-  const [currentPage, setCurrentPage] = useState(0);
-  const [posts, setPosts] = useState<PostResponse[]>([]);
-  const [totalPages, setTotalPages] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [reloadKey, setReloadKey] = useState(0);
+  const {
+    selectedCategory,
+    currentPage,
+    selectCategory,
+    selectPage,
+    getNavigationState,
+  } = useCommunityListNavigation();
+  const { posts, totalPages, hasData, isLoading, isFetching, loadError, retry } =
+    useCommunityPosts(selectedCategory, currentPage);
+  useCommunityListScroll(hasData);
   const [currentTime, setCurrentTime] = useState(globalThis.Date.now);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const categoryMenuRef = useRef<HTMLDivElement>(null);
@@ -125,8 +128,7 @@ export function CommunityPage() {
       ?.label ?? CATEGORY_TABS[0].label;
 
   const handleCategorySelect = (category: PostCategory | null) => {
-    setSelectedCategory(category);
-    setCurrentPage(0);
+    selectCategory(category);
     setIsCategoryMenuOpen(false);
   };
 
@@ -136,11 +138,14 @@ export function CommunityPage() {
   };
 
   const handleWritePost = () => {
-    navigate('/community/write');
+    navigate('/community/write', { state: getNavigationState() });
   };
 
   const handlePostSelect = (postId: number) => {
-    navigate(`/community/${postId}`, { viewTransition: true });
+    navigate(`/community/${postId}`, {
+      viewTransition: true,
+      state: getNavigationState(),
+    });
   };
 
   const handlePostKeyDown = (
@@ -159,12 +164,20 @@ export function CommunityPage() {
   };
 
   const handleRetry = () => {
-    setReloadKey((currentKey) => currentKey + 1);
+    retry();
   };
 
-  useLayoutEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  useEffect(() => {
+    if (
+      hasData &&
+      !isFetching &&
+      !loadError &&
+      currentPage > 0 &&
+      currentPage >= totalPages
+    ) {
+      selectPage(Math.max(totalPages - 1, 0), true);
+    }
+  }, [hasData, isFetching, loadError, currentPage, totalPages, selectPage]);
 
   useEffect(() => {
     const refreshIntervalId = window.setInterval(
@@ -203,51 +216,6 @@ export function CommunityPage() {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isCategoryMenuOpen]);
-
-  useEffect(() => {
-    let isCancelled = false;
-
-    async function loadPosts() {
-      setIsLoading(true);
-      setLoadError(null);
-
-      try {
-        const [response, pinnedResponse] = await Promise.all([
-          getPosts({
-            category: selectedCategory ?? undefined,
-            page: currentPage,
-          }),
-          getPosts({ page: 0 }),
-        ]);
-
-        if (!isCancelled) {
-          const pinnedPosts = pinnedResponse.content.filter(
-            (post) => post.pinned,
-          );
-          const categoryPosts = response.content.filter((post) => !post.pinned);
-
-          setPosts([...pinnedPosts, ...categoryPosts]);
-          setTotalPages(response.totalPages);
-        }
-      } catch {
-        if (!isCancelled) {
-          setPosts([]);
-          setTotalPages(0);
-          setLoadError('게시글을 불러오지 못했습니다.');
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    void loadPosts();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [currentPage, reloadKey, selectedCategory]);
 
   return (
     <Page>
@@ -311,7 +279,7 @@ export function CommunityPage() {
           </TabActionRow>
         </Header>
 
-        <PostList aria-label="게시글 목록" aria-busy={isLoading}>
+        <PostList aria-label="게시글 목록" aria-busy={isFetching}>
           {isLoading && (
             <div role="status" aria-label="게시글을 불러오는 중입니다.">
               {Array.from({ length: SKELETON_ROW_COUNT }, (_, index) => (
@@ -329,13 +297,18 @@ export function CommunityPage() {
           {!isLoading && loadError && (
             <StatusState role="alert">
               <StatusMessage>{loadError}</StatusMessage>
-              <Button size="sm" variant="neutral" onClick={handleRetry}>
+              <Button
+                size="sm"
+                variant="neutral"
+                onClick={handleRetry}
+                disabled={isFetching}
+              >
                 다시 시도
               </Button>
             </StatusState>
           )}
 
-          {!isLoading && !loadError && posts.length === 0 && (
+          {hasData && posts.length === 0 && (
             <EmptyState>
               <EmptyIcon>
                 <PiNoteBlank size={18} aria-hidden="true" />
@@ -345,8 +318,7 @@ export function CommunityPage() {
             </EmptyState>
           )}
 
-          {!isLoading &&
-            !loadError &&
+          {hasData &&
             posts.map((post) => {
               const authorImage =
                 resolveCommunityAssetUrl(post.userProfileImageUrl) ??
@@ -474,7 +446,7 @@ export function CommunityPage() {
             })}
         </PostList>
 
-        {!isLoading && !loadError && totalPages > 1 && (
+        {hasData && totalPages > 1 && (
           <Pagination aria-label="게시글 페이지">
             {visiblePages.map((page) => (
               <PageButton
@@ -483,7 +455,7 @@ export function CommunityPage() {
                 aria-current={page === currentPage ? 'page' : undefined}
                 $active={page === currentPage}
                 disabled={page === currentPage}
-                onClick={() => setCurrentPage(page)}
+                onClick={() => selectPage(page)}
               >
                 {page + 1}
               </PageButton>

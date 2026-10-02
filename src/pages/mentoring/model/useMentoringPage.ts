@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { queryClient } from '@/shared/lib/queryClient'
 import { useNavigate } from 'react-router-dom'
 
 import { useUserStore } from '@/entities/profile'
 
 import {
-  getAdminMentorDetail,
-  getAdminMentoringOverview,
-  getAdminMentors,
-  getAdminQuestionDetail,
-} from './adminMentoringApi'
+  adminMentorDetailOptions,
+  adminMentoringOverviewOptions,
+  adminMentoringQuestionOptions,
+  adminMentorsOptions,
+} from './adminMentoringQueries'
 import type {
   AdminMentoringMentorsResponse,
   AdminMentoringOverviewResponse,
@@ -254,6 +255,10 @@ export function useMentoringPage() {
   }, [])
 
   useEffect(() => {
+    if (currentUserId === null) {
+      return
+    }
+
     let ignore = false
 
     const loadMentoringDashboard = async () => {
@@ -266,21 +271,26 @@ export function useMentoringPage() {
           selectedMentorFilter === '전체'
             ? undefined
             : adminMentorStateMap[selectedMentorFilter]
-        const mentorResponsesPromise = getAdminMentors({
+        const mentorQuery = {
           mentorName,
           state,
-        })
+        }
+        const mentorResponsesPromise = queryClient.fetchQuery(
+          adminMentorsOptions(currentUserId, mentorQuery),
+        )
         const unfilteredMentorResponsesPromise = mentorName || state
           ? hasLoadedMentorStatusCountsRef.current
             ? Promise.resolve(null)
-            : getAdminMentors()
+            : queryClient.fetchQuery(adminMentorsOptions(currentUserId))
           : mentorResponsesPromise
         const [
           overviewResponse,
           mentorResponses,
           unfilteredMentorResponses,
         ] = await Promise.all([
-          getAdminMentoringOverview(),
+          queryClient.fetchQuery(
+            adminMentoringOverviewOptions(currentUserId),
+          ),
           mentorResponsesPromise,
           unfilteredMentorResponsesPromise,
         ])
@@ -324,10 +334,13 @@ export function useMentoringPage() {
     return () => {
       ignore = true
     }
-  }, [mentorSearchKeyword, selectedMentorFilter])
+  }, [currentUserId, mentorSearchKeyword, selectedMentorFilter])
 
   useEffect(() => {
     if (viewMode !== 'mentor-detail' || selectedMentorId === null) {
+      return
+    }
+    if (currentUserId === null) {
       return
     }
 
@@ -343,10 +356,12 @@ export function useMentoringPage() {
           selectedQuestionFilter === '전체'
             ? undefined
             : adminQuestionStatusMap[selectedQuestionFilter]
-        const mentorDetail = await getAdminMentorDetail(selectedMentorId, {
-          questionTitle,
-          status,
-        })
+        const mentorDetail = await queryClient.fetchQuery(
+          adminMentorDetailOptions(currentUserId, selectedMentorId, {
+            questionTitle,
+            status,
+          }),
+        )
 
         if (ignore) {
           return
@@ -400,10 +415,16 @@ export function useMentoringPage() {
     return () => {
       ignore = true
     }
-  }, [questionSearchKeyword, selectedMentorId, selectedQuestionFilter, viewMode])
+  }, [
+    currentUserId,
+    questionSearchKeyword,
+    selectedMentorId,
+    selectedQuestionFilter,
+    viewMode,
+  ])
 
   useEffect(() => {
-    if (selectedQuestionId === null) {
+    if (selectedQuestionId === null || currentUserId === null) {
       return
     }
 
@@ -411,7 +432,9 @@ export function useMentoringPage() {
 
     const loadQuestionDetail = async () => {
       try {
-        const questionDetail = await getAdminQuestionDetail(selectedQuestionId)
+        const questionDetail = await queryClient.fetchQuery(
+          adminMentoringQuestionOptions(currentUserId, selectedQuestionId),
+        )
 
         if (ignore) {
           return
@@ -451,7 +474,7 @@ export function useMentoringPage() {
     return () => {
       ignore = true
     }
-  }, [selectedMentorId, selectedQuestionId])
+  }, [currentUserId, selectedMentorId, selectedQuestionId])
 
   const clearCloseChatPanelTimer = () => {
     if (!closeChatPanelTimeoutRef.current) {
