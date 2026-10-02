@@ -55,6 +55,10 @@ export const CategoryBadge = styled.span`
   line-height: 1;
   white-space: nowrap;
   ${token.typography('caption', 'md', 'medium')}
+
+  @media (max-width: 600px) {
+    align-self: start;
+  }
 `
 
 export const Title = styled.strong`
@@ -79,6 +83,7 @@ export const PostContent = styled.div`
   gap: 4px;
 
   @media (max-width: 600px) {
+    align-self: start;
     grid-column: 2;
     grid-row: 1;
   }
