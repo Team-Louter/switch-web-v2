@@ -43,7 +43,9 @@ export const Card = styled.div`
   border-radius: 12px;
   background: ${token.colors.white};
   box-shadow: 0 2px 6px rgb(0 0 0 / 8%);
-  @media (max-width: 768px) { flex: 0 0 auto; overflow: visible; }
+  @media (max-width: 768px) {
+    flex: 0 0 auto;
+  }
 `
 
 export const CardTop = styled.section`
@@ -571,6 +573,11 @@ export const ActivitySection = styled.section`
   flex: 1 1 0;
   min-height: 0;
   width: 100%;
+
+  @media (max-width: 768px) {
+    flex: 0 0 auto;
+    min-height: auto;
+  }
 `
 
 export const TabContent = styled.div`
