@@ -142,29 +142,29 @@ export const TypedCharacters = styled.div`
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   color: ${token.colors.primary.primary50};
   font-size: inherit;
   line-height: 1.35;
-  white-space: pre;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
   pointer-events: none;
-
-  @media (max-width: 768px) {
-    align-items: flex-start;
-    overflow-wrap: anywhere;
-    white-space: pre-wrap;
-  }
 `
 
 export const TypedCharacter = styled.span<{ $error: boolean }>`
   color: ${({ $error }) => ($error ? '#ff5f57' : 'inherit')};
 `
 
-export const TypingInput = styled.input`
+export const TypingInput = styled.textarea`
   position: relative;
+  display: block;
+  box-sizing: border-box;
   width: 100%;
   max-width: 100%;
   min-height: 1.35em;
+  height: auto;
+  padding: 0;
+  overflow: hidden;
   border: 0;
   outline: none;
   background: transparent;
@@ -172,7 +172,10 @@ export const TypingInput = styled.input`
   caret-color: ${token.colors.primary.primary50};
   font-size: inherit;
   line-height: 1.35;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  resize: none;
+  white-space: pre-wrap;
+  field-sizing: content;
 `
 
 export const Caret = styled.span`

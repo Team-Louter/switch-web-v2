@@ -30,7 +30,7 @@ export function DailyTypingPage() {
   const roundIdRef = useRef<number | null>(null)
   const submittedProblemIndexRef = useRef<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
-  const typingInputRef = useRef<HTMLInputElement | null>(null)
+  const typingInputRef = useRef<HTMLTextAreaElement | null>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -87,7 +87,7 @@ export function DailyTypingPage() {
   const seconds = elapsedSeconds % 60
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((event.key !== 'Enter' && event.key !== ' ') || !currentProblem || typedSentence.length !== currentSentence.length || submittedProblemIndexRef.current === currentProblemIndex) return
 
     event.preventDefault()
@@ -149,6 +149,7 @@ export function DailyTypingPage() {
                     autoFocus
                     disabled={!isTypingEnabled || isComplete}
                     maxLength={currentSentence.length}
+                    rows={1}
                     value={typedSentence}
                     onChange={event => setTypedSentence(event.target.value)}
                     onKeyDown={handleKeyDown}
