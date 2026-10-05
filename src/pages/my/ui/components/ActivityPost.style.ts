@@ -34,6 +34,14 @@ export const MainLine = styled.div<{ $hasComment: boolean }>`
   min-height: ${({ $hasComment }) => ($hasComment ? '70px' : '55px')};
   gap: clamp(8px, 1.06vw, 16px);
   padding: 10px clamp(8px, calc(2.69vw - 12.6px), 28px);
+
+  @media (max-width: 600px) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px 10px;
+    min-height: 84px;
+    padding: 12px 8px;
+  }
 `
 
 export const CategoryBadge = styled.span`
@@ -47,6 +55,10 @@ export const CategoryBadge = styled.span`
   line-height: 1;
   white-space: nowrap;
   ${token.typography('caption', 'md', 'medium')}
+
+  @media (max-width: 600px) {
+    align-self: start;
+  }
 `
 
 export const Title = styled.strong`
@@ -69,6 +81,12 @@ export const PostContent = styled.div`
   justify-content: center;
   min-width: 0;
   gap: 4px;
+
+  @media (max-width: 600px) {
+    align-self: start;
+    grid-column: 2;
+    grid-row: 1;
+  }
 `
 
 export const DateText = styled.span`
@@ -78,6 +96,13 @@ export const DateText = styled.span`
   line-height: 1.2;
   white-space: nowrap;
   ${token.typography('caption', 'lg', 'medium')}
+
+  @media (max-width: 600px) {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    font-size: 11px;
+  }
 `
 
 export const Metrics = styled.div`
@@ -85,6 +110,12 @@ export const Metrics = styled.div`
   align-items: center;
   flex: 0 0 auto;
   gap: clamp(8px, calc(1.62vw - 4.4px), 20px);
+
+  @media (max-width: 600px) {
+    grid-column: 1;
+    grid-row: 2;
+    gap: 10px;
+  }
 `
 
 export const Metric = styled.span<{ $tone?: 'red' | 'yellow' }>`

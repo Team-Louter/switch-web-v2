@@ -11,6 +11,10 @@ export const FilterBar = styled.div`
   margin: 0 var(--my-content-inset);
   border-bottom: 3px solid ${color.lightLine};
   overflow: hidden;
+
+  @media (max-width: 600px) {
+    align-items: stretch;
+  }
 `
 
 export const FilterItem = styled.button<{ $active: boolean }>`
@@ -31,5 +35,13 @@ export const FilterItem = styled.button<{ $active: boolean }>`
     border-color: ${({ $active }) =>
       $active ? color.yellow : color.line};
     color: ${color.text};
+  }
+
+  @media (max-width: 600px) {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 14px 4px;
+    font-size: 13px;
+    white-space: nowrap;
   }
 `

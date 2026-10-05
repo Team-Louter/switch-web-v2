@@ -73,8 +73,7 @@ export const Content = styled.div`
   min-width: 0;
   min-height: 100dvh;
   margin: 0 auto;
-  padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px)
-    clamp(20px, 2vw, 30px) 0;
+  padding: clamp(20px, 2vw, 30px);
   background: ${token.colors.white};
 
   @media (max-width: 640px) {

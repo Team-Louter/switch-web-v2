@@ -4,10 +4,15 @@ import * as token from '@/shared/styles/values/token'
 
 export const Page = styled.main`
   width: 100%;
-  min-width: 1024px;
   height: 100dvh;
   padding: clamp(28px, 5.2vh, 50px);
   background: ${token.colors.white};
+
+  @media (max-width: 768px) {
+    height: auto;
+    min-height: 100dvh;
+    padding: 16px;
+  }
 `
 
 export const PracticeFrame = styled.section`
@@ -23,6 +28,11 @@ export const PracticeFrame = styled.section`
   * {
     user-select: none;
   }
+
+  @media (max-width: 768px) {
+    min-height: calc(100dvh - 32px);
+    padding: 20px 16px 48px;
+  }
 `
 
 export const Workspace = styled.div`
@@ -30,6 +40,10 @@ export const Workspace = styled.div`
   flex: 1;
   min-height: 0;
   padding-top: clamp(52px, 6.4vh, 63px);
+
+  @media (max-width: 768px) {
+    padding-top: 28px;
+  }
 `
 
 export const Paper = styled.div`
@@ -52,6 +66,19 @@ export const Paper = styled.div`
     height: 32px;
     background: #d9d9d9;
   }
+
+  @media (max-width: 768px) {
+    padding: 48px 24px 96px;
+    border-width: 10px;
+    border-radius: 14px;
+
+    &::after {
+      right: 28px;
+      bottom: -22px;
+      left: 28px;
+      height: 22px;
+    }
+  }
 `
 
 export const SentenceRow = styled.div<{ $current?: boolean }>`
@@ -60,6 +87,13 @@ export const SentenceRow = styled.div<{ $current?: boolean }>`
   align-items: start;
   margin: ${({ $current }) => ($current ? 'clamp(64px, 8.5vh, 82px) 0' : '0')};
   font-size: ${({ $current }) => ($current ? '28px' : '22px')};
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin: ${({ $current }) => ($current ? '42px 0' : '0')};
+    font-size: ${({ $current }) => ($current ? '20px' : '16px')};
+  }
 `
 
 export const Label = styled.p<{ $current?: boolean }>`
@@ -75,7 +109,8 @@ export const Sentence = styled.p`
   color: #000;
   font-size: inherit;
   line-height: 1.35;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 `
 
 export const TypedLine = styled.input`
@@ -88,6 +123,11 @@ export const TypedLine = styled.input`
   white-space: pre;
   outline: none;
   width: 100%;
+
+  @media (max-width: 768px) {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
   border: 0px solid black;
   width: 100%;
 `
@@ -108,6 +148,12 @@ export const TypedCharacters = styled.div`
   line-height: 1.35;
   white-space: pre;
   pointer-events: none;
+
+  @media (max-width: 768px) {
+    align-items: flex-start;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
 `
 
 export const TypedCharacter = styled.span<{ $error: boolean }>`
@@ -170,5 +216,11 @@ export const Podium = styled.div`
     ${token.typography('heading', 'md', 'semibold')}
     line-height: 1.2;
     text-align: center;
+  }
+
+  @media (max-width: 520px) {
+    right: 2%;
+    transform: scale(0.72);
+    transform-origin: right bottom;
   }
 `

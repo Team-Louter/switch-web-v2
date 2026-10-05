@@ -18,6 +18,26 @@ export const Grid = styled.div`
   align-content: flex-start;
   height: 100%;
   gap: 10px 16px;
+
+  @container learning-week (max-width: 980px) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    width: 100%;
+    height: auto;
+    gap: 10px 12px;
+  }
+
+  @media (max-width: 768px) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    height: auto;
+    gap: 10px;
+  }
+
+  @media (max-width: 380px) {
+    grid-template-columns: 1fr;
+  }
 `
 
 export const StudyItem = styled.button<{ $status: WeekStatus }>`
@@ -36,6 +56,22 @@ export const StudyItem = styled.button<{ $status: WeekStatus }>`
   cursor: ${({ $status }) => ($status === 'locked' ? 'not-allowed' : 'pointer')};
   text-align: left;
   z-index: 1;
+
+  @container learning-week (max-width: 980px) {
+    width: 100%;
+    height: 34px;
+    min-width: 0;
+    flex-basis: auto;
+    padding-inline: 10px 8px;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    height: 40px;
+    min-width: 0;
+    flex-basis: auto;
+    padding-inline: 10px 8px;
+  }
 `
 
 export const LeadingIcon = styled.span<{ $locked: boolean }>`

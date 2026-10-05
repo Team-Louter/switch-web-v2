@@ -6,7 +6,7 @@ import {
   useState,
 } from 'react';
 import {
-  PiList,
+  PiCaretDown,
   PiNoteBlank,
   PiPencilSimpleLineBold,
 } from 'react-icons/pi';
@@ -248,8 +248,8 @@ export function CommunityPage() {
                 }
               >
                 <MobileCategoryButtonLabel>
-                  <PiList size={18} aria-hidden="true" />
                   <span>{selectedCategoryLabel}</span>
+                  <PiCaretDown size={18} aria-hidden="true" />
                 </MobileCategoryButtonLabel>
               </MobileCategoryButton>
               <MobileCategoryPanel
@@ -366,10 +366,10 @@ export function CommunityPage() {
                       {getPostCategoryLabel(post.category)}
                     </PostCategoryBadge>
                   </CategoryCell>
-                  {post.pinned && (
-                    <PinnedIcon src={pinIcon} alt="고정된 게시글" />
-                  )}
                   <PostTitle $pinned={post.pinned}>
+                    {post.pinned && (
+                      <PinnedIcon src={pinIcon} alt="고정된 게시글" />
+                    )}
                     <PostTitleText>{post.postTitle}</PostTitleText>
                     {hasImageAttachment && (
                       <ImageAttachmentIcon src={imageAttachmentIcon} alt="" />
