@@ -19,18 +19,25 @@ export const IconContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: 10px;
+  flex: 0 0 36px;
+  margin-left: 0;
 `;
 
 export const Column = styled.div`
   ${token.flexColumn};
-  padding-left: 10px;
-  margin-left: 10px;
+  min-width: 0;
+  padding-left: 6px;
+  margin-left: 0;
 `;
 
 export const Label = styled.span`
   ${token.typography('caption', 'lg', 'semibold')};
   color: ${token.colors.gray.gray50};
+  white-space: nowrap;
+
+  @media (max-width: 1180px) {
+    font-size: 13px;
+  }
 `;
 
 export const Value = styled.span`

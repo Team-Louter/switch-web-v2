@@ -12,16 +12,19 @@ export const Page = styled.section`
   align-items: center;
   box-sizing: border-box;
   min-height: 100dvh;
-  min-width: 970px;
   padding: 50px 30px 80px;
-  overflow: hidden;
+  overflow-x: hidden;
   background: ${token.colors.white};
+
+  @media (max-width: 600px) {
+    padding: 24px 16px 56px;
+  }
 `
 
 export const Content = styled.div`
   ${token.flexColumn}
   gap: 40px;
-  width: 910px;
+  width: min(910px, 100%);
 `
 
 export const Toolbar = styled.div`
@@ -31,9 +34,17 @@ export const Toolbar = styled.div`
   box-sizing: border-box;
   width: 100%;
   padding: 6px;
-  overflow: hidden;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
   border-radius: ${token.shapes.xlarge};
   background: ${token.colors.gray.gray0};
+
+  &::-webkit-scrollbar { display: none; }
+
+  @media (max-width: 600px) {
+    padding: 6px 10px;
+  }
 `
 
 export const FilterBar = styled.div`
@@ -72,6 +83,10 @@ export const PointButton = styled.button`
   margin-left: auto;
   padding: 12px;
   color: ${token.colors.primary.primary70};
+
+  @media (max-width: 600px) {
+    margin-left: 0;
+  }
 `
 
 export const PointTextGroup = styled.span`
@@ -144,12 +159,24 @@ export const SectionTitle = styled.h2`
 `
 
 export const CardGrid = styled.div`
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: flex-start;
   align-content: flex-start;
   gap: 10px;
   width: 100%;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @media (max-width: 820px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
 `
 
 export const CategoryGroups = styled.div`
@@ -183,7 +210,7 @@ export const EffectCard = styled.article`
   align-items: flex-start;
   justify-content: flex-start;
   gap: 16px;
-  width: 220px;
+  width: 100%;
   min-height: 230px;
   padding: 20px;
   border: 1px solid ${token.colors.gray.gray10};
@@ -205,7 +232,7 @@ export const EffectPreview = styled.div<{ $type: StoreEffectType }>`
   ${token.flexCenter}
   position: relative;
   overflow: hidden;
-  width: 180px;
+  width: 100%;
   height: 130px;
   border-radius: ${token.shapes.medium};
   background: ${({ $type }) =>

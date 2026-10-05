@@ -26,6 +26,11 @@ export const Sidebar = styled.aside`
   width: 360px;
   height: 740px;
   animation: ${cardEnter} 420ms ease-out both;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    height: 680px;
+  }
 `;
 const Card = styled.section`
   background: #fff;
@@ -37,6 +42,10 @@ export const ProfileCard = styled(Card)`
   height: 35%;
   padding-bottom: 4px;
   flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    padding-bottom: 14px;
+  }
 `;
 export const PopularCard = styled(Card)`
   height: 52%;
@@ -150,6 +159,10 @@ export const Title = styled.h2`
   font-weight: 700;
   margin: 20px 20px 10px;
   color: #000;
+
+  @media (max-width: 768px) {
+    margin-top: 10px;
+  }
 `;
 export const PanelTitle = styled.h2`
   color: #000;

@@ -8,8 +8,10 @@ export const PageContainer = styled.section`
   overflow-anchor: none;
   /* AppLayout의 SidebarContainer와 같은 상단 기준선에서 콘텐츠를 시작한다. */
   padding: clamp(20px, 2vw, 30px) clamp(20px, 2vw, 30px)
-    clamp(20px, 2vw, 30px) 0;
+    clamp(20px, 2vw, 30px);
   background: ${token.colors.white};
+
+  @media (max-width: 768px) { padding: 16px; }
 `
 
 export const CalendarArea = styled.div`
@@ -17,12 +19,17 @@ export const CalendarArea = styled.div`
   /* 우측 프로필·랭킹/인기글 카드 묶음의 실제 하단과 맞춘다. */
   height: 675px;
   flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `
 
 export const Viewport = styled.div`
   width: 100%;
   position: relative;
   overflow-anchor: none;
+  @media (max-width: 768px) { height: auto !important; }
 `
 export const Canvas = styled.div`
   display: flex;
@@ -30,6 +37,13 @@ export const Canvas = styled.div`
   width: 1280px;
   height: 740px;
   transform-origin: top left;
+  @media (max-width: 768px) {
+    width: 100%;
+    height: auto;
+    flex-direction: column;
+    gap: 16px;
+    transform: none !important;
+  }
 `
 
 export const Footer = styled.footer`

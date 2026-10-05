@@ -29,6 +29,13 @@ export const Page = styled.section`
   container-type: inline-size;
   background: ${token.colors.white};
 
+  @media (max-width: 560px) {
+    height: auto;
+    min-height: calc(100dvh - 60px);
+    padding: 24px 16px;
+    overflow: visible;
+  }
+
   @media (max-height: 720px) {
     // 헤더와 툴바가 화면에 맞지 않을 때 페이지가 자연스럽게 늘어나도록 합니다.
     height: auto;
@@ -46,6 +53,12 @@ export const Content = styled.div`
   overflow: hidden;
   margin: 0 auto;
   zoom: 0.9;
+
+  @media (max-width: 560px) {
+    min-height: calc(100dvh - 108px);
+    overflow: visible;
+    zoom: 1;
+  }
 
   @media (max-height: 720px) {
     height: auto;
@@ -583,11 +596,24 @@ export const Editor = styled.section<EditorProps>`
   }
 
   @container community-write (max-width: 560px) {
-    flex-basis: 0;
-    min-height: 0;
+    flex: 0 0 auto;
+    min-height: 480px;
+    max-height: none;
+    overflow: visible;
 
     .community-block-editor .bn-editor {
-      padding-inline: 54px;
+      min-height: 390px;
+      padding: 8px 12px 24px;
+    }
+
+    .community-block-editor {
+      min-height: 390px;
+      margin-right: -8px;
+      padding-right: 8px;
+    }
+
+    .community-toolbar-actions {
+      gap: 8px;
     }
   }
 
