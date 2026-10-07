@@ -142,7 +142,10 @@ export const TypedCharacters = styled.div`
   position: absolute;
   inset: 0;
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
+  align-content: flex-start;
+  max-width: 100%;
   color: ${token.colors.primary.primary50};
   font-size: inherit;
   line-height: 1.35;
