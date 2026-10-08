@@ -57,6 +57,7 @@ export function MentoringComposer({
           ref={textareaRef}
           rows={1}
           value={content}
+          maxLength={MAX_CONTENT_LENGTH}
           disabled={submitting}
           placeholder={submitting ? '전송 중...' : placeholder}
           onChange={handleChange}
