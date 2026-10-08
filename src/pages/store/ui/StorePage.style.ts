@@ -466,9 +466,13 @@ export const Overlay = styled.div`
   ${token.flexCenter}
   position: fixed;
   inset: 0;
-  z-index: 20;
+  z-index: 1000;
   padding: 40px;
   background: rgb(14 13 12 / 70%);
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
 `
 
 export const Modal = styled.div`
@@ -700,6 +704,17 @@ export const CustomizeModal = styled.div`
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
+
+  @media (max-width: 768px) {
+    gap: 14px;
+    width: 100%;
+    height: calc(100dvh - 32px);
+    padding: 20px 16px;
+
+    ${ModalHeader} {
+      padding-bottom: 12px;
+    }
+  }
 `
 
 export const CustomizeBody = styled.div`
@@ -710,6 +725,14 @@ export const CustomizeBody = styled.div`
   min-height: 0;
   width: 100%;
   height: auto;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
 `
 
 export const CustomizeTabList = styled.div`
@@ -721,6 +744,18 @@ export const CustomizeTabList = styled.div`
   padding-right: 16px;
   overflow: hidden;
   border-right: 1px solid ${token.colors.gray.gray10};
+
+  @media (max-width: 768px) {
+    flex-direction: row;
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    padding-right: 0;
+    padding-bottom: 10px;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1px solid ${token.colors.gray.gray10};
+  }
 `
 
 export const CustomizeTabButton = styled.button<{ $isActive: boolean }>`
@@ -741,6 +776,14 @@ export const CustomizeTabButton = styled.button<{ $isActive: boolean }>`
     color: ${token.colors.gray.gray90};
     background: ${token.colors.primary.primary0};
   }
+
+  @media (max-width: 768px) {
+    flex: 1 0 auto;
+    width: auto;
+    min-width: 88px;
+    padding: 10px 12px;
+    text-align: center;
+  }
 `
 
 export const CustomizeEffectPanel = styled.div`
@@ -757,6 +800,13 @@ export const CustomizeEffectPanel = styled.div`
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.large};
   background: ${token.colors.gray.gray0};
+
+  @media (max-width: 768px) {
+    flex: 0 0 auto;
+    width: 100%;
+    height: min(360px, 44dvh);
+    padding: 14px;
+  }
 `
 
 export const CustomizeEffectScrollArea = styled.div`
@@ -831,6 +881,11 @@ export const CustomizeSkeletonGrid = styled.div`
   grid-template-columns: repeat(3, ${CUSTOMIZE_OPTION_SIZE}px);
   gap: ${CUSTOMIZE_OPTION_GAP}px;
   width: ${CUSTOMIZE_OPTION_GRID_WIDTH}px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
 `
 
 export const CustomizeSkeletonOption = styled.span`
@@ -839,6 +894,12 @@ export const CustomizeSkeletonOption = styled.span`
   width: ${CUSTOMIZE_OPTION_SIZE}px;
   height: ${CUSTOMIZE_OPTION_SIZE}px;
   border-radius: ${token.shapes.medium};
+
+  @media (max-width: 768px) {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+  }
 `
 
 export const CustomizeOptionGrid = styled.div`
@@ -850,6 +911,12 @@ export const CustomizeOptionGrid = styled.div`
   gap: ${CUSTOMIZE_OPTION_GAP}px;
   width: ${CUSTOMIZE_OPTION_GRID_WIDTH}px;
   min-height: ${CUSTOMIZE_OPTION_SIZE}px;
+
+  @media (max-width: 768px) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
 `
 
 export const CustomizeEffectOption = styled.button<{
@@ -898,6 +965,15 @@ export const CustomizeEffectOption = styled.button<{
   &:disabled {
     cursor: not-allowed;
     opacity: 0.65;
+  }
+
+  @media (max-width: 768px) {
+    flex-basis: auto;
+    width: 100%;
+    height: auto;
+    min-width: 0;
+    padding: 8px;
+    aspect-ratio: 1;
   }
 `
 
@@ -1012,6 +1088,14 @@ export const CustomizePreviewPanel = styled.div`
   border: 1px solid ${token.colors.gray.gray10};
   border-radius: ${token.shapes.large};
   background: ${token.colors.gray.gray0};
+
+  @media (max-width: 768px) {
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    gap: 20px;
+    padding: 24px 16px 16px;
+  }
 `
 
 export const CustomizePreviewTop = styled.div`

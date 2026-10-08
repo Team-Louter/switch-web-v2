@@ -171,6 +171,7 @@ export function ProfileHeader({
               size={116}
             />
             <S.ProfileCustomizeButton
+              $hasCustomBorder={hasCustomBorder}
               aria-label="프로필 꾸미기"
               onClick={onCustomize}
               type="button"

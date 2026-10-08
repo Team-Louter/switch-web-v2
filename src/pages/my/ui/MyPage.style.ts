@@ -266,15 +266,19 @@ export const ProfileImageWrapper = styled.div<{
   }
 `
 
-export const ProfileCustomizeButton = styled.button`
+export const ProfileCustomizeButton = styled.button<{
+  $hasCustomBorder: boolean
+}>`
   position: absolute;
-  inset: 0;
+  inset: ${({ $hasCustomBorder }) => ($hasCustomBorder ? '0' : '-4px')};
   z-index: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
+  width: ${({ $hasCustomBorder }) =>
+    $hasCustomBorder ? '100%' : 'calc(100% + 8px)'};
+  height: ${({ $hasCustomBorder }) =>
+    $hasCustomBorder ? '100%' : 'calc(100% + 8px)'};
   border: 0;
   border-radius: ${token.shapes.circle};
   color: ${token.colors.white};
