@@ -3,6 +3,8 @@ import styled, { css, keyframes } from 'styled-components'
 import { contentReveal } from '@/shared/styles/animations'
 import * as token from '@/shared/styles/values/token'
 
+import { MemberIdentity } from '../MemberIdentity'
+
 const backdropEnter = keyframes`
   from {
     opacity: 0;
@@ -383,7 +385,7 @@ export const MemberInfo = styled.div`
   gap: 2px;
 `
 
-export const MemberName = styled.span`
+export const MemberName = styled(MemberIdentity)`
   ${token.typography('body', 'sm', 'semibold')}
   overflow: hidden;
   color: ${token.colors.gray.gray80};

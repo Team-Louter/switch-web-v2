@@ -110,6 +110,7 @@ export function MentoringRoomList({
                               key={member.userId}
                               userName={member.userName}
                               profileImageUrl={member.profileImageUrl}
+                              equippedItems={member.equippedItems}
                               size={18}
                               borderWidth={1}
                             />
@@ -119,6 +120,7 @@ export function MentoringRoomList({
                       <MemberAvatar
                         userName={room.members[0]?.userName}
                         profileImageUrl={room.members[0]?.profileImageUrl}
+                        equippedItems={room.members[0]?.equippedItems}
                         size={35}
                         borderWidth={1}
                       />

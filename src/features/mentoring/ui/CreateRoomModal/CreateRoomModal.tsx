@@ -194,10 +194,14 @@ function CreateRoomModalContent({
         <MemberAvatar
           userName={member.userName}
           profileImageUrl={member.profileImageUrl}
+          equippedItems={member.equippedItems}
           size={40}
         />
         <S.MemberInfo>
-          <S.MemberName>{member.userName}</S.MemberName>
+          <S.MemberName
+            userName={member.userName}
+            equippedItems={member.equippedItems}
+          />
           <S.MemberMeta>
             {member.grade}학년 {member.classRoom}반 {member.number}번
           </S.MemberMeta>

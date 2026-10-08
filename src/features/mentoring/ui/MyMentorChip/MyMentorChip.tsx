@@ -26,6 +26,7 @@ export function MyMentorChip({ mentors }: MyMentorChipProps) {
               key={mentor.userId}
               userName={mentor.userName}
               profileImageUrl={mentor.profileImageUrl}
+              equippedItems={mentor.equippedItems}
               size={36}
               borderWidth={2}
             />

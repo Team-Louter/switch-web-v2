@@ -611,9 +611,14 @@ export function QuestionDetailPanel({
             <MemberAvatar
               userName={questionAuthor?.userName ?? '질문자'}
               profileImageUrl={questionAuthor?.profileImageUrl}
+              equippedItems={questionAuthor?.equippedItems}
             />
             <S.MessageBody>
-              <S.SenderName>{questionAuthor?.userName ?? '질문자'}</S.SenderName>
+              <S.SenderName
+                userName={questionAuthor?.userName}
+                equippedItems={questionAuthor?.equippedItems}
+                fallbackName="질문자"
+              />
               <S.Bubbles $isMine={false}>
                 <S.Bubble $isMine={false} $isRoot $embedded={embedded}>
                   <MessageMarkdown content={question.content} />
@@ -677,11 +682,15 @@ export function QuestionDetailPanel({
                       <MemberAvatar
                         userName={sender?.userName}
                         profileImageUrl={sender?.profileImageUrl}
+                        equippedItems={sender?.equippedItems}
                       />
                     )}
                     <S.MessageBody>
                       {(!isMine || embedded) && (
-                        <S.SenderName>{sender?.userName ?? '멤버'}</S.SenderName>
+                        <S.SenderName
+                          userName={sender?.userName}
+                          equippedItems={sender?.equippedItems}
+                        />
                       )}
                       <S.Bubbles $isMine={embedded ? false : isMine}>
                         {group.messages.map((message) => (
