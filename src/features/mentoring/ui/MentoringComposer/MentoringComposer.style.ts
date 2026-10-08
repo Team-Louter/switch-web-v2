@@ -2,6 +2,8 @@ import styled, { css, keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
+import { LIMIT_FEEDBACK_DURATION_MS } from './MentoringComposer.constants'
+
 export const Wrapper = styled.div`
   width: 100%;
   flex-shrink: 0;
@@ -93,9 +95,38 @@ export const ImageButton = styled.label`
   ${iconButtonStyle}
 `
 
-export const CharacterCount = styled.span`
-  color: ${token.colors.gray.gray40};
+const limitShake = keyframes`
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-3px); }
+  40%, 80% { transform: translateX(3px); }
+`
+
+export const CharacterCount = styled.span<{ $isLimitFeedback: boolean }>`
+  display: inline-block;
+  color: ${({ $isLimitFeedback }) =>
+    $isLimitFeedback ? token.colors.danger.danger20 : token.colors.gray.gray40};
   ${token.typography('caption', 'md', 'medium')}
+
+  ${({ $isLimitFeedback }) =>
+    $isLimitFeedback &&
+    css`
+      animation: ${limitShake} ${LIMIT_FEEDBACK_DURATION_MS}ms ease-in-out;
+    `}
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
+export const LimitFeedbackMessage = styled.span`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 `
 
 const submitSpin = keyframes`
