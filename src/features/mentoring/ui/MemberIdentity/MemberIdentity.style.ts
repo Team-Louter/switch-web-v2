@@ -12,11 +12,13 @@ export const Identity = styled.span`
 
 export const Title = styled.span`
   ${token.typography('caption', 'sm', 'medium')}
-  display: block;
+  display: inline-flex;
+  align-items: center;
   box-sizing: border-box;
   flex: 0 1 auto;
   min-width: 0;
   max-width: min(160px, 100%);
+  gap: 4px;
   padding: 2px 5px;
   overflow: hidden;
   border: 1px solid ${token.colors.gray.gray20};
@@ -24,8 +26,19 @@ export const Title = styled.span`
   background: ${token.colors.white};
   color: ${token.colors.gray.gray70};
   line-height: 1.2;
-  text-overflow: ellipsis;
   white-space: nowrap;
+
+  svg {
+    flex: 0 0 auto;
+    color: ${token.colors.gray.gray60};
+  }
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 `
 
 export const Name = styled.span`

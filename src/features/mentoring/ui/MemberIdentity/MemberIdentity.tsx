@@ -1,3 +1,5 @@
+import { FaHammer } from 'react-icons/fa'
+
 import { UserName } from '@/entities/user'
 import { getNameStyleKey } from '@/shared/styles'
 import type { ProfileAvatarEquippedItems } from '@/shared/ui'
@@ -38,7 +40,14 @@ export function MemberIdentity({
           displayName
         )}
       </S.Name>
-      {titleText && <S.Title title={titleText}>{titleText}</S.Title>}
+      {titleText && (
+        <S.Title title={titleText}>
+          {titleText === '최초의 개발자' && (
+            <FaHammer size={12} aria-hidden="true" focusable="false" />
+          )}
+          <span>{titleText}</span>
+        </S.Title>
+      )}
     </S.Identity>
   )
 }
