@@ -9,6 +9,7 @@ import { MAX_CONTENT_LENGTH } from './MentoringComposer.constants'
 import {
   isCursorInsideCodeBlock,
   resetTextareaHeight,
+  resizeTextareaHeight,
   restoreTextareaHeight,
 } from './MentoringComposer.helpers'
 import type {
@@ -115,8 +116,7 @@ export function useMentoringComposer({
     setContent(nextContent)
     window.setTimeout(() => {
       textarea.focus()
-      textarea.style.height = 'auto'
-      textarea.style.height = `${textarea.scrollHeight}px`
+      resizeTextareaHeight(textarea)
       textarea.setSelectionRange(start + 4, start + 4 + selectedText.length)
     }, 0)
   }
@@ -128,8 +128,7 @@ export function useMentoringComposer({
       return
     }
 
-    event.currentTarget.style.height = 'auto'
-    event.currentTarget.style.height = `${event.currentTarget.scrollHeight}px`
+    resizeTextareaHeight(event.currentTarget)
     setContent(value)
   }
 
