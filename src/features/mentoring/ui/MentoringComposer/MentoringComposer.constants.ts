@@ -1,1 +1,2 @@
 export const MAX_CONTENT_LENGTH = 700
+export const LIMIT_FEEDBACK_DURATION_MS = 600

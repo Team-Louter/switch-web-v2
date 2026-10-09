@@ -19,6 +19,7 @@ export function MentoringComposer({
 }: MentoringComposerProps) {
   const {
     content,
+    limitFeedbackKey,
     attachedImages,
     textareaRef,
     submitting,
@@ -57,6 +58,7 @@ export function MentoringComposer({
           ref={textareaRef}
           rows={1}
           value={content}
+          maxLength={MAX_CONTENT_LENGTH}
           disabled={submitting}
           placeholder={submitting ? '전송 중...' : placeholder}
           onChange={handleChange}
@@ -87,9 +89,16 @@ export function MentoringComposer({
           </S.IconButton>
         </S.ToolGroup>
         <S.ToolGroup>
-          <S.CharacterCount>
+          <S.CharacterCount
+            key={limitFeedbackKey}
+            $isLimitFeedback={limitFeedbackKey > 0}
+          >
             {content.length}/{MAX_CONTENT_LENGTH}
           </S.CharacterCount>
+          <S.LimitFeedbackMessage role="status" aria-live="polite">
+            {limitFeedbackKey > 0 &&
+              `최대 ${MAX_CONTENT_LENGTH}자까지 입력할 수 있습니다.`}
+          </S.LimitFeedbackMessage>
           <S.IconButton
             type="button"
             aria-label="전송"

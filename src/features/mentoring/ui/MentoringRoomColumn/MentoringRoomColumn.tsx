@@ -56,6 +56,7 @@ export function MentoringRoomColumn({
                 key={member.userId}
                 userName={member.userName}
                 profileImageUrl={member.profileImageUrl}
+                equippedItems={member.equippedItems}
               />
             ))}
           </S.AvatarGroup>

@@ -3,6 +3,8 @@ import styled, { css, keyframes } from 'styled-components'
 import { contentReveal } from '@/shared/styles/animations'
 import * as token from '@/shared/styles/values/token'
 
+import { MemberIdentity } from '../MemberIdentity'
+
 export const Panel = styled.aside<{ $embedded: boolean }>`
   ${token.flexColumnStart}
   box-sizing: border-box;
@@ -176,9 +178,11 @@ export const Chat = styled.div<{ $embedded: boolean }>`
 
 export const MessageList = styled.div`
   ${token.flexColumnStart}
+  box-sizing: border-box;
   width: 100%;
   flex: 1 1 0;
   gap: 16px;
+  padding: 8px 6px;
   overflow-y: auto;
   scrollbar-color: ${token.colors.gray.gray30} transparent;
   scrollbar-width: thin;
@@ -202,7 +206,7 @@ export const MessageList = styled.div`
 export const MessageGroup = styled.div<{ $isMine: boolean }>`
   ${token.flexRow}
   width: 100%;
-  gap: 6px;
+  gap: 12px;
   justify-content: ${({ $isMine }) => ($isMine ? 'flex-end' : 'flex-start')};
 `
 
@@ -213,7 +217,7 @@ export const MessageBody = styled.div`
   padding: 0;
 `
 
-export const SenderName = styled.span`
+export const SenderName = styled(MemberIdentity)`
   ${token.typography('body', 'sm', 'semibold')}
   color: ${token.colors.gray.gray80};
 `
