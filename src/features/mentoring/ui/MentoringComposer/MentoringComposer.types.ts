@@ -31,6 +31,7 @@ export interface UseMentoringComposerResult
   extends MentoringComposerHandlers {
   canSubmit: boolean
   content: string
+  limitFeedbackKey: number
   attachedImages: AttachedImage[]
   textareaRef: RefObject<HTMLTextAreaElement | null>
   submitting: boolean

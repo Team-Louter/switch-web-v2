@@ -217,6 +217,28 @@ function PostImage({
   function handlePreview(event: MouseEvent<HTMLButtonElement>) {
     const image = event.currentTarget.querySelector('img');
     if (!image || !image.naturalWidth || !image.naturalHeight) return;
+
+    // 높이가 제한된 이미지의 contain 여백은 제외하고 키보드 확대는 유지합니다.
+    if (event.detail > 0) {
+      const bounds = image.getBoundingClientRect();
+      const scale = Math.min(
+        bounds.width / image.naturalWidth,
+        bounds.height / image.naturalHeight,
+      );
+      const width = image.naturalWidth * scale;
+      const height = image.naturalHeight * scale;
+      const left = bounds.left + (bounds.width - width) / 2;
+      const top = bounds.top + (bounds.height - height) / 2;
+      if (
+        event.clientX < left ||
+        event.clientX > left + width ||
+        event.clientY < top ||
+        event.clientY > top + height
+      ) {
+        return;
+      }
+    }
+
     onPreview?.({
       src: image.currentSrc,
       alt,

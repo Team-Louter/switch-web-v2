@@ -85,7 +85,8 @@ export const ImageSurface = styled.div<{ $isLoading: boolean }>`
 
 export const ImageButton = styled.button`
   display: block;
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
   padding: 0;
   border: 0;
   background: transparent;
