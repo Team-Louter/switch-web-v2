@@ -15,6 +15,7 @@ export const NAME_STYLE_PRESETS = {
   VIOLET: { color: '#8B5CF6', fontWeight: 600 },
   ROSE: { color: '#FB7185', fontWeight: 600 },
   TEAL: { color: '#0D9488', fontWeight: 600 },
+  PAPAYA: { color: '#FF8000', fontWeight: 600 },
 
   PINK_GLOW: {
     color: '#FF8FB3',
