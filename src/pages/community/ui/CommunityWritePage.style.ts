@@ -493,6 +493,17 @@ export const Editor = styled.section<EditorProps>`
     width: min(100%, 428px);
   }
 
+  .community-block-editor
+    .node-file.ProseMirror-selectednode
+    .bn-file-block-content-wrapper::after {
+    display: none;
+  }
+
+  .community-block-editor .node-file.ProseMirror-selectednode [data-file-kind] {
+    background: ${token.colors.info.info0};
+    box-shadow: inset 0 0 0 2px ${token.colors.info.info20};
+  }
+
   ${({ $selectedBlockId }) =>
     $selectedBlockId
       ? `
@@ -501,6 +512,17 @@ export const Editor = styled.section<EditorProps>`
             border-radius: ${token.shapes.small};
             background: ${token.colors.info.info0};
             transition: background-color 120ms ease-out;
+          }
+
+          .community-block-editor
+            .bn-block-outer[data-id='${$selectedBlockId}']:has(> .bn-block > .node-file) {
+            background: transparent;
+          }
+
+          .community-block-editor
+            .bn-block-outer[data-id='${$selectedBlockId}'] > .bn-block > .node-file [data-file-kind] {
+            background: ${token.colors.info.info0};
+            box-shadow: inset 0 0 0 2px ${token.colors.info.info20};
           }
         `
       : ''}
