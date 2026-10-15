@@ -10,20 +10,30 @@ import {
   type SyntheticEvent,
   useEffect,
   useRef,
+  useState,
 } from 'react';
+import { createPortal } from 'react-dom';
 
 import {
   getCommunityFileDownloadUrl,
   type PostFileResponse,
 } from '@/entities/community';
 
+import { CommunityAttachmentCard } from './CommunityAttachmentCard';
+import * as S from './CommunityPostBlockFallback.style';
 import type { CommunityPostImagePreview } from './CommunityPostImageViewer';
 import { communityBlockNoteSchema } from '../model/communityBlockNoteSchema';
+import {
+  resolveCommunityAttachment,
+  type CommunityAttachmentFile,
+} from '../model/communityAttachment';
 
 interface CommunityPostBlockContentProps {
   blocks: readonly Block[];
   files: readonly PostFileResponse[];
   onImagePreview: (image: CommunityPostImagePreview) => void;
+  onFileDownload: (file: CommunityAttachmentFile) => void;
+  downloadingFiles: ReadonlySet<string>;
 }
 
 function syncImagePreviewAccessibility(image: HTMLImageElement) {
@@ -90,8 +100,15 @@ export function CommunityPostBlockFallback({
   blocks,
   files,
   onImagePreview,
+  onFileDownload,
+  downloadingFiles,
 }: CommunityPostBlockContentProps) {
   const contentRef = useRef<HTMLDivElement>(null);
+  const [fileSlots, setFileSlots] = useState<{
+    element: HTMLElement;
+    file: CommunityAttachmentFile;
+    blockId: string;
+  }[]>([]);
   const normalizedBlocks = normalizeMediaUrls(blocks, files);
   const editor = useCreateBlockNote({
     schema: communityBlockNoteSchema,
@@ -119,29 +136,7 @@ export function CommunityPostBlockFallback({
   }
 
   function handleMediaBlockClick(event: MouseEvent<HTMLDivElement>) {
-    if (openImagePreview(event.target)) return;
-    if (!(event.target instanceof Element)) {
-      return;
-    }
-
-    const fileBlock = event.target.closest<HTMLElement>('[data-file-block]');
-    const blockElement = fileBlock?.closest<HTMLElement>(
-      '[data-node-type="blockContainer"][data-id]',
-    );
-    const blockId = blockElement?.dataset.id;
-    const block = blockId ? editor.getBlock(blockId) : undefined;
-
-    if (block?.type !== 'file') {
-      return;
-    }
-
-    const downloadUrl = getCommunityFileDownloadUrl(block.props.url);
-
-    if (!downloadUrl) {
-      return;
-    }
-
-    window.open(downloadUrl, '_blank', 'noopener,noreferrer');
+    openImagePreview(event.target);
   }
 
   function handleImageKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -176,6 +171,27 @@ export function CommunityPostBlockFallback({
     }
 
     const syncMediaLoadingStates = () => {
+      // 중첩 목록은 BlockNote 서식을 유지하고 파일 표시만 React 카드로 교체한다.
+      const nextFileSlots: typeof fileSlots = [];
+      content.querySelectorAll<HTMLElement>('[data-content-type="file"][data-file-block]')
+        .forEach((fileElement) => {
+          const container = fileElement.closest<HTMLElement>('[data-node-type="blockContainer"][data-id]');
+          const blockId = container?.dataset.id;
+          const block = blockId ? editor.getBlock(blockId) : undefined;
+          const element = fileElement.querySelector<HTMLElement>('.bn-file-block-content-wrapper');
+          if (block?.type !== 'file' || !element || !blockId) return;
+
+          nextFileSlots.push({
+            element,
+            blockId,
+            file: resolveCommunityAttachment(block.props.url, block.props.name, files),
+          });
+        });
+      setFileSlots((currentSlots) =>
+        currentSlots.length === nextFileSlots.length && currentSlots.every((slot, index) =>
+          slot.element === nextFileSlots[index].element && slot.file.fileUrl === nextFileSlots[index].file.fileUrl,
+        ) ? currentSlots : nextFileSlots,
+      );
       content
         .querySelectorAll<HTMLImageElement>('.bn-visual-media')
         .forEach((image) => {
@@ -203,10 +219,10 @@ export function CommunityPostBlockFallback({
     return () => {
       observer.disconnect();
     };
-  }, [editor]);
+  }, [editor, files]);
 
   return (
-    <div
+    <S.Content
       ref={contentRef}
       onClick={handleMediaBlockClick}
       onKeyDown={handleImageKeyDown}
@@ -227,6 +243,15 @@ export function CommunityPostBlockFallback({
         emojiPicker={false}
         comments={false}
       />
-    </div>
+      {fileSlots.map(({ element, file, blockId }) => createPortal(
+        <CommunityAttachmentCard
+          file={file}
+          isDownloading={downloadingFiles.has(file.fileUrl)}
+          onDownload={onFileDownload}
+        />,
+        element,
+        blockId,
+      ))}
+    </S.Content>
   );
 }

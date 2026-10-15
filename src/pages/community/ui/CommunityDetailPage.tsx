@@ -3,6 +3,7 @@ import {
   type KeyboardEvent,
   type SyntheticEvent,
   startTransition,
+  useCallback,
   useEffect,
   useMemo,
   useOptimistic,
@@ -36,9 +37,12 @@ import {
   createComment,
   deleteComment,
   deletePost,
+  downloadCommunityFile,
+  getCommunityDownloadRisk,
   setPostPinned,
   togglePostHeart,
   updateComment,
+  type CommunityDownloadRisk,
 } from '@/features/community';
 import type { KlipyGif } from '@/shared/api';
 import eyeIcon from '@/shared/assets/my/eye-icon.svg';
@@ -78,6 +82,9 @@ import { resizeCommunityTextarea } from '../model/commentInput';
 import { buildCommunityGifCommentContent } from '../model/klipyGifLink';
 import { getCommunityListReturnTo } from '../model/useCommunityListNavigation';
 import { CommunityCommentBranch } from './CommunityCommentBranch';
+import { CommunityAttachmentCard } from './CommunityAttachmentCard';
+import { CommunityDownloadWarningModal } from './CommunityDownloadWarningModal';
+import type { CommunityAttachmentFile } from '../model/communityAttachment';
 import { CommunityPostBlockContent } from './CommunityPostBlockContent';
 import { CommunityRollingNumber } from './CommunityRollingNumber';
 import * as S from './CommunityDetailPage.style';
@@ -304,10 +311,18 @@ export function CommunityDetailPage() {
     useState(false);
   const [isCommentDeleting, setIsCommentDeleting] = useState(false);
   const [isAttachmentListOpen, setIsAttachmentListOpen] = useState(false);
+  const [pendingDownload, setPendingDownload] = useState<{
+    postId: number;
+    file: CommunityAttachmentFile;
+    risk: Exclude<CommunityDownloadRisk, null>;
+  } | null>(null);
+  const [downloadingFiles, setDownloadingFiles] = useState<ReadonlySet<string>>(() => new Set());
+  const [downloadError, setDownloadError] = useState<{ postId: number; message: string } | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [postActionError, setPostActionError] = useState<string | null>(null);
   const postMenuRef = useRef<HTMLDivElement>(null);
   const attachmentListRef = useRef<HTMLDivElement>(null);
+  const downloadingFilesRef = useRef(new Set<string>());
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const isHeartMutatingRef = useRef(false);
   const postStatsRefreshVersionRef = useRef(0);
@@ -821,6 +836,7 @@ export function CommunityDetailPage() {
     if (isCommentDeleting || pendingCommentDeleteId === commentId) {
       return;
     }
+    setPendingDownload(null);
 
     if (pendingCommentDeleteId === null) {
       setPendingCommentDeleteId(commentId);
@@ -894,6 +910,7 @@ export function CommunityDetailPage() {
     }
 
     setIsPostMenuOpen(false);
+    setPendingDownload(null);
     setIsPostDeleteConfirmOpen(true);
   };
 
@@ -918,12 +935,46 @@ export function CommunityDetailPage() {
     }
   };
 
-  const handleAttachmentOpen = (fileKeyOrUrl: string) => {
-    const attachmentUrl = getCommunityFileDownloadUrl(fileKeyOrUrl);
+  const handleFileDownload = async (file: CommunityAttachmentFile) => {
+    if (downloadingFilesRef.current.has(file.fileUrl)) return;
 
-    if (attachmentUrl) {
-      window.open(attachmentUrl, '_blank', 'noopener,noreferrer');
+    downloadingFilesRef.current.add(file.fileUrl);
+    setDownloadingFiles(new Set(downloadingFilesRef.current));
+    setDownloadError(null);
+    try {
+      await downloadCommunityFile(file.fileUrl, file.fileName);
+    } catch {
+      setDownloadError({ postId, message: `“${file.fileName}” 파일을 다운로드하지 못했습니다. 다시 시도해주세요.` });
+    } finally {
+      downloadingFilesRef.current.delete(file.fileUrl);
+      setDownloadingFiles(new Set(downloadingFilesRef.current));
     }
+  };
+
+  const handleAttachmentOpen = (file: CommunityAttachmentFile) => {
+    if (downloadingFilesRef.current.has(file.fileUrl)) return;
+
+    const risk = getCommunityDownloadRisk(file.fileName, file.fileType);
+    setPendingDownload(null);
+    setDownloadError(null);
+    if (risk) {
+      setIsAttachmentListOpen(false);
+      setIsPostDeleteConfirmOpen(false);
+      closeCommentDeleteConfirm(true);
+      setPendingDownload({ postId, file, risk });
+      return;
+    }
+    void handleFileDownload(file);
+  };
+
+  const handleDownloadCancel = useCallback(() => setPendingDownload(null), []);
+
+  const handleDownloadConfirm = () => {
+    if (!pendingDownload) return;
+
+    const { file } = pendingDownload;
+    setPendingDownload(null);
+    void handleFileDownload(file);
   };
 
   useEffect(() => {
@@ -1450,6 +1501,8 @@ export function CommunityDetailPage() {
                     key={post.postId}
                     blocks={postBlocks}
                     files={post.files ?? []}
+                    downloadingFiles={downloadingFiles}
+                    onFileDownload={handleAttachmentOpen}
                   />
                 ) : (
                   <ReactMarkdown
@@ -1537,17 +1590,14 @@ export function CommunityDetailPage() {
                     >
                       <S.AttachmentFileList>
                         {attachmentFiles.map((file) => (
-                          <S.AttachmentFileButton
+                          <CommunityAttachmentCard
                             key={file.fileId}
-                            type="button"
+                            file={file}
+                            compact
                             tabIndex={isAttachmentListOpen ? 0 : -1}
-                            onClick={() => handleAttachmentOpen(file.fileUrl)}
-                          >
-                            <S.AttachmentFileIcon src={paperclipIcon} alt="" />
-                            <S.AttachmentFileName>
-                              {file.fileName}
-                            </S.AttachmentFileName>
-                          </S.AttachmentFileButton>
+                            isDownloading={downloadingFiles.has(file.fileUrl)}
+                            onDownload={handleAttachmentOpen}
+                          />
                         ))}
                       </S.AttachmentFileList>
                     </S.AttachmentPanel>
@@ -1556,6 +1606,9 @@ export function CommunityDetailPage() {
               </S.EngagementRow>
               <S.Divider />
             </S.Engagement>
+            {downloadError?.postId === postId && (
+              <S.ActionError role="alert">{downloadError.message}</S.ActionError>
+            )}
 
             <S.Comments>
               <S.CommentComposer>
@@ -1668,6 +1721,14 @@ export function CommunityDetailPage() {
               </S.CommentList>
             </S.Comments>
           </>
+        )}
+        {pendingDownload?.postId === postId && (
+          <CommunityDownloadWarningModal
+            file={pendingDownload.file}
+            risk={pendingDownload.risk}
+            onCancel={handleDownloadCancel}
+            onConfirm={handleDownloadConfirm}
+          />
         )}
         {isPostDeleteConfirmOpen && post && (
           <ConfirmModal
