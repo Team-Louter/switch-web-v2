@@ -28,10 +28,11 @@ export const Card = styled.button<{ $compact: boolean }>`
   border-radius: 12px;
   background: ${token.colors.gray.gray0};
   text-align: left;
-  cursor: pointer;
+  cursor: default;
+  &:is(button) { cursor: pointer; }
   transition: background 150ms ease, border-color 150ms ease;
 
-  &:hover {
+  &:is(button):hover {
     border-color: ${token.colors.gray.gray20};
     background: ${token.colors.white};
   }

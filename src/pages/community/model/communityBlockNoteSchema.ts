@@ -1,6 +1,8 @@
 import {
   BlockNoteSchema,
   createImageBlockConfig,
+  createFileBlockConfig,
+  fileParse,
   defaultBlockSpecs,
   imageParse,
   imageToExternalHTML,
@@ -9,6 +11,7 @@ import { createReactBlockSpec } from '@blocknote/react';
 
 import { isKlipyMediaUrl } from '@/shared/api';
 
+import { CommunityFileBlock } from '../ui/CommunityFileBlock';
 import { CommunityImageBlock } from '../ui/CommunityImageBlock';
 
 const imageSpec = createReactBlockSpec(createImageBlockConfig, (config) => ({
@@ -48,4 +51,25 @@ const protectedImageSpec: typeof imageSpec = {
 
 export const communityBlockNoteSchema = BlockNoteSchema.create({
   blockSpecs: { ...defaultBlockSpecs, image: protectedImageSpec },
+});
+
+const editorFileSpec = createReactBlockSpec(createFileBlockConfig, {
+  meta: { fileBlockAccept: ['*/*'] },
+  render: CommunityFileBlock,
+  parse: fileParse(),
+})();
+
+// 편집 화면의 표시만 변경하고 복사·저장에 쓰는 기본 파일 HTML은 유지합니다.
+export const communityWriteBlockNoteSchema = BlockNoteSchema.create({
+  blockSpecs: {
+    ...defaultBlockSpecs,
+    image: protectedImageSpec,
+    file: {
+      ...editorFileSpec,
+      implementation: {
+        ...editorFileSpec.implementation,
+        toExternalHTML: defaultBlockSpecs.file.implementation.toExternalHTML,
+      },
+    },
+  },
 });

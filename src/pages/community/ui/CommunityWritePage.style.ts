@@ -529,6 +529,13 @@ export const Editor = styled.section<EditorProps>`
     max-width: 100% !important;
   }
 
+  .community-block-editor [data-content-type='file'] .bn-file-block-content-wrapper {
+    width: min(100%, 420px);
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
   .community-block-editor [data-file-block] .bn-visual-media {
     display: block;
     width: auto !important;
