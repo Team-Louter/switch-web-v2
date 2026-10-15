@@ -32,8 +32,7 @@ interface CommunityPostBlockContentProps {
   blocks: readonly Block[];
   files: readonly PostFileResponse[];
   onImagePreview: (image: CommunityPostImagePreview) => void;
-  onFileDownload: (file: CommunityAttachmentFile) => void;
-  downloadingFiles: ReadonlySet<string>;
+  onFileOpen: (file: CommunityAttachmentFile) => void;
 }
 
 function syncImagePreviewAccessibility(image: HTMLImageElement) {
@@ -100,8 +99,7 @@ export function CommunityPostBlockFallback({
   blocks,
   files,
   onImagePreview,
-  onFileDownload,
-  downloadingFiles,
+  onFileOpen,
 }: CommunityPostBlockContentProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [fileSlots, setFileSlots] = useState<{
@@ -246,8 +244,7 @@ export function CommunityPostBlockFallback({
       {fileSlots.map(({ element, file, blockId }) => createPortal(
         <CommunityAttachmentCard
           file={file}
-          isDownloading={downloadingFiles.has(file.fileUrl)}
-          onDownload={onFileDownload}
+          onOpen={onFileOpen}
         />,
         element,
         blockId,

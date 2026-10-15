@@ -1,5 +1,5 @@
 import {
-  FaDownload, FaFile, FaFileAudio, FaFileCode, FaFileExcel,
+  FaFile, FaFileAudio, FaFileCode, FaFileExcel,
   FaFilePdf, FaFilePowerpoint, FaFileVideo, FaFileWord, FaFileZipper,
 } from 'react-icons/fa6'
 
@@ -12,10 +12,9 @@ import * as S from './CommunityAttachmentCard.style'
 
 interface CommunityAttachmentCardProps {
   file: CommunityAttachmentFile
-  isDownloading: boolean
   compact?: boolean
   tabIndex?: number
-  onDownload: (file: CommunityAttachmentFile) => void
+  onOpen: (file: CommunityAttachmentFile) => void
 }
 
 const FILE_ICONS = {
@@ -25,7 +24,7 @@ const FILE_ICONS = {
 }
 
 export function CommunityAttachmentCard({
-  file, isDownloading, compact = false, tabIndex, onDownload,
+  file, compact = false, tabIndex, onOpen,
 }: CommunityAttachmentCardProps) {
   const kind = getCommunityFileKind(file)
   const Icon = FILE_ICONS[kind]
@@ -35,18 +34,15 @@ export function CommunityAttachmentCard({
       type="button"
       $compact={compact}
       data-file-kind={kind}
-      aria-label={`${file.fileName} 다운로드`}
-      aria-busy={isDownloading}
-      disabled={isDownloading}
+      aria-label={`${file.fileName} 열기 (새 탭)`}
       tabIndex={tabIndex}
-      onClick={() => onDownload(file)}
+      onClick={() => onOpen(file)}
     >
       <S.Icon $kind={kind} $compact={compact} aria-hidden="true"><Icon /></S.Icon>
       <S.Details>
         <S.Name title={file.fileName}>{file.fileName}</S.Name>
-        <S.Size>{isDownloading ? '다운로드 중…' : formatCommunityFileSize(file.fileSize)}</S.Size>
+        <S.Size>{formatCommunityFileSize(file.fileSize)}</S.Size>
       </S.Details>
-      <S.DownloadIcon aria-hidden="true"><FaDownload /></S.DownloadIcon>
     </S.Card>
   )
 }

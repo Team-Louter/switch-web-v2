@@ -31,12 +31,11 @@ export const Card = styled.button<{ $compact: boolean }>`
   cursor: pointer;
   transition: background 150ms ease, border-color 150ms ease;
 
-  &:hover:not(:disabled) {
+  &:hover {
     border-color: ${token.colors.gray.gray20};
     background: ${token.colors.white};
   }
   &:focus-visible { outline: 2px solid ${token.colors.primary.primary50}; outline-offset: 3px; }
-  &:disabled { cursor: progress; opacity: 0.7; }
   @media (max-width: 480px) { gap: 12px; padding: 14px; }
   @media (prefers-reduced-motion: reduce) { transition: none; }
 `
@@ -66,10 +65,4 @@ export const Size = styled.span`
   color: ${token.colors.gray.gray60};
   ${token.typography('body', 'sm', 'regular')}
   line-height: 1.4;
-`
-export const DownloadIcon = styled.span`
-  display: flex;
-  flex: 0 0 auto;
-  color: ${token.colors.gray.gray40};
-  font-size: 16px;
 `

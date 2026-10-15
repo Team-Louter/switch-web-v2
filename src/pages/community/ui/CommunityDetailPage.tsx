@@ -37,7 +37,6 @@ import {
   createComment,
   deleteComment,
   deletePost,
-  downloadCommunityFile,
   getCommunityDownloadRisk,
   setPostPinned,
   togglePostHeart,
@@ -316,13 +315,11 @@ export function CommunityDetailPage() {
     file: CommunityAttachmentFile;
     risk: Exclude<CommunityDownloadRisk, null>;
   } | null>(null);
-  const [downloadingFiles, setDownloadingFiles] = useState<ReadonlySet<string>>(() => new Set());
-  const [downloadError, setDownloadError] = useState<{ postId: number; message: string } | null>(null);
+  const [attachmentOpenError, setAttachmentOpenError] = useState<{ postId: number; message: string } | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [postActionError, setPostActionError] = useState<string | null>(null);
   const postMenuRef = useRef<HTMLDivElement>(null);
   const attachmentListRef = useRef<HTMLDivElement>(null);
-  const downloadingFilesRef = useRef(new Set<string>());
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const isHeartMutatingRef = useRef(false);
   const postStatsRefreshVersionRef = useRef(0);
@@ -935,28 +932,20 @@ export function CommunityDetailPage() {
     }
   };
 
-  const handleFileDownload = async (file: CommunityAttachmentFile) => {
-    if (downloadingFilesRef.current.has(file.fileUrl)) return;
-
-    downloadingFilesRef.current.add(file.fileUrl);
-    setDownloadingFiles(new Set(downloadingFilesRef.current));
-    setDownloadError(null);
-    try {
-      await downloadCommunityFile(file.fileUrl, file.fileName);
-    } catch {
-      setDownloadError({ postId, message: `“${file.fileName}” 파일을 다운로드하지 못했습니다. 다시 시도해주세요.` });
-    } finally {
-      downloadingFilesRef.current.delete(file.fileUrl);
-      setDownloadingFiles(new Set(downloadingFilesRef.current));
+  const handleFileOpen = (file: CommunityAttachmentFile) => {
+    const url = getCommunityFileDownloadUrl(file.fileUrl);
+    if (!url) {
+      setAttachmentOpenError({ postId, message: '첨부파일 주소를 확인할 수 없습니다.' });
+      return;
     }
+
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const handleAttachmentOpen = (file: CommunityAttachmentFile) => {
-    if (downloadingFilesRef.current.has(file.fileUrl)) return;
-
     const risk = getCommunityDownloadRisk(file.fileName, file.fileType);
     setPendingDownload(null);
-    setDownloadError(null);
+    setAttachmentOpenError(null);
     if (risk) {
       setIsAttachmentListOpen(false);
       setIsPostDeleteConfirmOpen(false);
@@ -964,7 +953,7 @@ export function CommunityDetailPage() {
       setPendingDownload({ postId, file, risk });
       return;
     }
-    void handleFileDownload(file);
+    handleFileOpen(file);
   };
 
   const handleDownloadCancel = useCallback(() => setPendingDownload(null), []);
@@ -974,7 +963,7 @@ export function CommunityDetailPage() {
 
     const { file } = pendingDownload;
     setPendingDownload(null);
-    void handleFileDownload(file);
+    handleFileOpen(file);
   };
 
   useEffect(() => {
@@ -1501,8 +1490,7 @@ export function CommunityDetailPage() {
                     key={post.postId}
                     blocks={postBlocks}
                     files={post.files ?? []}
-                    downloadingFiles={downloadingFiles}
-                    onFileDownload={handleAttachmentOpen}
+                    onFileOpen={handleAttachmentOpen}
                   />
                 ) : (
                   <ReactMarkdown
@@ -1595,8 +1583,7 @@ export function CommunityDetailPage() {
                             file={file}
                             compact
                             tabIndex={isAttachmentListOpen ? 0 : -1}
-                            isDownloading={downloadingFiles.has(file.fileUrl)}
-                            onDownload={handleAttachmentOpen}
+                            onOpen={handleAttachmentOpen}
                           />
                         ))}
                       </S.AttachmentFileList>
@@ -1606,8 +1593,8 @@ export function CommunityDetailPage() {
               </S.EngagementRow>
               <S.Divider />
             </S.Engagement>
-            {downloadError?.postId === postId && (
-              <S.ActionError role="alert">{downloadError.message}</S.ActionError>
+            {attachmentOpenError?.postId === postId && (
+              <S.ActionError role="alert">{attachmentOpenError.message}</S.ActionError>
             )}
 
             <S.Comments>

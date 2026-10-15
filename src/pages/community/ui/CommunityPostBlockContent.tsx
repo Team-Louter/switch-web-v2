@@ -30,8 +30,7 @@ const BlockFallback = lazy(() =>
 interface CommunityPostBlockContentProps {
   blocks: readonly Block[];
   files: readonly PostFileResponse[];
-  downloadingFiles: ReadonlySet<string>;
-  onFileDownload: (file: CommunityAttachmentFile) => void;
+  onFileOpen: (file: CommunityAttachmentFile) => void;
 }
 
 function getYouTubeEmbedUrl(value: string): string | null {
@@ -282,8 +281,7 @@ function PostImage({
 export function CommunityPostBlockContent({
   blocks,
   files,
-  downloadingFiles,
-  onFileDownload,
+  onFileOpen,
 }: CommunityPostBlockContentProps) {
   const [previewImage, setPreviewImage] =
     useState<CommunityPostImagePreview | null>(null);
@@ -327,8 +325,7 @@ export function CommunityPostBlockContent({
                 blocks={group}
                 files={files}
                 onImagePreview={setPreviewImage}
-                onFileDownload={onFileDownload}
-                downloadingFiles={downloadingFiles}
+                onFileOpen={onFileOpen}
               />
             </Suspense>
           );
@@ -339,8 +336,7 @@ export function CommunityPostBlockContent({
             <S.Figure key={block.id}>
               <CommunityAttachmentCard
                 file={file}
-                isDownloading={downloadingFiles.has(file.fileUrl)}
-                onDownload={onFileDownload}
+                onOpen={onFileOpen}
               />
               {block.props.caption && <figcaption>{block.props.caption}</figcaption>}
             </S.Figure>
