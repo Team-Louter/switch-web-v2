@@ -3,15 +3,17 @@ import {
   useEffect,
   useRef,
   useState,
-  type SetStateAction,
 } from 'react'
-import { useNavigate, useOutletContext } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { useIsMutating, useQueries, useQuery } from '@tanstack/react-query'
 import { queryClient } from '@/shared/lib/queryClient'
 
 import {
   mapNotificationResponse,
   NotificationItem,
   notificationPageOptions,
+  notificationQueryKeys,
   notificationSettingsOptions,
   unreadNotificationCountOptions,
   type Notification,
@@ -22,12 +24,11 @@ import {
   deleteNotification,
   DeleteNotificationModal,
   NotificationSettingsModal,
-  readAllNotifications,
-  readNotification,
   type NotificationSettingKey,
   type NotificationSettings,
-  unreadNotification,
+  type NotificationReadRequest,
   updateNotificationSettings,
+  useNotificationReadMutation,
 } from '@/features/notification'
 
 import notificationAvatar from '../assets/images/notification-avatar.png'
@@ -64,10 +65,6 @@ import {
   StatusText,
   Title,
 } from './NotificationPage.style'
-
-interface NotificationOutletContext {
-  setNotificationCount: (count: SetStateAction<number>) => void
-}
 
 const NOTIFICATION_TYPE_ICONS: Partial<Record<NotificationType, string>> = {
   comment: notificationCommentIcon,
@@ -134,17 +131,13 @@ function getNotificationTargetPath(notification: Notification): string | null {
 export function NotificationPage() {
   const navigate = useNavigate()
   const userId = useUserStore((state) => state.user?.userId ?? null)
-  const { setNotificationCount } =
-    useOutletContext<NotificationOutletContext>()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const loadMoreTriggerRef = useRef<HTMLDivElement>(null)
   const notificationIdsRef = useRef<Set<number>>(new Set())
-  const readingNotificationIdsRef = useRef<Set<number>>(new Set())
   const hasLoadedNotificationsRef = useRef(false)
   const [newNotificationIds, setNewNotificationIds] = useState<Set<number>>(
     new Set(),
   )
-  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [nextPage, setNextPage] = useState(1)
@@ -162,59 +155,74 @@ export function NotificationPage() {
   const [isSettingsUpdating, setIsSettingsUpdating] = useState(false)
   const [settingsError, setSettingsError] = useState<string | null>(null)
 
+  const { mutateAsync: changeReadState } = useNotificationReadMutation(userId)
+  const pendingReads = useIsMutating({
+    mutationKey: notificationQueryKeys.reads(userId),
+  })
+  const unreadCountQuery = useQuery({
+    ...unreadNotificationCountOptions(userId),
+    enabled: false,
+  })
+  const cachedPages = useQueries({
+    queries: Array.from({ length: nextPage }, (_, page) => ({
+      ...notificationPageOptions(userId, page),
+      enabled: false,
+    })),
+  })
+  const cachedReadStates = new Map(
+    cachedPages.flatMap((page) =>
+      page.data?.content.map((notification) =>
+        [notification.notificationId, notification.isRead] as const,
+      ) ?? [],
+    ),
+  )
+  const visibleNotifications = notifications.map((notification) => ({
+    ...notification,
+    isRead: cachedReadStates.get(notification.id) ?? notification.isRead,
+  }))
+  const unreadNotificationCount = unreadCountQuery.data ?? 0
   const hasUnreadNotification = unreadNotificationCount > 0
+  const isNotificationActionPending = isNotificationMutating || pendingReads > 0
+  const hasPendingReads = useCallback(
+    (notificationId?: number) => queryClient.isMutating({
+      mutationKey: notificationQueryKeys.reads(userId),
+      predicate: (mutation) => {
+        const request = mutation.state.variables as NotificationReadRequest | undefined
+        return notificationId === undefined || request?.kind === 'all' ||
+          (request?.kind === 'single' && request.notificationId === notificationId)
+      },
+    }) > 0,
+    [userId],
+  )
 
   const handleNotificationClick = useCallback(
-    async (notification: Notification) => {
+    (notification: Notification) => {
       const targetPath = getNotificationTargetPath(notification)
+      if (!targetPath) return
 
-      if (!targetPath) {
-        return
+      if (!notification.isRead && !hasPendingReads(notification.id)) {
+        void changeReadState({
+          kind: 'single', notificationId: notification.id, isRead: true,
+        }).catch(() => {
+          toast.error('알림을 읽음 처리하지 못했습니다. 다시 시도해주세요.')
+        })
       }
 
-      const isReadRequestInFlight = readingNotificationIdsRef.current.has(
-        notification.id,
-      )
-
-      if (!notification.isRead && !isReadRequestInFlight) {
-        readingNotificationIdsRef.current.add(notification.id)
-
-        try {
-          await readNotification(notification.id)
-          setNotifications((currentNotifications) =>
-            currentNotifications.map((currentNotification) =>
-              currentNotification.id === notification.id
-                ? { ...currentNotification, isRead: true }
-                : currentNotification,
-            ),
-          )
-
-          const decrementUnreadCount = (currentCount: number) =>
-            Math.max(0, currentCount - 1)
-
-          setUnreadNotificationCount(decrementUnreadCount)
-          setNotificationCount(decrementUnreadCount)
-        } catch {
-          setActionError('알림을 읽음 처리하지 못했습니다.')
-        } finally {
-          readingNotificationIdsRef.current.delete(notification.id)
-        }
-      }
-
+      // 읽음 요청은 캐시에서 완료·복구하므로 페이지 이동을 기다리게 하지 않는다.
       navigate(targetPath, { viewTransition: true })
     },
-    [navigate, setNotificationCount],
+    [changeReadState, hasPendingReads, navigate],
   )
 
   const loadNotifications = useCallback(async () => {
+    if (hasPendingReads()) return
     setIsLoading(true)
     setLoadError(null)
 
     try {
-      const [response, unreadCount] = await Promise.all([
-        queryClient.fetchQuery(notificationPageOptions(userId)),
-        queryClient.fetchQuery(unreadNotificationCountOptions(userId)),
-      ])
+      const response = await queryClient.fetchQuery(notificationPageOptions(userId))
+      if (hasPendingReads()) return
+
       const nextNotifications = response.content.map((notification) =>
         mapNotificationResponse(notification),
       )
@@ -225,8 +233,6 @@ export function NotificationPage() {
       hasLoadedNotificationsRef.current = true
       setNewNotificationIds(new Set())
       setNotifications(nextNotifications)
-      setUnreadNotificationCount(unreadCount)
-      setNotificationCount(unreadCount)
       setNextPage(response.number + 1)
       setHasNextPage(!response.last)
     } catch {
@@ -234,21 +240,20 @@ export function NotificationPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [setNotificationCount, userId])
+  }, [hasPendingReads, userId])
 
   const refreshNotifications = useCallback(async () => {
-    if (userId === null) {
+    if (userId === null || hasPendingReads()) {
       return
     }
 
     try {
-      const [response, unreadCount] = await Promise.all([
-        queryClient.fetchQuery({
-          ...notificationPageOptions(userId),
-          staleTime: 0,
-        }),
-        queryClient.fetchQuery(unreadNotificationCountOptions(userId)),
-      ])
+      const response = await queryClient.fetchQuery({
+        ...notificationPageOptions(userId),
+        staleTime: 0,
+      })
+      if (hasPendingReads()) return
+
       const refreshedNotifications = response.content.map((notification) =>
         mapNotificationResponse(notification),
       )
@@ -282,16 +287,14 @@ export function NotificationPage() {
 
         return nextNotifications
       })
-      setUnreadNotificationCount(unreadCount)
-      setNotificationCount(unreadCount)
       setLoadError(null)
     } catch {
       // Keep the currently visible notifications until the next refresh.
     }
-  }, [setNotificationCount, userId])
+  }, [hasPendingReads, userId])
 
   const handleLoadMore = useCallback(async () => {
-    if (!hasNextPage || isLoadingMore) {
+    if (!hasNextPage || isLoadingMore || hasPendingReads()) {
       return
     }
 
@@ -302,6 +305,8 @@ export function NotificationPage() {
       const response = await queryClient.fetchQuery(
         notificationPageOptions(userId, nextPage),
       )
+      if (hasPendingReads()) return
+
       const nextNotifications = response.content.map((notification) =>
         mapNotificationResponse(notification),
       )
@@ -333,7 +338,7 @@ export function NotificationPage() {
     } finally {
       setIsLoadingMore(false)
     }
-  }, [hasNextPage, isLoadingMore, nextPage, userId])
+  }, [hasNextPage, hasPendingReads, isLoadingMore, nextPage, userId])
 
   const loadSettings = useCallback(async () => {
     setIsSettingsLoading(true)
@@ -353,34 +358,19 @@ export function NotificationPage() {
   }, [userId])
 
   const handleReadAll = async () => {
-    if (!hasUnreadNotification || isNotificationMutating) {
-      return
-    }
+    if (!hasUnreadNotification || isNotificationMutating || hasPendingReads()) return
 
-    setIsNotificationMutating(true)
     setActionError(null)
     setOpenMenuId(null)
-
     try {
-      await readAllNotifications()
-      setNotifications((currentNotifications) =>
-        currentNotifications.map((notification) => ({
-          ...notification,
-          isRead: true,
-        })),
-      )
-      setUnreadNotificationCount(0)
-      setNotificationCount(0)
+      await changeReadState({ kind: 'all' })
     } catch {
       setActionError('모든 알림을 읽음 처리하지 못했습니다.')
-      void loadNotifications()
-    } finally {
-      setIsNotificationMutating(false)
     }
   }
 
   const handleMenuToggle = (notificationId: number) => {
-    if (isNotificationMutating) {
+    if (isNotificationMutating || hasPendingReads()) {
       return
     }
 
@@ -390,69 +380,27 @@ export function NotificationPage() {
   }
 
   const handleReadToggle = async (notificationId: number) => {
-    if (isNotificationMutating) {
-      return
-    }
+    if (isNotificationMutating || hasPendingReads()) return
 
-    const selectedNotification = notifications.find(
+    const selectedNotification = visibleNotifications.find(
       (notification) => notification.id === notificationId,
     )
-
-    if (!selectedNotification) {
-      return
-    }
+    if (!selectedNotification) return
 
     const nextIsRead = !selectedNotification.isRead
-
-    if (
-      nextIsRead &&
-      readingNotificationIdsRef.current.has(notificationId)
-    ) {
-      setOpenMenuId(null)
-      return
-    }
-
-    setIsNotificationMutating(true)
     setActionError(null)
     setOpenMenuId(null)
-
     try {
-      if (nextIsRead) {
-        readingNotificationIdsRef.current.add(notificationId)
-        await readNotification(notificationId)
-      } else {
-        await unreadNotification(notificationId)
-      }
-
-      setNotifications((currentNotifications) =>
-        currentNotifications.map((notification) =>
-          notification.id === notificationId
-            ? { ...notification, isRead: nextIsRead }
-            : notification,
-        ),
-      )
-
-      const updateUnreadCount = (currentCount: number) =>
-        Math.max(0, currentCount + (nextIsRead ? -1 : 1))
-
-      setUnreadNotificationCount(updateUnreadCount)
-      setNotificationCount(updateUnreadCount)
+      await changeReadState({ kind: 'single', notificationId, isRead: nextIsRead })
     } catch {
-      setActionError(
-        nextIsRead
-          ? '알림을 읽음 처리하지 못했습니다.'
-          : '알림을 읽지 않음 처리하지 못했습니다.',
-      )
-    } finally {
-      if (nextIsRead) {
-        readingNotificationIdsRef.current.delete(notificationId)
-      }
-      setIsNotificationMutating(false)
+      setActionError(nextIsRead
+        ? '알림을 읽음 처리하지 못했습니다.'
+        : '알림을 읽지 않음 처리하지 못했습니다.')
     }
   }
 
   const handleDeleteRequest = (notificationId: number) => {
-    if (isNotificationMutating) {
+    if (isNotificationMutating || hasPendingReads()) {
       return
     }
 
@@ -465,13 +413,9 @@ export function NotificationPage() {
   }, [])
 
   const handleDeleteConfirm = async () => {
-    if (pendingDeleteId === null || isNotificationMutating) {
+    if (pendingDeleteId === null || isNotificationMutating || hasPendingReads()) {
       return
     }
-
-    const selectedNotification = notifications.find(
-      (notification) => notification.id === pendingDeleteId,
-    )
 
     setIsNotificationMutating(true)
     setActionError(null)
@@ -491,14 +435,6 @@ export function NotificationPage() {
 
         return nextNotificationIds
       })
-
-      if (selectedNotification && !selectedNotification.isRead) {
-        const decrementUnreadCount = (currentCount: number) =>
-          Math.max(0, currentCount - 1)
-
-        setUnreadNotificationCount(decrementUnreadCount)
-        setNotificationCount(decrementUnreadCount)
-      }
 
       setPendingDeleteId(null)
     } catch {
@@ -564,12 +500,15 @@ export function NotificationPage() {
 
     let isCancelled = false
 
-    Promise.all([
-      queryClient.fetchQuery(notificationPageOptions(userId)),
-      queryClient.fetchQuery(unreadNotificationCountOptions(userId)),
-    ])
-      .then(([response, unreadCount]) => {
-        if (isCancelled) {
+    const pageOptions = notificationPageOptions(userId)
+    // 재진입 시 진행 중인 읽음 상태를 서버의 이전 응답으로 덮어쓰지 않는다.
+    const initialPage = hasPendingReads()
+      ? Promise.resolve(queryClient.getQueryData(pageOptions.queryKey))
+      : queryClient.fetchQuery(pageOptions)
+
+    initialPage
+      .then((response) => {
+        if (isCancelled || !response) {
           return
         }
 
@@ -582,8 +521,6 @@ export function NotificationPage() {
         )
         hasLoadedNotificationsRef.current = true
         setNotifications(nextNotifications)
-        setUnreadNotificationCount(unreadCount)
-        setNotificationCount(unreadCount)
         setNextPage(response.number + 1)
         setHasNextPage(!response.last)
       })
@@ -618,7 +555,7 @@ export function NotificationPage() {
     return () => {
       isCancelled = true
     }
-  }, [setNotificationCount, userId])
+  }, [hasPendingReads, userId])
 
   const handleNewNotificationAnimationEnd = useCallback(
     (notificationId: number) => {
@@ -690,7 +627,7 @@ export function NotificationPage() {
             <ReadAllButton
               type="button"
               disabled={
-                !hasUnreadNotification || isLoading || isNotificationMutating
+                !hasUnreadNotification || isLoading || isNotificationActionPending
               }
               onClick={handleReadAll}
             >
@@ -759,7 +696,7 @@ export function NotificationPage() {
             </StatusState>
           ) : notifications.length > 0 ? (
             <>
-              {notifications.map((notification) => (
+              {visibleNotifications.map((notification) => (
                 <NewNotification
                   key={notification.id}
                   $isNew={newNotificationIds.has(notification.id)}
@@ -817,7 +754,7 @@ export function NotificationPage() {
 
       {pendingDeleteId !== null && (
         <DeleteNotificationModal
-          isDeleting={isNotificationMutating}
+          isDeleting={isNotificationActionPending}
           onCancel={handleDeleteCancel}
           onConfirm={handleDeleteConfirm}
         />
