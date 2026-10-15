@@ -450,6 +450,8 @@ export const Editor = styled.section<EditorProps>`
   }
 
   .community-block-editor .bn-root {
+    display: flex;
+    flex-direction: column;
     --bn-colors-editor-text: ${token.colors.gray.gray100};
     --bn-colors-editor-background: transparent;
     --bn-colors-menu-text: ${token.colors.gray.gray100};
@@ -464,6 +466,7 @@ export const Editor = styled.section<EditorProps>`
   }
 
   .community-block-editor .bn-editor {
+    flex: 1 0 auto;
     box-sizing: border-box;
     min-height: 100%;
     padding: 8px 54px 32px;

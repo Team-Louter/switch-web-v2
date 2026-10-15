@@ -561,7 +561,9 @@ export function CommunityWritePage() {
       dropCursor: {
         hooks: { computeDropPosition: getCommunityDropCursorPosition },
       },
-      uploadFile: handleEditorFileUpload,
+      uploadFile: async (file) => ({
+        props: await handleEditorFileUpload(file),
+      }),
     },
     [handleEditorFileUpload],
   );
