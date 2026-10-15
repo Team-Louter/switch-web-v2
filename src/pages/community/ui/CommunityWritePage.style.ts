@@ -485,6 +485,14 @@ export const Editor = styled.section<EditorProps>`
     overflow-wrap: anywhere;
   }
 
+  /* 카드 420px와 본문 들여쓰기 8px에 맞춰 파일 블록의 선택 범위를 제한합니다. */
+  .community-block-editor .node-file,
+  .community-block-editor
+    .bn-block-outer:has(> .bn-block > .node-file):not(:has(> .bn-block > .bn-block-group)) {
+    box-sizing: border-box;
+    width: min(100%, 428px);
+  }
+
   ${({ $selectedBlockId }) =>
     $selectedBlockId
       ? `
