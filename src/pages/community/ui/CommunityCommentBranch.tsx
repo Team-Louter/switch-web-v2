@@ -54,6 +54,7 @@ interface CommunityCommentBranchProps {
   onCommentEditStart: () => void;
   currentMemberId: number | null;
   loadedReplyCommentIds: ReadonlySet<number>;
+  pendingReplyAncestorIds: ReadonlySet<number>;
   replyAuthorProfileImageUrl?: string;
   replyToUserName?: string;
   isExpandedByAncestor?: boolean;
@@ -100,12 +101,14 @@ export function CommunityCommentBranch({
   onCommentEditStart,
   currentMemberId,
   loadedReplyCommentIds,
+  pendingReplyAncestorIds,
   replyAuthorProfileImageUrl,
   replyToUserName,
   isExpandedByAncestor = false,
   hasNextSibling = false,
 }: CommunityCommentBranchProps) {
   const { comment } = node;
+  const isPending = comment.commentId < 0;
   const commentContent = comment.deleted
     ? { text: comment.content, klipyGifLinks: [] }
     : extractCommunityKlipyGifLinks(comment.content);
@@ -128,6 +131,7 @@ export function CommunityCommentBranch({
   const commentMenuRef = useRef<HTMLDivElement>(null);
   const replyInputRef = useRef<HTMLTextAreaElement>(null);
   const commentEditInputRef = useRef<HTMLTextAreaElement>(null);
+  const isReplySubmittingRef = useRef(false);
   const [dismissedTargetCommentId, setDismissedTargetCommentId] = useState<
     number | null
   >(null);
@@ -140,6 +144,7 @@ export function CommunityCommentBranch({
   const totalReplyCount = Math.max(0, comment.replyCount);
   const hasReplies = totalReplyCount > 0 || loadedReplyCount > 0;
   const canManageComment =
+    !isPending && !pendingReplyAncestorIds.has(comment.commentId) &&
     !comment.deleted && currentMemberId === comment.userId;
   const isReplyLoadKnown = loadedReplyCommentIds.has(comment.commentId);
   const requiresInitialReplyLoad =
@@ -207,12 +212,14 @@ export function CommunityCommentBranch({
   const handleReplyFormSubmit = async () => {
     const trimmedContent = replySubmitContent;
 
-    if (!trimmedContent || isReplySubmitting) {
+    if (!trimmedContent || isReplySubmittingRef.current || isPending) {
       return;
     }
 
+    isReplySubmittingRef.current = true;
     setIsReplySubmitting(true);
     setReplySubmitError(null);
+    setIsRepliesOpen(true);
 
     const submitError = await onReplySubmit(
       comment.commentId,
@@ -229,6 +236,7 @@ export function CommunityCommentBranch({
       handleReplyComposerCancel();
     }
 
+    isReplySubmittingRef.current = false;
     setIsReplySubmitting(false);
   };
 
@@ -360,7 +368,7 @@ export function CommunityCommentBranch({
         $isFlattened={isFlattenedTree}
         $hasFlattenedChildren={shouldFlattenChildTree}
       >
-        <S.CommentItem $isTarget={comment.commentId === targetCommentId}>
+        <S.CommentItem $isTarget={comment.commentId === targetCommentId} aria-busy={isPending}>
           <S.CommentAuthorImage
             alt={`${comment.userName} 프로필`}
             $hasBorder={hasCustomBorder}
@@ -387,12 +395,16 @@ export function CommunityCommentBranch({
                   </S.CommentAuthorTitle>
                 )}
                 <S.CommentMetaDot aria-hidden="true" />
-                <S.CommentDate
-                  dateTime={comment.createdAt}
-                  title={formatCommunityDate(comment.createdAt)}
-                >
-                  {formatCommunityRelativeDate(comment.createdAt)}
-                </S.CommentDate>
+                {isPending ? (
+                  <S.CommentPending role="status">전송 중</S.CommentPending>
+                ) : (
+                  <S.CommentDate
+                    dateTime={comment.createdAt}
+                    title={formatCommunityDate(comment.createdAt)}
+                  >
+                    {formatCommunityRelativeDate(comment.createdAt)}
+                  </S.CommentDate>
+                )}
               </S.CommentMeta>
               {canManageComment && (
                 <S.CommentMenu
@@ -483,6 +495,7 @@ export function CommunityCommentBranch({
                 ))}
                 <S.ReplyActionButton
                   type="button"
+                  disabled={isPending}
                   aria-expanded={isReplyComposerOpen}
                   onClick={handleReplyComposerOpen}
                 >
@@ -612,6 +625,7 @@ export function CommunityCommentBranch({
                       onCommentEditStart={onCommentEditStart}
                       currentMemberId={currentMemberId}
                       loadedReplyCommentIds={loadedReplyCommentIds}
+                      pendingReplyAncestorIds={pendingReplyAncestorIds}
                       replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
                       replyToUserName={
                         child.comment.depth > FLATTENED_TREE_DEPTH

@@ -16,6 +16,7 @@ type ModalProps = {
   placement?: 'center' | 'bottom-right'
   variant?: 'default' | 'media'
   isClosing?: boolean
+  allowOverflow?: boolean
   onClose: () => void
 }
 
@@ -27,6 +28,7 @@ export function Modal({
   placement = 'center',
   variant = 'default',
   isClosing = false,
+  allowOverflow = false,
   onClose,
 }: ModalProps) {
   const isFloating = placement === 'bottom-right'
@@ -135,6 +137,7 @@ export function Modal({
         $variant={variant}
         $isClosing={isClosing}
         $minHeight={minHeight}
+        $allowOverflow={allowOverflow}
       >
         {children}
       </Card>

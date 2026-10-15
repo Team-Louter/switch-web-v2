@@ -6,6 +6,7 @@ import {
   type SetStateAction,
 } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { useIsMutating, useQuery } from '@tanstack/react-query'
 import styled from 'styled-components'
 
 import {
@@ -14,7 +15,10 @@ import {
   profileQueryKeys,
   useUserStore,
 } from '@/entities/profile'
-import { unreadNotificationCountOptions } from '@/entities/notification'
+import {
+  notificationQueryKeys,
+  unreadNotificationCountOptions,
+} from '@/entities/notification'
 import { SIDEBAR_MENU } from '@/shared/constants/sidebar'
 import switchLogo from '@/shared/assets/sidebar/switch-logo.svg'
 import { queryClient } from '@/shared/lib/queryClient'
@@ -67,9 +71,16 @@ export function AppLayout() {
   const fetchUser = useUserStore((state) => state.fetchUser)
   const setUser = useUserStore((state) => state.setUser)
   const userId = useUserStore((state) => state.user?.userId ?? null)
-  const [notificationCount, setNotificationCount] = useState(
-    getStoredUnreadNotificationCount,
-  )
+  const [storedNotificationCount] = useState(getStoredUnreadNotificationCount)
+  const pendingNotificationReads = useIsMutating({
+    mutationKey: notificationQueryKeys.reads(userId),
+  })
+  const notificationCountQuery = useQuery({
+    ...unreadNotificationCountOptions(userId),
+    enabled: userId !== null && pendingNotificationReads === 0,
+    refetchInterval: UNREAD_NOTIFICATION_POLLING_INTERVAL,
+  })
+  const notificationCount = notificationCountQuery.data ?? storedNotificationCount
   const [isSidebarProfileLoading, setIsSidebarProfileLoading] = useState(true)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [sidebarProfile, setSidebarProfile] = useState<SidebarProfile | null>(
@@ -101,18 +112,20 @@ export function AppLayout() {
 
   const updateNotificationCount = useCallback(
     (nextCount: SetStateAction<number>) => {
-      setNotificationCount((currentCount) => {
-        const resolvedCount =
-          typeof nextCount === 'function'
-            ? nextCount(currentCount)
-            : nextCount
+      queryClient.setQueryData<number>(
+        notificationQueryKeys.unreadCount(userId),
+        (cachedCount) => {
+          const currentCount = cachedCount ?? storedNotificationCount
+          const resolvedCount =
+            typeof nextCount === 'function' ? nextCount(currentCount) : nextCount
 
-        return Number.isFinite(resolvedCount)
-          ? Math.max(0, Math.floor(resolvedCount))
-          : 0
-      })
+          return Number.isFinite(resolvedCount)
+            ? Math.max(0, Math.floor(resolvedCount))
+            : 0
+        },
+      )
     },
-    [],
+    [storedNotificationCount, userId],
   )
 
   useEffect(() => {
@@ -180,50 +193,6 @@ export function AppLayout() {
       window.removeEventListener(PROFILE_SYNC_EVENT_NAME, handleProfileSync)
     }
   }, [fetchUser, location.pathname, setUser, userId])
-
-  useEffect(() => {
-    let isCancelled = false
-
-    const synchronizeNotificationCount = async () => {
-      if (userId === null) {
-        return
-      }
-
-      try {
-        const unreadCount = await queryClient.fetchQuery(
-          unreadNotificationCountOptions(userId),
-        )
-
-        if (!isCancelled) {
-          updateNotificationCount(unreadCount)
-        }
-      } catch {
-        // Keep the latest verified count until the next synchronization.
-      }
-    }
-
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        void synchronizeNotificationCount()
-      }
-    }
-
-    void synchronizeNotificationCount()
-
-    const pollingTimer = window.setInterval(() => {
-      if (!document.hidden) {
-        void synchronizeNotificationCount()
-      }
-    }, UNREAD_NOTIFICATION_POLLING_INTERVAL)
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-
-    return () => {
-      isCancelled = true
-      window.clearInterval(pollingTimer)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }
-  }, [updateNotificationCount, userId])
 
   return (
     <Layout>

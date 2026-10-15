@@ -5,6 +5,8 @@ export {
   unreadNotification,
 } from './api/readNotifications'
 export { updateNotificationSettings } from './api/updateNotificationSettings'
+export { useNotificationReadMutation } from './model/useNotificationReadMutation'
+export type { NotificationReadRequest } from './model/useNotificationReadMutation'
 export type {
   NotificationMenuAction,
   PatchNotificationSettingRequest,

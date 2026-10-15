@@ -955,45 +955,6 @@ export const AttachmentFileList = styled.div`
   gap: 6px;
 `;
 
-export const AttachmentFileButton = styled.button`
-  ${token.flexLeft}
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 42px;
-  gap: 8px;
-  padding: 10px 12px;
-  border: 1px solid ${token.colors.gray.gray10};
-  border-radius: ${token.shapes.small};
-  color: ${token.colors.gray.gray80};
-  background: ${token.colors.white};
-  ${token.typography('body', 'sm', 'medium')}
-  text-align: left;
-  cursor: pointer;
-
-  &:hover {
-    background: ${token.colors.gray.gray0};
-  }
-
-  &:focus-visible {
-    outline: 2px solid ${token.colors.primary.primary50};
-    outline-offset: 2px;
-  }
-`;
-
-export const AttachmentFileIcon = styled.img`
-  flex: 0 0 18px;
-  width: 18px;
-  height: 18px;
-`;
-
-export const AttachmentFileName = styled.span`
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
 export const Comments = styled.section`
   ${token.flexColumn}
   gap: 20px;
