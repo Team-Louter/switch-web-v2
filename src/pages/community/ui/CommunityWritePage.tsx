@@ -754,19 +754,14 @@ export function CommunityWritePage() {
     for (const file of files) {
       try {
         const uploadedFile = await handleEditorFileUpload(file);
-        const [fileBlock] = editor.insertBlocks(
-          [
-            {
-              type: 'file',
-              props: {
-                url: uploadedFile.url,
-                name: uploadedFile.name,
-              },
-            },
-          ],
-          currentBlock,
-          'after',
-        );
+        const fileBlockData = { type: 'file' as const, props: uploadedFile };
+        const isEmptyParagraph =
+          currentBlock.type === 'paragraph' &&
+          currentBlock.content.length === 0 &&
+          currentBlock.children.length === 0;
+        const fileBlock = isEmptyParagraph
+          ? editor.updateBlock(currentBlock, fileBlockData)
+          : editor.insertBlocks([fileBlockData], currentBlock, 'after')[0];
 
         const insertedFileBlock = fileBlock
           ? editor.getBlock(fileBlock.id)
