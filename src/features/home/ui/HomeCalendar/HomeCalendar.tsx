@@ -111,6 +111,11 @@ export function HomeCalendar({
 
   const handleEventDidMount = useCallback(
     ({ event, el }: EventMountArg) => {
+      // URL 없이 상세 팝오버를 여는 일정은 링크가 아닌 버튼으로 전달합니다.
+      if (!event.url) {
+        el.setAttribute('role', 'button')
+      }
+
       eventElementsRef.current.set(event.id, el)
 
       if (
@@ -223,6 +228,9 @@ export function HomeCalendar({
           selectSchedule(schedule, el)
         }}
         moreLinkClick="popover"
+        moreLinkDidMount={({ el }) => {
+          el.setAttribute('role', 'button')
+        }}
       />
       {selected && (
         <ScheduleDetailPopover
