@@ -19,7 +19,7 @@ export const Card = styled.button<{ $compact: boolean }>`
   display: flex;
   align-items: center;
   box-sizing: border-box;
-  width: 100%;
+  width: ${({ $compact }) => $compact ? '100%' : 'min(100%, 420px)'};
   min-width: 0;
   gap: ${({ $compact }) => $compact ? '12px' : '16px'};
   padding: ${({ $compact }) => $compact ? '12px' : '18px 20px'};
