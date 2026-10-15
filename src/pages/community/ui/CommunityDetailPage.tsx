@@ -2,8 +2,10 @@ import {
   type ChangeEvent,
   type KeyboardEvent,
   type SyntheticEvent,
+  startTransition,
   useEffect,
   useMemo,
+  useOptimistic,
   useRef,
   useState,
 } from 'react';
@@ -63,10 +65,15 @@ import {
   buildCommentTree,
   decrementAncestorReplyCounts,
   type CommunityCommentDeleteHandler,
+  type CommunityComment,
   type CommunityCommentUpdateHandler,
   type CommunityReplyLoadHandler,
   type CommunityReplySubmitHandler,
 } from '../model/commentTree';
+import {
+  getPendingReplyAncestorIds,
+  reduceOptimisticComments,
+} from '../model/optimisticComments';
 import { resizeCommunityTextarea } from '../model/commentInput';
 import { buildCommunityGifCommentContent } from '../model/klipyGifLink';
 import { getCommunityListReturnTo } from '../model/useCommunityListNavigation';
@@ -265,7 +272,12 @@ export function CommunityDetailPage() {
   const userId = currentUser?.userId ?? null
   const canLoadCommunityData = userId !== null || profileLoadState === 'error'
   const [post, setPost] = useState<PostResponse | null>(null);
-  const [comments, setComments] = useState<CommentResponse[]>([]);
+  const [comments, setComments] = useState<CommunityComment[]>([]);
+  const commentState = useMemo(() => ({ postId, comments }), [postId, comments]);
+  const [optimisticCommentState, updateOptimisticComments] = useOptimistic(
+    commentState,
+    reduceOptimisticComments,
+  );
   const [loadedReplyCommentIds, setLoadedReplyCommentIds] = useState<
     ReadonlySet<number>
   >(() => new Set());
@@ -301,6 +313,10 @@ export function CommunityDetailPage() {
   const postStatsRefreshVersionRef = useRef(0);
   const commentDeleteCloseTimerRef = useRef<number | null>(null);
   const targetCommentSearchKeyRef = useRef<string | null>(null);
+  const optimisticCommentIdRef = useRef(-1);
+  const isCommentSubmittingRef = useRef(false);
+  const pendingReplyRequestsRef = useRef(new Set<number>());
+  const commentRequestGenerationRef = useRef(0);
 
   const currentMemberId = currentUser?.userId ?? null
   const currentMemberProfileImageUrl = currentUser?.profileImageUrl
@@ -336,7 +352,15 @@ export function CommunityDetailPage() {
         : null,
     [serializedPostContent],
   );
-  const commentTree = useMemo(() => buildCommentTree(comments), [comments]);
+  const commentTree = useMemo(
+    () => buildCommentTree(optimisticCommentState.comments),
+    [optimisticCommentState.comments],
+  );
+  const pendingReplyAncestorIds = getPendingReplyAncestorIds(
+    optimisticCommentState.comments,
+  );
+  const displayedCommentCount = (post?.commentCount ?? 0) +
+    optimisticCommentState.comments.filter((comment) => comment.commentId < 0).length;
   const commentSubmitContent = buildCommunityGifCommentContent(
     commentContent,
     commentGif?.slug,
@@ -450,68 +474,157 @@ export function CommunityDetailPage() {
     }
   };
 
-  const handleCommentSubmit = async () => {
-    const trimmedContent = commentSubmitContent;
+  const createPendingComment = (
+    content: string,
+    anonymous: boolean,
+  ): CommunityComment => {
+    const optimisticId = optimisticCommentIdRef.current--;
+    return {
+      commentId: optimisticId,
+      optimisticId,
+      userId: currentMemberId ?? 0,
+      userName: anonymous ? '익명' : (currentUser?.userName ?? '나'),
+      userProfileImageUrl: anonymous ? '' : (currentMemberProfileImageUrl ?? ''),
+      content,
+      depth: 0,
+      createdAt: new Date().toISOString(),
+      isAnonymous: anonymous,
+      deleted: false,
+      replyCount: 0,
+      equippedItems: anonymous ? undefined : currentUser?.equippedItems,
+    };
+  };
 
-    if (!post || !trimmedContent || isCommentSubmitting) {
-      return;
-    }
+  const handleCommentSubmit = () => {
+    const content = commentSubmitContent;
+    if (!post || !content || isCommentSubmittingRef.current) return;
 
+    const targetPostId = post.postId;
+    const generation = commentRequestGenerationRef.current;
+    const pendingComment = createPendingComment(content, isAnonymous);
+    isCommentSubmittingRef.current = true;
     setIsCommentSubmitting(true);
     setActionError(null);
 
-    try {
-      const comment = await createComment(post.postId, {
-        content: trimmedContent,
-        isAnonymous,
+    startTransition(async () => {
+      updateOptimisticComments({
+        kind: 'add',
+        postId: targetPostId,
+        comment: pendingComment,
       });
+      try {
+        const comment = await createComment(targetPostId, { content, isAnonymous });
+        if (generation !== commentRequestGenerationRef.current) return;
 
-      setComments((currentComments) => [...currentComments, comment]);
-      setPost((currentPost) =>
-        currentPost
-          ? { ...currentPost, commentCount: currentPost.commentCount + 1 }
-          : currentPost,
-      );
-      setCommentContent('');
-      setCommentGif(null);
-      setIsAnonymous(false);
-    } catch {
-      setActionError('댓글을 등록하지 못했습니다.');
-    } finally {
-      setIsCommentSubmitting(false);
-    }
+        // 다른 Action이 진행 중이어도 이 요청의 확정 상태는 즉시 반영한다.
+        setComments((currentComments) => [
+          ...currentComments.filter(
+            (currentComment) => currentComment.commentId !== comment.commentId,
+          ),
+          { ...comment, optimisticId: pendingComment.commentId },
+        ]);
+        setPost((currentPost) =>
+          currentPost?.postId === targetPostId
+            ? { ...currentPost, commentCount: currentPost.commentCount + 1 }
+            : currentPost,
+        );
+        setCommentContent('');
+        setCommentGif(null);
+        setIsAnonymous(false);
+      } catch {
+        if (generation !== commentRequestGenerationRef.current) return;
+
+        startTransition(() => {
+          updateOptimisticComments({
+            kind: 'discard',
+            postId: targetPostId,
+            optimisticId: pendingComment.commentId,
+          });
+        });
+        setActionError('댓글을 등록하지 못했습니다.');
+      } finally {
+        isCommentSubmittingRef.current = false;
+        setIsCommentSubmitting(false);
+      }
+    });
   };
 
-  const handleReplySubmit: CommunityReplySubmitHandler = async (
+  const handleReplySubmit: CommunityReplySubmitHandler = (
     parentCommentId,
     content,
     replyIsAnonymous,
   ) => {
     const trimmedContent = content.trim();
-
-    if (!post || !trimmedContent) {
-      return '답글 내용을 입력해주세요.';
+    const parentComment = comments.find(
+      (comment) => comment.commentId === parentCommentId,
+    );
+    if (!post || !trimmedContent || parentCommentId <= 0 || !parentComment) {
+      return Promise.resolve('답글을 등록할 수 없습니다.');
+    }
+    if (pendingReplyRequestsRef.current.has(parentCommentId)) {
+      return Promise.resolve('답글을 전송하고 있습니다.');
     }
 
-    try {
-      const replyComment = await createComment(post.postId, {
-        content: trimmedContent,
-        isAnonymous: replyIsAnonymous,
-        parentId: parentCommentId,
+    const targetPostId = post.postId;
+    const generation = commentRequestGenerationRef.current;
+    const pendingComment = createPendingComment(trimmedContent, replyIsAnonymous);
+    pendingReplyRequestsRef.current.add(parentCommentId);
+
+    return new Promise((resolve) => {
+      startTransition(async () => {
+        updateOptimisticComments({
+          kind: 'add',
+          postId: targetPostId,
+          comment: pendingComment,
+          parentId: parentCommentId,
+        });
+        try {
+          const replyComment = await createComment(targetPostId, {
+            content: trimmedContent,
+            isAnonymous: replyIsAnonymous,
+            parentId: parentCommentId,
+          });
+          if (generation !== commentRequestGenerationRef.current) {
+            resolve(null);
+            return;
+          }
+
+          setComments((currentComments) =>
+            currentComments.some(
+              (comment) => comment.commentId === replyComment.commentId,
+            )
+              ? currentComments.map((comment) =>
+                  comment.commentId === replyComment.commentId
+                    ? { ...comment, optimisticId: pendingComment.commentId }
+                    : comment,
+                )
+              : appendReplyComment(currentComments, parentCommentId, {
+                  ...replyComment,
+                  optimisticId: pendingComment.commentId,
+                }),
+          );
+          setPost((currentPost) =>
+            currentPost?.postId === targetPostId
+              ? { ...currentPost, commentCount: currentPost.commentCount + 1 }
+              : currentPost,
+          );
+          resolve(null);
+        } catch {
+          if (generation === commentRequestGenerationRef.current) {
+            startTransition(() => {
+              updateOptimisticComments({
+                kind: 'discard',
+                postId: targetPostId,
+                optimisticId: pendingComment.commentId,
+              });
+            });
+          }
+          resolve('답글을 등록하지 못했습니다.');
+        } finally {
+          pendingReplyRequestsRef.current.delete(parentCommentId);
+        }
       });
-      setComments((currentComments) =>
-        appendReplyComment(currentComments, parentCommentId, replyComment),
-      );
-      setPost((currentPost) =>
-        currentPost
-          ? { ...currentPost, commentCount: currentPost.commentCount + 1 }
-          : currentPost,
-      );
-
-      return null;
-    } catch {
-      return '답글을 등록하지 못했습니다.';
-    }
+    });
   };
 
   const handleRepliesLoad: CommunityReplyLoadHandler = async (
@@ -621,6 +734,10 @@ export function CommunityDetailPage() {
   const handleCommentDelete: CommunityCommentDeleteHandler = async (
     commentId,
   ) => {
+    if (commentId <= 0 || pendingReplyAncestorIds.has(commentId)) {
+      return '답글 전송 중에는 상위 댓글을 삭제할 수 없습니다.';
+    }
+
     if (!post) {
       return '댓글을 삭제하지 못했습니다.';
     }
@@ -700,6 +817,7 @@ export function CommunityDetailPage() {
   };
 
   const handleCommentDeleteRequest = (commentId: number) => {
+    if (commentId <= 0 || pendingReplyAncestorIds.has(commentId)) return;
     if (isCommentDeleting || pendingCommentDeleteId === commentId) {
       return;
     }
@@ -1129,6 +1247,12 @@ export function CommunityDetailPage() {
   ]);
 
   useEffect(() => {
+    return () => {
+      commentRequestGenerationRef.current += 1;
+    };
+  }, [postId, userId]);
+
+  useEffect(() => {
     if (isCommentsLoading || targetCommentId === null) {
       return;
     }
@@ -1367,7 +1491,7 @@ export function CommunityDetailPage() {
                   </S.HeartButton>
                   <S.Stat>
                     <S.StatIcon src={commentOutlineIcon} alt="댓글" />
-                    {post.commentCount}
+                    {displayedCommentCount}
                   </S.Stat>
                   <S.Stat>
                     <S.StatIcon src={eyeIcon} alt="조회" />
@@ -1532,6 +1656,7 @@ export function CommunityDetailPage() {
                     onProfileImageError={handleProfileImageError}
                     onReplySubmit={handleReplySubmit}
                     onRepliesLoad={handleRepliesLoad}
+                    pendingReplyAncestorIds={pendingReplyAncestorIds}
                     loadedReplyCommentIds={loadedReplyCommentIds}
                     onCommentUpdate={handleCommentUpdate}
                     onCommentDeleteRequest={handleCommentDeleteRequest}
