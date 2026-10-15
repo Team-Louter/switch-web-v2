@@ -383,36 +383,41 @@ export function CommunityDetailPage() {
   };
 
   const handleHeartToggle = async () => {
-    if (!post || isHeartMutating) {
+    if (!post || isHeartMutatingRef.current) {
       return;
     }
+
+    const targetPostId = post.postId;
+    const previousIsHearted = post.isHearted;
+    const previousLikeCount = post.likeCount;
+    const nextIsHearted = !previousIsHearted;
 
     postStatsRefreshVersionRef.current += 1;
     isHeartMutatingRef.current = true;
     setIsHeartMutating(true);
     setActionError(null);
+    setPost((currentPost) =>
+      currentPost?.postId === targetPostId
+        ? {
+            ...currentPost,
+            isHearted: nextIsHearted,
+            likeCount: Math.max(0, previousLikeCount + (nextIsHearted ? 1 : -1)),
+          }
+        : currentPost,
+    );
 
     try {
-      await togglePostHeart(post.postId);
-      setPost((currentPost) => {
-        if (!currentPost) {
-          return currentPost;
-        }
-
-        const nextIsHearted = !currentPost.isHearted;
-
-        return {
-          ...currentPost,
-          isHearted: nextIsHearted,
-          likeCount: Math.max(
-            0,
-            currentPost.likeCount + (nextIsHearted ? 1 : -1),
-          ),
-        };
-      });
+      await togglePostHeart(targetPostId);
     } catch {
+      // 댓글 등록 등 동시에 성공한 변경을 보존하고 반응 상태만 복구한다.
+      setPost((currentPost) =>
+        currentPost?.postId === targetPostId
+          ? { ...currentPost, isHearted: previousIsHearted, likeCount: previousLikeCount }
+          : currentPost,
+      );
       setActionError('좋아요 상태를 변경하지 못했습니다.');
     } finally {
+      postStatsRefreshVersionRef.current += 1;
       isHeartMutatingRef.current = false;
       setIsHeartMutating(false);
     }
