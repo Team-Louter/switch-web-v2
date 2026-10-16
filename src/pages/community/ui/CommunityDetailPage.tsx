@@ -1690,10 +1690,9 @@ export function CommunityDetailPage() {
                 )}
                 {commentTree.map((node) => (
                   <CommunityCommentBranch
-                    key={node.comment.commentId}
+                    key={node.comment.optimisticId ?? node.comment.commentId}
                     node={node}
                     targetCommentId={targetCommentId}
-                    onProfileImageError={handleProfileImageError}
                     onReplySubmit={handleReplySubmit}
                     onRepliesLoad={handleRepliesLoad}
                     pendingReplyAncestorIds={pendingReplyAncestorIds}

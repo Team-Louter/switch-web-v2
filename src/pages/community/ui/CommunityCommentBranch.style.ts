@@ -419,9 +419,22 @@ export const CommentItem = styled.div<CommentItemProps>`
   }
 `;
 
+export const CommentAvatarSlot = styled.span`
+  position: relative;
+  display: flex;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+`;
+
 export const CommentAuthorImage = styled(ProfileAvatar)<{
   $hasBorder: boolean;
+  $isImageReady: boolean;
 }>`
+  position: absolute;
+  inset: 0;
+  visibility: ${({ $isImageReady }) => $isImageReady ? 'visible' : 'hidden'};
+
   ${({ $hasBorder }) =>
     !$hasBorder &&
     css`
@@ -717,13 +730,13 @@ export const ReplyComposer = styled.div`
   margin-top: 4px;
 `;
 
-export const ReplyComposerAvatar = styled.img<{
+export const ReplyComposerAvatar = styled.span<{
   $isAnonymous: boolean;
 }>`
   width: 32px;
   height: 32px;
+  flex: 0 0 32px;
   border-radius: ${token.shapes.circle};
-  object-fit: cover;
   animation: ${({ $isAnonymous }) =>
       $isAnonymous
         ? anonymousReplyComposerAvatarEnter

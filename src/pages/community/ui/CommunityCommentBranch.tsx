@@ -1,7 +1,6 @@
 import {
   type ChangeEvent,
   type KeyboardEvent,
-  type SyntheticEvent,
   useCallback,
   useEffect,
   useRef,
@@ -14,7 +13,6 @@ import {
   resolveCommunityAssetUrl,
 } from '@/entities/community';
 import type { KlipyGif } from '@/shared/api';
-import fallbackProfileImage from '@/shared/assets/sidebar/profile.png';
 import { getNameStyleKey } from '@/shared/styles';
 
 import anonymousProfileImage from '../assets/images/anonymousProfile.png';
@@ -33,6 +31,7 @@ import { resizeCommunityTextarea } from '../model/commentInput';
 import kebabIcon from '../assets/svg/kebab.svg';
 import * as S from './CommunityCommentBranch.style';
 import { CommunityKlipyGifPreview } from './CommunityKlipyGifPreview';
+import { CommunityCommentAvatar } from './CommunityCommentAvatar';
 import { PixelHammerIcon } from './PixelHammerIcon';
 import {
   CommunityCommentGifAttachment,
@@ -46,7 +45,6 @@ interface ReplyLoadingSkeletonProps {
 interface CommunityCommentBranchProps {
   node: CommentTreeNode;
   targetCommentId: number | null;
-  onProfileImageError: (event: SyntheticEvent<HTMLImageElement>) => void;
   onReplySubmit: CommunityReplySubmitHandler;
   onRepliesLoad: CommunityReplyLoadHandler;
   onCommentUpdate: CommunityCommentUpdateHandler;
@@ -93,7 +91,6 @@ function hasTargetDescendant(
 export function CommunityCommentBranch({
   node,
   targetCommentId,
-  onProfileImageError,
   onReplySubmit,
   onRepliesLoad,
   onCommentUpdate,
@@ -369,16 +366,16 @@ export function CommunityCommentBranch({
         $hasFlattenedChildren={shouldFlattenChildTree}
       >
         <S.CommentItem $isTarget={comment.commentId === targetCommentId} aria-busy={isPending}>
-          <S.CommentAuthorImage
+          <CommunityCommentAvatar
             alt={`${comment.userName} 프로필`}
-            $hasBorder={hasCustomBorder}
+            hasCustomBorder={hasCustomBorder}
             equippedItems={equippedItems}
             imageUrl={
-              resolveCommunityAssetUrl(comment.userProfileImageUrl) ??
-              fallbackProfileImage
+              isPending && comment.isAnonymous
+                ? undefined
+                : resolveCommunityAssetUrl(comment.userProfileImageUrl)
             }
-            onImageError={onProfileImageError}
-            size={32}
+            isPending={isPending}
           />
           <S.CommentContent>
             <S.CommentHeader>
@@ -505,14 +502,13 @@ export function CommunityCommentBranch({
                   <S.ReplyComposer>
                     <S.ReplyComposerAvatar
                       $isAnonymous={isReplyAnonymous}
-                      src={
-                        isReplyAnonymous
+                    >
+                      <CommunityCommentAvatar
+                        imageUrl={isReplyAnonymous
                           ? anonymousProfileImage
-                          : (replyAuthorProfileImageUrl ?? fallbackProfileImage)
-                      }
-                      alt=""
-                      onError={onProfileImageError}
-                    />
+                          : replyAuthorProfileImageUrl}
+                      />
+                    </S.ReplyComposerAvatar>
                     <S.ReplyComposerBody>
                       <S.ReplyComposerInput
                         ref={replyInputRef}
@@ -614,10 +610,9 @@ export function CommunityCommentBranch({
 
                   return (
                     <CommunityCommentBranch
-                      key={child.comment.commentId}
+                      key={child.comment.optimisticId ?? child.comment.commentId}
                       node={child}
                       targetCommentId={targetCommentId}
-                      onProfileImageError={onProfileImageError}
                       onReplySubmit={onReplySubmit}
                       onRepliesLoad={onRepliesLoad}
                       onCommentUpdate={onCommentUpdate}
