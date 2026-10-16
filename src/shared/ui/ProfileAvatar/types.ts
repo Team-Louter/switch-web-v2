@@ -1,4 +1,4 @@
-import type { ImgHTMLAttributes, ReactEventHandler } from 'react'
+import type { ImgHTMLAttributes, ReactEventHandler, Ref } from 'react'
 
 export type ProfileAvatarDecorationItem = {
   displayType?: 'COVER' | 'FRAME'
@@ -30,7 +30,9 @@ export type ProfileAvatarProps = {
   equippedItems?: ProfileAvatarEquippedItems
   imageScale?: number
   imageUrl?: string
+  imageRef?: Ref<HTMLImageElement>
   loading?: ImgHTMLAttributes<HTMLImageElement>['loading']
+  onImageLoad?: ReactEventHandler<HTMLImageElement>
   onImageError?: ReactEventHandler<HTMLImageElement>
   decoding?: ImgHTMLAttributes<HTMLImageElement>['decoding']
   size: number
