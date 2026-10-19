@@ -587,6 +587,7 @@ export function CommunityWritePage() {
 
   interface LinkSession {
     selection: typeof editor.prosemirrorState.selection;
+    document: typeof editor.prosemirrorState.doc;
     url: string;
     text: string;
     position?: number;
@@ -630,8 +631,18 @@ export function CommunityWritePage() {
     setLinkSession(null);
   }, []);
 
+  const isLinkSelectionCurrent = () => {
+    if (!linkSession || isEditorDisabled) return false;
+    // 플로팅 창을 연 채 본문을 편집하면 기존 위치가 다른 문구를 가리킬 수 있습니다.
+    if (!editor.prosemirrorState.doc.eq(linkSession.document)) {
+      toast.info('본문이 변경되었습니다. 링크를 적용할 문구를 다시 선택해주세요.');
+      return false;
+    }
+    return true;
+  };
+
   const handleLinkApply = (url: string, text: string) => {
-    if (!linkSession || isEditorDisabled) return;
+    if (!linkSession || !isLinkSelectionCurrent()) return;
     editor.transact((tr) => tr.setSelection(linkSession.selection));
     if (linkSession.position !== undefined) {
       editor.editLink(url, text || url, linkSession.position);
@@ -645,7 +656,7 @@ export function CommunityWritePage() {
   };
 
   const handleLinkRemove = () => {
-    if (!linkSession || isEditorDisabled) return;
+    if (!linkSession || !isLinkSelectionCurrent()) return;
     editor.transact((tr) => tr.setSelection(linkSession.selection));
     editor.deleteLink(linkSession.position);
   };
@@ -716,6 +727,7 @@ export function CommunityWritePage() {
         editor.getLinkMarkAtPos(selection.from + 1);
       setLinkSession({
         selection,
+        document: editor.prosemirrorState.doc,
         url: link?.href ?? '',
         text: link?.text ?? editor.getSelectedText(),
         position: link?.from,

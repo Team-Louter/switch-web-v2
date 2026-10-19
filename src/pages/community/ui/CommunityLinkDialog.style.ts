@@ -1,30 +1,19 @@
-import styled, { css, keyframes } from 'styled-components';
+import styled from 'styled-components';
 
 import { tokens as token } from '@/shared/styles';
 
-const reveal = keyframes`
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
-
-const dismiss = keyframes`
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(6px); }
-`;
-
-export const Form = styled.form<{ $closing: boolean }>`
+export const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 12px;
   width: 100%;
-  animation: ${({ $closing }) => css`${$closing ? dismiss : reveal} 160ms ease both`};
-  @media (prefers-reduced-motion: reduce) { animation: none; }
 `;
 
 export const Title = styled.h2`
   margin: 0;
   color: ${token.colors.gray.gray100};
-  ${token.typography('heading', 'sm', 'semibold')}
+  ${token.typography('body', 'md', 'semibold')}
+  line-height: 1.45;
 `;
 
 export const Field = styled.label`
@@ -32,7 +21,7 @@ export const Field = styled.label`
   flex-direction: column;
   gap: 8px;
   color: ${token.colors.gray.gray80};
-  ${token.typography('body', 'md', 'medium')}
+  ${token.typography('body', 'sm', 'medium')}
 `;
 
 export const Input = styled.input`
@@ -62,4 +51,26 @@ export const Actions = styled.div`
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: 8px;
+  margin-top: 4px;
+
+  > button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 36px;
+    padding: 8px 12px;
+    border: 1px solid ${token.colors.gray.gray10};
+    border-radius: 8px;
+    color: ${token.colors.gray.gray100};
+    background: ${token.colors.white};
+    ${token.typography('body', 'sm', 'semibold')}
+  }
+
+  > button:last-child {
+    border-color: ${token.colors.gray.gray100};
+    color: ${token.colors.white};
+    background: ${token.colors.gray.gray100};
+  }
+
+  > button:hover:not(:disabled) { filter: brightness(0.94); }
+  > button:disabled { opacity: 0.5; }
 `;

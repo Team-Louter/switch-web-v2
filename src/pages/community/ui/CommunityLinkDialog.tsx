@@ -1,4 +1,4 @@
-import { type FormEvent, useCallback, useEffect, useState } from 'react';
+import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 import { Button, Modal } from '@/shared/ui';
 
@@ -19,6 +19,7 @@ export function CommunityLinkDialog({
   onRemove,
   onClose,
 }: CommunityLinkDialogProps) {
+  const urlInputRef = useRef<HTMLInputElement>(null);
   const [url, setUrl] = useState(initialUrl);
   const [text, setText] = useState(initialText);
   const [error, setError] = useState('');
@@ -52,19 +53,37 @@ export function CommunityLinkDialog({
   };
 
   useEffect(() => {
+    urlInputRef.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      requestClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [requestClose]);
+
+  useEffect(() => {
     if (!isClosing) return;
-    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 160;
+    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 180;
     const timeout = window.setTimeout(onClose, delay);
     return () => window.clearTimeout(timeout);
   }, [isClosing, onClose]);
 
   return (
-    <Modal label={onRemove ? '링크 수정' : '링크 삽입'} width={440} onClose={requestClose}>
-      <S.Form onSubmit={handleSubmit} $closing={isClosing}>
+    <Modal
+      label={onRemove ? '링크 수정' : '링크 삽입'}
+      width={300}
+      placement="bottom-right"
+      isClosing={isClosing}
+      onClose={requestClose}
+    >
+      <S.Form onSubmit={handleSubmit}>
         <S.Title>{onRemove ? '링크 수정' : '링크 삽입'}</S.Title>
         <S.Field>
           링크 주소
           <S.Input
+            ref={urlInputRef}
             value={url}
             placeholder="https://example.com"
             autoComplete="off"
