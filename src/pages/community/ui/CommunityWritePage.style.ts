@@ -387,11 +387,10 @@ export const Editor = styled.section<EditorProps>`
     border-radius: 4px;
     background: transparent;
     cursor: pointer;
-    transition: background-color 160ms ease, box-shadow 160ms ease, transform 120ms ease;
+    transition: transform 120ms ease;
 
-    &[data-active='true'], &[aria-expanded='true'] {
-      background: ${token.colors.primary.primary10};
-      box-shadow: inset 0 -2px 0 ${token.colors.primary.primary50};
+    &[data-active='true'] img, &[aria-expanded='true'] img {
+      filter: brightness(0);
     }
 
     &:not(:disabled):active { transform: scale(0.9); }
@@ -401,11 +400,6 @@ export const Editor = styled.section<EditorProps>`
     &:disabled {
       cursor: not-allowed;
       opacity: 0.45;
-    }
-
-    &:not(:disabled):hover {
-      background: ${token.colors.gray.gray10};
-      &[data-active='true'], &[aria-expanded='true'] { background: ${token.colors.primary.primary20}; }
     }
 
     &:focus-visible {
