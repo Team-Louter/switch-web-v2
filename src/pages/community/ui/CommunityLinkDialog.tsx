@@ -29,17 +29,25 @@ export function CommunityLinkDialog({
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isClosing) return;
-    const value = url.trim();
+    const input = url.trim();
+    const hasProtocol = /^[a-z][a-z\d+.-]*:/i.test(input);
+    const value = hasProtocol
+      ? input
+      : input.startsWith('//') ? `https:${input}` : `https://${input}`;
     try {
       const parsed = new URL(value);
       if (
         !['https:', 'http:', 'mailto:', 'tel:'].includes(parsed.protocol) ||
-        (!parsed.pathname && !parsed.hostname)
+        (!parsed.pathname && !parsed.hostname) ||
+        (!hasProtocol && (
+          (!parsed.hostname.includes('.') && parsed.hostname !== 'localhost') ||
+          parsed.username || parsed.password
+        ))
       ) {
         throw new Error('Unsupported link');
       }
     } catch {
-      setError('http://, https://, mailto: 또는 tel:로 시작하는 올바른 주소를 입력해주세요.');
+      setError('올바른 링크 주소를 입력해주세요. 예: naver.com 또는 https://naver.com');
       return;
     }
     onApply(value, text.trim() ? text : '');
@@ -85,7 +93,7 @@ export function CommunityLinkDialog({
           <S.Input
             ref={urlInputRef}
             value={url}
-            placeholder="https://example.com"
+            placeholder="naver.com 또는 https://example.com"
             autoComplete="off"
             spellCheck={false}
             aria-invalid={Boolean(error)}
