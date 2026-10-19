@@ -384,9 +384,19 @@ export const Editor = styled.section<EditorProps>`
     height: 24px;
     padding: 0;
     border: 0;
-    border-radius: 2px;
+    border-radius: 4px;
     background: transparent;
     cursor: pointer;
+    transition: background-color 160ms ease, box-shadow 160ms ease, transform 120ms ease;
+
+    &[data-active='true'], &[aria-expanded='true'] {
+      background: ${token.colors.primary.primary10};
+      box-shadow: inset 0 -2px 0 ${token.colors.primary.primary50};
+    }
+
+    &:not(:disabled):active { transform: scale(0.9); }
+
+    @media (prefers-reduced-motion: reduce) { transition: none; }
 
     &:disabled {
       cursor: not-allowed;
@@ -395,6 +405,7 @@ export const Editor = styled.section<EditorProps>`
 
     &:not(:disabled):hover {
       background: ${token.colors.gray.gray10};
+      &[data-active='true'], &[aria-expanded='true'] { background: ${token.colors.primary.primary20}; }
     }
 
     &:focus-visible {
@@ -751,6 +762,12 @@ export const AnonymousToggle = styled.input`
 
   &:checked::after {
     transform: translateX(17.69px);
+  }
+
+  &:disabled { cursor: not-allowed; opacity: 0.45; }
+
+  @media (prefers-reduced-motion: reduce) {
+    &, &::after { transition: none; }
   }
 
   &:focus-visible {

@@ -17,6 +17,7 @@ import {
   useComponentsContext,
   useCreateBlockNote,
   useDictionary,
+  useEditorState,
   useExtension,
   useExtensionState,
 } from '@blocknote/react';
@@ -84,6 +85,7 @@ import unorderedListIcon from '../assets/svg/editor-unordered-list.svg';
 
 import * as S from './CommunityWritePage.style';
 import { CommunityGifPicker } from './CommunityGifPicker';
+import { CommunityLinkDialog } from './CommunityLinkDialog';
 
 interface UploadedFile {
   id: string;
@@ -214,6 +216,23 @@ const EDITOR_TOOLS: EditorTool[] = [
   { action: 'gif', label: 'GIF 선택', icon: gifIcon },
   { action: 'file', label: '파일 첨부', icon: paperclipIcon },
 ];
+
+const BLOCK_TOOL_TYPES = {
+  headingOne: 'heading',
+  headingTwo: 'heading',
+  unorderedList: 'bulletListItem',
+  orderedList: 'numberedListItem',
+  code: 'codeBlock',
+  quote: 'quote',
+} as const;
+
+function isBlockTool(action: EditorAction): action is keyof typeof BLOCK_TOOL_TYPES {
+  return action in BLOCK_TOOL_TYPES;
+}
+
+function isTextStyleTool(action: EditorAction): action is 'bold' | 'italic' | 'underline' | 'strike' {
+  return action === 'bold' || action === 'italic' || action === 'underline' || action === 'strike';
+}
 
 function hasPostContent(content: string): boolean {
   const textContent = getCommunityTextContent(content).trim()
@@ -355,6 +374,7 @@ export function CommunityWritePage() {
   const categoryFieldRef = useRef<HTMLDivElement>(null);
   const draggedBlockIdRef = useRef<string | null>(null);
   const isPostLoadingRef = useRef(false);
+  const restoreEditorFocusRef = useRef(false);
   const [category, setCategory] = useState<PostCategory | ''>('');
   const [categoryAnimationKey, setCategoryAnimationKey] = useState(0);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
@@ -565,6 +585,71 @@ export function CommunityWritePage() {
     [handleEditorFileUpload],
   );
 
+  interface LinkSession {
+    selection: typeof editor.prosemirrorState.selection;
+    url: string;
+    text: string;
+    position?: number;
+  }
+
+  const [linkSession, setLinkSession] = useState<LinkSession | null>(null);
+  const toolbarState = useEditorState({
+    editor,
+    selector: ({ editor }) => {
+      const blocks = editor.getSelection()?.blocks ?? [editor.getTextCursorPosition().block];
+      const canTransform = blocks.every((block) => Array.isArray(block.content));
+      const canStyle = canTransform && blocks.every((block) => block.type !== 'codeBlock');
+      // 현재 버전의 getActiveStyles는 입력 전 storedMarks를 포함하지 않습니다.
+      const marks = editor.prosemirrorState.storedMarks;
+      const styles = marks === null
+        ? editor.getActiveStyles()
+        : Object.fromEntries(marks.map((mark) => [mark.type.name, true]));
+      const active: Partial<Record<EditorAction, boolean>> = {
+        bold: Boolean(styles.bold),
+        italic: Boolean(styles.italic),
+        underline: Boolean(styles.underline),
+        strike: Boolean(styles.strike),
+        link: Boolean(
+          editor.getLinkMarkAtPos(editor.prosemirrorState.selection.from) ??
+          editor.getLinkMarkAtPos(editor.prosemirrorState.selection.from + 1),
+        ),
+      };
+      for (const action of Object.keys(BLOCK_TOOL_TYPES) as (keyof typeof BLOCK_TOOL_TYPES)[]) {
+        active[action] = blocks.every((block) =>
+          block.type === BLOCK_TOOL_TYPES[action] &&
+          (action !== 'headingOne' && action !== 'headingTwo' ||
+            block.type === 'heading' && block.props.level === (action === 'headingOne' ? 1 : 2)),
+        );
+      }
+      return { active, canStyle, canTransform, canLink: canStyle && blocks.length === 1 };
+    },
+  });
+
+  const handleLinkClose = useCallback(() => {
+    restoreEditorFocusRef.current = true;
+    setLinkSession(null);
+  }, []);
+
+  const handleLinkApply = (url: string, text: string) => {
+    if (!linkSession || isEditorDisabled) return;
+    editor.transact((tr) => tr.setSelection(linkSession.selection));
+    if (linkSession.position !== undefined) {
+      editor.editLink(url, text || url, linkSession.position);
+    } else {
+      // 문구가 같으면 원래 글자의 굵기·색상 등 개별 서식을 보존합니다.
+      editor.createLink(
+        url,
+        text && text === editor.getSelectedText() ? undefined : text || url,
+      );
+    }
+  };
+
+  const handleLinkRemove = () => {
+    if (!linkSession || isEditorDisabled) return;
+    editor.transact((tr) => tr.setSelection(linkSession.selection));
+    editor.deleteLink(linkSession.position);
+  };
+
   const isEditorPortalTarget = (element: Element | null) =>
     element !== null && editor.portalElement.contains(element);
 
@@ -608,6 +693,7 @@ export function CommunityWritePage() {
   };
 
   const handleEditorToolClick = (action: EditorAction) => {
+    if (isEditorDisabled || isUploadingFile) return;
     if (action === 'gif') {
       setIsGifPickerOpen(true);
       return;
@@ -624,57 +710,40 @@ export function CommunityWritePage() {
     }
 
     if (action === 'link') {
-      const url = window.prompt('링크 주소를 입력해주세요.');
-
-      if (url?.trim()) {
-        editor.createLink(url.trim(), editor.getSelectedText() || undefined);
-      }
-
-      editor.focus();
+      if (!toolbarState.canLink) return;
+      const selection = editor.prosemirrorState.selection;
+      const link = editor.getLinkMarkAtPos(selection.from) ??
+        editor.getLinkMarkAtPos(selection.from + 1);
+      setLinkSession({
+        selection,
+        url: link?.href ?? '',
+        text: link?.text ?? editor.getSelectedText(),
+        position: link?.from,
+      });
       return;
     }
 
-    const currentBlock = editor.getTextCursorPosition().block;
-
-    switch (action) {
-      case 'bold':
-        editor.toggleStyles({ bold: true });
-        break;
-      case 'italic':
-        editor.toggleStyles({ italic: true });
-        break;
-      case 'underline':
-        editor.toggleStyles({ underline: true });
-        break;
-      case 'strike':
-        editor.toggleStyles({ strike: true });
-        break;
-      case 'headingOne':
-        editor.updateBlock(currentBlock, {
-          type: 'heading',
-          props: { level: 1 },
-        });
-        break;
-      case 'headingTwo':
-        editor.updateBlock(currentBlock, {
-          type: 'heading',
-          props: { level: 2 },
-        });
-        break;
-      case 'unorderedList':
-        editor.updateBlock(currentBlock, { type: 'bulletListItem' });
-        break;
-      case 'orderedList':
-        editor.updateBlock(currentBlock, { type: 'numberedListItem' });
-        break;
-      case 'code':
-        editor.updateBlock(currentBlock, { type: 'codeBlock' });
-        break;
-      case 'quote':
-        editor.updateBlock(currentBlock, { type: 'quote' });
-        break;
-      default:
-        break;
+    editor.focus();
+    if (isTextStyleTool(action) && toolbarState.canStyle) {
+      editor.toggleStyles({ [action]: true });
+    } else if (isBlockTool(action) && toolbarState.canTransform) {
+      const blocks = editor.getSelection()?.blocks ?? [editor.getTextCursorPosition().block];
+      const shouldReset = toolbarState.active[action];
+      // 여러 문단을 한 번에 변경해 실행 취소 한 번으로 원래 서식을 복원합니다.
+      editor.transact(() => {
+        for (const block of blocks) {
+          if (shouldReset) {
+            editor.updateBlock(block, { type: 'paragraph' });
+          } else if (action === 'headingOne' || action === 'headingTwo') {
+            editor.updateBlock(block, {
+              type: 'heading',
+              props: { level: action === 'headingOne' ? 1 : 2 },
+            });
+          } else {
+            editor.updateBlock(block, { type: BLOCK_TOOL_TYPES[action] });
+          }
+        }
+      });
     }
 
     editor.focus();
@@ -710,13 +779,15 @@ export function CommunityWritePage() {
 
     event.target.value = '';
 
-    if (!file) {
+    if (!file || isEditorDisabled || isUploadingFile) return;
+    if (!file.type.startsWith('image/')) {
+      setFileUploadError('이미지 파일을 선택해주세요.');
       return;
     }
 
+    const currentBlock = editor.getTextCursorPosition().block;
     try {
       const uploadedImage = await handleEditorFileUpload(file);
-      const currentBlock = editor.getTextCursorPosition().block;
       const [imageBlock] = editor.insertBlocks(
         [
           {
@@ -727,13 +798,13 @@ export function CommunityWritePage() {
             },
           },
         ],
-        currentBlock,
+        editor.getBlock(currentBlock.id) ?? editor.getTextCursorPosition().block,
         'after',
       );
 
       editor.setTextCursorPosition(imageBlock, 'end');
     } catch {
-      // 이미지 업로드 실패 메시지는 handleImageUpload에서 표시합니다.
+      // 이미지 업로드 실패 메시지는 uploadPostFile에서 표시합니다.
     }
   };
 
@@ -742,7 +813,7 @@ export function CommunityWritePage() {
 
     event.target.value = '';
 
-    if (files.length === 0) {
+    if (files.length === 0 || isEditorDisabled || isUploadingFile) {
       return;
     }
 
@@ -761,7 +832,7 @@ export function CommunityWritePage() {
               },
             },
           ],
-          currentBlock,
+          editor.getBlock(currentBlock.id) ?? editor.getTextCursorPosition().block,
           'after',
         );
 
@@ -1096,6 +1167,13 @@ export function CommunityWritePage() {
     setIsEditorPlaceholderVisible(false);
     setSelectedBlockId(null);
   };
+
+  useEffect(() => {
+    if (linkSession || !restoreEditorFocusRef.current) return;
+    restoreEditorFocusRef.current = false;
+    // 모달의 포커스 복원 cleanup 이후 편집기로 돌아갑니다.
+    editor.focus();
+  }, [editor, linkSession]);
 
   useEffect(() => {
     return editor.onBeforeChange(({ tr }) => {
@@ -1450,7 +1528,7 @@ export function CommunityWritePage() {
             />
           )}
           <S.Toolbar>
-            <div className="community-toolbar-actions" aria-label="서식 도구">
+            <div className="community-toolbar-actions" role="group" aria-label="서식 도구">
               {EDITOR_TOOLS.map((tool) => (
                 <button
                   key={tool.action}
@@ -1458,7 +1536,14 @@ export function CommunityWritePage() {
                   type="button"
                   aria-label={tool.label}
                   title={tool.label}
-                  disabled={isEditorDisabled || isUploadingFile}
+                  aria-pressed={isTextStyleTool(tool.action) || isBlockTool(tool.action) ? Boolean(toolbarState.active[tool.action]) : undefined}
+                  aria-haspopup={tool.action === 'link' || tool.action === 'gif' ? 'dialog' : undefined}
+                  aria-expanded={tool.action === 'link' ? Boolean(linkSession) : tool.action === 'gif' ? isGifPickerOpen : undefined}
+                  data-active={toolbarState.active[tool.action] || undefined}
+                  disabled={isEditorDisabled || isUploadingFile ||
+                    (isTextStyleTool(tool.action) && !toolbarState.canStyle) ||
+                    (isBlockTool(tool.action) && !toolbarState.canTransform) ||
+                    (tool.action === 'link' && !toolbarState.canLink)}
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => handleEditorToolClick(tool.action)}
                 >
@@ -1555,6 +1640,15 @@ export function CommunityWritePage() {
           <S.SubmitError role="alert">{visiblePostLoadError}</S.SubmitError>
         )}
       </S.Content>
+      {linkSession && (
+        <CommunityLinkDialog
+          initialUrl={linkSession.url}
+          initialText={linkSession.text}
+          onApply={handleLinkApply}
+          onRemove={linkSession.position !== undefined ? handleLinkRemove : undefined}
+          onClose={handleLinkClose}
+        />
+      )}
       {isGifPickerOpen && (
         <CommunityGifPicker
           onSelect={handleGifSelect}
