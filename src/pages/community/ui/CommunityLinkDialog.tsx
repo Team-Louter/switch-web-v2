@@ -39,8 +39,9 @@ export function CommunityLinkDialog({
     const value = hasProtocol
       ? input
       : input.startsWith('//') ? `https:${input}` : `https://${input}`;
+    let parsed: URL;
     try {
-      const parsed = new URL(value);
+      parsed = new URL(value);
       if (
         !['https:', 'http:', 'mailto:', 'tel:'].includes(parsed.protocol) ||
         (!parsed.pathname && !parsed.hostname) ||
@@ -55,7 +56,7 @@ export function CommunityLinkDialog({
       setError('올바른 링크 주소를 입력해주세요.');
       return;
     }
-    onApply(value, text.trim() ? text : '');
+    onApply(parsed.href, text.trim() ? text : '');
     requestClose();
   };
 
