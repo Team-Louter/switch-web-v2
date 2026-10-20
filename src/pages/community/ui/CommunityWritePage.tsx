@@ -594,6 +594,7 @@ export function CommunityWritePage() {
   }
 
   const [linkSession, setLinkSession] = useState<LinkSession | null>(null);
+  const [isLinkDialogClosing, setIsLinkDialogClosing] = useState(false);
   const toolbarState = useEditorState({
     editor,
     selector: ({ editor }) => {
@@ -629,6 +630,11 @@ export function CommunityWritePage() {
   const handleLinkClose = useCallback(() => {
     restoreEditorFocusRef.current = true;
     setLinkSession(null);
+    setIsLinkDialogClosing(false);
+  }, []);
+
+  const handleLinkCloseRequest = useCallback(() => {
+    setIsLinkDialogClosing(true);
   }, []);
 
   const handleLinkTextChange = (text: string) => {
@@ -746,6 +752,10 @@ export function CommunityWritePage() {
     }
 
     if (action === 'link') {
+      if (linkSession) {
+        handleLinkCloseRequest();
+        return;
+      }
       if (!toolbarState.canLink) return;
       const selection = editor.prosemirrorState.selection;
       const link = editor.getLinkMarkAtPos(selection.from) ??
@@ -1580,7 +1590,7 @@ export function CommunityWritePage() {
                   disabled={isEditorDisabled || isUploadingFile ||
                     (isTextStyleTool(tool.action) && !toolbarState.canStyle) ||
                     (isBlockTool(tool.action) && !toolbarState.canTransform) ||
-                    (tool.action === 'link' && !toolbarState.canLink)}
+                    (tool.action === 'link' && !toolbarState.canLink && !linkSession)}
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => handleEditorToolClick(tool.action)}
                 >
@@ -1682,9 +1692,11 @@ export function CommunityWritePage() {
         <CommunityLinkDialog
           initialUrl={linkSession.url}
           text={linkSession.text}
+          isClosing={isLinkDialogClosing}
           onTextChange={handleLinkTextChange}
           onApply={handleLinkApply}
           onRemove={linkSession.position !== undefined ? handleLinkRemove : undefined}
+          onRequestClose={handleLinkCloseRequest}
           onClose={handleLinkClose}
         />
       )}

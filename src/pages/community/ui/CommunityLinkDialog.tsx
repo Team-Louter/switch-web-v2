@@ -1,4 +1,4 @@
-import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 
 import { Button, Modal } from '@/shared/ui';
 
@@ -7,25 +7,27 @@ import * as S from './CommunityLinkDialog.style';
 interface CommunityLinkDialogProps {
   initialUrl: string;
   text: string;
+  isClosing: boolean;
   onTextChange: (text: string) => void;
   onApply: (url: string, text: string) => void;
   onRemove?: () => void;
+  onRequestClose: () => void;
   onClose: () => void;
 }
 
 export function CommunityLinkDialog({
   initialUrl,
   text,
+  isClosing,
   onTextChange,
   onApply,
   onRemove,
+  onRequestClose: requestClose,
   onClose,
 }: CommunityLinkDialogProps) {
   const urlInputRef = useRef<HTMLInputElement>(null);
   const [url, setUrl] = useState(initialUrl);
   const [error, setError] = useState('');
-  const [isClosing, setIsClosing] = useState(false);
-  const requestClose = useCallback(() => setIsClosing(true), []);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
