@@ -631,6 +631,31 @@ export function CommunityWritePage() {
     setLinkSession(null);
   }, []);
 
+  const handleLinkTextChange = (text: string) => {
+    setLinkSession((session) => session ? { ...session, text } : session);
+  };
+
+  const handleLinkSelectionChange = () => {
+    if (!linkSession || !editor.isFocused() || isEditorDisabled || isUploadingFile) return;
+    const text = editor.getSelectedText();
+    const blocks = editor.getSelection()?.blocks ?? [editor.getTextCursorPosition().block];
+    if (blocks.length !== 1 || blocks[0].type === 'codeBlock' ||
+      !Array.isArray(blocks[0].content)) return;
+
+    const selection = editor.prosemirrorState.selection;
+    const selectedLink = text ? editor.getLinkMarkAtPos(selection.from) ??
+      editor.getLinkMarkAtPos(selection.from + 1) : undefined;
+    const link = selectedLink && selection.to <= selectedLink.to ? selectedLink : undefined;
+    // 입력칸으로 포커스를 옮겨도 유지하고, 본문에서 다시 선택한 범위만 반영합니다.
+    setLinkSession((session) => session ? {
+      ...session,
+      selection,
+      document: editor.prosemirrorState.doc,
+      text: link?.text ?? text,
+      position: link?.from,
+    } : session);
+  };
+
   const isLinkSelectionCurrent = () => {
     if (!linkSession || isEditorDisabled) return false;
     // 플로팅 창을 연 채 본문을 편집하면 기존 위치가 다른 문구를 가리킬 수 있습니다.
@@ -1606,6 +1631,7 @@ export function CommunityWritePage() {
             <BlockNoteView
               editor={editor}
               editable={!isEditorDisabled}
+              onSelectionChange={handleLinkSelectionChange}
               onChange={(changedEditor) => {
                 setContentLength(
                   getCommunityTextContent(
@@ -1655,7 +1681,8 @@ export function CommunityWritePage() {
       {linkSession && (
         <CommunityLinkDialog
           initialUrl={linkSession.url}
-          initialText={linkSession.text}
+          text={linkSession.text}
+          onTextChange={handleLinkTextChange}
           onApply={handleLinkApply}
           onRemove={linkSession.position !== undefined ? handleLinkRemove : undefined}
           onClose={handleLinkClose}

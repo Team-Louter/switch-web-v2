@@ -6,7 +6,8 @@ import * as S from './CommunityLinkDialog.style';
 
 interface CommunityLinkDialogProps {
   initialUrl: string;
-  initialText: string;
+  text: string;
+  onTextChange: (text: string) => void;
   onApply: (url: string, text: string) => void;
   onRemove?: () => void;
   onClose: () => void;
@@ -14,14 +15,14 @@ interface CommunityLinkDialogProps {
 
 export function CommunityLinkDialog({
   initialUrl,
-  initialText,
+  text,
+  onTextChange,
   onApply,
   onRemove,
   onClose,
 }: CommunityLinkDialogProps) {
   const urlInputRef = useRef<HTMLInputElement>(null);
   const [url, setUrl] = useState(initialUrl);
-  const [text, setText] = useState(initialText);
   const [error, setError] = useState('');
   const [isClosing, setIsClosing] = useState(false);
   const requestClose = useCallback(() => setIsClosing(true), []);
@@ -111,7 +112,7 @@ export function CommunityLinkDialog({
             value={text}
             placeholder="비워두면 주소를 표시합니다"
             disabled={isClosing}
-            onChange={(event) => setText(event.target.value)}
+            onChange={(event) => onTextChange(event.target.value)}
           />
         </S.Field>
         {error && <S.Error id="community-link-error" role="alert">{error}</S.Error>}
