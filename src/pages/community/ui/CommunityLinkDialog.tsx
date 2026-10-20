@@ -47,7 +47,7 @@ export function CommunityLinkDialog({
         throw new Error('Unsupported link');
       }
     } catch {
-      setError('올바른 링크 주소를 입력해주세요. 예: naver.com 또는 https://naver.com');
+      setError('올바른 링크 주소를 입력해주세요.');
       return;
     }
     onApply(value, text.trim() ? text : '');
@@ -93,7 +93,7 @@ export function CommunityLinkDialog({
           <S.Input
             ref={urlInputRef}
             value={url}
-            placeholder="naver.com 또는 https://example.com"
+            placeholder="링크 주소를 입력해주세요"
             autoComplete="off"
             spellCheck={false}
             aria-invalid={Boolean(error)}
