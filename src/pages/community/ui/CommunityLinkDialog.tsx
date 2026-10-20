@@ -33,7 +33,9 @@ export function CommunityLinkDialog({
     event.preventDefault();
     if (isClosing) return;
     const input = url.trim();
-    const hasProtocol = /^[a-z][a-z\d+.-]*:/i.test(input);
+    const hasHostAndPort = /^[^/?#:\s]+:\d+(?:[/?#]|$)/.test(input);
+    const hasProtocol = /^(https?|mailto|tel):/i.test(input) ||
+      (!hasHostAndPort && /^[a-z][a-z\d+.-]*:/i.test(input));
     const value = hasProtocol
       ? input
       : input.startsWith('//') ? `https:${input}` : `https://${input}`;
