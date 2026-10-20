@@ -64,7 +64,8 @@ import type { KlipyGif } from '@/shared/api';
 import { Button } from '@/shared/ui';
 
 import { getCommunityListReturnTo } from '../model/useCommunityListNavigation';
-import { communityBlockNoteSchema } from '../model/communityBlockNoteSchema';
+import { communityWriteBlockNoteSchema } from '../model/communityBlockNoteSchema';
+import { CommunityEditorFilesContext } from '../model/communityEditorFilesContext';
 
 import attachmentChevronIcon from '../assets/svg/attachment-chevron.svg';
 import backChevronIcon from '../assets/svg/back-chevron.svg';
@@ -572,7 +573,7 @@ export function CommunityWritePage() {
 
   const editor = useCreateBlockNote(
     {
-      schema: communityBlockNoteSchema,
+      schema: communityWriteBlockNoteSchema,
       dictionary: COMMUNITY_EDITOR_DICTIONARY,
       domAttributes: {
         editor: { 'aria-label': '게시글 내용' },
@@ -580,7 +581,9 @@ export function CommunityWritePage() {
       dropCursor: {
         hooks: { computeDropPosition: getCommunityDropCursorPosition },
       },
-      uploadFile: handleEditorFileUpload,
+      uploadFile: async (file) => ({
+        props: await handleEditorFileUpload(file),
+      }),
     },
     [handleEditorFileUpload],
   );
@@ -869,19 +872,16 @@ export function CommunityWritePage() {
     for (const file of files) {
       try {
         const uploadedFile = await handleEditorFileUpload(file);
-        const [fileBlock] = editor.insertBlocks(
-          [
-            {
-              type: 'file',
-              props: {
-                url: uploadedFile.url,
-                name: uploadedFile.name,
-              },
-            },
-          ],
-          editor.getBlock(currentBlock.id) ?? editor.getTextCursorPosition().block,
-          'after',
-        );
+        const fileBlockData = { type: 'file' as const, props: uploadedFile };
+        currentBlock =
+          editor.getBlock(currentBlock.id) ?? editor.getTextCursorPosition().block;
+        const isEmptyParagraph =
+          currentBlock.type === 'paragraph' &&
+          currentBlock.content.length === 0 &&
+          currentBlock.children.length === 0;
+        const fileBlock = isEmptyParagraph
+          ? editor.updateBlock(currentBlock, fileBlockData)
+          : editor.insertBlocks([fileBlockData], currentBlock, 'after')[0];
 
         const insertedFileBlock = fileBlock
           ? editor.getBlock(fileBlock.id)
@@ -1638,32 +1638,34 @@ export function CommunityWritePage() {
             onFocusCapture={handleEditorContentAreaFocus}
             onBlurCapture={handleEditorContentAreaBlur}
           >
-            <BlockNoteView
-              editor={editor}
-              editable={!isEditorDisabled}
-              onSelectionChange={handleLinkSelectionChange}
-              onChange={(changedEditor) => {
-                setContentLength(
-                  getCommunityTextContent(
-                    changedEditor.blocksToHTMLLossy(),
-                  ).length,
-                );
-              }}
-              sideMenu={false}
-              formattingToolbar={false}
-              portalElements={{ default: null }}
-            >
-              <FormattingToolbarController
-                floatingUIOptions={{
-                  useTransitionStylesProps: {
-                    common: {
-                      transitionProperty: 'opacity, transform',
-                    },
-                  },
+            <CommunityEditorFilesContext.Provider value={uploadedFiles}>
+              <BlockNoteView
+                editor={editor}
+                editable={!isEditorDisabled}
+                onSelectionChange={handleLinkSelectionChange}
+                onChange={(changedEditor) => {
+                  setContentLength(
+                    getCommunityTextContent(
+                      changedEditor.blocksToHTMLLossy(),
+                    ).length,
+                  );
                 }}
-              />
-              <SideMenuController sideMenu={communityBlockSideMenu} />
-            </BlockNoteView>
+                sideMenu={false}
+                formattingToolbar={false}
+                portalElements={{ default: null }}
+              >
+                <FormattingToolbarController
+                  floatingUIOptions={{
+                    useTransitionStylesProps: {
+                      common: {
+                        transitionProperty: 'opacity, transform',
+                      },
+                    },
+                  }}
+                />
+                <SideMenuController sideMenu={communityBlockSideMenu} />
+              </BlockNoteView>
+            </CommunityEditorFilesContext.Provider>
             {isUploadingFile && (
               <S.FileUploadSkeleton
                 role="status"

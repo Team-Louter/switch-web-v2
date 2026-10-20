@@ -51,13 +51,15 @@ export const Card = styled.div<{
   $placement: 'center' | 'bottom-right'
   $variant: 'default' | 'media'
   $isClosing: boolean
+  $allowOverflow: boolean
 }>`
   ${token.flexColumnStart}
   box-sizing: border-box;
   width: ${({ $width, $variant }) => $variant === 'media' ? 'fit-content' : `${$width}px`};
   max-width: 100%;
   min-height: ${({ $minHeight }) => ($minHeight ? `${$minHeight}px` : 'auto')};
-  overflow: hidden;
+  overflow: ${({ $allowOverflow }) => $allowOverflow ? 'visible' : 'hidden'};
+  ${({ $allowOverflow }) => $allowOverflow && css`position: relative;`}
   padding: ${({ $placement, $variant }) =>
     $variant === 'media' ? '0' : $placement === 'bottom-right' ? '20px' : '30px'};
   box-shadow: ${({ $placement }) => $placement === 'bottom-right' ? '0 4px 20px rgba(0, 0, 0, 0.06)' : 'none'};

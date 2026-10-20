@@ -50,6 +50,12 @@ interface ReplyLoadSkeletonLineProps {
 const checkboxCheckmark =
   'url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Cpath d=%22m3.25 8.25 2.75 2.75 6.75-6.75%22 fill=%22none%22 stroke=%22white%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222.25%22/%3E%3C/svg%3E")';
 
+export const CommentPending = styled.span`
+  color: ${token.colors.gray.gray60};
+  ${token.typography('body', 'sm', 'regular')}
+  white-space: nowrap;
+`;
+
 const replyLoadShimmer = keyframes`
   from {
     background-position: 200% 0;
@@ -694,6 +700,12 @@ export const ReplyActionButton = styled.button`
   &:focus-visible {
     outline: 2px solid ${token.colors.primary.primary50};
     outline-offset: 2px;
+  }
+
+  &:disabled {
+    color: ${token.colors.gray.gray40};
+    cursor: not-allowed;
+    text-decoration: none;
   }
 `;
 

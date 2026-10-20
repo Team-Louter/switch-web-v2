@@ -3,8 +3,12 @@ import type { CommentResponse } from '@/entities/community'
 export const REPLY_LOAD_DEPTH_INTERVAL = 2
 export const FLATTENED_TREE_DEPTH = 4
 
+export interface CommunityComment extends CommentResponse {
+  optimisticId?: number
+}
+
 export interface CommentTreeNode {
-  comment: CommentResponse
+  comment: CommunityComment
   children: CommentTreeNode[]
 }
 
@@ -52,10 +56,10 @@ export function buildCommentTree(
 }
 
 export function appendReplyComment(
-  comments: CommentResponse[],
+  comments: CommunityComment[],
   parentCommentId: number,
-  reply: CommentResponse,
-): CommentResponse[] {
+  reply: CommunityComment,
+): CommunityComment[] {
   const parentIndex = comments.findIndex(
     (comment) => comment.commentId === parentCommentId,
   )

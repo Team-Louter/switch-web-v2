@@ -5,6 +5,11 @@ import {
   getCommunityFileDownloadUrl,
   type PostFileResponse,
 } from '@/entities/community';
+import {
+  resolveCommunityAttachment,
+  type CommunityAttachmentFile,
+} from '../model/communityAttachment';
+import { CommunityAttachmentCard } from './CommunityAttachmentCard';
 
 import { getYouTubeTitle, isKlipyMediaUrl } from '@/shared/api';
 
@@ -25,6 +30,7 @@ const BlockFallback = lazy(() =>
 interface CommunityPostBlockContentProps {
   blocks: readonly Block[];
   files: readonly PostFileResponse[];
+  onFileOpen: (file: CommunityAttachmentFile) => void;
 }
 
 function getYouTubeEmbedUrl(value: string): string | null {
@@ -145,6 +151,7 @@ function LinkPreview({ href }: { href: string }) {
 
 // Keep complex blocks in the compatible renderer rather than losing formatting.
 function supportsStaticBlock(block: Block): boolean {
+  if (block.type === 'file' && block.children.length === 0) return true;
   if (block.children.length > 0) return false;
   if (!['paragraph', 'heading', 'image'].includes(block.type)) return false;
   const props = block.props as Record<string, unknown>;
@@ -274,6 +281,7 @@ function PostImage({
 export function CommunityPostBlockContent({
   blocks,
   files,
+  onFileOpen,
 }: CommunityPostBlockContentProps) {
   const [previewImage, setPreviewImage] =
     useState<CommunityPostImagePreview | null>(null);
@@ -317,8 +325,21 @@ export function CommunityPostBlockContent({
                 blocks={group}
                 files={files}
                 onImagePreview={setPreviewImage}
+                onFileOpen={onFileOpen}
               />
             </Suspense>
+          );
+        }
+        if (block.type === 'file') {
+          const file = resolveCommunityAttachment(block.props.url, block.props.name, files);
+          return (
+            <S.Figure key={block.id}>
+              <CommunityAttachmentCard
+                file={file}
+                onOpen={onFileOpen}
+              />
+              {block.props.caption && <figcaption>{block.props.caption}</figcaption>}
+            </S.Figure>
           );
         }
         const href = getLinkFromBlock(block);

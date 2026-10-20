@@ -455,6 +455,8 @@ export const Editor = styled.section<EditorProps>`
   }
 
   .community-block-editor .bn-root {
+    display: flex;
+    flex-direction: column;
     --bn-colors-editor-text: ${token.colors.gray.gray100};
     --bn-colors-editor-background: transparent;
     --bn-colors-menu-text: ${token.colors.gray.gray100};
@@ -469,6 +471,7 @@ export const Editor = styled.section<EditorProps>`
   }
 
   .community-block-editor .bn-editor {
+    flex: 1 0 auto;
     box-sizing: border-box;
     min-height: 100%;
     padding: 8px 54px 32px;
@@ -490,6 +493,25 @@ export const Editor = styled.section<EditorProps>`
     overflow-wrap: anywhere;
   }
 
+  /* 카드 420px와 본문 들여쓰기 8px에 맞춰 파일 블록의 선택 범위를 제한합니다. */
+  .community-block-editor .node-file,
+  .community-block-editor
+    .bn-block-outer:has(> .bn-block > .node-file):not(:has(> .bn-block > .bn-block-group)) {
+    box-sizing: border-box;
+    width: min(100%, 428px);
+  }
+
+  .community-block-editor
+    .node-file.ProseMirror-selectednode
+    .bn-file-block-content-wrapper::after {
+    display: none;
+  }
+
+  .community-block-editor .node-file.ProseMirror-selectednode [data-file-kind] {
+    background: ${token.colors.info.info0};
+    box-shadow: inset 0 0 0 2px ${token.colors.info.info20};
+  }
+
   ${({ $selectedBlockId }) =>
     $selectedBlockId
       ? `
@@ -498,6 +520,17 @@ export const Editor = styled.section<EditorProps>`
             border-radius: ${token.shapes.small};
             background: ${token.colors.info.info0};
             transition: background-color 120ms ease-out;
+          }
+
+          .community-block-editor
+            .bn-block-outer[data-id='${$selectedBlockId}']:has(> .bn-block > .node-file) {
+            background: transparent;
+          }
+
+          .community-block-editor
+            .bn-block-outer[data-id='${$selectedBlockId}'] > .bn-block > .node-file [data-file-kind] {
+            background: ${token.colors.info.info0};
+            box-shadow: inset 0 0 0 2px ${token.colors.info.info20};
           }
         `
       : ''}
@@ -532,6 +565,13 @@ export const Editor = styled.section<EditorProps>`
   .community-block-editor [data-file-block] .bn-visual-media-wrapper {
     box-sizing: border-box;
     max-width: 100% !important;
+  }
+
+  .community-block-editor [data-content-type='file'] .bn-file-block-content-wrapper {
+    width: min(100%, 420px);
+    padding: 0;
+    border: 0;
+    background: transparent;
   }
 
   .community-block-editor [data-file-block] .bn-visual-media {

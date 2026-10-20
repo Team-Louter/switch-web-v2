@@ -9,6 +9,8 @@ export {
   updateComment,
   uploadCommunityFile,
 } from './api/communityActions'
+export { getCommunityDownloadRisk } from './lib/communityDownloadRisk'
+export type { CommunityDownloadRisk } from './lib/communityDownloadRisk'
 export type {
   CreateCommentRequest,
   CreatePostRequest,

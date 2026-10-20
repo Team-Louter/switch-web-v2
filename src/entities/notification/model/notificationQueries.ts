@@ -10,6 +10,8 @@ export const notificationQueryKeys = {
     [...notificationQueryKeys.all, 'page', userId, page] as const,
   unreadCount: (userId: number | null) =>
     [...notificationQueryKeys.all, 'unread-count', userId] as const,
+  reads: (userId: number | null) =>
+    [...notificationQueryKeys.all, 'reads', userId] as const,
   settingsRoot: ['notifications', 'settings'] as const,
   settings: (userId: number | null) =>
     [...notificationQueryKeys.settingsRoot, userId] as const,
