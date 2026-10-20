@@ -10,7 +10,9 @@ export function ProfileAvatar({
   equippedItems,
   imageScale = 1,
   imageUrl,
+  imageRef,
   loading,
+  onImageLoad,
   onImageError,
   size,
 }: ProfileAvatarProps) {
@@ -28,11 +30,13 @@ export function ProfileAvatar({
       >
         {normalizedImageUrl && (
           <S.ProfileImage
+            ref={imageRef}
             src={normalizedImageUrl}
             alt={alt}
             $imageScale={imageScale}
             decoding={decoding}
             loading={loading}
+            onLoad={onImageLoad}
             onError={onImageError}
           />
         )}
