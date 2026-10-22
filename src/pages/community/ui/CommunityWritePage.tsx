@@ -766,8 +766,9 @@ export function CommunityWritePage() {
       }
       if (!toolbarState.canLink) return;
       const selection = editor.prosemirrorState.selection;
-      const link = editor.getLinkMarkAtPos(selection.from) ??
+      const selectedLink = editor.getLinkMarkAtPos(selection.from) ??
         editor.getLinkMarkAtPos(selection.from + 1);
+      const link = selectedLink && selection.to <= selectedLink.to ? selectedLink : undefined;
       setLinkSession({
         selection,
         document: editor.prosemirrorState.doc,
