@@ -384,17 +384,22 @@ export const Editor = styled.section<EditorProps>`
     height: 24px;
     padding: 0;
     border: 0;
-    border-radius: 2px;
+    border-radius: 4px;
     background: transparent;
     cursor: pointer;
+    transition: transform 120ms ease;
+
+    &[data-active='true'] img, &[aria-expanded='true'] img {
+      filter: brightness(0);
+    }
+
+    &:not(:disabled):active { transform: scale(0.9); }
+
+    @media (prefers-reduced-motion: reduce) { transition: none; }
 
     &:disabled {
       cursor: not-allowed;
       opacity: 0.45;
-    }
-
-    &:not(:disabled):hover {
-      background: ${token.colors.gray.gray10};
     }
 
     &:focus-visible {
@@ -791,6 +796,12 @@ export const AnonymousToggle = styled.input`
 
   &:checked::after {
     transform: translateX(17.69px);
+  }
+
+  &:disabled { cursor: not-allowed; opacity: 0.45; }
+
+  @media (prefers-reduced-motion: reduce) {
+    &, &::after { transition: none; }
   }
 
   &:focus-visible {
