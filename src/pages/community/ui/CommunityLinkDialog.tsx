@@ -5,9 +5,10 @@ import { Button, Modal } from '@/shared/ui';
 import * as S from './CommunityLinkDialog.style';
 
 interface CommunityLinkDialogProps {
-  initialUrl: string;
+  url: string;
   text: string;
   isClosing: boolean;
+  onUrlChange: (url: string) => void;
   onTextChange: (text: string) => void;
   onApply: (url: string, text: string) => void;
   onRemove?: () => void;
@@ -16,9 +17,10 @@ interface CommunityLinkDialogProps {
 }
 
 export function CommunityLinkDialog({
-  initialUrl,
+  url,
   text,
   isClosing,
+  onUrlChange,
   onTextChange,
   onApply,
   onRemove,
@@ -26,7 +28,6 @@ export function CommunityLinkDialog({
   onClose,
 }: CommunityLinkDialogProps) {
   const urlInputRef = useRef<HTMLInputElement>(null);
-  const [url, setUrl] = useState(initialUrl);
   const [error, setError] = useState('');
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -106,7 +107,7 @@ export function CommunityLinkDialog({
             aria-describedby={error ? 'community-link-error' : undefined}
             disabled={isClosing}
             onChange={(event) => {
-              setUrl(event.target.value);
+              onUrlChange(event.target.value);
               setError('');
             }}
           />

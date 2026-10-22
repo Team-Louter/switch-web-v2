@@ -644,6 +644,10 @@ export function CommunityWritePage() {
     setLinkSession((session) => session ? { ...session, text } : session);
   };
 
+  const handleLinkUrlChange = (url: string) => {
+    setLinkSession((session) => session ? { ...session, url } : session);
+  };
+
   const handleLinkSelectionChange = () => {
     if (!linkSession || !editor.isFocused() || isEditorDisabled || isUploadingFile) return;
     const text = editor.getSelectedText();
@@ -660,6 +664,7 @@ export function CommunityWritePage() {
       ...session,
       selection,
       document: editor.prosemirrorState.doc,
+      url: link?.href ?? session.url,
       text: link?.text ?? text,
       position: link?.from,
     } : session);
@@ -1692,9 +1697,10 @@ export function CommunityWritePage() {
       </S.Content>
       {linkSession && (
         <CommunityLinkDialog
-          initialUrl={linkSession.url}
+          url={linkSession.url}
           text={linkSession.text}
           isClosing={isLinkDialogClosing}
+          onUrlChange={handleLinkUrlChange}
           onTextChange={handleLinkTextChange}
           onApply={handleLinkApply}
           onRemove={linkSession.position !== undefined ? handleLinkRemove : undefined}
