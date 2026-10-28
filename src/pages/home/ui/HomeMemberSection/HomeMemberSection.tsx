@@ -14,9 +14,8 @@ const MEMBER_BATCH_SIZE = 5
 
 export function HomeMemberSection() {
   const userId = useUserStore((state) => state.user?.userId ?? null)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [shouldLoad, setShouldLoad] = useState(false)
-  const [visibleCount, setVisibleCount] = useState(0)
+  const [visibleCount, setVisibleCount] = useState(MEMBER_BATCH_SIZE)
   const [selectedGeneration, setSelectedGeneration] = useState(ALL_GENERATIONS)
   const [isVisible, setIsVisible] = useState(false)
   const membersQuery = useQuery({
@@ -24,30 +23,9 @@ export function HomeMemberSection() {
     enabled: shouldLoad && userId !== null,
   })
   const members = useMemo(() => membersQuery.data ?? [], [membersQuery.data])
-  const isPreparingInitialMembers =
-    shouldLoad && membersQuery.data !== undefined && members.length > 0 && visibleCount === 0
-  const isLoading =
-    shouldLoad && (membersQuery.isPending || isPreparingInitialMembers)
+  const isLoading = shouldLoad && membersQuery.isPending
   const sectionRef = useRef<HTMLElement>(null)
   const loadMoreRef = useRef<HTMLDivElement>(null)
-  const preloadRequestRef = useRef(0)
-
-  useEffect(() => {
-    if (!shouldLoad || !membersQuery.data) return
-
-    let cancelled = false
-    const initialMembers = membersQuery.data.slice(0, MEMBER_BATCH_SIZE)
-
-    void preloadMemberImages(initialMembers).finally(() => {
-      if (!cancelled) {
-        setVisibleCount((currentCount) =>
-          currentCount === 0 ? initialMembers.length : currentCount,
-        )
-      }
-    })
-
-    return () => { cancelled = true }
-  }, [membersQuery.data, shouldLoad])
 
   useEffect(() => {
     const section = sectionRef.current
@@ -80,31 +58,21 @@ export function HomeMemberSection() {
 
   useEffect(() => {
     const trigger = loadMoreRef.current
-    if (!trigger || !shouldLoad || isLoading || isLoadingMore || !hasMoreMembers) return
+    if (!trigger || !shouldLoad || isLoading || !hasMoreMembers) return
 
     const observer = new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting) return
       observer.unobserve(entry.target)
-      const nextMembers = visibleMembers.slice(visibleCount, visibleCount + MEMBER_BATCH_SIZE)
-      const preloadRequest = preloadRequestRef.current
-      setIsLoadingMore(true)
-      void preloadMemberImages(nextMembers).then(() => {
-        if (preloadRequest !== preloadRequestRef.current) return
-
-        setVisibleCount((count) => count + nextMembers.length)
-        setIsLoadingMore(false)
-      })
+      setVisibleCount((count) => Math.min(count + MEMBER_BATCH_SIZE, visibleMembers.length))
     }, { rootMargin: '160px 0px' })
 
     observer.observe(trigger)
     return () => observer.disconnect()
-  }, [hasMoreMembers, isLoading, isLoadingMore, shouldLoad, visibleCount, visibleMembers])
+  }, [hasMoreMembers, isLoading, shouldLoad, visibleCount, visibleMembers])
 
   function handleGenerationChange(generation: string) {
-    preloadRequestRef.current += 1
     setSelectedGeneration(generation)
     setVisibleCount(MEMBER_BATCH_SIZE)
-    setIsLoadingMore(false)
   }
 
   return (
@@ -133,7 +101,6 @@ export function HomeMemberSection() {
       {isLoading
         ? Array.from({ length: 5 }, (_, index) => <MemberSkeleton key={index} />)
           : shouldLoad && renderedMembers.map((member) => <MemberRow key={member.userId} member={member} />)}
-        {isLoadingMore && Array.from({ length: Math.min(MEMBER_BATCH_SIZE, visibleMembers.length - visibleCount) }, (_, index) => <MemberSkeleton key={`more-${index}`} />)}
         {shouldLoad && hasMoreMembers && <S.LoadMoreTrigger ref={loadMoreRef} aria-label="다음 멤버 불러오는 중" />}
       </S.MemberList>
     </S.Section>
@@ -145,6 +112,7 @@ interface MemberRowProps {
 }
 
 function MemberRow({ member }: MemberRowProps) {
+  const [failedImageUrl, setFailedImageUrl] = useState<string>()
   const roleLabel = member.role === 'LEADER' ? '부장' : '부원'
   const majorText = member.majors.length > 0
     ? `${member.majors.join(' & ')} Developer`
@@ -173,12 +141,14 @@ function MemberRow({ member }: MemberRowProps) {
 
   return (
     <S.MemberRow>
-      {member.profileImageUrl ? (
+      {member.profileImageUrl && member.profileImageUrl !== failedImageUrl ? (
         <S.MemberProfileAvatar
           alt={`${member.userName} 프로필`}
           $hasBorder={hasCustomBorder}
           equippedItems={member.equippedItems}
           imageUrl={member.profileImageUrl}
+          showLoadingState
+          onImageError={() => setFailedImageUrl(member.profileImageUrl)}
           size={96}
         />
       ) : (
@@ -224,15 +194,4 @@ function MemberSkeleton() {
       </S.MemberSkeletonInfo>
     </S.MemberSkeletonRow>
   )
-}
-
-async function preloadMemberImages(members: Member[]): Promise<void> {
-  await Promise.all(members
-    .filter((member) => Boolean(member.profileImageUrl))
-    .map((member) => new Promise<void>((resolve) => {
-      const image = new Image()
-      image.onload = () => resolve()
-      image.onerror = () => resolve()
-      image.src = member.profileImageUrl
-    })))
 }

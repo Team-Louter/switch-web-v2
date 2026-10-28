@@ -55,8 +55,6 @@ interface MentoringBaseData {
 
 // 빠른 응답에서 스켈레톤이 한 프레임만 보이는 플래시를 방지한다.
 const INITIAL_SKELETON_MIN_DURATION_MS = 180
-// 외부 프로필 이미지가 응답하지 않아도 전체 화면 로딩이 멈추지 않도록 제한한다.
-const MEMBER_IMAGE_PRELOAD_TIMEOUT_MS = 1_500
 
 function parsePositiveId(value: string | null): number | null {
   if (!value) {
@@ -141,44 +139,6 @@ async function hydrateRoomViews(
 }
 
 /**
- * 스켈레톤을 숨기기 전에 실제 아바타 리소스를 브라우저 캐시에 준비한다.
- * 프로필 목록은 API 응답보다 이미지 로딩이 늦을 수 있어, 준비 전 화면을 노출하면
- * 기본 이미지가 잠시 보이는 플래시가 발생한다.
- */
-async function preloadMemberImages(members: Member[]): Promise<void> {
-  const imageUrls = [
-    ...new Set(
-      members
-        .map(({ profileImageUrl }) => profileImageUrl)
-        .filter((url): url is string => Boolean(url)),
-    ),
-  ]
-
-  await Promise.all(
-    imageUrls.map((url) => {
-      return new Promise<void>((resolve) => {
-        const image = new Image()
-
-        const settle = () => {
-          window.clearTimeout(timeoutId)
-          image.onload = null
-          image.onerror = null
-          resolve()
-        }
-
-        image.onload = settle
-        image.onerror = settle
-        const timeoutId = window.setTimeout(
-          settle,
-          MEMBER_IMAGE_PRELOAD_TIMEOUT_MS,
-        )
-        image.src = url
-      })
-    }),
-  )
-}
-
-/**
  * 멘토링 방, 방별 멤버, 질문을 v1 화면이 요구하는 단위로 구성한다.
  */
 async function fetchMentoring(userId: number | null): Promise<MentoringData> {
@@ -187,9 +147,6 @@ async function fetchMentoring(userId: number | null): Promise<MentoringData> {
     queryClient.fetchQuery(memberDirectoryOptions(userId)),
   ])
   const rooms = await hydrateRoomViews(mentorings, members, userId)
-  await preloadMemberImages(
-    rooms.flatMap(({ members: roomMembers }) => roomMembers),
-  )
 
   return {
     members,
