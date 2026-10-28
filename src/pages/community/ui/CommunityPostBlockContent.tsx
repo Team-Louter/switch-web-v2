@@ -298,7 +298,7 @@ export function CommunityPostBlockContent({
       previous && (
         (!supportsStaticBlock(block) && !supportsStaticBlock(previous[0])) ||
         (['bulletListItem', 'numberedListItem'].includes(block.type) &&
-          previous[0].type === block.type)
+          previous.at(-1)?.type === block.type)
       )
     ) {
       previous.push(block);
