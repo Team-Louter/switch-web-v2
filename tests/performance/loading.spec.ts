@@ -122,8 +122,8 @@ test('기본 아바타는 API 주소를 거치지 않는다', async ({ page, api
   const requests = recordRequests(page)
   await page.goto('/community')
   await expect(page.getByText('게시글 1', { exact: true })).toBeVisible()
-  const image = page.locator('img[src*="profile-"]').first()
-  await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(384)
+  const image = page.getByRole('img', { name: '테스트 작성자 프로필' }).first()
+  await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(123)
   expect(requests.filter((url) => /\/api\/assets\//.test(url))).toEqual([])
 })
 
