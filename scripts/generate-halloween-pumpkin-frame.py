@@ -1,7 +1,7 @@
-"""Build the Halloween profile frame APNGs from their transparent source artwork.
+"""Render a single pumpkin accessory with smoothly perking ears.
 
-Requires Pillow. The first frame is a complete image so the decoration remains
-visible in viewers that show only the PNG fallback frame.
+Requires Pillow. The accessory uses the ProfileAvatar 512px canvas with a
+400px photo circle centered at (256, 256); the rest remains transparent.
 """
 
 from __future__ import annotations
@@ -9,143 +9,113 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
+from PIL import Image, ImageDraw
 
 
 ASSETS = Path(__file__).resolve().parents[1] / "src/shared/ui/ProfileAvatar/assets"
-SOURCE = ASSETS / "halloween-pumpkin-source.png"
-FRAME_COUNT = 16
-FRAME_DURATION_MS = 150
-
-# Coordinates are in the 512px artwork canvas.
-STARS = (
-    (256, 52, 0.0, 1.0),
-)
+FRAME_COUNT = 48
+FRAME_DURATION_MS = 50
+CANVAS_SIZE = 512
+DRAW_SCALE = 2
 
 
-def make_animation_layer(size: int, progress: float) -> Image.Image:
-    scale = size / 512
-    soft = Image.new("RGBA", (size, size))
-    soft_draw = ImageDraw.Draw(soft)
-    sharp = Image.new("RGBA", (size, size))
-    sharp_draw = ImageDraw.Draw(sharp)
-
-    # A broad amber streak circles the frame. It remains visible when the
-    # decoration is reduced to a 50px avatar.
-    radius = round(222 * scale)
-    center = size // 2
-    ring_box = (
-        center - radius,
-        center - radius,
-        center + radius,
-        center + radius,
-    )
-    sweep_end = progress * 360 - 90
-    for segment in range(12):
-        segment_start = sweep_end - (12 - segment) * 8
-        segment_end = segment_start + 8
-        intensity = ((segment + 1) / 12) ** 1.5
-        soft_draw.arc(
-            ring_box,
-            segment_start,
-            segment_end,
-            fill=(255, 105, 12, round(220 * intensity)),
-            width=max(3, round(29 * scale)),
-        )
-        sharp_draw.arc(
-            ring_box,
-            segment_start,
-            segment_end,
-            fill=(255, 231, 113, round(225 * intensity)),
-            width=max(1, round(6 * scale)),
-        )
-
-    for x, y, phase, strength in STARS:
-        pulse = (1 + math.cos(2 * math.pi * (progress - phase))) / 2
-        if pulse < 0.18:
-            continue
-
-        x, y = round(x * scale), round(y * scale)
-        glow_radius = max(4, round((9 + 5 * pulse) * scale))
-        soft_draw.ellipse(
-            (x - glow_radius, y - glow_radius, x + glow_radius, y + glow_radius),
-            fill=(255, 141, 28, round(95 * pulse * strength)),
-        )
-
-        ray = max(2, round((4 + 4 * pulse) * scale))
-        core = max(1, round((1 + pulse) * scale))
-        alpha = round(185 * pulse * strength)
-        sharp_draw.line((x - ray, y, x + ray, y), fill=(255, 225, 121, alpha), width=core)
-        sharp_draw.line((x, y - ray, x, y + ray), fill=(255, 225, 121, alpha), width=core)
-        sharp_draw.ellipse((x - core, y - core, x + core, y + core), fill=(255, 249, 206, alpha))
-
-    # Keep the jack-o'-lantern readable at avatar sizes with a slow, warm pulse.
-    pumpkin_pulse = (1 + math.cos(2 * math.pi * progress)) / 2
-    pumpkin_x, pumpkin_y = round(256 * scale), round(452 * scale)
-    pumpkin_radius = round(19 * scale)
-    soft_draw.ellipse(
-        (
-            pumpkin_x - pumpkin_radius,
-            pumpkin_y - pumpkin_radius,
-            pumpkin_x + pumpkin_radius,
-            pumpkin_y + pumpkin_radius,
-        ),
-        fill=(255, 100, 5, round(45 + 35 * pumpkin_pulse)),
-    )
-
-    return Image.alpha_composite(
-        soft.filter(ImageFilter.GaussianBlur(max(1, round(7 * scale)))),
-        sharp,
-    )
+def smoothstep(value: float) -> float:
+    value = max(0.0, min(1.0, value))
+    return value * value * (3 - 2 * value)
 
 
-def make_flashing_frame(base: Image.Image, size: int, progress: float) -> Image.Image:
-    # A sustained glow makes the whole frame change at small sizes, where the
-    # moving glint alone is difficult to see.
-    flash = max(0, math.sin(2 * math.pi * progress)) ** 0.8
-    lit = ImageEnhance.Brightness(base).enhance(2.0)
-    brightened = Image.blend(base, lit, flash * 0.9)
-
-    halo = Image.new("RGBA", (size, size))
-    halo_draw = ImageDraw.Draw(halo)
-    radius = round(238 * size / 512)
-    center = size // 2
-    halo_draw.ellipse(
-        (
-            center - radius,
-            center - radius,
-            center + radius,
-            center + radius,
-        ),
-        outline=(255, 116, 16, round(220 * flash)),
-        width=max(3, round(20 * size / 512)),
-    )
-    halo = halo.filter(ImageFilter.GaussianBlur(max(2, round(13 * size / 512))))
-    return Image.alpha_composite(halo, brightened)
+def ear_perk(progress: float, delay: float) -> float:
+    """Rise, overshoot, settle, hold, then relax without a loop seam."""
+    time = progress - delay
+    if time < 0.10:
+        return 0.0
+    if time < 0.32:
+        return 1.10 * smoothstep((time - 0.10) / 0.22)
+    if time < 0.43:
+        return 1.10 - 0.10 * smoothstep((time - 0.32) / 0.11)
+    if time < 0.68:
+        return 1.0
+    if time < 0.94:
+        return 1 - smoothstep((time - 0.68) / 0.26)
+    return 0.0
 
 
-def make_breathing_frame(frame: Image.Image, size: int, progress: float) -> Image.Image:
-    # The whole decoration contracts by up to 10%, then returns to its normal
-    # size. The photo stays fixed beneath it, making the movement unmistakable.
-    scale = 1 - 0.1 * math.sin(2 * math.pi * progress) ** 2
-    frame_size = round(size * scale)
-    resized = frame.resize((frame_size, frame_size), Image.Resampling.LANCZOS)
-    result = Image.new("RGBA", (size, size))
-    result.alpha_composite(resized, ((size - frame_size) // 2, (size - frame_size) // 2))
-    return result
+def scaled_points(points: list[tuple[float, float]]) -> list[tuple[int, int]]:
+    return [(round(x * DRAW_SCALE), round(y * DRAW_SCALE)) for x, y in points]
 
 
-def export(size: int, filename: str, artwork: Image.Image) -> list[Image.Image]:
-    base = artwork.resize((size, size), Image.Resampling.LANCZOS)
-    frames = []
-    for frame_index in range(FRAME_COUNT):
-        progress = frame_index / FRAME_COUNT
-        flashing_frame = make_flashing_frame(base, size, progress)
-        animated_frame = Image.alpha_composite(
-            flashing_frame, make_animation_layer(size, progress)
-        )
-        frames.append(make_breathing_frame(animated_frame, size, progress))
+def draw_ear(
+    draw: ImageDraw.ImageDraw,
+    base_x: float,
+    base_y: float,
+    angle_degrees: float,
+) -> None:
+    angle = math.radians(angle_degrees)
+    axis_x, axis_y = math.sin(angle), -math.cos(angle)
+    side_x, side_y = math.cos(angle), math.sin(angle)
 
+    def contour(width_offset: float, start: float, end: float) -> list[tuple[int, int]]:
+        left = []
+        right = []
+        for index in range(25):
+            t = start + (end - start) * index / 24
+            width = max(0.0, 9 * (1 - t) + 11 * math.sin(math.pi * t) - width_offset)
+            center_x = base_x + 88 * t * axis_x
+            center_y = base_y + 88 * t * axis_y
+            left.append((center_x - width * side_x, center_y - width * side_y))
+            right.append((center_x + width * side_x, center_y + width * side_y))
+        return scaled_points(left + list(reversed(right)))
+
+    draw.polygon(contour(0, 0, 1), fill="#35182F")
+    draw.polygon(contour(3.2, 0.04, 0.94), fill="#F36B18")
+    draw.polygon(contour(9, 0.18, 0.83), fill="#FFBF62")
+
+
+def draw_pumpkin(draw: ImageDraw.ImageDraw, lift: float) -> None:
+    def box(left: float, top: float, right: float, bottom: float) -> tuple[int, ...]:
+        return tuple(round(value * DRAW_SCALE) for value in (left, top + lift, right, bottom + lift))
+
+    def polygon(points: list[tuple[float, float]]) -> list[tuple[int, int]]:
+        return scaled_points([(x, y + lift) for x, y in points])
+
+    # Stem and lobes form one pumpkin; the ear bases disappear behind its top.
+    draw.rounded_rectangle(box(248, 64, 266, 91), radius=7 * DRAW_SCALE, fill="#35182F")
+    draw.rounded_rectangle(box(251, 67, 263, 88), radius=5 * DRAW_SCALE, fill="#4D8A34")
+    draw.ellipse(box(184, 76, 328, 160), fill="#35182F")
+    draw.ellipse(box(189, 81, 239, 155), fill="#D75112")
+    draw.ellipse(box(273, 81, 323, 155), fill="#D75112")
+    draw.ellipse(box(206, 78, 275, 157), fill="#F87817")
+    draw.ellipse(box(237, 78, 306, 157), fill="#F87817")
+    draw.ellipse(box(221, 77, 291, 158), fill="#FF9827")
+    draw.arc(box(199, 82, 260, 153), 75, 275, fill="#D65D14", width=3 * DRAW_SCALE)
+    draw.arc(box(252, 82, 313, 153), -95, 105, fill="#D65D14", width=3 * DRAW_SCALE)
+    draw.arc(box(220, 81, 286, 154), 185, 345, fill="#FFC064", width=3 * DRAW_SCALE)
+
+    # The jack-o'-lantern expression stays crisp at 50px avatar size.
+    draw.polygon(polygon([(218, 113), (229, 99), (241, 114)]), fill="#35182F")
+    draw.polygon(polygon([(271, 114), (283, 99), (294, 113)]), fill="#35182F")
+    draw.polygon(polygon([(224, 110), (229, 104), (235, 110)]), fill="#FFD273")
+    draw.polygon(polygon([(277, 110), (283, 104), (288, 110)]), fill="#FFD273")
+    draw.polygon(polygon([(250, 120), (256, 111), (262, 120)]), fill="#9F3C12")
+    draw.arc(box(221, 99, 291, 143), 18, 162, fill="#35182F", width=7 * DRAW_SCALE)
+    draw.ellipse(box(203, 120, 215, 128), fill="#FFBB58")
+    draw.ellipse(box(297, 120, 309, 128), fill="#FFBB58")
+
+
+def render_frame(progress: float) -> Image.Image:
+    canvas = Image.new("RGBA", (CANVAS_SIZE * DRAW_SCALE,) * 2)
+    draw = ImageDraw.Draw(canvas)
+    left_perk = ear_perk(progress, 0.0)
+    right_perk = ear_perk(progress, 0.035)
+    lift = -4 * (left_perk + right_perk) / 2
+
+    draw_ear(draw, 221, 96 + lift, -32 + 28 * left_perk)
+    draw_ear(draw, 291, 96 + lift, 32 - 28 * right_perk)
+    draw_pumpkin(draw, lift)
+    return canvas.resize((CANVAS_SIZE, CANVAS_SIZE), Image.Resampling.LANCZOS)
+
+
+def export_apng(frames: list[Image.Image], filename: str) -> None:
     frames[0].save(
         ASSETS / filename,
         format="PNG",
@@ -157,18 +127,15 @@ def export(size: int, filename: str, artwork: Image.Image) -> list[Image.Image]:
         blend=0,
         compress_level=9,
     )
-    return frames
 
 
 def export_preview(frames: list[Image.Image]) -> None:
-    """Provide a browser-friendly motion preview; APNGs remain the real assets."""
     preview_frames = []
     for frame in frames:
-        background = Image.new("RGBA", frame.size, "#f2f0f6")
+        background = Image.new("RGBA", frame.size, "#F2F0F6")
         photo = Image.new("RGBA", frame.size)
-        draw = ImageDraw.Draw(photo)
         inset = round(frame.width * (1 - 400 / 512) / 2)
-        draw.ellipse(
+        ImageDraw.Draw(photo).ellipse(
             (inset, inset, frame.width - inset, frame.height - inset),
             fill="#625572",
         )
@@ -190,12 +157,18 @@ def export_preview(frames: list[Image.Image]) -> None:
 
 
 def main() -> None:
-    artwork = Image.open(SOURCE).convert("RGBA")
-    export(512, "halloween-pumpkin-frame.png", artwork)
-    small_frames = export(256, "halloween-pumpkin-frame-small.png", artwork)
+    frames = [render_frame(index / FRAME_COUNT) for index in range(FRAME_COUNT)]
+    export_apng(frames, "halloween-pumpkin-frame.png")
+    small_frames = [
+        frame.resize((256, 256), Image.Resampling.LANCZOS) for frame in frames
+    ]
+    export_apng(small_frames, "halloween-pumpkin-frame-small.png")
     export_preview(small_frames)
-    artwork.resize((256, 256), Image.Resampling.LANCZOS).save(
-        ASSETS / "halloween-pumpkin-thumbnail.webp", format="WEBP", quality=85
+
+    upright = render_frame(0.48)
+    upright.save(ASSETS / "halloween-pumpkin-source.png")
+    upright.resize((256, 256), Image.Resampling.LANCZOS).save(
+        ASSETS / "halloween-pumpkin-thumbnail.webp", format="WEBP", quality=88
     )
 
 
