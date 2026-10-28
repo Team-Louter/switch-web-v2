@@ -78,6 +78,30 @@ for (const language of ['java', 'javascript']) {
   })
 }
 
+test('문제 조회가 지연되어도 빈 코드 에디터 모델을 만들지 않는다', async ({ page, api }) => {
+  void api
+  let release = () => {}
+  const gate = new Promise<void>((resolve) => { release = resolve })
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  await page.route('**/api/typing/rounds/JAVASCRIPT', async (route) => {
+    await gate
+    await route.fulfill({ json: {
+      roundId: 8, userId: 42, resultId: 0, problemType: 'JAVASCRIPT',
+      problems: [{ problemId: 1, problemType: 'JAVASCRIPT', content: 'const value = 1;' }],
+    } })
+  })
+  try {
+    await page.goto('/typing/code/javascript')
+    await expect(page.getByRole('status', { name: '' }).filter({ hasText: '문장을 불러오는 중입니다.' })).toBeVisible()
+    await expect(page.locator('.monaco-editor')).toHaveCount(0)
+  } finally {
+    release()
+  }
+  await expect(page.getByRole('textbox', { name: '내가 쓴 코드 에디터' })).toBeVisible()
+  expect(errors).toEqual([])
+})
+
 test('기본 서식과 목록은 에디터 없이 보존하고 위험한 링크를 제거한다', async ({ page, api }) => {
   const props = { textColor: 'default', backgroundColor: 'default', textAlignment: 'left' }
   const text = (value: string, styles: Record<string, boolean> = {}) => ({ type: 'text', text: value, styles })
