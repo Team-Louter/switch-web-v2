@@ -1,5 +1,5 @@
-import MonacoEditor, { loader, type OnMount } from '@monaco-editor/react'
-import * as monaco from 'monaco-editor'
+import MonacoEditor, { type OnMount } from '@monaco-editor/react'
+import { monaco } from '@/shared/lib/monacoSetup'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 
@@ -13,17 +13,6 @@ import { TypingPracticeHeader } from '../TypingPracticeHeader/TypingPracticeHead
 
 const LANGUAGE_NAMES = { java: 'Java', javascript: 'JavaScript' } as const
 
-loader.config({ monaco })
-monaco.editor.defineTheme('typing-vs-dark', {
-  base: 'vs-dark',
-  inherit: true,
-  rules: [{ token: 'invalid', foreground: 'D4D4D4' }],
-  colors: {},
-})
-monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-  allowNonTsExtensions: true,
-  jsx: monaco.languages.typescript.JsxEmit.ReactJSX,
-})
 
 interface CodeEditorProps {
   title: string
