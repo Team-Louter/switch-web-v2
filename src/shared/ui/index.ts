@@ -12,3 +12,4 @@ export type {
   ProfileAvatarEquippedItems,
   ProfileAvatarProps,
 } from './ProfileAvatar'
+export { AsyncBoundary } from './AsyncBoundary'
