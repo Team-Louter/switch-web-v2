@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 import type { CommunityDownloadRisk } from '@/features/community'
 import { Button, Modal } from '@/shared/ui'
 
-import warningBear from '../assets/images/download-warning-bear.png'
+import warningBear from '../assets/images/download-warning-bear.webp'
 import type { CommunityAttachmentFile } from '../model/communityAttachment'
 import * as S from './CommunityDownloadWarningModal.style'
 

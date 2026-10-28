@@ -1,4 +1,4 @@
-import authHeroImage from '../../assets/images/auth-hero.jpg'
+import authHeroImage from '../../assets/images/auth-hero.webp'
 import { useLoginForm } from '../../model/useLoginForm'
 import { LoginPanel } from '../LoginPanel'
 import * as S from './LoginCard.style'

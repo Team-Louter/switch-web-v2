@@ -1,4 +1,4 @@
-import louterLogoImage from '../../assets/images/louter-logo.png'
+import louterLogoImage from '../../assets/images/louter-logo.webp'
 import switchLogo from '../../assets/svg/switch-logo.svg'
 import * as S from './AuthHeader.style'
 

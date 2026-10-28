@@ -31,7 +31,7 @@ import {
   useNotificationReadMutation,
 } from '@/features/notification'
 
-import notificationAvatar from '../assets/images/notification-avatar.png'
+import notificationAvatar from '../assets/images/notification-avatar.webp'
 import notificationCommentIcon from '../assets/svg/notification-comment.svg'
 import notificationMoreIcon from '../assets/svg/notification-more.svg'
 import notificationSettingsIcon from '../assets/svg/notification-settings.svg'

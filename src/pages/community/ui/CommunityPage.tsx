@@ -20,7 +20,7 @@ import {
   resolveCommunityAssetUrl,
   type PostCategory,
 } from '@/entities/community';
-import fallbackProfileImage from '@/shared/assets/sidebar/profile.png';
+import fallbackProfileImage from '@/shared/assets/sidebar/profile.webp';
 import eyeIcon from '@/shared/assets/my/eye-icon.svg';
 import { getNameStyleKey } from '@/shared/styles';
 import { Button } from '@/shared/ui';

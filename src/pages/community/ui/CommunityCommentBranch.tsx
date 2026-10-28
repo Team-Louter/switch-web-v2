@@ -15,7 +15,7 @@ import {
 import type { KlipyGif } from '@/shared/api';
 import { getNameStyleKey } from '@/shared/styles';
 
-import anonymousProfileImage from '../assets/images/anonymousProfile.png';
+import anonymousProfileImage from '../assets/images/anonymousProfile.webp';
 import {
   FLATTENED_TREE_DEPTH,
   type CommentTreeNode,

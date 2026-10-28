@@ -2,7 +2,7 @@ import type { FormEvent } from 'react'
 
 import { Turnstile } from '@/features/auth'
 
-import authHeroImage from '../../assets/images/auth-hero.jpg'
+import authHeroImage from '../../assets/images/auth-hero.webp'
 import { useGoogleExtraSignupForm } from '../../model/useGoogleExtraSignupForm'
 import { AuthHeader } from '../AuthHeader'
 import { AuthIntro } from '../AuthIntro'

@@ -1,4 +1,4 @@
-import profileImage from '@/shared/assets/sidebar/profile.png'
+import profileImage from '@/shared/assets/sidebar/profile.webp'
 
 import {
   MentorCell,
