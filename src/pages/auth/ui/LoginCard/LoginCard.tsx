@@ -55,10 +55,13 @@ export function LoginCard({
       aria-labelledby="login-title"
     >
       <S.Hero $heightOffset={heightOffset}>
-        <S.HeroImage
-          src={authHeroImage}
-          alt="Louter 캐릭터들이 함께 노는 모습"
-        />
+        <picture>
+          <source media="(max-width: 900px)" srcSet="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" />
+          <S.HeroImage
+            src={authHeroImage}
+            alt="Louter 캐릭터들이 함께 노는 모습"
+          />
+        </picture>
       </S.Hero>
 
       <LoginPanel controller={controller} heightOffset={heightOffset} />
