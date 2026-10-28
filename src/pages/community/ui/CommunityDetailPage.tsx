@@ -45,7 +45,7 @@ import {
 } from '@/features/community';
 import type { KlipyGif } from '@/shared/api';
 import eyeIcon from '@/shared/assets/my/eye-icon.svg';
-import fallbackProfileImage from '@/shared/assets/sidebar/profile.png';
+import { profileFallbackImage as fallbackProfileImage } from '@/shared/assets/profileFallback';
 import { parseBlockNotePostContent } from '@/shared/lib/blockNotePostContent';
 import { renderCustomUnderlineMarkdown } from '@/shared/lib/markdown';
 import { getNameStyleKey } from '@/shared/styles';
@@ -1084,8 +1084,11 @@ export function CommunityDetailPage() {
     }
 
     let isCancelled = false;
+    let isRefreshing = false;
 
     async function refreshPostStats() {
+      if (isCancelled || document.hidden || isRefreshing || isHeartMutatingRef.current) return;
+      isRefreshing = true;
       const refreshVersion = postStatsRefreshVersionRef.current;
 
       try {
@@ -1102,7 +1105,10 @@ export function CommunityDetailPage() {
         }
 
         setPost((currentPost) =>
-          currentPost
+          currentPost && (
+            currentPost.likeCount !== refreshedStats.likeCount ||
+            currentPost.viewers !== refreshedStats.viewers
+          )
             ? {
                 ...currentPost,
                 likeCount: refreshedStats.likeCount,
@@ -1112,6 +1118,8 @@ export function CommunityDetailPage() {
         );
       } catch {
         // 반응 수 갱신 실패는 게시글 조회 화면을 방해하지 않는다.
+      } finally {
+        isRefreshing = false;
       }
     }
 
@@ -1119,7 +1127,13 @@ export function CommunityDetailPage() {
       void refreshPostStats();
     }, 5_000);
 
+    function handleVisibilityChange() {
+      if (!document.hidden) void refreshPostStats();
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       isCancelled = true;
       window.clearInterval(refreshIntervalId);
     };

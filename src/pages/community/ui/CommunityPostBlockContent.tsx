@@ -14,6 +14,7 @@ import { CommunityAttachmentCard } from './CommunityAttachmentCard';
 import { getYouTubeTitle, isKlipyMediaUrl } from '@/shared/api';
 
 import * as S from './CommunityPostBlockContent.style';
+import { CommunityInlineContent } from './CommunityInlineContent';
 import {
   CommunityPostImageViewer,
   type CommunityPostImagePreview,
@@ -153,7 +154,7 @@ function LinkPreview({ href }: { href: string }) {
 function supportsStaticBlock(block: Block): boolean {
   if (block.type === 'file' && block.children.length === 0) return true;
   if (block.children.length > 0) return false;
-  if (!['paragraph', 'heading', 'image'].includes(block.type)) return false;
+  if (!['paragraph', 'heading', 'image', 'bulletListItem', 'numberedListItem', 'quote'].includes(block.type)) return false;
   const props = block.props as Record<string, unknown>;
   if (props.textColor && props.textColor !== 'default') return false;
   if (props.backgroundColor && props.backgroundColor !== 'default')
@@ -162,10 +163,14 @@ function supportsStaticBlock(block: Block): boolean {
   if (block.type === 'heading' && props.isToggleable) return false;
   if (block.type === 'image') return props.showPreview !== false;
   if (!Array.isArray(block.content)) return false;
-  if (getLinkFromBlock(block)) return true;
-  return block.content.every(
-    (item) => item.type === 'text' && Object.keys(item.styles).length === 0,
-  );
+  return block.content.every((item) => {
+    const texts = item.type === 'link' ? item.content : [item];
+    return texts.every((text) => text.type === 'text' && Object.entries(text.styles).every(
+      ([key, value]) => ['bold', 'italic', 'underline', 'strike', 'code'].includes(key)
+        ? typeof value === 'boolean'
+        : ['textColor', 'backgroundColor'].includes(key) && value === 'default',
+    ));
+  });
 }
 
 function imageUrl(block: Block, files: readonly PostFileResponse[]) {
@@ -290,9 +295,11 @@ export function CommunityPostBlockContent({
   for (const block of blocks) {
     const previous = groups.at(-1);
     if (
-      !supportsStaticBlock(block) &&
-      previous &&
-      !supportsStaticBlock(previous[0])
+      previous && (
+        (!supportsStaticBlock(block) && !supportsStaticBlock(previous[0])) ||
+        (['bulletListItem', 'numberedListItem'].includes(block.type) &&
+          previous.at(-1)?.type === block.type)
+      )
     ) {
       previous.push(block);
     } else {
@@ -308,7 +315,7 @@ export function CommunityPostBlockContent({
     <S.Content aria-label="게시글 본문">
       {groups.map((group) => {
         const block = group[0];
-        if (!supportsStaticBlock(block)) {
+        if (!group.every(supportsStaticBlock)) {
           return (
             <Suspense
               key={group.map((item) => item.id).join(',')}
@@ -367,11 +374,23 @@ export function CommunityPostBlockContent({
             />
           );
         }
-        const text = Array.isArray(block.content)
-          ? block.content
-              .map((item) => (item.type === 'text' ? item.text : ''))
-              .join('')
-          : '';
+        if (block.type === 'bulletListItem' || block.type === 'numberedListItem') {
+          const List = block.type === 'bulletListItem' ? 'ul' : 'ol';
+          const start = block.type === 'numberedListItem' ? block.props.start : undefined;
+          return (
+            <List key={block.id} start={start}>
+              {group.map((item) => (
+                <li key={item.id} value={item.type === 'numberedListItem' ? item.props.start : undefined}>
+                  {Array.isArray(item.content) && <CommunityInlineContent content={item.content} />}
+                </li>
+              ))}
+            </List>
+          );
+        }
+        const text = Array.isArray(block.content) && block.content.length > 0
+          ? <CommunityInlineContent content={block.content} />
+          : <br />;
+        if (block.type === 'quote') return <blockquote key={block.id}>{text}</blockquote>;
         if (block.type === 'heading') {
           const level = block.props.level;
           const Heading =

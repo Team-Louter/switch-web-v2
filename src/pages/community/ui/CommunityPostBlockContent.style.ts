@@ -10,6 +10,34 @@ const shimmer = keyframes`
 export const Content = styled.section`
   width: 100%;
 
+  > p, > blockquote, > ul, > ol {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  > ul, > ol {
+    margin: 0;
+    padding: 3px 0 3px 24px;
+  }
+  > ul { list-style: disc; }
+  > ol { list-style: decimal; }
+  > ul > li, > ol > li { padding: 3px 0; }
+  > blockquote {
+    margin: 3px 0;
+    padding: 3px 12px;
+    border-left: 3px solid ${token.colors.gray.gray30};
+  }
+  :is(p, h1, h2, h3, h4, h5, h6, li, blockquote) a {
+    color: ${token.colors.primary.primary60};
+    text-decoration: underline;
+  }
+  code {
+    padding: 2px 4px;
+    border-radius: 4px;
+    background: ${token.colors.gray.gray10};
+    font-family: monospace;
+  }
+
   > p {
     margin: 0;
     padding: 3px 0;

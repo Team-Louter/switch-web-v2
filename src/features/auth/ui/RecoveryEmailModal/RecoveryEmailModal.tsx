@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 
-import fireworksImage from '../../assets/party-popper.png'
+import fireworksImage from '../../assets/party-popper.webp'
 import { useRecoveryEmailForm } from '../../model/useRecoveryEmailForm'
 import { EmailVerificationModal } from '../EmailVerificationModal'
 import { Turnstile } from '../Turnstile/Turnstile'

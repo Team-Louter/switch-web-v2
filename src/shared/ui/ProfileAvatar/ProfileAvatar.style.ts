@@ -34,7 +34,7 @@ export const ImageClip = styled.span<{
   transform: translate(-50%, -50%);
 `
 
-export const ProfileImage = styled.img<{ $imageScale: number }>`
+export const ProfileImage = styled.img<{ $imageScale: number; $isLoading: boolean }>`
   position: absolute;
   top: 50%;
   left: 50%;
@@ -42,6 +42,7 @@ export const ProfileImage = styled.img<{ $imageScale: number }>`
   width: ${({ $imageScale }) => $imageScale * 100}%;
   height: ${({ $imageScale }) => $imageScale * 100}%;
   object-fit: cover;
+  opacity: ${({ $isLoading }) => $isLoading ? 0 : 1};
   transform: translate(-50%, -50%);
 `
 
@@ -62,4 +63,11 @@ export const DecorationImage = styled.img<{
   pointer-events: none;
   user-select: none;
   transform: translate(-50%, -50%);
+`
+
+export const ImageSkeleton = styled.span`
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: ${token.colors.gray.gray10};
 `

@@ -1,6 +1,4 @@
-import MonacoEditor, { loader } from '@monaco-editor/react'
-import * as monaco from 'monaco-editor'
-import { type MouseEvent, useEffect, useState } from 'react'
+import { lazy, type MouseEvent, useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   IoChevronDown,
@@ -12,6 +10,7 @@ import { LuPlus } from 'react-icons/lu'
 
 import { typingProblemsOptions, type TypingProblem } from '@/entities/typing'
 import { useUserStore } from '@/entities/profile'
+import { AsyncBoundary } from '@/shared/ui'
 
 import { createProblem } from '../../api/createProblem'
 import { deleteProblem } from '../../api/deleteProblem'
@@ -19,6 +18,10 @@ import { updateProblem } from '../../api/updateProblem'
 import * as S from './TypingSentenceModal.style'
 
 export type TypingSentenceModalType = 'settings' | 'editor' | 'delete' | null
+
+const SentenceCodeEditor = lazy(() =>
+  import('./SentenceCodeEditor').then(({ SentenceCodeEditor }) => ({ default: SentenceCodeEditor })),
+)
 
 type SentenceCategory = 'DAILY' | 'CODE'
 
@@ -31,18 +34,6 @@ type TypingSentenceModalProps = {
   onEdit: (item: TypingProblem) => void
   onOpenEditor: () => void
 }
-
-loader.config({ monaco })
-monaco.editor.defineTheme('typing-vs-dark', {
-  base: 'vs-dark',
-  inherit: true,
-  rules: [{ token: 'invalid', foreground: 'D4D4D4' }],
-  colors: {},
-})
-monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-  allowNonTsExtensions: true,
-  jsx: monaco.languages.typescript.JsxEmit.ReactJSX,
-})
 
 export function TypingSentenceModal({
   editingItem,
@@ -204,38 +195,9 @@ function SentenceEditor({ editingItem, onBackToSettings }: SentenceEditorProps) 
           <S.FieldLabel htmlFor="sentence-content">문장</S.FieldLabel>
           {isCode ? (
             <S.CodeEditorWrap>
-              <MonacoEditor
-                language={language}
-                path={`file:///sentence-editor.${language === 'javascript' ? 'jsx' : 'java'}`}
-                value={sentence}
-                onChange={(value) => setSentence(value ?? '')}
-                theme="typing-vs-dark"
-                options={{
-                  ariaLabel: '개발 언어 문장 에디터',
-                  automaticLayout: true,
-                  autoClosingBrackets: 'always',
-                  autoClosingQuotes: 'always',
-                  autoIndent: 'full',
-                  detectIndentation: false,
-                  editContext: false,
-                  folding: false,
-                  fontFamily: "'Roboto Mono', monospace",
-                  fontSize: 14,
-                  glyphMargin: false,
-                  lineDecorationsWidth: 18,
-                  lineHeight: 20,
-                  lineNumbers: 'on',
-                  lineNumbersMinChars: 2,
-                  minimap: { enabled: false },
-                  padding: { top: 8, bottom: 8 },
-                  renderLineHighlight: 'none',
-                  scrollBeyondLastLine: false,
-                  insertSpaces: true,
-                  tabSize: 2,
-                  wordWrap: 'on',
-                  wrappingIndent: 'indent',
-                }}
-              />
+              <AsyncBoundary>
+                <SentenceCodeEditor language={language} value={sentence} onChange={setSentence} />
+              </AsyncBoundary>
             </S.CodeEditorWrap>
           ) : (
             <S.Textarea id="sentence-content" value={sentence} onChange={(event) => setSentence(event.target.value)} />

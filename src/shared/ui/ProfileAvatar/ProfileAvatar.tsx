@@ -1,3 +1,5 @@
+import { useCallback, useImperativeHandle, useRef, useState } from 'react'
+
 import * as S from './ProfileAvatar.style'
 import { useProfileAvatar } from './model/useProfileAvatar'
 
@@ -15,12 +17,28 @@ export function ProfileAvatar({
   onImageLoad,
   onImageError,
   size,
+  showLoadingState = false,
 }: ProfileAvatarProps) {
   const { decorations, layout, normalizedImageUrl } =
     useProfileAvatar(imageUrl, equippedItems, size)
 
+  const imageElementRef = useRef<HTMLImageElement | null>(null)
+  useImperativeHandle<HTMLImageElement | null, HTMLImageElement | null>(
+    imageRef,
+    () => normalizedImageUrl ? imageElementRef.current : null,
+    [normalizedImageUrl],
+  )
+  const [settledImageUrl, setSettledImageUrl] = useState<string>()
+  const isLoading = showLoadingState && Boolean(normalizedImageUrl) && settledImageUrl !== normalizedImageUrl
+  const handleImageRef = useCallback((image: HTMLImageElement | null) => {
+    if (showLoadingState && image?.complete && normalizedImageUrl) {
+      setSettledImageUrl(normalizedImageUrl)
+    }
+    imageElementRef.current = image
+  }, [normalizedImageUrl, showLoadingState])
+
   return (
-    <S.AvatarRoot className={className} $size={size}>
+    <S.AvatarRoot className={className} $size={size} aria-busy={showLoadingState ? isLoading : undefined}>
       <S.ImageClip
         $size={size}
         $maskUrl={layout.maskUrl}
@@ -28,16 +46,24 @@ export function ProfileAvatar({
         $offsetX={layout.offsetX}
         $offsetY={layout.offsetY}
       >
+        {isLoading && <S.ImageSkeleton aria-hidden="true" />}
         {normalizedImageUrl && (
           <S.ProfileImage
-            ref={imageRef}
+            ref={handleImageRef}
             src={normalizedImageUrl}
             alt={alt}
             $imageScale={imageScale}
+            $isLoading={isLoading}
             decoding={decoding}
             loading={loading}
-            onLoad={onImageLoad}
-            onError={onImageError}
+            onLoad={(event) => {
+              if (showLoadingState) setSettledImageUrl(normalizedImageUrl)
+              onImageLoad?.(event)
+            }}
+            onError={(event) => {
+              if (showLoadingState) setSettledImageUrl(normalizedImageUrl)
+              onImageError?.(event)
+            }}
           />
         )}
       </S.ImageClip>

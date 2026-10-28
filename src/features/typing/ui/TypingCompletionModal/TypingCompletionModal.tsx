@@ -1,4 +1,4 @@
-import completionImage from '../../assets/typing-completion.png'
+import completionImage from '../../assets/typing-completion.webp'
 
 import * as S from './TypingCompletionModal.style'
 
