@@ -173,13 +173,49 @@ def draw_blush(layer: Image.Image, progress: float) -> None:
     layer.alpha_composite(details)
 
 
+def draw_pumpkin(layer: Image.Image, progress: float) -> None:
+    """Place one small jack-o'-lantern between the ears, above the photo."""
+    bob = -4 * (1 - math.cos(2 * math.pi * progress)) / 2
+
+    def box(left: float, top: float, right: float, bottom: float) -> tuple[int, ...]:
+        return tuple(
+            round(value * DRAW_SCALE)
+            for value in (left, top + bob, right, bottom + bob)
+        )
+
+    def points(vertices: list[Point]) -> list[tuple[int, int]]:
+        return scale_points([(x, y + bob) for x, y in vertices])
+
+    draw = ImageDraw.Draw(layer)
+    draw.rounded_rectangle(
+        box(249, 24, 265, 55), radius=6 * DRAW_SCALE, fill="#3F263B"
+    )
+    draw.rounded_rectangle(
+        box(252, 27, 262, 51), radius=4 * DRAW_SCALE, fill="#548D3E"
+    )
+    draw.ellipse(box(207, 43, 305, 121), fill="#45253C")
+    draw.ellipse(box(212, 48, 249, 116), fill="#DB5A16")
+    draw.ellipse(box(263, 48, 300, 116), fill="#DB5A16")
+    draw.ellipse(box(230, 46, 282, 118), fill="#FF9229")
+    draw.arc(
+        box(229, 51, 282, 115), 195, 345, fill="#FFC367", width=2 * DRAW_SCALE
+    )
+    draw.polygon(points([(229, 82), (239, 69), (248, 83)]), fill="#45253C")
+    draw.polygon(points([(264, 83), (273, 69), (283, 82)]), fill="#45253C")
+    draw.polygon(points([(251, 91), (256, 83), (261, 91)]), fill="#A44517")
+    draw.arc(
+        box(227, 71, 285, 106), 20, 160, fill="#45253C", width=5 * DRAW_SCALE
+    )
+    draw.ellipse(box(217, 88, 225, 94), fill="#FFBD62")
+    draw.ellipse(box(287, 88, 295, 94), fill="#FFBD62")
+
+
 def draw_sparkles(layer: Image.Image, progress: float) -> None:
     glow = Image.new("RGBA", layer.size)
     glow_draw = ImageDraw.Draw(glow)
     sharp = Image.new("RGBA", layer.size)
     sharp_draw = ImageDraw.Draw(sharp)
     anchors = (
-        (272, 53, 0.00),
         (454, 258, 0.25),
         (256, 459, 0.50),
         (57, 308, 0.75),
@@ -258,6 +294,7 @@ def render_frame(index: int) -> Image.Image:
             fill="#F8EDE4",
             width=4 * DRAW_SCALE,
         )
+    draw_pumpkin(layer, progress)
     draw_blush(layer, progress)
     draw_whiskers(layer, whisker_sway)
     draw_sparkles(layer, progress)
