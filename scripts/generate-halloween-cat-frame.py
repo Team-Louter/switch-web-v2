@@ -51,16 +51,20 @@ def scale_points(points: list[Point]) -> list[tuple[int, int]]:
     return [(round(x * DRAW_SCALE), round(y * DRAW_SCALE)) for x, y in points]
 
 
-def rotate(points: list[Point], angle_degrees: float, pivot: Point) -> list[Point]:
-    angle = math.radians(angle_degrees)
-    sine, cosine = math.sin(angle), math.cos(angle)
-    return [
-        (
-            pivot[0] + (x - pivot[0]) * cosine - (y - pivot[1]) * sine,
-            pivot[1] + (x - pivot[0]) * sine + (y - pivot[1]) * cosine,
+def bend_ear(points: list[Point], angle_degrees: float, pivot: Point) -> list[Point]:
+    bent = []
+    for x, y in points:
+        # Keep the base fixed against the avatar rim while the ear tip perks up.
+        tip_weight = smoothstep((176 - y) / 100)
+        angle = math.radians(angle_degrees * tip_weight)
+        sine, cosine = math.sin(angle), math.cos(angle)
+        bent.append(
+            (
+                pivot[0] + (x - pivot[0]) * cosine - (y - pivot[1]) * sine,
+                pivot[1] + (x - pivot[0]) * sine + (y - pivot[1]) * cosine,
+            )
         )
-        for x, y in points
-    ]
+    return bent
 
 
 def mirror(points: list[Point]) -> list[Point]:
@@ -93,7 +97,7 @@ def draw_ear(layer: Image.Image, angle: float, right: bool) -> None:
     for index, shape in enumerate(shapes):
         if right:
             shape = mirror(shape)
-        shape = rotate(shape, -angle if right else angle, pivot)
+        shape = bend_ear(shape, -angle if right else angle, pivot)
         draw.polygon(
             scale_points(shape),
             fill=("#F8EDE4" if index == 0 else "#EE8425"),
@@ -105,7 +109,7 @@ def draw_ear(layer: Image.Image, angle: float, right: bool) -> None:
     highlight = cubic((92, 93), (93, 82), (115, 80), (138, 94))
     if right:
         highlight = mirror(highlight)
-    highlight = rotate(highlight, -angle if right else angle, pivot)
+    highlight = bend_ear(highlight, -angle if right else angle, pivot)
     draw.line(scale_points(highlight), fill="#FFBF64", width=3 * DRAW_SCALE, joint="curve")
 
 
@@ -152,8 +156,8 @@ def draw_blush(layer: Image.Image, progress: float) -> None:
         return
 
     size = layer.size
-    glow = Image.new("RGBA", size)
-    glow_draw = ImageDraw.Draw(glow)
+    glow_mask = Image.new("L", size)
+    glow_draw = ImageDraw.Draw(glow_mask)
     details = Image.new("RGBA", size)
     detail_draw = ImageDraw.Draw(details)
 
@@ -166,7 +170,7 @@ def draw_blush(layer: Image.Image, progress: float) -> None:
                 round((center_x + 52) * DRAW_SCALE),
                 round((center_y + 38) * DRAW_SCALE),
             ),
-            fill=(244, 82, 169, round(115 * opacity)),
+            fill=round(115 * opacity),
         )
         detail_draw.ellipse(
             (
@@ -189,7 +193,9 @@ def draw_blush(layer: Image.Image, progress: float) -> None:
                 width=3 * DRAW_SCALE,
             )
 
-    softened = glow.filter(ImageFilter.GaussianBlur(9 * DRAW_SCALE))
+    # Blur only alpha: blurring transparent black RGB produced a gray fringe.
+    softened = Image.new("RGBA", size, (244, 82, 169))
+    softened.putalpha(glow_mask.filter(ImageFilter.GaussianBlur(9 * DRAW_SCALE)))
     layer.alpha_composite(softened)
     layer.alpha_composite(details)
 
@@ -214,7 +220,6 @@ def draw_pumpkin(layer: Image.Image, progress: float) -> None:
     draw.rounded_rectangle(
         box(252, 27, 262, 51), radius=4 * DRAW_SCALE, fill="#548D3E"
     )
-    draw.ellipse(box(207, 43, 305, 121), fill="#45253C")
     draw.ellipse(box(212, 48, 249, 116), fill="#DB5A16")
     draw.ellipse(box(263, 48, 300, 116), fill="#DB5A16")
     draw.ellipse(box(230, 46, 282, 118), fill="#FF9229")
