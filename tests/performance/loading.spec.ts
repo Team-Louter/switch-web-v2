@@ -253,8 +253,93 @@ test('혼합 서식과 중첩 번호 목록은 한 fallback에서 순서를 보�
 
 test('코드 화면 청크 로드 실패 시 다시 시도할 안내를 표시한다', async ({ page, api }) => {
   void api
-  await page.route(/\/assets\/CodeTypingPage-[^/]+\.js$/, (route) => route.abort('failed'))
+  const chunk = /\/assets\/CodeTypingPage-[^/]+\.js$/
+  await page.route(chunk, (route) => route.abort('failed'))
   await page.goto('/typing/code/javascript')
   await expect(page.getByRole('alert')).toContainText('화면을 불러오지 못했습니다')
-  await expect(page.getByRole('button', { name: '새로고침', exact: true })).toBeVisible()
+  const retry = page.getByRole('button', { name: '새로고침', exact: true })
+  await expect(retry).toBeVisible()
+  await page.unroute(chunk)
+  await page.route('**/api/typing/rounds/JAVASCRIPT', (route) => route.fulfill({ json: {
+    roundId: 8, userId: 42, resultId: 0, problemType: 'JAVASCRIPT',
+    problems: [{ problemId: 1, problemType: 'JAVASCRIPT', content: 'const value = 1;' }],
+  } }))
+  await retry.click()
+  await expect(page.getByRole('textbox', { name: '내가 쓴 코드 에디터' })).toBeVisible()
+})
+
+for (const width of [390, 901]) {
+  test(`추가 회원가입 ${width}px에서도 화면 크기에 맞는 hero를 요청한다`, async ({ page, api }) => {
+    void api
+    await page.addInitScript(() => {
+      localStorage.removeItem('accessToken')
+      localStorage.setItem('pendingAccessToken', 'e30.eyJleHAiOjIwMDAwMDAwMDB9.fixture')
+      localStorage.setItem('pendingAccessTokenFlow', 'google-extra-signup')
+    })
+    await page.setViewportSize({ width, height: 900 })
+    const requests = recordRequests(page)
+    await page.goto('/extra-signup')
+    const hero = page.locator('picture img')
+    await expect(hero).toHaveCount(1)
+    await expect.poll(() => hero.evaluate((image: HTMLImageElement) => image.complete)).toBe(true)
+    expect(requests.filter((url) => url.includes('/assets/auth-hero-'))).toHaveLength(width <= 900 ? 0 : 1)
+  })
+}
+
+test('멘토링 아바타가 지연되어도 방 이름과 멤버를 먼저 표시한다', async ({ page, api }) => {
+  void api
+  let release = () => {}
+  const gate = new Promise<void>((resolve) => { release = resolve })
+  await page.route('**/api/members', (route) => route.fulfill({ json: [{
+    userId: 42, userName: '느린 멤버', role: 'LEADER', grade: 2, classRoom: 1, number: 1,
+    profileImageUrl: 'http://127.0.0.1:4173/slow-mentor.svg', majors: [], generation: 3, githubUrl: '', linkedinUrl: '',
+  }] }))
+  await page.route('**/api/mentoring', (route) => route.fulfill({ json: [{ mentoringId: 1, mentoringName: '느린 이미지 방', createdAt: '2026-10-28T00:00:00Z' }] }))
+  await page.route('**/api/mentoring/questions', (route) => route.fulfill({ json: [] }))
+  await page.route('**/api/mentoring/messages', (route) => route.fulfill({ json: [] }))
+  await page.route('**/api/mentoring/1/members?*', (route) => route.fulfill({ json:
+    new URL(route.request().url()).searchParams.get('role') === 'LEADER'
+      ? [{ memberId: 1, mentoringId: 1, userId: 42, role: 'LEADER' }]
+      : [],
+  }))
+  await page.route('**/slow-mentor.svg', async (route) => { await gate; await route.fulfill({ status: 503, body: '' }) })
+  try {
+    await page.goto('/mentoring')
+    await expect(page.getByText('느린 이미지 방', { exact: true }).first()).toBeVisible()
+    await expect(page.locator('[aria-busy="true"] img[alt="느린 멤버"]').first()).toBeAttached()
+  } finally {
+    release()
+  }
+  await expect(page.locator('[aria-busy="true"] img[alt="느린 멤버"]')).toHaveCount(0)
+})
+
+test('토큰 재발급 중 화면을 이동해도 진행 중인 프로필 조회를 공유한다', async ({ page, api }) => {
+  void api
+  let release = () => {}
+  const gate = new Promise<void>((resolve) => { release = resolve })
+  let requests = 0
+  await page.route('**/api/me', async (route) => {
+    requests += 1
+    if (requests === 1) {
+      await route.fulfill({ status: 401, json: {} })
+      return
+    }
+    await gate
+    await route.fulfill({ json: { userId: 42, userName: '재발급 사용자', role: 'LEADER', grade: 2, classRoom: 1, number: 1 } })
+  })
+  await page.route('**/api/auth/refresh', (route) => route.fulfill({ json: {
+    access_token: 'e30.eyJleHAiOjIwMDAwMDAwMDB9.refreshed',
+  } }))
+  try {
+    await page.goto('/community')
+    await expect.poll(() => requests).toBe(2)
+    await page.getByRole('button', { name: '타자연습', exact: true }).click()
+    await expect(page.getByRole('heading', { name: '타자 연습' })).toBeVisible()
+    // 추가 요청이 없는지 확인하는 관측 구간이다. 진행 중 응답은 계속 보류한다.
+    await page.waitForTimeout(200)
+    expect(requests).toBe(2)
+  } finally {
+    release()
+  }
+  await expect(page.getByRole('button', { name: '재발급 사용자 2학년 1반 1번' })).toBeVisible()
 })
