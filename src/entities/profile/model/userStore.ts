@@ -1,8 +1,10 @@
 import { create } from 'zustand'
 
-import { AUTH_STATE_CHANGED_EVENT, getAccessToken } from '@/shared/lib/authToken'
+import { AUTH_STATE_CHANGED_EVENT, getAccessToken, getPendingAccessToken } from '@/shared/lib/authToken'
+import { queryClient } from '@/shared/lib/queryClient'
 
 import { getMyProfile } from '../api/profileApi'
+import { profileQueryKeys } from './profileQueries'
 
 import type { ProfileResponse } from './types'
 
@@ -14,24 +16,47 @@ interface UserState {
   setUser: (user: ProfileResponse) => void
 }
 
+let pendingProfile: { token: string | null; promise: Promise<ProfileResponse> } | null = null
+
+function getProfileToken() {
+  return getAccessToken() ?? getPendingAccessToken()
+}
+
 export const useUserStore = create<UserState>((set) => ({
   user: null,
   profileLoadState: 'idle',
-  fetchUser: async () => {
+  fetchUser: () => {
+    const token = getProfileToken()
+    if (pendingProfile?.token === token) return pendingProfile.promise
+
     set({ profileLoadState: 'loading' })
+    const promise = getMyProfile()
+      .then((user) => {
+        if (pendingProfile?.promise !== promise || getProfileToken() !== token) {
+          throw new Error('프로필 조회 중 로그인 상태가 변경되었습니다.')
+        }
+        // userId 공개로 layout effect가 재실행되기 전에 같은 조회 결과를 준비한다.
+        queryClient.setQueryData(profileQueryKeys.me(user.userId), user)
+        set({ user, profileLoadState: 'loaded' })
+        return user
+      })
+      .catch((error: unknown) => {
+        if (pendingProfile?.promise === promise && getProfileToken() === token) {
+          set({ profileLoadState: 'error' })
+        }
+        throw error
+      })
+      .finally(() => {
+        if (pendingProfile?.promise === promise) pendingProfile = null
+      })
 
-    try {
-      const user = await getMyProfile()
-      set({ user, profileLoadState: 'loaded' })
-
-      return user
-    } catch (error) {
-      set({ profileLoadState: 'error' })
-
-      throw error
-    }
+    pendingProfile = { token, promise }
+    return promise
   },
-  resetUser: () => set({ user: null, profileLoadState: 'idle' }),
+  resetUser: () => {
+    pendingProfile = null
+    set({ user: null, profileLoadState: 'idle' })
+  },
   setUser: (user) => set({ user, profileLoadState: 'loaded' }),
 }))
 

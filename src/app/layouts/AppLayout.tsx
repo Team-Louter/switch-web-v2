@@ -140,6 +140,8 @@ export function AppLayout() {
         const profile = userId === null
           ? await fetchUser()
           : await queryClient.fetchQuery(profileMeOptions(userId))
+        if (isCancelled) return
+
         queryClient.setQueryData(profileQueryKeys.me(profile.userId), profile)
 
         if (useUserStore.getState().user !== profile) {
