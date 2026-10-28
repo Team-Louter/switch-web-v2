@@ -322,16 +322,38 @@ def render_frame(index: int) -> Image.Image:
 
 
 def export_preview(frames: list[Image.Image]) -> None:
-    preview_frames = []
+    rgb_frames = []
     for frame in frames:
         background = Image.new("RGBA", frame.size, "#202024")
         ImageDraw.Draw(background).ellipse((56, 56, 456, 456), fill="#34343C")
-        preview_frames.append(
+        rgb_frames.append(
             Image.alpha_composite(background, frame)
             .resize((256, 256), Image.Resampling.LANCZOS)
             .convert("RGB")
-            .quantize(colors=128)
         )
+
+    # A shared palette prevents the tiny green stem from turning brown as each
+    # GIF frame is quantized. Reserve its exact color before filling the rest.
+    palette_source = Image.new("RGB", (256, 256 * len(rgb_frames)))
+    for index, frame in enumerate(rgb_frames):
+        palette_source.paste(frame, (0, 256 * index))
+    generated_palette = palette_source.quantize(
+        colors=252, method=Image.Quantize.MEDIANCUT
+    ).getpalette()
+    reserved_colors = (
+        (84, 141, 62),  # pumpkin stem
+        (63, 38, 59),   # stem outline
+        (255, 146, 41), # pumpkin body
+        (52, 52, 60),   # preview photo
+    )
+    palette_values = [channel for color in reserved_colors for channel in color]
+    palette_values.extend(generated_palette[: 252 * 3])
+    shared_palette = Image.new("P", (1, 1))
+    shared_palette.putpalette(palette_values)
+    preview_frames = [
+        frame.quantize(palette=shared_palette, dither=Image.Dither.NONE)
+        for frame in rgb_frames
+    ]
     preview_frames[0].save(
         ASSETS / "halloween-cat-preview.gif",
         save_all=True,
@@ -339,7 +361,7 @@ def export_preview(frames: list[Image.Image]) -> None:
         duration=FRAME_DURATION_MS,
         loop=0,
         disposal=2,
-        optimize=True,
+        optimize=False,
     )
 
 
