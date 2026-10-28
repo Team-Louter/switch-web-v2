@@ -17,19 +17,19 @@ interface UserState {
   setUser: (user: ProfileResponse) => void
 }
 
-let pendingProfile: { token: string | null; promise: Promise<ProfileResponse> } | null = null
+let pendingProfile: { sessionVersion: number; promise: Promise<ProfileResponse> } | null = null
 
 function getProfileToken() {
   return getAccessToken() ?? getPendingAccessToken()
 }
 
-export const useUserStore = create<UserState>((set) => ({
+export const useUserStore = create<UserState>((set, get) => ({
   user: null,
   profileLoadState: 'idle',
   sessionVersion: 0,
   fetchUser: () => {
-    const token = getProfileToken()
-    if (pendingProfile?.token === token) return pendingProfile.promise
+    const sessionVersion = get().sessionVersion
+    if (pendingProfile?.sessionVersion === sessionVersion) return pendingProfile.promise
 
     set({ profileLoadState: 'loading' })
     const promise = getMyProfile()
@@ -54,7 +54,7 @@ export const useUserStore = create<UserState>((set) => ({
         if (pendingProfile?.promise === promise) pendingProfile = null
       })
 
-    pendingProfile = { token, promise }
+    pendingProfile = { sessionVersion, promise }
     return promise
   },
   resetUser: () => {
