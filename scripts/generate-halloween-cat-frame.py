@@ -9,7 +9,7 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
-from PIL import Image, ImageChops, ImageDraw
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 
 ASSETS = Path(__file__).resolve().parents[1] / "src/shared/ui/ProfileAvatar/assets"
@@ -20,6 +20,11 @@ CANVAS_SIZE = 512
 DRAW_SCALE = 3
 
 Point = tuple[float, float]
+
+
+def smoothstep(value: float) -> float:
+    value = max(0.0, min(1.0, value))
+    return value * value * (3 - 2 * value)
 
 
 def cubic(start: Point, control_a: Point, control_b: Point, end: Point) -> list[Point]:
@@ -119,16 +124,111 @@ def draw_whiskers(layer: Image.Image, sway: float) -> None:
             draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill="#17151A")
 
 
+def draw_blush(layer: Image.Image, progress: float) -> None:
+    # The reference alternates between visible cheeks and a bare avatar.
+    opacity = smoothstep((math.cos(2 * math.pi * (progress - 0.10)) + 0.10) / 0.80)
+    if opacity <= 0:
+        return
+
+    size = layer.size
+    glow = Image.new("RGBA", size)
+    glow_draw = ImageDraw.Draw(glow)
+    details = Image.new("RGBA", size)
+    detail_draw = ImageDraw.Draw(details)
+
+    for center_x in (132, 380):
+        center_y = 286
+        glow_draw.ellipse(
+            (
+                round((center_x - 52) * DRAW_SCALE),
+                round((center_y - 38) * DRAW_SCALE),
+                round((center_x + 52) * DRAW_SCALE),
+                round((center_y + 38) * DRAW_SCALE),
+            ),
+            fill=(244, 82, 169, round(115 * opacity)),
+        )
+        detail_draw.ellipse(
+            (
+                round((center_x - 37) * DRAW_SCALE),
+                round((center_y - 25) * DRAW_SCALE),
+                round((center_x + 37) * DRAW_SCALE),
+                round((center_y + 25) * DRAW_SCALE),
+            ),
+            fill=(255, 114, 190, round(95 * opacity)),
+        )
+        for offset in (-17, -7, 3, 13):
+            detail_draw.line(
+                scale_points(
+                    [
+                        (center_x + offset - 5, center_y + 9),
+                        (center_x + offset + 4, center_y - 11),
+                    ]
+                ),
+                fill=(172, 46, 135, round(185 * opacity)),
+                width=3 * DRAW_SCALE,
+            )
+
+    softened = glow.filter(ImageFilter.GaussianBlur(9 * DRAW_SCALE))
+    layer.alpha_composite(softened)
+    layer.alpha_composite(details)
+
+
+def draw_sparkles(layer: Image.Image, progress: float) -> None:
+    glow = Image.new("RGBA", layer.size)
+    glow_draw = ImageDraw.Draw(glow)
+    sharp = Image.new("RGBA", layer.size)
+    sharp_draw = ImageDraw.Draw(sharp)
+    anchors = (
+        (272, 53, 0.00),
+        (454, 258, 0.25),
+        (256, 459, 0.50),
+        (57, 308, 0.75),
+    )
+    for x, y, phase in anchors:
+        pulse = (1 + math.cos(2 * math.pi * (progress - phase))) / 2
+        if pulse < 0.08:
+            continue
+        radius = 6 + 12 * pulse
+        xh, yh = round(x * DRAW_SCALE), round(y * DRAW_SCALE)
+        glow_draw.ellipse(
+            (
+                xh - 17 * DRAW_SCALE,
+                yh - 17 * DRAW_SCALE,
+                xh + 17 * DRAW_SCALE,
+                yh + 17 * DRAW_SCALE,
+            ),
+            fill=(255, 197, 74, round(130 * pulse)),
+        )
+        sharp_draw.polygon(
+            scale_points(
+                [
+                    (x, y - radius),
+                    (x + radius * 0.22, y - radius * 0.22),
+                    (x + radius, y),
+                    (x + radius * 0.22, y + radius * 0.22),
+                    (x, y + radius),
+                    (x - radius * 0.22, y + radius * 0.22),
+                    (x - radius, y),
+                    (x - radius * 0.22, y - radius * 0.22),
+                ]
+            ),
+            fill=(255, 240, 159, round(230 * pulse)),
+        )
+
+    layer.alpha_composite(glow.filter(ImageFilter.GaussianBlur(7 * DRAW_SCALE)))
+    layer.alpha_composite(sharp)
+
+
 def render_frame(index: int) -> Image.Image:
     progress = index / FRAME_COUNT
     perk = (1 - math.cos(2 * math.pi * progress)) / 2
-    whisker_sway = 5 * math.sin(2 * math.pi * progress - 0.35)
+    whisker_sway = 2.5 * math.sin(2 * math.pi * progress - 0.35)
     canvas_size = CANVAS_SIZE * DRAW_SCALE
     layer = Image.new("RGBA", (canvas_size, canvas_size))
 
-    # Rotating the same silhouettes keeps the reference ear shape in every frame.
-    draw_ear(layer, angle=18 * perk, right=False)
-    draw_ear(layer, angle=18 * perk, right=True)
+    # The reference ears mostly hold their shape while the face effects animate.
+    draw_ear(layer, angle=8 * perk, right=False)
+    draw_ear(layer, angle=8 * perk, right=True)
 
     # Ear bases sit behind the transparent photo opening, as in the reference.
     opening = Image.new("L", (canvas_size, canvas_size))
@@ -158,7 +258,9 @@ def render_frame(index: int) -> Image.Image:
             fill="#F8EDE4",
             width=4 * DRAW_SCALE,
         )
+    draw_blush(layer, progress)
     draw_whiskers(layer, whisker_sway)
+    draw_sparkles(layer, progress)
     return layer.resize((CANVAS_SIZE, CANVAS_SIZE), Image.Resampling.LANCZOS)
 
 
@@ -206,7 +308,7 @@ def main() -> None:
         blend=0,
         compress_level=9,
     )
-    frames[7].resize((256, 256), Image.Resampling.LANCZOS).save(
+    frames[0].resize((256, 256), Image.Resampling.LANCZOS).save(
         ASSETS / "halloween-cat-thumbnail.webp", format="WEBP", quality=88
     )
     export_preview(frames)
