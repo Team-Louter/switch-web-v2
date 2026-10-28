@@ -1,4 +1,5 @@
 import MonacoEditor from '@monaco-editor/react'
+import { useId } from 'react'
 import '@/shared/lib/monacoSetup'
 
 
@@ -9,10 +10,12 @@ interface SentenceCodeEditorProps {
 }
 
 export function SentenceCodeEditor({ language, value, onChange }: SentenceCodeEditorProps) {
+  const modelId = useId()
+
   return (
     <MonacoEditor
       language={language}
-      path={`file:///sentence-editor.${language === 'javascript' ? 'jsx' : 'java'}`}
+      path={`file:///sentence-editor-${encodeURIComponent(modelId)}.jsx`}
       value={value}
       onChange={(nextValue) => onChange(nextValue ?? '')}
       theme="typing-vs-dark"
