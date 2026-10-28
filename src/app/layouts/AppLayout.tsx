@@ -69,6 +69,7 @@ export function AppLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const fetchUser = useUserStore((state) => state.fetchUser)
+  const sessionVersion = useUserStore((state) => state.sessionVersion)
   const setUser = useUserStore((state) => state.setUser)
   const userId = useUserStore((state) => state.user?.userId ?? null)
   const [storedNotificationCount] = useState(getStoredUnreadNotificationCount)
@@ -140,6 +141,8 @@ export function AppLayout() {
         const profile = userId === null
           ? await fetchUser()
           : await queryClient.fetchQuery(profileMeOptions(userId))
+        if (isCancelled) return
+
         queryClient.setQueryData(profileQueryKeys.me(profile.userId), profile)
 
         if (useUserStore.getState().user !== profile) {
@@ -192,7 +195,7 @@ export function AppLayout() {
       isCancelled = true
       window.removeEventListener(PROFILE_SYNC_EVENT_NAME, handleProfileSync)
     }
-  }, [fetchUser, location.pathname, setUser, userId])
+  }, [fetchUser, location.pathname, setUser, userId, sessionVersion])
 
   return (
     <Layout>

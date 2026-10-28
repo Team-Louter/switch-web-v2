@@ -39,6 +39,7 @@ export function MemberAvatar({
   return (
     <S.Avatar
       imageUrl={imageSource}
+      showLoadingState
       alt={userName}
       equippedItems={equippedItems}
       size={size}

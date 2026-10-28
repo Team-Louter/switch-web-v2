@@ -28,6 +28,7 @@ export type ProfileAvatarProps = {
   alt?: string
   className?: string
   equippedItems?: ProfileAvatarEquippedItems
+  showLoadingState?: boolean
   imageScale?: number
   imageUrl?: string
   imageRef?: Ref<HTMLImageElement>

@@ -1,6 +1,6 @@
 import { PiCaretDoubleRight } from 'react-icons/pi'
 
-import profileImage from '@/shared/assets/sidebar/profile.png'
+import { profileFallbackImage as profileImage } from '@/shared/assets/profileFallback'
 import backChevronIcon from '../assets/back-chevron.svg'
 
 import { useMentoringPage } from '../model/useMentoringPage'

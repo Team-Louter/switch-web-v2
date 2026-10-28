@@ -72,4 +72,8 @@ export const Card = styled.div<{
     $placement === 'bottom-right'
       ? css`${$isClosing ? floatingCardExit : floatingCardEnter} 180ms ease both`
       : 'none'};
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `

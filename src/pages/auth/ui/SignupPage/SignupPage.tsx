@@ -4,7 +4,7 @@ import { FiEye, FiEyeOff } from 'react-icons/fi'
 
 import { EmailVerificationModal, Turnstile } from '@/features/auth'
 
-import authHeroImage from '../../assets/images/auth-hero.jpg'
+import authHeroImage from '../../assets/images/auth-hero.webp'
 import { useSignupForm } from '../../model/useSignupForm'
 import { AuthHeader } from '../AuthHeader'
 import { AuthIntro } from '../AuthIntro'
@@ -92,10 +92,13 @@ export function SignupPage({
           onAnimationEnd={handleCardAnimationEnd}
         >
           <S.Hero>
-            <S.HeroImage
-              src={authHeroImage}
-              alt="Louter 캐릭터들이 함께 뛰어노는 모습"
-            />
+            <picture>
+              <source media="(max-width: 900px)" srcSet="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" />
+              <S.HeroImage
+                src={authHeroImage}
+                alt="Louter 캐릭터들이 함께 뛰어노는 모습"
+              />
+            </picture>
           </S.Hero>
 
           <S.Panel>
