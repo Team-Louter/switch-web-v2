@@ -32,7 +32,9 @@ export const useUserStore = create<UserState>((set) => ({
     set({ profileLoadState: 'loading' })
     const promise = getMyProfile()
       .then((user) => {
-        if (pendingProfile?.promise !== promise || getProfileToken() !== token) {
+        // 401 재시도로 토큰이 바뀌어도 같은 세션의 응답은 사용한다.
+        // 로그아웃·계정 전환으로 교체된 요청만 제외한다.
+        if (pendingProfile?.promise !== promise || !getProfileToken()) {
           throw new Error('프로필 조회 중 로그인 상태가 변경되었습니다.')
         }
         // userId 공개로 layout effect가 재실행되기 전에 같은 조회 결과를 준비한다.
@@ -41,7 +43,7 @@ export const useUserStore = create<UserState>((set) => ({
         return user
       })
       .catch((error: unknown) => {
-        if (pendingProfile?.promise === promise && getProfileToken() === token) {
+        if (pendingProfile?.promise === promise && Boolean(getProfileToken())) {
           set({ profileLoadState: 'error' })
         }
         throw error
@@ -62,6 +64,12 @@ export const useUserStore = create<UserState>((set) => ({
 
 window.addEventListener(AUTH_STATE_CHANGED_EVENT, () => {
   if (!getAccessToken()) {
+    useUserStore.getState().resetUser()
+  }
+})
+
+window.addEventListener('storage', (event) => {
+  if (event.key === 'accessToken' || event.key === null) {
     useUserStore.getState().resetUser()
   }
 })
