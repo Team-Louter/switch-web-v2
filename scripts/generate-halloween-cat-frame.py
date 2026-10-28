@@ -145,8 +145,9 @@ def draw_whiskers(layer: Image.Image, sway: float) -> None:
 
 
 def draw_blush(layer: Image.Image, progress: float) -> None:
-    # The reference alternates between visible cheeks and a bare avatar.
-    opacity = smoothstep((math.cos(2 * math.pi * (progress - 0.10)) + 0.10) / 0.80)
+    # Preserve the original cheek artwork and spread its fade across more frames.
+    wave = (1 + math.cos(2 * math.pi * (progress - 0.10))) / 2
+    opacity = smoothstep((wave - 0.10) / 0.75)
     if opacity <= 0:
         return
 
@@ -156,8 +157,8 @@ def draw_blush(layer: Image.Image, progress: float) -> None:
     details = Image.new("RGBA", size)
     detail_draw = ImageDraw.Draw(details)
 
-    for center_x in (120, 392):
-        center_y = 282
+    for center_x in (132, 380):
+        center_y = 286
         glow_draw.ellipse(
             (
                 round((center_x - 52) * DRAW_SCALE),
@@ -165,7 +166,7 @@ def draw_blush(layer: Image.Image, progress: float) -> None:
                 round((center_x + 52) * DRAW_SCALE),
                 round((center_y + 38) * DRAW_SCALE),
             ),
-            fill=(244, 82, 169, round(85 * opacity)),
+            fill=(244, 82, 169, round(115 * opacity)),
         )
         detail_draw.ellipse(
             (
@@ -174,9 +175,9 @@ def draw_blush(layer: Image.Image, progress: float) -> None:
                 round((center_x + 37) * DRAW_SCALE),
                 round((center_y + 25) * DRAW_SCALE),
             ),
-            fill=(255, 114, 190, round(55 * opacity)),
+            fill=(255, 114, 190, round(95 * opacity)),
         )
-        for offset in (-12, 0, 12):
+        for offset in (-17, -7, 3, 13):
             detail_draw.line(
                 scale_points(
                     [
@@ -184,13 +185,13 @@ def draw_blush(layer: Image.Image, progress: float) -> None:
                         (center_x + offset + 4, center_y - 11),
                     ]
                 ),
-                fill=(172, 46, 135, round(110 * opacity)),
+                fill=(172, 46, 135, round(185 * opacity)),
                 width=3 * DRAW_SCALE,
             )
 
-    softened = glow.filter(ImageFilter.GaussianBlur(12 * DRAW_SCALE))
+    softened = glow.filter(ImageFilter.GaussianBlur(9 * DRAW_SCALE))
     layer.alpha_composite(softened)
-    layer.alpha_composite(details.filter(ImageFilter.GaussianBlur(2 * DRAW_SCALE)))
+    layer.alpha_composite(details)
 
 
 def draw_pumpkin(layer: Image.Image, progress: float) -> None:
@@ -315,8 +316,8 @@ def render_frame(index: int) -> Image.Image:
             width=6 * DRAW_SCALE,
         )
     draw_pumpkin(layer, progress)
-    draw_whiskers(layer, whisker_sway)
     draw_blush(layer, progress)
+    draw_whiskers(layer, whisker_sway)
     draw_sparkles(layer, progress)
     return layer.resize((CANVAS_SIZE, CANVAS_SIZE), Image.Resampling.LANCZOS)
 
