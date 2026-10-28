@@ -11,6 +11,7 @@ import type { ProfileResponse } from './types'
 interface UserState {
   user: ProfileResponse | null
   profileLoadState: 'idle' | 'loading' | 'loaded' | 'error'
+  sessionVersion: number
   fetchUser: () => Promise<ProfileResponse>
   resetUser: () => void
   setUser: (user: ProfileResponse) => void
@@ -25,6 +26,7 @@ function getProfileToken() {
 export const useUserStore = create<UserState>((set) => ({
   user: null,
   profileLoadState: 'idle',
+  sessionVersion: 0,
   fetchUser: () => {
     const token = getProfileToken()
     if (pendingProfile?.token === token) return pendingProfile.promise
@@ -57,7 +59,7 @@ export const useUserStore = create<UserState>((set) => ({
   },
   resetUser: () => {
     pendingProfile = null
-    set({ user: null, profileLoadState: 'idle' })
+    set((state) => ({ user: null, profileLoadState: 'idle', sessionVersion: state.sessionVersion + 1 }))
   },
   setUser: (user) => set({ user, profileLoadState: 'loaded' }),
 }))
