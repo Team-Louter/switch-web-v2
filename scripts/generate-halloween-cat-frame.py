@@ -1,4 +1,4 @@
-"""Render 15 transparent PNG frames and an APNG cat avatar accessory.
+"""Render 25 transparent PNG frames and an APNG cat avatar accessory.
 
 Requires Pillow. The 512px canvas uses the shared ProfileAvatar layout:
 the photo is a 400px circle centered at (256, 256).
@@ -14,8 +14,8 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 ASSETS = Path(__file__).resolve().parents[1] / "src/shared/ui/ProfileAvatar/assets"
 FRAMES_DIR = ASSETS / "halloween-cat-frames"
-FRAME_COUNT = 15
-FRAME_DURATION_MS = 80
+FRAME_COUNT = 25
+FRAME_DURATION_MS = 60
 CANVAS_SIZE = 512
 DRAW_SCALE = 3
 
@@ -112,16 +112,36 @@ def draw_ear(layer: Image.Image, angle: float, right: bool) -> None:
 def draw_whiskers(layer: Image.Image, sway: float) -> None:
     draw = ImageDraw.Draw(layer)
     left_lines = (
-        ((95, 258), (28, 252 + sway)),
-        ((96, 282), (22, 300 + sway)),
-        ((95, 296), (28, 331 + sway)),
+        ((111, 258), (28, 252 + sway)),
+        ((112, 282), (22, 300 + sway)),
+        ((111, 296), (28, 331 + sway)),
     )
     for start, end in left_lines:
         for pair in ((start, end), (mirror([start])[0], mirror([end])[0])):
-            draw.line(scale_points(list(pair)), fill="#17151A", width=5 * DRAW_SCALE)
-            radius = 2.5 * DRAW_SCALE
-            x, y = pair[1][0] * DRAW_SCALE, pair[1][1] * DRAW_SCALE
-            draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill="#17151A")
+            root, tip = pair
+            delta_x, delta_y = tip[0] - root[0], tip[1] - root[1]
+            length = math.hypot(delta_x, delta_y)
+            normal_x, normal_y = -delta_y / length, delta_x / length
+            draw.polygon(
+                scale_points(
+                    [
+                        (root[0] + 5 * normal_x, root[1] + 5 * normal_y),
+                        (tip[0] + 1.5 * normal_x, tip[1] + 1.5 * normal_y),
+                        (tip[0] - 1.5 * normal_x, tip[1] - 1.5 * normal_y),
+                        (root[0] - 5 * normal_x, root[1] - 5 * normal_y),
+                    ]
+                ),
+                fill="#211B24",
+            )
+            draw.ellipse(
+                (
+                    round((root[0] - 5) * DRAW_SCALE),
+                    round((root[1] - 5) * DRAW_SCALE),
+                    round((root[0] + 5) * DRAW_SCALE),
+                    round((root[1] + 5) * DRAW_SCALE),
+                ),
+                fill="#211B24",
+            )
 
 
 def draw_blush(layer: Image.Image, progress: float) -> None:
@@ -136,8 +156,8 @@ def draw_blush(layer: Image.Image, progress: float) -> None:
     details = Image.new("RGBA", size)
     detail_draw = ImageDraw.Draw(details)
 
-    for center_x in (132, 380):
-        center_y = 286
+    for center_x in (120, 392):
+        center_y = 282
         glow_draw.ellipse(
             (
                 round((center_x - 52) * DRAW_SCALE),
@@ -145,7 +165,7 @@ def draw_blush(layer: Image.Image, progress: float) -> None:
                 round((center_x + 52) * DRAW_SCALE),
                 round((center_y + 38) * DRAW_SCALE),
             ),
-            fill=(244, 82, 169, round(115 * opacity)),
+            fill=(244, 82, 169, round(85 * opacity)),
         )
         detail_draw.ellipse(
             (
@@ -154,9 +174,9 @@ def draw_blush(layer: Image.Image, progress: float) -> None:
                 round((center_x + 37) * DRAW_SCALE),
                 round((center_y + 25) * DRAW_SCALE),
             ),
-            fill=(255, 114, 190, round(95 * opacity)),
+            fill=(255, 114, 190, round(55 * opacity)),
         )
-        for offset in (-17, -7, 3, 13):
+        for offset in (-12, 0, 12):
             detail_draw.line(
                 scale_points(
                     [
@@ -164,13 +184,13 @@ def draw_blush(layer: Image.Image, progress: float) -> None:
                         (center_x + offset + 4, center_y - 11),
                     ]
                 ),
-                fill=(172, 46, 135, round(185 * opacity)),
+                fill=(172, 46, 135, round(110 * opacity)),
                 width=3 * DRAW_SCALE,
             )
 
-    softened = glow.filter(ImageFilter.GaussianBlur(9 * DRAW_SCALE))
+    softened = glow.filter(ImageFilter.GaussianBlur(12 * DRAW_SCALE))
     layer.alpha_composite(softened)
-    layer.alpha_composite(details)
+    layer.alpha_composite(details.filter(ImageFilter.GaussianBlur(2 * DRAW_SCALE)))
 
 
 def draw_pumpkin(layer: Image.Image, progress: float) -> None:
@@ -285,18 +305,18 @@ def render_frame(index: int) -> Image.Image:
         side = -1 if right else 1
         x = 49 if not right else 463
         draw.line(
-            scale_points([(x, 162), (x - 14 * side, 158)]),
+            scale_points([(x, 162), (x - 18 * side, 158)]),
             fill="#F8EDE4",
-            width=5 * DRAW_SCALE,
+            width=7 * DRAW_SCALE,
         )
         draw.line(
-            scale_points([(x, 176), (x - 12 * side, 176)]),
+            scale_points([(x, 176), (x - 16 * side, 176)]),
             fill="#F8EDE4",
-            width=4 * DRAW_SCALE,
+            width=6 * DRAW_SCALE,
         )
     draw_pumpkin(layer, progress)
-    draw_blush(layer, progress)
     draw_whiskers(layer, whisker_sway)
+    draw_blush(layer, progress)
     draw_sparkles(layer, progress)
     return layer.resize((CANVAS_SIZE, CANVAS_SIZE), Image.Resampling.LANCZOS)
 
@@ -328,7 +348,7 @@ def main() -> None:
     for index in range(FRAME_COUNT):
         render_frame(index).save(FRAMES_DIR / f"frame-{index + 1:02}.png")
 
-    # Assemble the APNG from the exact 15 PNG files delivered alongside it.
+    # Assemble the APNG from the exact 25 PNG files delivered alongside it.
     frames = []
     for index in range(1, FRAME_COUNT + 1):
         with Image.open(FRAMES_DIR / f"frame-{index:02}.png") as frame:
