@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import profileFallbackImage from '@/shared/assets/sidebar/profile.webp'
+import { profileFallbackImage } from '@/shared/assets/profileFallback'
 import switchLogo from '@/shared/assets/sidebar/switch-logo.svg'
 import {
   MY_SIDEBAR_ITEM,

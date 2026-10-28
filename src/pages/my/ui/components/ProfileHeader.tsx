@@ -9,7 +9,7 @@ import {
 import { UserName } from '@/entities/user'
 import { ProfileAvatar } from '@/shared/ui'
 import { getNameStyleKey } from '@/shared/styles'
-import fallbackProfileImage from '@/shared/assets/sidebar/profile.webp'
+import { profileFallbackImage as fallbackProfileImage } from '@/shared/assets/profileFallback'
 
 import * as S from '../MyPage.style'
 import githubIcon from '../assets/v1-github.svg'

@@ -1,4 +1,4 @@
-import profileImage from '@/shared/assets/sidebar/profile.webp'
+import { profileFallbackImage as profileImage } from '@/shared/assets/profileFallback'
 
 import {
   MentorCell,

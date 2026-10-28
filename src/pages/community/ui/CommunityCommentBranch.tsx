@@ -15,7 +15,7 @@ import {
 import type { KlipyGif } from '@/shared/api';
 import { getNameStyleKey } from '@/shared/styles';
 
-import anonymousProfileImage from '../assets/images/anonymousProfile.webp';
+
 import {
   FLATTENED_TREE_DEPTH,
   type CommentTreeNode,
@@ -37,6 +37,8 @@ import {
   CommunityCommentGifAttachment,
   CommunityCommentGifButton,
 } from './CommunityCommentGif';
+
+const anonymousProfileImage = new URL('../assets/images/anonymousProfile.webp', import.meta.url).href;
 
 interface ReplyLoadingSkeletonProps {
   isWithinReplies?: boolean;

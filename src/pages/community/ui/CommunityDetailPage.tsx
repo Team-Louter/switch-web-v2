@@ -45,7 +45,7 @@ import {
 } from '@/features/community';
 import type { KlipyGif } from '@/shared/api';
 import eyeIcon from '@/shared/assets/my/eye-icon.svg';
-import fallbackProfileImage from '@/shared/assets/sidebar/profile.webp';
+import { profileFallbackImage as fallbackProfileImage } from '@/shared/assets/profileFallback';
 import { parseBlockNotePostContent } from '@/shared/lib/blockNotePostContent';
 import { renderCustomUnderlineMarkdown } from '@/shared/lib/markdown';
 import { getNameStyleKey } from '@/shared/styles';
