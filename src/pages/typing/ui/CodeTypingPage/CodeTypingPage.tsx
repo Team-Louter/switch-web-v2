@@ -277,6 +277,7 @@ export function CodeTypingPage() {
         <S.Workspace>
           <S.Monitor>
             <S.Screen>
+              {currentProblem ? <>
               <CodeEditor
                 key={`reference-${currentProblem?.problemId ?? 0}`}
                 title="따라 칠 코드"
@@ -297,6 +298,7 @@ export function CodeTypingPage() {
                 onComplete={handleComplete}
                 onReady={handleInputEditorReady}
               />
+              </> : <p role="status">문장을 불러오는 중입니다.</p>}
             </S.Screen>
             <S.MonitorNeck aria-hidden="true" />
             <S.MonitorBase aria-hidden="true" />
