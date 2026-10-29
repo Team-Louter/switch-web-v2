@@ -230,53 +230,45 @@ def draw_whiskers(layer: Image.Image, poses: list[list[float]]) -> None:
 
 
 def draw_blush(layer: Image.Image, opacity: float) -> None:
-    # Keep the established artwork while following the reference's complete fade.
+    # Diffuse pink cheeks with five alternating strokes, mirrored on the right.
     if opacity <= 0:
         return
 
     size = layer.size
-    glow_mask = Image.new("L", size)
-    glow_draw = ImageDraw.Draw(glow_mask)
-    details = Image.new("RGBA", size)
-    detail_draw = ImageDraw.Draw(details)
-
-    for center_x in (132, 380):
-        center_y = 286
-        glow_draw.ellipse(
-            (
-                round((center_x - 52) * DRAW_SCALE),
-                round((center_y - 38) * DRAW_SCALE),
-                round((center_x + 52) * DRAW_SCALE),
-                round((center_y + 38) * DRAW_SCALE),
-            ),
-            fill=round(115 * opacity),
-        )
-        detail_draw.ellipse(
-            (
-                round((center_x - 37) * DRAW_SCALE),
-                round((center_y - 25) * DRAW_SCALE),
-                round((center_x + 37) * DRAW_SCALE),
-                round((center_y + 25) * DRAW_SCALE),
-            ),
-            fill=(255, 114, 190, round(95 * opacity)),
-        )
-        for offset in (-17, -7, 3, 13):
-            detail_draw.line(
-                scale_points(
-                    [
-                        (center_x + offset - 5, center_y + 9),
-                        (center_x + offset + 4, center_y - 11),
-                    ]
-                ),
-                fill=(172, 46, 135, round(185 * opacity)),
-                width=3 * DRAW_SCALE,
+    for radius_x, radius_y, strength, blur in ((57, 39, 85, 14), (42, 30, 185, 8)):
+        mask = Image.new("L", size)
+        draw = ImageDraw.Draw(mask)
+        for center_x in (144, 368):
+            draw.ellipse(
+                tuple(round(value * DRAW_SCALE) for value in (
+                    center_x - radius_x, 268 - radius_y,
+                    center_x + radius_x, 268 + radius_y,
+                )),
+                fill=round(strength * opacity),
             )
+        # Blur alpha only so the translucent edges keep their pink hue.
+        pink = Image.new("RGBA", size, (255, 141, 224))
+        pink.putalpha(mask.filter(ImageFilter.GaussianBlur(blur * DRAW_SCALE)))
+        layer.alpha_composite(pink)
 
-    # Blur only alpha: blurring transparent black RGB produced a gray fringe.
-    softened = Image.new("RGBA", size, (244, 82, 169))
-    softened.putalpha(glow_mask.filter(ImageFilter.GaussianBlur(9 * DRAW_SCALE)))
-    layer.alpha_composite(softened)
-    layer.alpha_composite(details)
+    stripe_mask = Image.new("L", size)
+    draw = ImageDraw.Draw(stripe_mask)
+    for offset, half_height in ((-24, 12), (-12, 20), (0, 14), (12, 20), (24, 12)):
+        half_width = half_height * 0.42
+        points = [
+            (144 + offset - half_width, 268 + half_height),
+            (144 + offset + half_width, 268 - half_height),
+        ]
+        for strand in (points, mirror(points)):
+            draw.line(scale_points(strand), fill=round(210 * opacity), width=3 * DRAW_SCALE)
+            for x, y in strand:
+                draw.ellipse(
+                    tuple(round(value * DRAW_SCALE) for value in (x - 1.5, y - 1.5, x + 1.5, y + 1.5)),
+                    fill=round(210 * opacity),
+                )
+    stripes = Image.new("RGBA", size, (157, 38, 135))
+    stripes.putalpha(stripe_mask.filter(ImageFilter.GaussianBlur(0.55 * DRAW_SCALE)))
+    layer.alpha_composite(stripes)
 
 
 def draw_pumpkin(layer: Image.Image, progress: float) -> None:
