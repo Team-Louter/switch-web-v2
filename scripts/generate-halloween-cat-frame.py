@@ -85,7 +85,9 @@ def inner_ear() -> list[Point]:
     return (
         cubic((157, 171), (170, 133), (170, 106), (144, 85))
         + cubic((144, 85), (119, 67), (91, 66), (80, 88))[1:]
-        + cubic((80, 88), (69, 108), (81, 143), (99, 176))[1:]
+        + cubic((80, 88), (74, 96), (77, 105), (82, 109))[1:]
+        + cubic((82, 109), (72, 110), (75, 120), (85, 125))[1:]
+        + cubic((85, 125), (78, 130), (86, 150), (99, 176))[1:]
         + cubic((99, 176), (117, 186), (144, 184), (157, 171))[1:]
     )
 
@@ -113,38 +115,47 @@ def draw_ear(layer: Image.Image, angle: float, right: bool) -> None:
     draw.line(scale_points(highlight), fill="#FFBF64", width=3 * DRAW_SCALE, joint="curve")
 
 
-def draw_whiskers(layer: Image.Image, sway: float) -> None:
+def draw_whiskers(layer: Image.Image, progress: float) -> None:
     draw = ImageDraw.Draw(layer)
+    wave = math.sin(2 * math.pi * progress)
+    fan = math.cos(2 * math.pi * progress)
     left_lines = (
-        ((111, 258), (28, 252 + sway)),
-        ((112, 282), (22, 300 + sway)),
-        ((111, 296), (28, 331 + sway)),
+        ((111, 258), (28, 252 - 11 * wave - 7 * fan), -6),
+        ((112, 282), (22, 300 + 7 * wave), 0),
+        ((111, 296), (28, 331 + 11 * wave + 7 * fan), 6),
     )
-    for start, end in left_lines:
-        for pair in ((start, end), (mirror([start])[0], mirror([end])[0])):
-            root, tip = pair
-            delta_x, delta_y = tip[0] - root[0], tip[1] - root[1]
-            length = math.hypot(delta_x, delta_y)
-            normal_x, normal_y = -delta_y / length, delta_x / length
-            draw.polygon(
-                scale_points(
-                    [
-                        (root[0] + 5 * normal_x, root[1] + 5 * normal_y),
-                        (tip[0] + 1.5 * normal_x, tip[1] + 1.5 * normal_y),
-                        (tip[0] - 1.5 * normal_x, tip[1] - 1.5 * normal_y),
-                        (root[0] - 5 * normal_x, root[1] - 5 * normal_y),
-                    ]
-                ),
-                fill="#211B24",
-            )
+    for start, end, curve in left_lines:
+        root = (start[0], start[1] + 2 * wave)
+        tip = (end[0] - 4 * fan, end[1])
+        centerline = cubic(
+            root,
+            (root[0] - 27, root[1] + curve - 3 * wave),
+            (tip[0] + 25, tip[1] - curve + 3 * wave),
+            tip,
+        )
+        for right in (False, True):
+            points = mirror(centerline) if right else centerline
+            upper = []
+            lower = []
+            for index, point in enumerate(points):
+                previous = points[max(0, index - 1)]
+                following = points[min(len(points) - 1, index + 1)]
+                dx, dy = following[0] - previous[0], following[1] - previous[1]
+                length = math.hypot(dx, dy)
+                normal_x, normal_y = -dy / length, dx / length
+                width = 5 - 3.5 * index / (len(points) - 1)
+                upper.append((point[0] + width * normal_x, point[1] + width * normal_y))
+                lower.append((point[0] - width * normal_x, point[1] - width * normal_y))
+            draw.polygon(scale_points(upper + list(reversed(lower))), fill="#08080B")
+            whisker_root = points[0]
             draw.ellipse(
                 (
-                    round((root[0] - 5) * DRAW_SCALE),
-                    round((root[1] - 5) * DRAW_SCALE),
-                    round((root[0] + 5) * DRAW_SCALE),
-                    round((root[1] + 5) * DRAW_SCALE),
+                    round((whisker_root[0] - 5) * DRAW_SCALE),
+                    round((whisker_root[1] - 5) * DRAW_SCALE),
+                    round((whisker_root[0] + 5) * DRAW_SCALE),
+                    round((whisker_root[1] + 5) * DRAW_SCALE),
                 ),
-                fill="#211B24",
+                fill="#08080B",
             )
 
 
@@ -283,14 +294,23 @@ def draw_sparkles(layer: Image.Image, progress: float) -> None:
 
 def render_frame(index: int) -> Image.Image:
     progress = index / FRAME_COUNT
-    perk = (1 - math.cos(2 * math.pi * progress)) / 2
-    whisker_sway = 2.5 * math.sin(2 * math.pi * progress - 0.35)
+    flop = smoothstep((progress - 0.12) / 0.38) * (
+        1 - smoothstep((progress - 0.62) / 0.25)
+    )
     canvas_size = CANVAS_SIZE * DRAW_SCALE
     layer = Image.new("RGBA", (canvas_size, canvas_size))
 
-    # The reference ears mostly hold their shape while the face effects animate.
-    draw_ear(layer, angle=8 * perk, right=False)
-    draw_ear(layer, angle=8 * perk, right=True)
+    # The ears fold outward, then perk up; their bases stay fixed to the avatar.
+    draw_ear(layer, angle=-16 * flop, right=False)
+    draw_ear(layer, angle=-16 * flop, right=True)
+
+    draw = ImageDraw.Draw(layer)
+    for right in (False, True):
+        left_tufts = (((75, 162), (36, 158), 7), ((77, 176), (45, 176), 6))
+        for start, end, width in left_tufts:
+            if right:
+                start, end = mirror([start, end])
+            draw.line(scale_points([start, end]), fill="#F8EDE4", width=width * DRAW_SCALE)
 
     # Ear bases sit behind the transparent photo opening, as in the reference.
     opening = Image.new("L", (canvas_size, canvas_size))
@@ -301,28 +321,9 @@ def render_frame(index: int) -> Image.Image:
     alpha = layer.getchannel("A")
     layer.putalpha(ImageChops.subtract(alpha, opening))
 
-    draw = ImageDraw.Draw(layer)
-    draw.ellipse(
-        (55 * DRAW_SCALE, 55 * DRAW_SCALE, 457 * DRAW_SCALE, 457 * DRAW_SCALE),
-        outline="#303038",
-        width=4 * DRAW_SCALE,
-    )
-    for right in (False, True):
-        side = -1 if right else 1
-        x = 49 if not right else 463
-        draw.line(
-            scale_points([(x, 162), (x - 18 * side, 158)]),
-            fill="#F8EDE4",
-            width=7 * DRAW_SCALE,
-        )
-        draw.line(
-            scale_points([(x, 176), (x - 16 * side, 176)]),
-            fill="#F8EDE4",
-            width=6 * DRAW_SCALE,
-        )
     draw_pumpkin(layer, progress)
     draw_blush(layer, progress)
-    draw_whiskers(layer, whisker_sway)
+    draw_whiskers(layer, progress)
     draw_sparkles(layer, progress)
     return layer.resize((CANVAS_SIZE, CANVAS_SIZE), Image.Resampling.LANCZOS)
 
