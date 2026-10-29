@@ -1,4 +1,4 @@
-"""Render 25 transparent PNG frames and an APNG cat avatar accessory.
+"""Render the complete reference motion as a transparent APNG cat accessory.
 
 Requires Pillow. The 512px canvas uses the shared ProfileAvatar layout:
 the photo is a 400px circle centered at (256, 256).
@@ -7,6 +7,10 @@ the photo is a 400px circle centered at (256, 256).
 from __future__ import annotations
 
 import math
+import json
+import io
+import struct
+import zlib
 from pathlib import Path
 
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
@@ -14,8 +18,17 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 ASSETS = Path(__file__).resolve().parents[1] / "src/shared/ui/ProfileAvatar/assets"
 FRAMES_DIR = ASSETS / "halloween-cat-frames"
-FRAME_COUNT = 25
-FRAME_DURATION_MS = 60
+MOTION = json.loads(Path(__file__).with_name("halloween-cat-motion.json").read_text())
+FRAME_COUNT = len(MOTION["frames"])
+# Round cumulative boundaries so the APNG keeps the full 5275ms duration.
+FRAME_DURATIONS_MS = [
+    round(frame["time_ms"] + frame["duration_ms"]) - round(frame["time_ms"])
+    for frame in MOTION["frames"]
+]
+PREVIEW_DURATIONS_MS = [
+    10 * (round((frame["time_ms"] + frame["duration_ms"]) / 10) - round(frame["time_ms"] / 10))
+    for frame in MOTION["frames"]
+]
 CANVAS_SIZE = 512
 DRAW_SCALE = 3
 
@@ -115,35 +128,12 @@ def draw_ear(layer: Image.Image, angle: float, right: bool) -> None:
     draw.line(scale_points(highlight), fill="#FFBF64", width=3 * DRAW_SCALE, joint="curve")
 
 
-def draw_whiskers(layer: Image.Image, progress: float) -> None:
+def draw_whiskers(layer: Image.Image, poses: list[list[float]]) -> None:
     draw = ImageDraw.Draw(layer)
-    # The reference lifts each entire whisker, then briefly dips it below rest.
-    # Its tips travel farther than its roots, and the top whisker pulls inward.
-    poses = (
-        (0.00, 0.00),
-        (0.10, 0.52),
-        (0.34, 0.52),
-        (0.56, 1.00),
-        (0.66, 0.88),
-        (0.78, 0.42),
-        (0.89, -0.45),
-        (1.00, 0.00),
-    )
-    lift = 0.0
-    for (start_time, start_lift), (end_time, end_lift) in zip(poses, poses[1:]):
-        if progress <= end_time:
-            blend = smoothstep((progress - start_time) / (end_time - start_time))
-            lift = start_lift + (end_lift - start_lift) * blend
-            break
-
-    left_lines = (
-        ((116, 258), (42, 250), -20, -29, 25),
-        ((112, 282), (35, 292), -15, -39, 7),
-        ((111, 296), (36, 320), -12, -43, -7),
-    )
-    for start, end, root_rise, tip_rise, tip_pull in left_lines:
-        root = (start[0], start[1] + root_rise * lift)
-        tip = (end[0] + tip_pull * lift, end[1] + tip_rise * lift)
+    # Measured roots and tips move together; the top whisker also pulls inward.
+    for root_x, root_y, tip_x, tip_y in poses:
+        root = (root_x, root_y)
+        tip = (tip_x, tip_y)
         for right in (False, True):
             whisker_root, whisker_tip = mirror([root, tip]) if right else (root, tip)
             dx, dy = whisker_tip[0] - whisker_root[0], whisker_tip[1] - whisker_root[1]
@@ -171,10 +161,8 @@ def draw_whiskers(layer: Image.Image, progress: float) -> None:
             )
 
 
-def draw_blush(layer: Image.Image, progress: float) -> None:
-    # Preserve the original cheek artwork and spread its fade across more frames.
-    wave = (1 + math.cos(2 * math.pi * (progress - 0.10))) / 2
-    opacity = smoothstep((wave - 0.10) / 0.75)
+def draw_blush(layer: Image.Image, opacity: float) -> None:
+    # Keep the established artwork while following the reference's complete fade.
     if opacity <= 0:
         return
 
@@ -259,21 +247,32 @@ def draw_pumpkin(layer: Image.Image, progress: float) -> None:
     draw.ellipse(box(287, 88, 295, 94), fill="#FFBD62")
 
 
-def draw_sparkles(layer: Image.Image, progress: float) -> None:
+def draw_sparkles(layer: Image.Image, seconds: float) -> None:
     glow = Image.new("RGBA", layer.size)
     glow_draw = ImageDraw.Draw(glow)
     sharp = Image.new("RGBA", layer.size)
     sharp_draw = ImageDraw.Draw(sharp)
-    anchors = (
-        (454, 258, 0.25),
-        (256, 459, 0.50),
-        (57, 308, 0.75),
+    # Reference order: bottom, top, left, right, bottom, top-left, left, right.
+    # The quiet interval from 3.0s to 4.7s is part of the animation.
+    tracks = (
+        (170, 284, -0.18, 0.42),
+        (240, 63, 0.03, 0.72),
+        (114, 244, 0.30, 0.98),
+        (315, 213, 0.78, 1.46),
+        (246, 281, 1.18, 1.89),
+        (174, 64, 1.55, 2.31),
+        (101, 207, 2.04, 2.63),
+        (320, 144, 2.42, 3.02),
+        (170, 284, 4.68, 5.36),
+        (240, 63, 5.02, 5.71),
     )
-    for x, y, phase in anchors:
-        pulse = (1 + math.cos(2 * math.pi * (progress - phase))) / 2
-        if pulse < 0.08:
+    for source_x, source_y, start, end in tracks:
+        if not start < seconds < end:
             continue
-        radius = 6 + 12 * pulse
+        pulse = math.sin(math.pi * (seconds - start) / (end - start)) ** 2
+        x = 256 + (source_x - 207) * 400 / 228
+        y = 256 + (source_y - 176) * 400 / 228
+        radius = 3 + 15 * pulse
         xh, yh = round(x * DRAW_SCALE), round(y * DRAW_SCALE)
         glow_draw.ellipse(
             (
@@ -305,16 +304,14 @@ def draw_sparkles(layer: Image.Image, progress: float) -> None:
 
 
 def render_frame(index: int) -> Image.Image:
-    progress = index / FRAME_COUNT
-    flop = smoothstep((progress - 0.12) / 0.38) * (
-        1 - smoothstep((progress - 0.62) / 0.25)
-    )
+    motion = MOTION["frames"][index]
+    progress = motion["time_ms"] / MOTION["duration_ms"]
     canvas_size = CANVAS_SIZE * DRAW_SCALE
     layer = Image.new("RGBA", (canvas_size, canvas_size))
 
     # The ears fold outward, then perk up; their bases stay fixed to the avatar.
-    draw_ear(layer, angle=-16 * flop, right=False)
-    draw_ear(layer, angle=-16 * flop, right=True)
+    draw_ear(layer, angle=motion["ear_angle"], right=False)
+    draw_ear(layer, angle=motion["ear_angle"], right=True)
 
     draw = ImageDraw.Draw(layer)
     for right in (False, True):
@@ -334,9 +331,9 @@ def render_frame(index: int) -> Image.Image:
     layer.putalpha(ImageChops.subtract(alpha, opening))
 
     draw_pumpkin(layer, progress)
-    draw_blush(layer, progress)
-    draw_whiskers(layer, progress)
-    draw_sparkles(layer, progress)
+    draw_blush(layer, motion["blush_opacity"])
+    draw_whiskers(layer, motion["whiskers"])
+    draw_sparkles(layer, motion["time_ms"] / 1000)
     return layer.resize((CANVAS_SIZE, CANVAS_SIZE), Image.Resampling.LANCZOS)
 
 
@@ -377,11 +374,50 @@ def export_preview(frames: list[Image.Image]) -> None:
         ASSETS / "halloween-cat-preview.gif",
         save_all=True,
         append_images=preview_frames[1:],
-        duration=FRAME_DURATION_MS,
+        duration=PREVIEW_DURATIONS_MS,
         loop=0,
         disposal=2,
         optimize=False,
     )
+
+
+def export_apng(frames: list[Image.Image]) -> None:
+    # Pillow merges identical frames; retain each reference frame and its delay.
+    target = ASSETS / "halloween-cat-frame.png"
+    temporary = target.with_suffix(".png.tmp")
+    with temporary.open("wb") as output:
+        def write_chunk(kind: bytes, payload: bytes) -> None:
+            output.write(struct.pack(">I", len(payload)))
+            output.write(kind + payload)
+            output.write(struct.pack(">I", zlib.crc32(kind + payload) & 0xFFFFFFFF))
+
+        output.write(b"\x89PNG\r\n\x1a\n")
+        write_chunk(b"IHDR", struct.pack(">IIBBBBB", CANVAS_SIZE, CANVAS_SIZE, 8, 6, 0, 0, 0))
+        write_chunk(b"acTL", struct.pack(">II", len(frames), 0))
+        sequence = 0
+        for index, frame in enumerate(frames):
+            write_chunk(b"fcTL", struct.pack(
+                ">IIIIIHHBB", sequence, CANVAS_SIZE, CANVAS_SIZE, 0, 0,
+                FRAME_DURATIONS_MS[index], 1000, 0, 0,
+            ))
+            sequence += 1
+            buffer = io.BytesIO()
+            frame.save(buffer, format="PNG", compress_level=9)
+            png = buffer.getvalue()
+            offset = 8
+            while offset < len(png):
+                length = struct.unpack(">I", png[offset:offset + 4])[0]
+                kind = png[offset + 4:offset + 8]
+                payload = png[offset + 8:offset + 8 + length]
+                if kind == b"IDAT":
+                    if index == 0:
+                        write_chunk(b"IDAT", payload)
+                    else:
+                        write_chunk(b"fdAT", struct.pack(">I", sequence) + payload)
+                        sequence += 1
+                offset += length + 12
+        write_chunk(b"IEND", b"")
+    temporary.replace(target)
 
 
 def main() -> None:
@@ -389,23 +425,13 @@ def main() -> None:
     for index in range(FRAME_COUNT):
         render_frame(index).save(FRAMES_DIR / f"frame-{index + 1:02}.png")
 
-    # Assemble the APNG from the exact 25 PNG files delivered alongside it.
+    # Assemble the APNG from the exact PNG files delivered alongside it.
     frames = []
     for index in range(1, FRAME_COUNT + 1):
         with Image.open(FRAMES_DIR / f"frame-{index:02}.png") as frame:
             frames.append(frame.convert("RGBA"))
 
-    frames[0].save(
-        ASSETS / "halloween-cat-frame.png",
-        format="PNG",
-        save_all=True,
-        append_images=frames[1:],
-        duration=FRAME_DURATION_MS,
-        loop=0,
-        disposal=0,
-        blend=0,
-        compress_level=9,
-    )
+    export_apng(frames)
     frames[0].resize((256, 256), Image.Resampling.LANCZOS).save(
         ASSETS / "halloween-cat-thumbnail.webp", format="WEBP", quality=88
     )
