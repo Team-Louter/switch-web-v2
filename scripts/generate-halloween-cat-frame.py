@@ -117,37 +117,49 @@ def draw_ear(layer: Image.Image, angle: float, right: bool) -> None:
 
 def draw_whiskers(layer: Image.Image, progress: float) -> None:
     draw = ImageDraw.Draw(layer)
-    wave = math.sin(2 * math.pi * progress)
-    fan = math.cos(2 * math.pi * progress)
-    left_lines = (
-        ((111, 258), (28, 252 - 11 * wave - 7 * fan), -6),
-        ((112, 282), (22, 300 + 7 * wave), 0),
-        ((111, 296), (28, 331 + 11 * wave + 7 * fan), 6),
+    # The reference lifts each entire whisker, then briefly dips it below rest.
+    # Its tips travel farther than its roots, and the top whisker pulls inward.
+    poses = (
+        (0.00, 0.00),
+        (0.10, 0.52),
+        (0.34, 0.52),
+        (0.56, 1.00),
+        (0.66, 0.88),
+        (0.78, 0.42),
+        (0.89, -0.45),
+        (1.00, 0.00),
     )
-    for start, end, curve in left_lines:
-        root = (start[0], start[1] + 2 * wave)
-        tip = (end[0] - 4 * fan, end[1])
-        centerline = cubic(
-            root,
-            (root[0] - 27, root[1] + curve - 3 * wave),
-            (tip[0] + 25, tip[1] - curve + 3 * wave),
-            tip,
-        )
+    lift = 0.0
+    for (start_time, start_lift), (end_time, end_lift) in zip(poses, poses[1:]):
+        if progress <= end_time:
+            blend = smoothstep((progress - start_time) / (end_time - start_time))
+            lift = start_lift + (end_lift - start_lift) * blend
+            break
+
+    left_lines = (
+        ((116, 258), (42, 250), -20, -29, 25),
+        ((112, 282), (35, 292), -15, -39, 7),
+        ((111, 296), (36, 320), -12, -43, -7),
+    )
+    for start, end, root_rise, tip_rise, tip_pull in left_lines:
+        root = (start[0], start[1] + root_rise * lift)
+        tip = (end[0] + tip_pull * lift, end[1] + tip_rise * lift)
         for right in (False, True):
-            points = mirror(centerline) if right else centerline
-            upper = []
-            lower = []
-            for index, point in enumerate(points):
-                previous = points[max(0, index - 1)]
-                following = points[min(len(points) - 1, index + 1)]
-                dx, dy = following[0] - previous[0], following[1] - previous[1]
-                length = math.hypot(dx, dy)
-                normal_x, normal_y = -dy / length, dx / length
-                width = 5 - 3.5 * index / (len(points) - 1)
-                upper.append((point[0] + width * normal_x, point[1] + width * normal_y))
-                lower.append((point[0] - width * normal_x, point[1] - width * normal_y))
-            draw.polygon(scale_points(upper + list(reversed(lower))), fill="#08080B")
-            whisker_root = points[0]
+            whisker_root, whisker_tip = mirror([root, tip]) if right else (root, tip)
+            dx, dy = whisker_tip[0] - whisker_root[0], whisker_tip[1] - whisker_root[1]
+            length = math.hypot(dx, dy)
+            normal_x, normal_y = -dy / length, dx / length
+            draw.polygon(
+                scale_points(
+                    [
+                        (whisker_root[0] + 5 * normal_x, whisker_root[1] + 5 * normal_y),
+                        (whisker_tip[0] + 1.5 * normal_x, whisker_tip[1] + 1.5 * normal_y),
+                        (whisker_tip[0] - 1.5 * normal_x, whisker_tip[1] - 1.5 * normal_y),
+                        (whisker_root[0] - 5 * normal_x, whisker_root[1] - 5 * normal_y),
+                    ]
+                ),
+                fill="#08080B",
+            )
             draw.ellipse(
                 (
                     round((whisker_root[0] - 5) * DRAW_SCALE),
