@@ -11,6 +11,7 @@ import json
 import io
 import struct
 import zlib
+from bisect import bisect_right
 from pathlib import Path
 
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
@@ -19,15 +20,22 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter
 ASSETS = Path(__file__).resolve().parents[1] / "src/shared/ui/ProfileAvatar/assets"
 FRAMES_DIR = ASSETS / "halloween-cat-frames"
 MOTION = json.loads(Path(__file__).with_name("halloween-cat-motion.json").read_text())
-FRAME_COUNT = len(MOTION["frames"])
-# Round cumulative boundaries so the APNG keeps the full 5275ms duration.
-FRAME_DURATIONS_MS = [
-    round(frame["time_ms"] + frame["duration_ms"]) - round(frame["time_ms"])
-    for frame in MOTION["frames"]
-]
+# The recording continues into the next cycle after 5s; close the unique cycle.
+LOOP_DURATION_MS = 5000
+FRAME_DURATION_MS = 25
+FRAME_COUNT = LOOP_DURATION_MS // FRAME_DURATION_MS
+FRAME_DURATIONS_MS = [FRAME_DURATION_MS] * FRAME_COUNT
+# GIF delays use 10ms units; alternate 20/30ms without changing total playback.
 PREVIEW_DURATIONS_MS = [
-    10 * (round((frame["time_ms"] + frame["duration_ms"]) / 10) - round(frame["time_ms"] / 10))
-    for frame in MOTION["frames"]
+    10 * (round((index + 1) * 2.5) - round(index * 2.5))
+    for index in range(FRAME_COUNT)
+]
+MOTION_KEYS = [frame for frame in MOTION["frames"] if frame["time_ms"] < LOOP_DURATION_MS]
+KEY_TIMES = [frame["time_ms"] for frame in MOTION_KEYS]
+KEY_VALUES = [
+    [frame["ear_angle"], frame["blush_opacity"]]
+    + [coordinate for whisker in frame["whiskers"] for coordinate in whisker]
+    for frame in MOTION_KEYS
 ]
 CANVAS_SIZE = 512
 DRAW_SCALE = 3
@@ -38,6 +46,48 @@ Point = tuple[float, float]
 def smoothstep(value: float) -> float:
     value = max(0.0, min(1.0, value))
     return value * value * (3 - 2 * value)
+
+
+def sample_motion(time_ms: float) -> dict:
+    """Interpolate cyclic poses with continuous velocity and no overshoot."""
+    time_ms %= LOOP_DURATION_MS
+    index = bisect_right(KEY_TIMES, time_ms) - 1
+    count = len(KEY_TIMES)
+
+    def knot(position: int) -> tuple[float, list[float]]:
+        cycle, wrapped = divmod(position, count)
+        return KEY_TIMES[wrapped] + cycle * LOOP_DURATION_MS, KEY_VALUES[wrapped]
+
+    t0, v0 = knot(index - 1)
+    t1, v1 = knot(index)
+    t2, v2 = knot(index + 1)
+    t3, v3 = knot(index + 2)
+    h0, h1, h2 = t1 - t0, t2 - t1, t3 - t2
+    u = (time_ms - t1) / h1
+
+    def tangent(left: float, right: float, before: float, after: float) -> float:
+        if left * right <= 0:
+            return 0.0
+        a, b = 2 * after + before, after + 2 * before
+        return (a + b) / (a / left + b / right)
+
+    values = []
+    for a, b, c, d in zip(v0, v1, v2, v3):
+        slope = (c - b) / h1
+        start = tangent((b - a) / h0, slope, h0, h1)
+        end = tangent(slope, (d - c) / h2, h1, h2)
+        values.append(
+            (2 * u**3 - 3 * u**2 + 1) * b
+            + (u**3 - 2 * u**2 + u) * h1 * start
+            + (-2 * u**3 + 3 * u**2) * c
+            + (u**3 - u**2) * h1 * end
+        )
+    return {
+        "time_ms": time_ms,
+        "ear_angle": values[0],
+        "blush_opacity": values[1],
+        "whiskers": [values[2 + 4 * index:6 + 4 * index] for index in range(3)],
+    }
 
 
 def cubic(start: Point, control_a: Point, control_b: Point, end: Point) -> list[Point]:
@@ -126,6 +176,24 @@ def draw_ear(layer: Image.Image, angle: float, right: bool) -> None:
         highlight = mirror(highlight)
     highlight = bend_ear(highlight, -angle if right else angle, pivot)
     draw.line(scale_points(highlight), fill="#FFBF64", width=3 * DRAW_SCALE, joint="curve")
+
+    # Attach each tuft to the ear deformation, then tilt its strands with the ear.
+    strand_angle = math.radians(angle * 0.65)
+    for start, end, width in (((75, 156), (36, 152), 7), ((75, 168), (45, 168), 6)):
+        root = bend_ear([start], angle, (162, 164))[0]
+        dx, dy = end[0] - start[0], end[1] - start[1]
+        tip = (
+            root[0] + dx * math.cos(strand_angle) - dy * math.sin(strand_angle),
+            root[1] + dx * math.sin(strand_angle) + dy * math.cos(strand_angle),
+        )
+        strand = mirror([root, tip]) if right else [root, tip]
+        draw.line(scale_points(strand), fill="#F8EDE4", width=width * DRAW_SCALE)
+        x, y = strand[1]
+        radius = width / 2
+        draw.ellipse(
+            tuple(round(value * DRAW_SCALE) for value in (x - radius, y - radius, x + radius, y + radius)),
+            fill="#F8EDE4",
+        )
 
 
 def draw_whiskers(layer: Image.Image, poses: list[list[float]]) -> None:
@@ -255,7 +323,7 @@ def draw_sparkles(layer: Image.Image, seconds: float) -> None:
     # Reference order: bottom, top, left, right, bottom, top-left, left, right.
     # The quiet interval from 3.0s to 4.7s is part of the animation.
     tracks = (
-        (170, 284, -0.18, 0.42),
+        (170, 284, -0.30, 0.30),
         (240, 63, 0.03, 0.72),
         (114, 244, 0.30, 0.98),
         (315, 213, 0.78, 1.46),
@@ -263,13 +331,12 @@ def draw_sparkles(layer: Image.Image, seconds: float) -> None:
         (174, 64, 1.55, 2.31),
         (101, 207, 2.04, 2.63),
         (320, 144, 2.42, 3.02),
-        (170, 284, 4.68, 5.36),
-        (240, 63, 5.02, 5.71),
     )
     for source_x, source_y, start, end in tracks:
-        if not start < seconds < end:
+        elapsed = (seconds - start) % (LOOP_DURATION_MS / 1000)
+        if elapsed >= end - start:
             continue
-        pulse = math.sin(math.pi * (seconds - start) / (end - start)) ** 2
+        pulse = math.sin(math.pi * elapsed / (end - start)) ** 2
         x = 256 + (source_x - 207) * 400 / 228
         y = 256 + (source_y - 176) * 400 / 228
         radius = 3 + 15 * pulse
@@ -304,22 +371,14 @@ def draw_sparkles(layer: Image.Image, seconds: float) -> None:
 
 
 def render_frame(index: int) -> Image.Image:
-    motion = MOTION["frames"][index]
-    progress = motion["time_ms"] / MOTION["duration_ms"]
+    motion = sample_motion(index * FRAME_DURATION_MS)
+    progress = motion["time_ms"] / LOOP_DURATION_MS
     canvas_size = CANVAS_SIZE * DRAW_SCALE
     layer = Image.new("RGBA", (canvas_size, canvas_size))
 
     # The ears fold outward, then perk up; their bases stay fixed to the avatar.
     draw_ear(layer, angle=motion["ear_angle"], right=False)
     draw_ear(layer, angle=motion["ear_angle"], right=True)
-
-    draw = ImageDraw.Draw(layer)
-    for right in (False, True):
-        left_tufts = (((75, 162), (36, 158), 7), ((77, 176), (45, 176), 6))
-        for start, end, width in left_tufts:
-            if right:
-                start, end = mirror([start, end])
-            draw.line(scale_points([start, end]), fill="#F8EDE4", width=width * DRAW_SCALE)
 
     # Ear bases sit behind the transparent photo opening, as in the reference.
     opening = Image.new("L", (canvas_size, canvas_size))
@@ -382,7 +441,7 @@ def export_preview(frames: list[Image.Image]) -> None:
 
 
 def export_apng(frames: list[Image.Image]) -> None:
-    # Pillow merges identical frames; retain each reference frame and its delay.
+    # Pillow merges identical frames; retain the fixed 40fps export cadence.
     target = ASSETS / "halloween-cat-frame.png"
     temporary = target.with_suffix(".png.tmp")
     with temporary.open("wb") as output:
