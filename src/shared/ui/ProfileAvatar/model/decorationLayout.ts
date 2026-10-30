@@ -1,5 +1,7 @@
 import catMask from '../assets/cat-frame-mask.svg?url'
 import chickMask from '../assets/chick-frame-mask.svg?url'
+import cookieMask from '../assets/cookie-frame-mask.svg?url'
+import halloweenMask from '../assets/halloween-frame-mask.svg?url'
 import ringMask from '../assets/ring-frame-mask.svg?url'
 
 interface DecorationLayout {
@@ -47,6 +49,14 @@ const LAYOUTS: Record<string, DecorationLayout> = {
   // 병아리 프레임: 머리 장식 때문에 기준 원이 캔버스 중심보다 아래에 있다.
   'chick-frame2.png': {
     canvasSize: 512, profileDiameter: 400, centerX: 256, centerY: 280, maskUrl: chickMask,
+  },
+  // 두쫀쿠: 사진 구멍이 캔버스 중심보다 아래에 있고 외곽은 원형이 아니다.
+  '0aa8639a-c611-4a9f-b171-48494d7efcd4.png': {
+    canvasSize: 512, profileDiameter: 400, centerX: 258, centerY: 273, maskUrl: cookieMask,
+  },
+  // 할로윈 링: 비대칭 내부 구멍 전체를 사진이 채우도록 기준 원을 맞춘다.
+  '3cd2bfc3-2ea5-474e-85fc-cdeb85959a7d.png': {
+    canvasSize: 512, profileDiameter: 412, centerX: 268, centerY: 255, maskUrl: halloweenMask,
   },
 }
 
