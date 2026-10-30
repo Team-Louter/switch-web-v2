@@ -1,4 +1,4 @@
-import { ProfileAvatar } from '@/shared/ui'
+import { ProfileAvatar, getProfileDecorationImageUrl } from '@/shared/ui'
 import { getNameStyleKey } from '@/shared/styles'
 
 import * as S from '../StorePage.style'
@@ -145,7 +145,7 @@ function CustomizeEffectOption({
         </S.CustomizeNonePreview>
       ) : effect?.imageUrl || effect?.thumbnailUrl ? (
         <S.CustomizeOptionImage
-          src={effect.imageUrl ?? effect.thumbnailUrl ?? ''}
+          src={getProfileDecorationImageUrl(effect.imageUrl ?? effect.thumbnailUrl ?? '', 72)}
           alt=""
         />
       ) : effect?.type === 'nameColor' ? (

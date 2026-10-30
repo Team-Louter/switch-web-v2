@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { apiClient } from '@/shared/api'
+import { getProfileDecorationImageUrl } from '@/shared/ui'
 
 type StoreItemImageProps = {
   alt: string
@@ -24,9 +25,10 @@ type ResolvedImage = {
 }
 
 // 인증이 필요한 상점 이미지를 API 클라이언트로 받아 브라우저 이미지 URL로 변환한다.
-export function StoreItemImage({ alt, className, src }: StoreItemImageProps) {
+export function StoreItemImage({ alt, className, src: originalSrc }: StoreItemImageProps) {
+  const src = getProfileDecorationImageUrl(originalSrc)
   const shouldFetchImage =
-    !isDirectImageSource(src) && isApiImageSource(src)
+    src === originalSrc && !isDirectImageSource(src) && isApiImageSource(src)
   const [resolvedImage, setResolvedImage] = useState<ResolvedImage | null>(null)
 
   useEffect(() => {

@@ -6,7 +6,7 @@ export type {
 } from './Button'
 export { Modal } from './Modal'
 export { ConfirmModal } from './ConfirmModal/ConfirmModal'
-export { ProfileAvatar } from './ProfileAvatar'
+export { ProfileAvatar, getProfileDecorationImageUrl } from './ProfileAvatar'
 export type {
   ProfileAvatarDecorationItem,
   ProfileAvatarEquippedItems,
