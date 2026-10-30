@@ -2,11 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, PointerEvent } from 'react'
 
 const CROP_AREA_WIDTH = 464
-const CROP_AREA_ASPECT_RATIO = 3 / 2
-const OUTPUT_IMAGE_HEIGHT = 338
-const OUTPUT_IMAGE_WIDTH = Math.round(
-  OUTPUT_IMAGE_HEIGHT * CROP_AREA_ASPECT_RATIO,
-)
+const CROP_AREA_ASPECT_RATIO = 1
+const OUTPUT_IMAGE_SIZE = 512
 const PROFILE_IMAGE_MIME_TYPE = 'image/jpeg'
 
 type UseProfileCropModalParams = {
@@ -275,8 +272,8 @@ export function useProfileCropModal({
       return
     }
 
-    canvas.width = OUTPUT_IMAGE_WIDTH
-    canvas.height = OUTPUT_IMAGE_HEIGHT
+    canvas.width = OUTPUT_IMAGE_SIZE
+    canvas.height = OUTPUT_IMAGE_SIZE
     context.drawImage(
       image,
       sourceX,
@@ -285,8 +282,8 @@ export function useProfileCropModal({
       sourceHeight,
       0,
       0,
-      OUTPUT_IMAGE_WIDTH,
-      OUTPUT_IMAGE_HEIGHT,
+      OUTPUT_IMAGE_SIZE,
+      OUTPUT_IMAGE_SIZE,
     )
     onComplete(canvas.toDataURL(PROFILE_IMAGE_MIME_TYPE), {
       position: boundedImagePosition,

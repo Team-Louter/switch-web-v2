@@ -1,6 +1,7 @@
 import styled, { css } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
+import { ProfileAvatar } from '@/shared/ui'
 
 interface PositionedImageProps {
   $height: number
@@ -49,7 +50,7 @@ export const Title = styled.h3`
 export const CropArea = styled.div`
   position: relative;
   width: 100%;
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 1;
   overflow: hidden;
   margin-bottom: 16px;
   border-radius: 8px;
@@ -69,12 +70,35 @@ export const CropImage = styled.img<PositionedImageProps>`
 export const CropGrid = styled.div`
   position: absolute;
   inset: 0;
-  border: 1px solid rgb(255 255 255 / 70%);
+  z-index: 1;
+  overflow: hidden;
+  border-radius: ${token.shapes.circle};
   background-image:
     linear-gradient(to right, rgb(255 255 255 / 32%) 1px, transparent 1px),
     linear-gradient(to bottom, rgb(255 255 255 / 32%) 1px, transparent 1px);
   background-size: calc(100% / 3) calc(100% / 3);
   pointer-events: none;
+`
+
+export const CropCircleGuide = styled.div`
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  border: 2px solid rgb(255 255 255 / 92%);
+  border-radius: ${token.shapes.circle};
+  box-shadow: 0 0 0 999px rgb(14 13 12 / 58%);
+  pointer-events: none;
+`
+
+export const CropBorderPreview = styled.div`
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  pointer-events: none;
+
+  > span > span:first-child {
+    background: transparent;
+  }
 `
 
 export const ZoomRow = styled.div`
@@ -114,6 +138,17 @@ export const PreviewButton = styled.button`
 
 export const PreviewImage = styled.img<PositionedImageProps>`
   ${positionedImageStyle}
+`
+
+export const PreviewBorder = styled(ProfileAvatar)`
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+
+  > span:first-child {
+    background: transparent;
+  }
 `
 
 export const ButtonGroup = styled.div`

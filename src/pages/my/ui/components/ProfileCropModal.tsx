@@ -1,13 +1,17 @@
 import { useState } from 'react'
 
+import { ProfileAvatar } from '@/shared/ui'
+
 import { useProfileCropModal } from '../../model/useProfileCropModal'
 import * as S from './ProfileCropModal.style'
 
+import type { ProfileAvatarEquippedItems } from '@/shared/ui'
 import type { ProfileCropState } from '../../model/useProfileCropModal'
 
 interface ProfileCropModalProps {
   imageSrc: string
   initialState: ProfileCropState
+  equippedItems?: ProfileAvatarEquippedItems
   onCancel: () => void
   onComplete: (
     croppedImageSrc: string,
@@ -21,6 +25,7 @@ const LARGE_PREVIEW_SIZE = 240
 export function ProfileCropModal({
   imageSrc,
   initialState,
+  equippedItems,
   onCancel,
   onComplete,
 }: ProfileCropModalProps) {
@@ -41,11 +46,10 @@ export function ProfileCropModal({
 
   const createPreviewFrame = (size: number) => {
     const scale = size / cropAreaSize.height
-    const squareCropOffset = (cropAreaSize.width - cropAreaSize.height) / 2
 
     return {
       height: imageFrame.height * scale,
-      left: (imageFrame.left - squareCropOffset) * scale,
+      left: imageFrame.left * scale,
       top: imageFrame.top * scale,
       width: imageFrame.width * scale,
     }
@@ -81,6 +85,14 @@ export function ProfileCropModal({
             onLoad={handleImageLoad}
           />
           <S.CropGrid aria-hidden="true" />
+          <S.CropCircleGuide aria-hidden="true" />
+          <S.CropBorderPreview aria-hidden="true">
+            <ProfileAvatar
+              imageUrl=""
+              equippedItems={equippedItems}
+              size={cropAreaSize.width}
+            />
+          </S.CropBorderPreview>
         </S.CropArea>
 
         <S.ZoomRow>
@@ -110,6 +122,11 @@ export function ProfileCropModal({
               $top={smallPreviewFrame.top}
               $width={smallPreviewFrame.width}
             />
+            <S.PreviewBorder
+              imageUrl=""
+              equippedItems={equippedItems}
+              size={SMALL_PREVIEW_SIZE}
+            />
           </S.PreviewButton>
           <S.ButtonGroup>
             <S.CancelButton type="button" onClick={onCancel}>
@@ -131,6 +148,11 @@ export function ProfileCropModal({
                 $left={largePreviewFrame.left}
                 $top={largePreviewFrame.top}
                 $width={largePreviewFrame.width}
+              />
+              <S.PreviewBorder
+                imageUrl=""
+                equippedItems={equippedItems}
+                size={LARGE_PREVIEW_SIZE}
               />
             </S.LargePreview>
           </S.PreviewOverlay>

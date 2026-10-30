@@ -470,6 +470,7 @@ export function ProfileEditModal({
         <ProfileCropModal
           imageSrc={pendingProfileImageSrc}
           initialState={profileCropState}
+          equippedItems={storedUser?.equippedItems}
           onCancel={() => {
             setPendingProfileImageSrc('')
             setPendingProfileImageFileName('')
