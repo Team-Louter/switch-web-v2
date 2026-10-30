@@ -53,7 +53,7 @@ export const CropArea = styled.div`
   aspect-ratio: 1;
   overflow: hidden;
   margin-bottom: 16px;
-  border-radius: ${token.shapes.circle};
+  border-radius: 8px;
   background: ${token.colors.gray.gray90};
   cursor: grab;
   touch-action: none;
