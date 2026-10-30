@@ -146,6 +146,7 @@ function CustomizeEffectOption({
       ) : effect?.imageUrl || effect?.thumbnailUrl ? (
         <S.CustomizeOptionImage
           src={effect.imageUrl ?? effect.thumbnailUrl ?? ''}
+          decorationSize={72}
           alt=""
         />
       ) : effect?.type === 'nameColor' ? (
