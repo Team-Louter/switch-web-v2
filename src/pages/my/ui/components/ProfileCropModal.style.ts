@@ -67,9 +67,9 @@ export const CropImage = styled.img<PositionedImageProps>`
   ${positionedImageStyle}
 `
 
-export const CropGrid = styled.div`
+export const CropGrid = styled.div<{ $inset: number }>`
   position: absolute;
-  inset: 0;
+  inset: ${({ $inset }) => $inset}px;
   z-index: 1;
   overflow: hidden;
   border-radius: ${token.shapes.circle};
@@ -80,10 +80,10 @@ export const CropGrid = styled.div`
   pointer-events: none;
 `
 
-export const CropCircleGuide = styled.div`
+export const CropCircleGuide = styled.div<{ $inset: number }>`
   position: absolute;
   z-index: 2;
-  inset: 0;
+  inset: ${({ $inset }) => $inset}px;
   border: 2px solid rgb(255 255 255 / 92%);
   border-radius: ${token.shapes.circle};
   box-shadow: 0 0 0 999px rgb(14 13 12 / 58%);
@@ -94,6 +94,8 @@ export const CropBorderPreview = styled.div`
   position: absolute;
   z-index: 3;
   inset: 0;
+  display: grid;
+  place-items: center;
   pointer-events: none;
 
   > span > span:first-child {
@@ -132,7 +134,7 @@ export const PreviewButton = styled.button`
   height: 80px;
   flex: 0 0 auto;
   overflow: hidden;
-  border-radius: ${token.shapes.circle};
+  border-radius: ${token.shapes.small};
   background: ${token.colors.gray.gray0};
 `
 
@@ -140,11 +142,24 @@ export const PreviewImage = styled.img<PositionedImageProps>`
   ${positionedImageStyle}
 `
 
+export const PreviewImageClip = styled.span<{ $size: number }>`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: ${({ $size }) => $size}px;
+  height: ${({ $size }) => $size}px;
+  overflow: hidden;
+  border-radius: ${token.shapes.circle};
+  transform: translate(-50%, -50%);
+`
+
 export const PreviewBorder = styled(ProfileAvatar)`
   position: absolute;
   z-index: 1;
-  inset: 0;
+  top: 50%;
+  left: 50%;
   pointer-events: none;
+  transform: translate(-50%, -50%);
 
   > span:first-child {
     background: transparent;
@@ -199,6 +214,7 @@ export const LargePreview = styled.div`
   width: 240px;
   height: 240px;
   overflow: hidden;
-  border-radius: ${token.shapes.circle};
+  border-radius: ${token.shapes.medium};
+  background: ${token.colors.gray.gray90};
   box-shadow: 0 8px 32px rgb(0 0 0 / 30%);
 `
