@@ -35,10 +35,16 @@ export const Modal = styled.div`
   ${token.flexColumn}
   box-sizing: border-box;
   width: 520px;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   padding: 28px 28px 24px;
   border-radius: 12px;
   background: ${token.colors.white};
   box-shadow: 0 8px 28px rgb(14 13 12 / 14%);
+
+  > * {
+    flex-shrink: 0;
+  }
 `
 
 export const Title = styled.h3`
