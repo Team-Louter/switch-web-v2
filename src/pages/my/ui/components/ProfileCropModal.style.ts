@@ -1,6 +1,7 @@
 import styled, { css } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
+import { ProfileAvatar } from '@/shared/ui'
 
 interface PositionedImageProps {
   $height: number
@@ -34,10 +35,16 @@ export const Modal = styled.div`
   ${token.flexColumn}
   box-sizing: border-box;
   width: 520px;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   padding: 28px 28px 24px;
   border-radius: 12px;
   background: ${token.colors.white};
   box-shadow: 0 8px 28px rgb(14 13 12 / 14%);
+
+  > * {
+    flex-shrink: 0;
+  }
 `
 
 export const Title = styled.h3`
@@ -49,7 +56,7 @@ export const Title = styled.h3`
 export const CropArea = styled.div`
   position: relative;
   width: 100%;
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 1;
   overflow: hidden;
   margin-bottom: 16px;
   border-radius: 8px;
@@ -66,15 +73,40 @@ export const CropImage = styled.img<PositionedImageProps>`
   ${positionedImageStyle}
 `
 
-export const CropGrid = styled.div`
+export const CropGrid = styled.div<{ $inset: number }>`
   position: absolute;
-  inset: 0;
-  border: 1px solid rgb(255 255 255 / 70%);
+  inset: ${({ $inset }) => $inset}px;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: ${token.shapes.circle};
   background-image:
     linear-gradient(to right, rgb(255 255 255 / 32%) 1px, transparent 1px),
     linear-gradient(to bottom, rgb(255 255 255 / 32%) 1px, transparent 1px);
   background-size: calc(100% / 3) calc(100% / 3);
   pointer-events: none;
+`
+
+export const CropCircleGuide = styled.div<{ $inset: number }>`
+  position: absolute;
+  z-index: 2;
+  inset: ${({ $inset }) => $inset}px;
+  border: 2px solid rgb(255 255 255 / 92%);
+  border-radius: ${token.shapes.circle};
+  box-shadow: 0 0 0 999px rgb(14 13 12 / 58%);
+  pointer-events: none;
+`
+
+export const CropBorderPreview = styled.div`
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+
+  > span > span:first-child {
+    background: transparent;
+  }
 `
 
 export const ZoomRow = styled.div`
@@ -108,12 +140,36 @@ export const PreviewButton = styled.button`
   height: 80px;
   flex: 0 0 auto;
   overflow: hidden;
-  border-radius: ${token.shapes.circle};
+  border-radius: ${token.shapes.small};
   background: ${token.colors.gray.gray0};
 `
 
 export const PreviewImage = styled.img<PositionedImageProps>`
   ${positionedImageStyle}
+`
+
+export const PreviewImageClip = styled.span<{ $size: number }>`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: ${({ $size }) => $size}px;
+  height: ${({ $size }) => $size}px;
+  overflow: hidden;
+  border-radius: ${token.shapes.circle};
+  transform: translate(-50%, -50%);
+`
+
+export const PreviewBorder = styled(ProfileAvatar)`
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+
+  > span:first-child {
+    background: transparent;
+  }
 `
 
 export const ButtonGroup = styled.div`
@@ -164,6 +220,7 @@ export const LargePreview = styled.div`
   width: 240px;
   height: 240px;
   overflow: hidden;
-  border-radius: ${token.shapes.circle};
+  border-radius: ${token.shapes.medium};
+  background: ${token.colors.gray.gray90};
   box-shadow: 0 8px 32px rgb(0 0 0 / 30%);
 `

@@ -1,13 +1,17 @@
 import { useState } from 'react'
 
+import { ProfileAvatar } from '@/shared/ui'
+
 import { useProfileCropModal } from '../../model/useProfileCropModal'
 import * as S from './ProfileCropModal.style'
 
+import type { ProfileAvatarEquippedItems } from '@/shared/ui'
 import type { ProfileCropState } from '../../model/useProfileCropModal'
 
 interface ProfileCropModalProps {
   imageSrc: string
   initialState: ProfileCropState
+  equippedItems?: ProfileAvatarEquippedItems
   onCancel: () => void
   onComplete: (
     croppedImageSrc: string,
@@ -21,6 +25,7 @@ const LARGE_PREVIEW_SIZE = 240
 export function ProfileCropModal({
   imageSrc,
   initialState,
+  equippedItems,
   onCancel,
   onComplete,
 }: ProfileCropModalProps) {
@@ -28,6 +33,8 @@ export function ProfileCropModal({
   const {
     cropAreaRef,
     cropAreaSize,
+    cropViewportOffset,
+    cropViewportSize,
     handleComplete,
     handleImageLoad,
     handleImagePointerDown,
@@ -40,13 +47,15 @@ export function ProfileCropModal({
   } = useProfileCropModal({ initialState, onComplete })
 
   const createPreviewFrame = (size: number) => {
-    const scale = size / cropAreaSize.height
-    const squareCropOffset = (cropAreaSize.width - cropAreaSize.height) / 2
+    const previewProfileSize = size * (cropViewportSize / cropAreaSize.width)
+    const previewOffset = (size - previewProfileSize) / 2
+    const scale = previewProfileSize / cropViewportSize
 
     return {
       height: imageFrame.height * scale,
-      left: (imageFrame.left - squareCropOffset) * scale,
-      top: imageFrame.top * scale,
+      left: (imageFrame.left - cropViewportOffset) * scale + previewOffset,
+      profileSize: previewProfileSize,
+      top: (imageFrame.top - cropViewportOffset) * scale + previewOffset,
       width: imageFrame.width * scale,
     }
   }
@@ -80,7 +89,15 @@ export function ProfileCropModal({
             $width={imageFrame.width}
             onLoad={handleImageLoad}
           />
-          <S.CropGrid aria-hidden="true" />
+          <S.CropGrid $inset={cropViewportOffset} aria-hidden="true" />
+          <S.CropCircleGuide $inset={cropViewportOffset} aria-hidden="true" />
+          <S.CropBorderPreview aria-hidden="true">
+            <ProfileAvatar
+              imageUrl=""
+              equippedItems={equippedItems}
+              size={cropViewportSize}
+            />
+          </S.CropBorderPreview>
         </S.CropArea>
 
         <S.ZoomRow>
@@ -102,13 +119,20 @@ export function ProfileCropModal({
             aria-label="크롭 미리보기 확대"
             onClick={() => setIsPreviewOpen(true)}
           >
-            <S.PreviewImage
-              src={imageSrc}
-              alt=""
-              $height={smallPreviewFrame.height}
-              $left={smallPreviewFrame.left}
-              $top={smallPreviewFrame.top}
-              $width={smallPreviewFrame.width}
+            <S.PreviewImageClip $size={smallPreviewFrame.profileSize}>
+              <S.PreviewImage
+                src={imageSrc}
+                alt=""
+                $height={smallPreviewFrame.height}
+                $left={smallPreviewFrame.left - (SMALL_PREVIEW_SIZE - smallPreviewFrame.profileSize) / 2}
+                $top={smallPreviewFrame.top - (SMALL_PREVIEW_SIZE - smallPreviewFrame.profileSize) / 2}
+                $width={smallPreviewFrame.width}
+              />
+            </S.PreviewImageClip>
+            <S.PreviewBorder
+              imageUrl=""
+              equippedItems={equippedItems}
+              size={smallPreviewFrame.profileSize}
             />
           </S.PreviewButton>
           <S.ButtonGroup>
@@ -124,13 +148,20 @@ export function ProfileCropModal({
         {isPreviewOpen && (
           <S.PreviewOverlay onClick={() => setIsPreviewOpen(false)}>
             <S.LargePreview onClick={(event) => event.stopPropagation()}>
-              <S.PreviewImage
-                src={imageSrc}
-                alt="크롭 결과 미리보기"
-                $height={largePreviewFrame.height}
-                $left={largePreviewFrame.left}
-                $top={largePreviewFrame.top}
-                $width={largePreviewFrame.width}
+              <S.PreviewImageClip $size={largePreviewFrame.profileSize}>
+                <S.PreviewImage
+                  src={imageSrc}
+                  alt="크롭 결과 미리보기"
+                  $height={largePreviewFrame.height}
+                  $left={largePreviewFrame.left - (LARGE_PREVIEW_SIZE - largePreviewFrame.profileSize) / 2}
+                  $top={largePreviewFrame.top - (LARGE_PREVIEW_SIZE - largePreviewFrame.profileSize) / 2}
+                  $width={largePreviewFrame.width}
+                />
+              </S.PreviewImageClip>
+              <S.PreviewBorder
+                imageUrl=""
+                equippedItems={equippedItems}
+                size={largePreviewFrame.profileSize}
               />
             </S.LargePreview>
           </S.PreviewOverlay>
