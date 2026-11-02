@@ -2,11 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, PointerEvent } from 'react'
 
 const CROP_AREA_WIDTH = 464
-const CROP_AREA_ASPECT_RATIO = 3 / 2
-const OUTPUT_IMAGE_HEIGHT = 338
-const OUTPUT_IMAGE_WIDTH = Math.round(
-  OUTPUT_IMAGE_HEIGHT * CROP_AREA_ASPECT_RATIO,
-)
+const CROP_AREA_ASPECT_RATIO = 1
+const CROP_VIEWPORT_RATIO = 320 / CROP_AREA_WIDTH
+const OUTPUT_IMAGE_SIZE = 512
 const PROFILE_IMAGE_MIME_TYPE = 'image/jpeg'
 
 type UseProfileCropModalParams = {
@@ -112,15 +110,21 @@ export function useProfileCropModal({
     height: CROP_AREA_WIDTH / CROP_AREA_ASPECT_RATIO,
   })
   const [zoomValue, setZoomValue] = useState(initialState.zoomValue)
+  const cropViewportSize = cropAreaSize.width * CROP_VIEWPORT_RATIO
+  const cropViewport = useMemo(
+    () => ({ width: cropViewportSize, height: cropViewportSize }),
+    [cropViewportSize],
+  )
+  const cropViewportOffset = (cropAreaSize.width - cropViewportSize) / 2
   const zoomScale = getZoomScale(zoomValue)
   const displayedImageSize = useMemo(
-    () => getDisplayedImageSize(imageSize, cropAreaSize, zoomScale),
-    [cropAreaSize, imageSize, zoomScale],
+    () => getDisplayedImageSize(imageSize, cropViewport, zoomScale),
+    [cropViewport, imageSize, zoomScale],
   )
   const boundedImagePosition = useMemo(
     () =>
-      getBoundedImagePosition(imagePosition, displayedImageSize, cropAreaSize),
-    [cropAreaSize, displayedImageSize, imagePosition],
+      getBoundedImagePosition(imagePosition, displayedImageSize, cropViewport),
+    [cropViewport, displayedImageSize, imagePosition],
   )
   const imageFrame: ImageFrame = useMemo(
     () => ({
@@ -162,7 +166,7 @@ export function useProfileCropModal({
     nextPosition: ProfileCropPosition,
     nextDisplayedImageSize = displayedImageSize,
   ) =>
-    getBoundedImagePosition(nextPosition, nextDisplayedImageSize, cropAreaSize)
+    getBoundedImagePosition(nextPosition, nextDisplayedImageSize, cropViewport)
 
   const handleImageLoad = () => {
     const image = imageRef.current
@@ -177,7 +181,7 @@ export function useProfileCropModal({
     }
     const nextDisplayedImageSize = getDisplayedImageSize(
       nextImageSize,
-      cropAreaSize,
+      cropViewport,
       zoomScale,
     )
 
@@ -236,7 +240,7 @@ export function useProfileCropModal({
     const zoomRatio = nextZoomScale / zoomScale
     const nextDisplayedImageSize = getDisplayedImageSize(
       imageSize,
-      cropAreaSize,
+      cropViewport,
       nextZoomScale,
     )
 
@@ -264,10 +268,12 @@ export function useProfileCropModal({
     const imageRect = image.getBoundingClientRect()
     const sourceScaleX = image.naturalWidth / imageRect.width
     const sourceScaleY = image.naturalHeight / imageRect.height
-    const sourceX = (cropAreaRect.left - imageRect.left) * sourceScaleX
-    const sourceY = (cropAreaRect.top - imageRect.top) * sourceScaleY
-    const sourceWidth = cropAreaRect.width * sourceScaleX
-    const sourceHeight = cropAreaRect.height * sourceScaleY
+    const sourceX =
+      (cropAreaRect.left + cropViewportOffset - imageRect.left) * sourceScaleX
+    const sourceY =
+      (cropAreaRect.top + cropViewportOffset - imageRect.top) * sourceScaleY
+    const sourceWidth = cropViewportSize * sourceScaleX
+    const sourceHeight = cropViewportSize * sourceScaleY
     const canvas = document.createElement('canvas')
     const context = canvas.getContext('2d')
 
@@ -275,8 +281,8 @@ export function useProfileCropModal({
       return
     }
 
-    canvas.width = OUTPUT_IMAGE_WIDTH
-    canvas.height = OUTPUT_IMAGE_HEIGHT
+    canvas.width = OUTPUT_IMAGE_SIZE
+    canvas.height = OUTPUT_IMAGE_SIZE
     context.drawImage(
       image,
       sourceX,
@@ -285,8 +291,8 @@ export function useProfileCropModal({
       sourceHeight,
       0,
       0,
-      OUTPUT_IMAGE_WIDTH,
-      OUTPUT_IMAGE_HEIGHT,
+      OUTPUT_IMAGE_SIZE,
+      OUTPUT_IMAGE_SIZE,
     )
     onComplete(canvas.toDataURL(PROFILE_IMAGE_MIME_TYPE), {
       position: boundedImagePosition,
@@ -296,6 +302,8 @@ export function useProfileCropModal({
 
   return {
     cropAreaSize,
+    cropViewportOffset,
+    cropViewportSize,
     cropAreaRef,
     handleComplete,
     handleImageLoad,
