@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
@@ -80,12 +80,18 @@ export function HomePage() {
     setSearchParams(nextSearchParams, { replace: true })
   }, [searchParams, setSearchParams])
 
-  useEffect(() => {
-    if (!viewport.current) return
-    const observer = new ResizeObserver(([entry]) => {
-      setScale(entry.contentRect.width / 1280)
-    })
-    observer.observe(viewport.current)
+  useLayoutEffect(() => {
+    const element = viewport.current
+    if (!element) return
+
+    function updateScale(width: number) {
+      // 숨겨진 상태의 측정값으로 상단 영역을 접지 않는다.
+      if (width > 0) setScale(width / 1280)
+    }
+
+    updateScale(element.getBoundingClientRect().width)
+    const observer = new ResizeObserver(([entry]) => updateScale(entry.contentRect.width))
+    observer.observe(element)
     return () => observer.disconnect()
   }, [])
 
