@@ -1,6 +1,10 @@
 import * as token from '@/shared/styles/values/token';
 import styled, { createGlobalStyle, css, keyframes } from 'styled-components';
 
+function calendarSize(pixels: number) {
+  return `calc(${pixels} * var(--home-calendar-unit))`;
+}
+
 const eventShimmer = keyframes`
   from { background-position: 100% 0; }
   to { background-position: -100% 0; }
@@ -29,14 +33,18 @@ export const CalendarWrapper = styled.div<{
 }>`
   width: 100%;
   height: 100%;
+  container-type: inline-size;
   ${token.flexColumn}
 
 
   .fc {
+    /* 888px 기준 디자인을 실제 크기로 배치해 일정 좌표에 확대가 중복되지 않게 한다. */
+    --home-calendar-unit: calc(100cqw / 888);
     font-family: ${token.fontFamily.system};
+    font-size: ${calendarSize(16)};
     border: 1px solid #eeeeee;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    border-radius: ${calendarSize(8)};
+    box-shadow: 0 ${calendarSize(2)} ${calendarSize(6)} rgba(0, 0, 0, 0.08);
     background: #ffffff;
     height: 100%;
     ${token.flexColumn}
@@ -44,7 +52,7 @@ export const CalendarWrapper = styled.div<{
 
   .fc-header-toolbar.fc-toolbar {
     ${token.flexCenter}
-    padding: 20px;
+    padding: ${calendarSize(20)};
     flex-shrink: 0;
     margin: 0;
   }
@@ -66,15 +74,15 @@ export const CalendarWrapper = styled.div<{
   }
 
   .fc-header-toolbar .fc-prev-button {
-    margin-right: 15px;
+    margin-right: ${calendarSize(15)};
   }
 
   .fc-header-toolbar .fc-next-button {
-    margin-left: 15px;
+    margin-left: ${calendarSize(15)};
   }
 
   .fc-header-toolbar .fc-toolbar-title {
-    font-size: 1.25rem;
+    font-size: ${calendarSize(20)};
     font-weight: 500;
     color: #333333;
     margin: 0;
@@ -85,7 +93,7 @@ export const CalendarWrapper = styled.div<{
     background: none;
     border: none;
     color: #a0a0a0;
-    font-size: 1.25rem;
+    font-size: ${calendarSize(20)};
     padding: 0.4em 0.5em;
     box-shadow: none;
   }
@@ -116,25 +124,26 @@ export const CalendarWrapper = styled.div<{
   }
 
   .fc .fc-col-header-cell {
-    padding: 10px 0 10px 10px;
-    font-size: 0.75rem;
+    padding: ${calendarSize(10)} 0 ${calendarSize(10)} ${calendarSize(10)};
+    font-size: ${calendarSize(12)};
     font-weight: 600;
     color: #b8b8b8;
     background: #ffffff;
     border: none;
-    border-radius: 8px;
+    border-radius: ${calendarSize(8)};
     text-align: left;
   }
 
   .fc .fc-col-header-cell-cushion {
+    padding: ${calendarSize(2)} ${calendarSize(4)};
     text-align: left;
   }
 
   .fc .fc-scrollgrid {
     border: 1px solid #eeeeee;
-    border-radius: 8px;
+    border-radius: ${calendarSize(8)};
     width: 90%;
-    max-width: 1200px;
+    max-width: ${calendarSize(1200)};
     margin: 0 auto;
     height: 90%;
   }
@@ -176,13 +185,13 @@ export const CalendarWrapper = styled.div<{
 
   .fc .fc-daygrid-day-top {
     justify-content: flex-start;
-    padding: 5px;
+    padding: ${calendarSize(5)};
   }
 
   .fc .fc-daygrid-day-number {
-    font-size: 0.6875rem;
+    font-size: ${calendarSize(11)};
     font-weight: 400;
-    padding: 8px;
+    padding: ${calendarSize(8)};
     color: #191a1a;
     position: absolute;
     top: 0;
@@ -198,19 +207,19 @@ export const CalendarWrapper = styled.div<{
   }
 
   .fc .fc-daygrid-day-events {
-    margin-top: 20px;
+    margin-top: ${calendarSize(20)};
   }
 
   .fc .fc-event {
-    font-size: 0.75rem;
+    font-size: ${calendarSize(12)};
     font-weight: 600;
     display: block;
-    width: calc(100% - 8px);
-    min-height: 22px;
+    width: calc(100% - ${calendarSize(8)});
+    min-height: ${calendarSize(22)};
     border: none;
-    border-radius: 4px;
-    padding: 4px 6px;
-    margin: 2px 4px;
+    border-radius: ${calendarSize(4)};
+    padding: ${calendarSize(4)} ${calendarSize(6)};
+    margin: ${calendarSize(2)} ${calendarSize(4)};
     cursor: pointer;
     white-space: nowrap;
     overflow: hidden;
@@ -291,12 +300,12 @@ export const CalendarWrapper = styled.div<{
   .fc .fc-daygrid-more-link {
     display: block;
     width: 100%;
-    margin: 1px 0;
-    padding: 2px 4px;
+    margin: ${calendarSize(1)} 0;
+    padding: ${calendarSize(2)} ${calendarSize(4)};
     box-sizing: border-box;
-    border-radius: 4px;
+    border-radius: ${calendarSize(4)};
     line-height: 1.5;
-    font-size: 12px;
+    font-size: ${calendarSize(12)};
     cursor: pointer;
 
     &:hover {
@@ -308,11 +317,16 @@ export const CalendarWrapper = styled.div<{
 export const EventContentWrapper = styled.div`
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: ${calendarSize(4)};
   width: 100%;
-  min-height: 14px;
+  min-height: ${calendarSize(14)};
   overflow: hidden;
   pointer-events: none;
+
+  svg {
+    width: ${calendarSize(12)};
+    height: ${calendarSize(12)};
+  }
 `;
 
 
