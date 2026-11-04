@@ -15,10 +15,10 @@ export const PageContainer = styled.section`
 `
 
 export const CalendarArea = styled.div`
-  flex: 1;
-  min-width: 0;
+  width: 888px;
   /* 우측 프로필·랭킹/인기글 카드 묶음의 실제 하단과 맞춘다. */
   height: 675px;
+  flex-shrink: 0;
 
   @media (max-width: 768px) {
     display: none;
@@ -34,7 +34,7 @@ export const Viewport = styled.div`
 export const Canvas = styled.div`
   display: flex;
   gap: 32px;
-  width: max(1280px, 100%);
+  width: 1280px;
   height: 740px;
   transform-origin: top left;
   @media (max-width: 768px) {

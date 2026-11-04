@@ -83,7 +83,7 @@ export function HomePage() {
   useEffect(() => {
     if (!viewport.current) return
     const observer = new ResizeObserver(([entry]) => {
-      setScale(Math.min(1, entry.contentRect.width / 1280))
+      setScale(entry.contentRect.width / 1280)
     })
     observer.observe(viewport.current)
     return () => observer.disconnect()
