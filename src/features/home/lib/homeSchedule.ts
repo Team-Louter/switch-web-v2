@@ -4,32 +4,6 @@ import { getDateKeysInRange, toDateKeyFromServer } from '@/shared/lib/calendar'
 import type { CalendarEvent } from '../ui/MonthlyCalendar'
 import { getScheduleColor } from './scheduleColor'
 
-const scheduleDateFormatter = new Intl.DateTimeFormat('en-US', {
-  timeZone: 'Asia/Seoul',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-})
-
-export function toHomeScheduleDateKey(value: string) {
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return value
-  }
-
-  // 일정 API는 시간대 표기 없이 UTC 시각을 반환한다.
-  const timestamp = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(value) ? value : `${value}Z`
-  const date = new Date(timestamp)
-
-  if (Number.isNaN(date.getTime())) {
-    return toDateKeyFromServer(value)
-  }
-
-  const parts = scheduleDateFormatter.formatToParts(date)
-  const { year, month, day } = Object.fromEntries(parts.map(({ type, value }) => [type, value]))
-
-  return `${year}-${month}-${day}`
-}
-
 /**
  * 일정 목록을 달력 칸에 그릴 수 있도록 날짜 키별로 나눈다.
  *

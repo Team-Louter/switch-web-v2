@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import styled from 'styled-components'
 import type { Schedule } from '@/entities/schedule'
 
-import { toHomeScheduleDateKey } from '../../lib/homeSchedule'
+import { toScheduleDateKey } from '@/shared/utils/schedule'
 
 interface ScheduleDetailPopoverProps {
   schedule: Schedule
@@ -58,7 +58,7 @@ export function ScheduleDetailPopover({ schedule, x, y, onClose }: ScheduleDetai
       onPointerUp={() => { drag.current = null }}
       onPointerCancel={() => { drag.current = null }}>
       <Row><Label>제목</Label><Value>{schedule.title}</Value></Row>
-      <Row><Label>날짜</Label><Value>{toHomeScheduleDateKey(schedule.startDate)} ~ {toHomeScheduleDateKey(schedule.endDate)}</Value></Row>
+      <Row><Label>날짜</Label><Value>{toScheduleDateKey(schedule.startDate)} ~ {toScheduleDateKey(schedule.endDate)}</Value></Row>
       <Row><Label>담당자</Label><Value>{formatAssignees(schedule)}</Value></Row>
       <Row><Label>설명</Label><Value>{schedule.content || '-'}</Value></Row>
     </Card>, document.body,

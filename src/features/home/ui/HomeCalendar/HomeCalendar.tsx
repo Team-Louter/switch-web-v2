@@ -7,8 +7,8 @@ import { FaFlag } from 'react-icons/fa6'
 
 import type { Schedule, ScheduleColor } from '@/entities/schedule'
 import { toDateKey } from '@/shared/lib/calendar'
+import { toScheduleDateKey } from '@/shared/utils/schedule'
 
-import { toHomeScheduleDateKey } from '../../lib/homeSchedule'
 import * as S from './HomeCalendar.style'
 import { ScheduleDetailPopover } from './ScheduleDetailPopover'
 
@@ -46,11 +46,11 @@ export function HomeCalendar({
     ? getLoadingEvents(visibleDate)
     : schedules.map((schedule) => {
       // FullCalendar의 종료일은 exclusive이며 API 종료일은 inclusive이다.
-      const end = new Date(`${toHomeScheduleDateKey(schedule.endDate)}T00:00:00Z`)
+      const end = new Date(`${toScheduleDateKey(schedule.endDate)}T00:00:00Z`)
       end.setUTCDate(end.getUTCDate() + 1)
       return {
         id: String(schedule.scheduleId), title: schedule.title,
-        start: toHomeScheduleDateKey(schedule.startDate),
+        start: toScheduleDateKey(schedule.startDate),
         end: toDateKey(end.getUTCFullYear(), end.getUTCMonth() + 1, end.getUTCDate()),
         allDay: true, color: COLORS[schedule.color] ?? 'gold',
       }
