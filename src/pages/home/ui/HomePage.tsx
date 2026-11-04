@@ -92,7 +92,7 @@ export function HomePage() {
   return (
     <S.PageContainer>
       <S.Viewport ref={viewport} style={{ height: HOME_TOP_CONTENT_HEIGHT * scale }}>
-        <S.Canvas style={{ transform: `scale(${scale})` }}>
+        <S.Canvas style={{ columnGap: 32 * scale }}>
           <S.CalendarArea>
             <HomeCalendar
               schedules={schedules}
@@ -101,7 +101,9 @@ export function HomePage() {
               onScheduleDetailClose={handleScheduleDetailClose}
             />
           </S.CalendarArea>
-          <HomeSidebar />
+          <S.SidebarArea style={{ transform: `scale(${scale})` }}>
+            <HomeSidebar />
+          </S.SidebarArea>
         </S.Canvas>
       </S.Viewport>
       <HomeMemberSection />

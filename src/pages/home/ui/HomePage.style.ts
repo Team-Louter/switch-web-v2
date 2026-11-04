@@ -15,10 +15,8 @@ export const PageContainer = styled.section`
 `
 
 export const CalendarArea = styled.div`
-  width: 888px;
-  /* 우측 프로필·랭킹/인기글 카드 묶음의 실제 하단과 맞춘다. */
-  height: 675px;
-  flex-shrink: 0;
+  /* FullCalendar가 날짜 칸과 일정 막대를 같은 좌표계에서 계산하도록 한다. */
+  height: 100%;
 
   @media (max-width: 768px) {
     display: none;
@@ -32,16 +30,25 @@ export const Viewport = styled.div`
   @media (max-width: 768px) { height: auto !important; }
 `
 export const Canvas = styled.div`
-  display: flex;
-  gap: 32px;
-  width: 1280px;
-  height: 740px;
-  transform-origin: top left;
+  display: grid;
+  grid-template-columns: minmax(0, 888fr) minmax(0, 360fr);
+  grid-template-rows: minmax(0, 1fr);
+  height: 100%;
+
   @media (max-width: 768px) {
-    width: 100%;
+    display: flex;
     height: auto;
     flex-direction: column;
-    gap: 16px;
+  }
+`
+
+export const SidebarArea = styled.div`
+  justify-self: end;
+  align-self: start;
+  transform-origin: top right;
+
+  @media (max-width: 768px) {
+    align-self: stretch;
     transform: none !important;
   }
 `
