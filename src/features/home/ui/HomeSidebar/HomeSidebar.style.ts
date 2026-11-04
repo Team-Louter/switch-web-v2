@@ -7,11 +7,6 @@ const shimmer = keyframes`
   to { background-position: -100% 0; }
 `;
 
-const cardEnter = keyframes`
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
-
 const SkeletonSurface = styled.div`
   background: linear-gradient(90deg, #edf0f3 25%, #f7f8f9 37%, #edf0f3 63%);
   background-size: 400% 100%;
@@ -25,7 +20,6 @@ export const Sidebar = styled.aside`
   gap: 4%;
   width: 360px;
   height: 740px;
-  animation: ${cardEnter} 420ms ease-out both;
 
   @media (max-width: 768px) {
     width: 100%;

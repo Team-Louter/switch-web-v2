@@ -1,6 +1,11 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
+
+const homeTopEnter = keyframes`
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+`
 
 export const PageContainer = styled.section`
   width: 100%;
@@ -34,6 +39,10 @@ export const Canvas = styled.div`
   grid-template-columns: minmax(0, 888fr) minmax(0, 360fr);
   grid-template-rows: minmax(0, 1fr);
   height: 100%;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: ${homeTopEnter} 420ms ease-out;
+  }
 
   @media (max-width: 768px) {
     display: flex;
