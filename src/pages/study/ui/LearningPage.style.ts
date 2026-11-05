@@ -17,7 +17,7 @@ export const PageContainer = styled.section`
 const learningContentReveal = keyframes`
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px);
   }
 
   to {
@@ -42,7 +42,7 @@ export const ScrollArea = styled.div<{ $loaded: boolean }>`
   scrollbar-width: thin;
   animation: ${({ $loaded }) =>
     $loaded &&
-    css`${learningContentReveal} 420ms cubic-bezier(0.22, 1, 0.36, 1) both`};
+    css`${learningContentReveal} 420ms ease-out`};
 
   &::-webkit-scrollbar {
     width: 14px;
