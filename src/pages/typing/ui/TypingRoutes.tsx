@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 
 import { AsyncBoundary } from '@/shared/ui'
 import { TypingPageSkeleton } from './TypingPage/TypingPageSkeleton'
+import { PageEntrance } from './TypingPage/TypingPage.style'
 
 const LazyTypingPage = lazy(() =>
   import('./TypingPage/TypingPage').then(({ TypingPage }) => ({ default: TypingPage })),
@@ -16,9 +17,11 @@ const LazyCodeTypingPage = lazy(() =>
 export function TypingPage() {
   return (
     <AsyncBoundary>
-      <Suspense fallback={<TypingPageSkeleton />}>
-        <LazyTypingPage />
-      </Suspense>
+      <PageEntrance>
+        <Suspense fallback={<TypingPageSkeleton />}>
+          <LazyTypingPage />
+        </Suspense>
+      </PageEntrance>
     </AsyncBoundary>
   )
 }
