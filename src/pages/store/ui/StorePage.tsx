@@ -2,6 +2,7 @@ import { useStorePage } from '../model/useStorePage'
 import * as S from './StorePage.style'
 import { PointHistoryModal } from './components/PointHistoryModal'
 import { StoreEffectCard } from './components/StoreEffectCard'
+import { StoreEffectListSkeleton } from './components/StoreEffectListSkeleton'
 import { StoreFilterBar } from './components/StoreFilterBar'
 import { StorePurchaseModal } from './components/StorePurchaseModal'
 import { StoreProfileCustomizeModal } from './components/StoreProfileCustomizeModal'
@@ -118,11 +119,15 @@ export function StorePage() {
             selectedCategory={selectedCategory}
             onCategorySelect={onCategorySelect}
           />
-          <S.PointButton onClick={onPointHistoryOpen} type="button">
+          <S.PointButton onClick={onPointHistoryOpen} type="button" disabled={isLoading} aria-busy={isLoading}>
             <S.PointTextGroup>
               <PointIcon size={22} />
               <span>포인트</span>
-              <S.PointValue>{point.toLocaleString()}</S.PointValue>
+              {isLoading ? (
+                <S.SkeletonBlock $width="48px" $height="22px" aria-label="포인트 불러오는 중" />
+              ) : (
+                <S.PointValue>{point.toLocaleString()}</S.PointValue>
+              )}
             </S.PointTextGroup>
             <S.IconButton>
               <MoreIcon size={20} />
@@ -130,9 +135,9 @@ export function StorePage() {
           </S.PointButton>
         </S.Toolbar>
 
-        {(isLoading || errorMessage) && (
-          <S.FeedbackMessage role={errorMessage ? 'alert' : 'status'}>
-            <span>{errorMessage || '상점 아이템을 불러오는 중이에요'}</span>
+        {errorMessage && (
+          <S.FeedbackMessage role="alert">
+            <span>{errorMessage}</span>
             {errorMessage && !isLoading && (
               <S.RetryButton onClick={onRetry} type="button">
                 다시 시도
@@ -141,10 +146,12 @@ export function StorePage() {
           </S.FeedbackMessage>
         )}
 
-        <S.EffectSections>
+        <S.EffectSections aria-busy={isLoading}>
           <S.Section>
             <S.SectionTitle>내 효과</S.SectionTitle>
-            {!isLoading && (
+            {isLoading ? (
+              <StoreEffectListSkeleton selectedCategory={selectedCategory} label="내 효과를 불러오는 중입니다." />
+            ) : (
               <StoreEffectList
                 effects={ownedEffects}
                 emptyMessage="보유한 효과가 없어요"
@@ -159,7 +166,9 @@ export function StorePage() {
 
           <S.Section>
             <S.SectionTitle>추천 효과</S.SectionTitle>
-            {!isLoading && (
+            {isLoading ? (
+              <StoreEffectListSkeleton selectedCategory={selectedCategory} label="추천 효과를 불러오는 중입니다." />
+            ) : (
               <StoreEffectList
                 effects={recommendedEffects}
                 emptyMessage="추천 효과가 없어요"

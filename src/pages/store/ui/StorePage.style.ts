@@ -7,6 +7,11 @@ import { StoreItemImage } from './components/StoreItemImage'
 
 import type { StoreEffectStatus, StoreEffectType } from '../types'
 
+const storePageEnter = keyframes`
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+`
+
 export const Page = styled.section`
   ${token.flexColumn}
   align-items: center;
@@ -25,6 +30,10 @@ export const Content = styled.div`
   ${token.flexColumn}
   gap: 40px;
   width: min(910px, 100%);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: ${storePageEnter} 420ms ease-out;
+  }
 `
 
 export const Toolbar = styled.div`
@@ -675,6 +684,20 @@ const customizeSkeletonSurface = css`
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
+`
+
+export const SkeletonBlock = styled.span<{ $width: string; $height: string }>`
+  ${customizeSkeletonSurface}
+  display: block;
+  flex-shrink: 0;
+  width: ${({ $width }) => $width};
+  max-width: 100%;
+  height: ${({ $height }) => $height};
+  border-radius: ${token.shapes.xsmall};
+`
+
+export const SkeletonCard = styled(EffectCard)`
+  pointer-events: none;
 `
 
 export const CustomizeModal = styled.div`
