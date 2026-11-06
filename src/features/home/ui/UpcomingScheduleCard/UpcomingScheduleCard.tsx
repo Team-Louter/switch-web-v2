@@ -1,5 +1,6 @@
 import type { Schedule } from '@/entities/schedule'
 import { formatMonthDay } from '@/shared/lib/calendar'
+import { toScheduleDateKey } from '@/shared/utils/schedule'
 
 import { getScheduleColor } from '../../lib/scheduleColor'
 import { HomeCard } from '../HomeCard'
@@ -29,7 +30,7 @@ export function UpcomingScheduleCard({
               <S.ColorDot $color={getScheduleColor(color)} />
               <S.Title>{title}</S.Title>
             </S.Label>
-            <S.DateText>{formatMonthDay(startDate)}</S.DateText>
+            <S.DateText>{formatMonthDay(toScheduleDateKey(startDate))}</S.DateText>
           </S.Item>
         ))}
       </S.List>

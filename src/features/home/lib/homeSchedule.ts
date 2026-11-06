@@ -1,5 +1,6 @@
 import type { Schedule } from '@/entities/schedule'
-import { getDateKeysInRange, toDateKeyFromServer } from '@/shared/lib/calendar'
+import { getDateKeysInRange } from '@/shared/lib/calendar'
+import { toScheduleDateKey } from '@/shared/utils/schedule'
 
 import type { CalendarEvent } from '../ui/MonthlyCalendar'
 import { getScheduleColor } from './scheduleColor'
@@ -13,7 +14,10 @@ export function groupSchedulesByDate(schedules: Schedule[]) {
   const eventsByDate: Record<string, CalendarEvent[]> = {}
 
   schedules.forEach(({ scheduleId, title, startDate, endDate, color }) => {
-    getDateKeysInRange(startDate, endDate).forEach((dateKey) => {
+    getDateKeysInRange(
+      toScheduleDateKey(startDate),
+      toScheduleDateKey(endDate),
+    ).forEach((dateKey) => {
       const event: CalendarEvent = {
         id: `${scheduleId}-${dateKey}`,
         title,
@@ -36,7 +40,9 @@ export function getUpcomingSchedules(
   limit: number,
 ) {
   return schedules
-    .filter(({ endDate }) => toDateKeyFromServer(endDate) >= todayDateKey)
-    .sort((a, b) => a.startDate.localeCompare(b.startDate))
+    .filter(({ endDate }) => toScheduleDateKey(endDate) >= todayDateKey)
+    .sort((a, b) =>
+      toScheduleDateKey(a.startDate).localeCompare(toScheduleDateKey(b.startDate)),
+    )
     .slice(0, limit)
 }
