@@ -2,7 +2,9 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
+  type MouseEvent,
   type SetStateAction,
 } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
@@ -84,6 +86,8 @@ export function AppLayout() {
   const notificationCount = notificationCountQuery.data ?? storedNotificationCount
   const [isSidebarProfileLoading, setIsSidebarProfileLoading] = useState(true)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true)
+  const sidebarRef = useRef<HTMLDivElement>(null)
   const [sidebarProfile, setSidebarProfile] = useState<SidebarProfile | null>(
     null,
   )
@@ -108,6 +112,22 @@ export function AppLayout() {
     if (path) {
       setIsMobileMenuOpen(false)
       navigate(path)
+    }
+  }
+
+  const handleBackgroundClick = (event: MouseEvent<HTMLElement>) => {
+    if (
+      window.matchMedia('(min-width: 769px)').matches &&
+      event.target instanceof Node &&
+      !sidebarRef.current?.contains(event.target)
+    ) {
+      setIsDesktopSidebarOpen(false)
+    }
+  }
+
+  const handleSidebarExpand = () => {
+    if (window.matchMedia('(min-width: 769px)').matches) {
+      setIsDesktopSidebarOpen(true)
     }
   }
 
@@ -198,7 +218,7 @@ export function AppLayout() {
   }, [fetchUser, location.pathname, setUser, userId, sessionVersion])
 
   return (
-    <Layout>
+    <Layout onClickCapture={handleBackgroundClick}>
       {shouldShowSidebar && (
         <>
           <MobileHeader>
@@ -220,9 +240,15 @@ export function AppLayout() {
             $open={isMobileMenuOpen}
             onClick={() => setIsMobileMenuOpen(false)}
           />
-          <Side $open={isMobileMenuOpen}>
-            <SidebarContainer>
+          <Side
+            ref={sidebarRef}
+            $open={isMobileMenuOpen}
+            $desktopOpen={isDesktopSidebarOpen}
+          >
+            <SidebarContainer id="app-sidebar" $desktopOpen={isDesktopSidebarOpen}>
             <Sidebar
+              collapsed={!isDesktopSidebarOpen}
+              onExpand={handleSidebarExpand}
               activeItemId={activeSidebarItemId}
               notificationCount={notificationCount}
               isProfileLoading={isSidebarProfileLoading}
@@ -248,11 +274,12 @@ const Layout = styled.main`
   background: ${token.colors.white};
 `
 
-const Side = styled.div<{ $open: boolean }>`
+const Side = styled.div<{ $open: boolean; $desktopOpen: boolean }>`
   ${token.flexLeft}
   align-items: flex-start;
-  flex: 0 0 clamp(260px, 21.5vw, 309px);
-  width: clamp(260px, 21.5vw, 309px);
+  flex: 0 0 ${({ $desktopOpen }) => ($desktopOpen ? 'clamp(260px, 21.5vw, 309px)' : 'calc(76px + 2 * clamp(20px, 2vw, 30px))')};
+  width: ${({ $desktopOpen }) => ($desktopOpen ? 'clamp(260px, 21.5vw, 309px)' : 'calc(76px + 2 * clamp(20px, 2vw, 30px))')};
+  transition: flex-basis 240ms ease, width 240ms ease;
   box-sizing: border-box;
   min-height: 100dvh;
 
@@ -270,19 +297,24 @@ const Side = styled.div<{ $open: boolean }>`
   }
 `
 
-const SidebarContainer = styled.div`
+const SidebarContainer = styled.div<{ $desktopOpen: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
-  width: clamp(260px, 21.5vw, 309px);
+  width: ${({ $desktopOpen }) => ($desktopOpen ? 'clamp(260px, 21.5vw, 309px)' : 'calc(76px + 2 * clamp(20px, 2vw, 30px))')};
   height: 100dvh;
   box-sizing: border-box;
   padding: clamp(20px, 2vw, 30px);
+  transition: width 240ms ease;
 
   @media (max-width: 768px) {
     width: min(309px, calc(100vw - 48px));
     padding: 12px;
     background: ${token.colors.white};
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
   }
 `
 
@@ -340,6 +372,7 @@ const MobileLogo = styled.img`
   width: 112px;
   height: auto;
 `
+
 const MobileBackdrop = styled.button<{ $open: boolean }>`
   display: none;
 
