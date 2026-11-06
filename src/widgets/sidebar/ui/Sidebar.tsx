@@ -9,6 +9,7 @@ import {
 } from '@/shared/constants/sidebar'
 import { UserName } from '@/entities/user'
 import { getNameStyleKey } from '@/shared/styles'
+import { ProfileAvatar } from '@/shared/ui'
 
 import type { ProfileAvatarEquippedItems } from '@/shared/ui'
 import type { SidebarItemId } from '@/shared/constants/sidebar'
@@ -34,7 +35,6 @@ import {
   ProfileTitle,
   ProfileTitleSkeleton,
   ProfileSkeleton,
-  SidebarAvatar,
   Spacer,
   type NotificationCountAnimationDirection,
 } from './Sidebar.style'
@@ -42,8 +42,6 @@ import { SidebarIcon } from './SidebarIcon'
 
 interface SidebarProps {
   activeItemId?: SidebarItemId
-  collapsed?: boolean
-  onExpand?: () => void
   isProfileLoading?: boolean
   notificationCount?: number
   onItemSelect?: (itemId: SidebarItemId) => void
@@ -57,8 +55,6 @@ interface SidebarProps {
 
 export function Sidebar({
   activeItemId = 'home',
-  collapsed = false,
-  onExpand,
   isProfileLoading = false,
   notificationCount = 0,
   onItemSelect,
@@ -102,12 +98,7 @@ export function Sidebar({
   }, [notificationCount])
 
   return (
-    <Aside
-      aria-label="주요 메뉴"
-      $collapsed={collapsed}
-      onMouseEnter={onExpand}
-      onFocusCapture={onExpand}
-    >
+    <Aside aria-label="주요 메뉴">
       <LogoArea>
         <LogoButton
           type="button"
@@ -123,8 +114,6 @@ export function Sidebar({
           <MenuButton
             key={item.id}
             type="button"
-            aria-label={item.label}
-            title={item.label}
             aria-current={activeItemId === item.id ? 'page' : undefined}
             $active={activeItemId === item.id}
             onClick={() => onItemSelect?.(item.id)}
@@ -142,8 +131,6 @@ export function Sidebar({
           <MenuButton
             key={item.id}
             type="button"
-            aria-label={item.id === 'notification' && notificationCount > 0 ? `${item.label} ${notificationCountLabel}` : item.label}
-            title={item.label}
             aria-current={activeItemId === item.id ? 'page' : undefined}
             $active={activeItemId === item.id}
             onClick={() => onItemSelect?.(item.id)}
@@ -171,11 +158,10 @@ export function Sidebar({
           isProfileLoading
             ? '프로필 불러오는 중'
             : profile
-              ? `${profile.name} 프로필`
+              ? undefined
               : '프로필 정보로 이동'
         }
         aria-busy={isProfileLoading}
-        title="마이페이지"
         onClick={() => onItemSelect?.(MY_SIDEBAR_ITEM.id)}
       >
         {isProfileLoading ? (
@@ -189,7 +175,7 @@ export function Sidebar({
           </ProfileSkeleton>
         ) : profile ? (
           <>
-            <SidebarAvatar
+            <ProfileAvatar
               imageUrl={profile.imageUrl}
               equippedItems={profile.equippedItems}
               size={50}
@@ -204,7 +190,7 @@ export function Sidebar({
           </>
         ) : (
           <>
-            <SidebarAvatar imageUrl={profileFallbackImage} size={50} />
+            <ProfileAvatar imageUrl={profileFallbackImage} size={50} />
             <ProfileText>
               <ProfileName>프로필</ProfileName>
               <ProfileMeta>정보를 불러오지 못했습니다</ProfileMeta>

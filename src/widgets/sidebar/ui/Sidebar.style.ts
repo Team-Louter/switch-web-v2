@@ -1,7 +1,6 @@
 import styled, { css, keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
-import { ProfileAvatar } from '@/shared/ui'
 
 import type { IconFrame } from './SidebarIcon'
 
@@ -15,10 +14,10 @@ const profileSkeletonShimmer = keyframes`
   }
 `
 
-export const Aside = styled.aside<{ $collapsed: boolean }>`
+export const Aside = styled.aside`
   ${token.flexColumnStart}
   width: 100%;
-  min-width: 0;
+  min-width: 220px;
   height: 100%;
   min-height: 0;
   gap: clamp(20px, 3.25dvh, 40px);
@@ -27,74 +26,7 @@ export const Aside = styled.aside<{ $collapsed: boolean }>`
   overscroll-behavior: contain;
   border-radius: ${token.shapes.xlarge};
   background: ${token.colors.gray.gray0};
-  transition: padding 240ms ease;
 
-  ${({ $collapsed }) => $collapsed && css`
-    @media (min-width: 769px) {
-      padding: 20px 12px;
-      gap: 20px;
-
-      ${LogoArea},
-      ${MenuLabel},
-      ${ProfileText},
-      ${ProfileTextSkeleton} {
-        display: none;
-      }
-
-      ${MenuList} {
-        gap: 8px;
-      }
-
-      ${MenuButton} {
-        position: relative;
-        justify-content: center;
-        height: 44px;
-        padding: 12px;
-        gap: 0;
-      }
-
-      ${NotificationCount} {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        width: 6px;
-        height: 6px;
-        margin: 0;
-        border-radius: ${token.shapes.circle};
-        background: ${token.colors.primary.primary40};
-        font-size: 0;
-      }
-
-      ${Divider} {
-        align-self: center;
-        width: 28px;
-      }
-
-      ${ProfileButton} {
-        justify-content: center;
-        height: 44px;
-        padding: 0;
-        gap: 0;
-      }
-
-      ${SidebarAvatar} {
-        transform: scale(0.72);
-      }
-
-      ${ProfileSkeleton} {
-        justify-content: center;
-      }
-
-      ${ProfileAvatarSkeleton} {
-        width: 36px;
-        height: 36px;
-      }
-    }
-  `}
-
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
 `
 
 export const LogoArea = styled.div`
@@ -119,7 +51,6 @@ export const LogoButton = styled.button`
 
 export const Logo = styled.img`
   width: 91.667px;
-  max-width: none;
   height: 25px;
 `
 
@@ -271,15 +202,6 @@ export const ProfileButton = styled.button`
   &:focus-visible {
     outline: 2px solid ${token.colors.primary.primary40};
     outline-offset: 2px;
-  }
-`
-
-export const SidebarAvatar = styled(ProfileAvatar)`
-  flex-shrink: 0;
-  transition: transform 240ms ease;
-
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
   }
 `
 
