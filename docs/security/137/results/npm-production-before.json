@@ -1,0 +1,297 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "axios": {
+      "name": "axios",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1240600,
+          "name": "axios",
+          "dependency": "axios",
+          "title": "Axios: Prototype pollution gadget in fetch adapter can alter outbound requests",
+          "url": "https://github.com/advisories/GHSA-vh66-26gq-q6x8",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=1.7.0 <1.20.0"
+        },
+        {
+          "source": 1240601,
+          "name": "axios",
+          "dependency": "axios",
+          "title": "Axios: Prototype-Pollution Gadget in the Default Instance Allows Inherited Object.prototype.method to Override HTTP Method",
+          "url": "https://github.com/advisories/GHSA-9fr6-4gfg-395g",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=1.0.0 <1.20.0"
+        },
+        {
+          "source": 1240603,
+          "name": "axios",
+          "dependency": "axios",
+          "title": "Axios: ReDoS in fromDataURI data: URL parser freezes the Node event loop (DoS)",
+          "url": "https://github.com/advisories/GHSA-c29m-xwm3-cm6r",
+          "severity": "high",
+          "cwe": [
+            "CWE-1333"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=1.16.1 <1.20.0"
+        },
+        {
+          "source": 1240604,
+          "name": "axios",
+          "dependency": "axios",
+          "title": "Axios: ReDoS (O(N²)) in shouldBypassProxy host normalization, reachable via untrusted redirect Location",
+          "url": "https://github.com/advisories/GHSA-mghh-pgcx-3jjj",
+          "severity": "high",
+          "cwe": [
+            "CWE-400",
+            "CWE-1333"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=1.15.0 <1.20.0"
+        },
+        {
+          "source": 1240605,
+          "name": "axios",
+          "dependency": "axios",
+          "title": "Axios: Prototype Pollution Gadget in axios toFormData Options",
+          "url": "https://github.com/advisories/GHSA-x97p-jq2g-jp4f",
+          "severity": "high",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=1.15.1 <1.20.0"
+        },
+        {
+          "source": 1240607,
+          "name": "axios",
+          "dependency": "axios",
+          "title": "Axios: HTTP/2 adapter bypasses configured DNS lookup and proxy controls",
+          "url": "https://github.com/advisories/GHSA-3pq3-5fj3-cg6v",
+          "severity": "high",
+          "cwe": [
+            "CWE-918"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=1.13.0 <1.20.0"
+        },
+        {
+          "source": 1240608,
+          "name": "axios",
+          "dependency": "axios",
+          "title": "Axios: Denial of Service via Unhandled 'error' Event in HTTP/2 ClientHttp2Session Initialization",
+          "url": "https://github.com/advisories/GHSA-542g-h47m-68v8",
+          "severity": "high",
+          "cwe": [
+            "CWE-400"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=1.13.0 <1.20.0"
+        },
+        {
+          "source": 1240626,
+          "name": "axios",
+          "dependency": "axios",
+          "title": "Axios: Header Injection via Inherited headers After Minimal Interceptor",
+          "url": "https://github.com/advisories/GHSA-j8rh-479h-cp32",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-74",
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=1.0.0 <1.20.0"
+        },
+        {
+          "source": 1240627,
+          "name": "axios",
+          "dependency": "axios",
+          "title": "Axios: Fetch Adapter Header Injection via Inherited FormData getHeaders",
+          "url": "https://github.com/advisories/GHSA-4hqw-qxg8-jxx2",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-74",
+            "CWE-693",
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=1.12.0 <1.20.0"
+        },
+        {
+          "source": 1240628,
+          "name": "axios",
+          "dependency": "axios",
+          "title": "Axios: Node HTTP adapter prototype-pollution gadget allows request socket hijack via inherited createConnection",
+          "url": "https://github.com/advisories/GHSA-m8m8-qj5v-23w3",
+          "severity": "high",
+          "cwe": [
+            "CWE-441",
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=1.15.2 <1.20.0"
+        },
+        {
+          "source": 1240629,
+          "name": "axios",
+          "dependency": "axios",
+          "title": "Axios: CIDR-form NO_PROXY entries are ignored, causing proxy exclusion bypass for internal IP ranges",
+          "url": "https://github.com/advisories/GHSA-44g4-m2mj-wpvx",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-693"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=1.15.0 <1.20.0"
+        },
+        {
+          "source": 1240634,
+          "name": "axios",
+          "dependency": "axios",
+          "title": "Axios: maxRedirects: 0 is not enforced by the fetch adapter, allowing redirect-based SSRF",
+          "url": "https://github.com/advisories/GHSA-r4gj-5m52-g5wh",
+          "severity": "high",
+          "cwe": [
+            "CWE-441",
+            "CWE-601"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=1.17.0 <1.20.0"
+        }
+      ],
+      "effects": [],
+      "range": "1.0.0 - 1.19.0",
+      "nodes": [
+        "node_modules/axios"
+      ],
+      "fixAvailable": true
+    },
+    "follow-redirects": {
+      "name": "follow-redirects",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1242604,
+          "name": "follow-redirects",
+          "dependency": "follow-redirects",
+          "title": "follow-redirects array-form headers bypass cross-origin credential stripping",
+          "url": "https://github.com/advisories/GHSA-q3jh-wrc6-jgq8",
+          "severity": "high",
+          "cwe": [
+            "CWE-200",
+            "CWE-212"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=1.16.0 <1.16.1"
+        },
+        {
+          "source": 1242605,
+          "name": "follow-redirects",
+          "dependency": "follow-redirects",
+          "title": "follow-redirects sensitiveHeaders regex escaping can expose credential headers",
+          "url": "https://github.com/advisories/GHSA-8r9p-f939-6h3c",
+          "severity": "high",
+          "cwe": [
+            "CWE-185",
+            "CWE-200"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=1.16.0 <1.16.1"
+        },
+        {
+          "source": 1244003,
+          "name": "follow-redirects",
+          "dependency": "follow-redirects",
+          "title": "follow-redirects: Cross-realm sensitiveHeaders arrays are discarded and custom credentials can follow redirects",
+          "url": "https://github.com/advisories/GHSA-mrwp-f3q8-3g9p",
+          "severity": "high",
+          "cwe": [
+            "CWE-201"
+          ],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          },
+          "range": ">=1.16.0 <=1.16.1"
+        }
+      ],
+      "effects": [],
+      "range": "1.16.0 - 1.16.1",
+      "nodes": [
+        "node_modules/follow-redirects"
+      ],
+      "fixAvailable": true
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 2,
+      "critical": 0,
+      "total": 2
+    },
+    "dependencies": {
+      "prod": 233,
+      "dev": 210,
+      "optional": 35,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 445
+    }
+  }
+}
