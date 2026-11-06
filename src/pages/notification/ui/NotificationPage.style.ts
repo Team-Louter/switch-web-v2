@@ -2,6 +2,11 @@ import styled, { css, keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
+const notificationPageEnter = keyframes`
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+`
+
 export const Page = styled.main`
   ${token.flexColumn}
   align-items: flex-start;
@@ -17,6 +22,10 @@ export const Content = styled.div`
   ${token.flexColumnStart}
   width: 100%;
   gap: 28px;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: ${notificationPageEnter} 420ms ease-out;
+  }
 
   @media (max-width: 760px) {
     gap: 24px;
@@ -96,32 +105,11 @@ export const SettingsIcon = styled.img<{ $isOpen: boolean }>`
   }
 `
 
-const notificationListReveal = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`
-
-export const NotificationList = styled.div<{ $loaded: boolean }>`
+export const NotificationList = styled.div`
   ${token.flexColumnStart}
   width: 100%;
   gap: 14px;
 
-  ${({ $loaded }) =>
-    $loaded &&
-    css`
-      animation: ${notificationListReveal} 360ms ease-out both;
-    `}
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
 `
 
 const newNotificationEntrance = keyframes`

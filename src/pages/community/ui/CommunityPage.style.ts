@@ -8,6 +8,11 @@ import { CommunityTitleBadge } from './CommunityTitleBadge.style';
 
 type StatIconKind = 'heart' | 'comment' | 'view';
 
+const communityPageEnter = keyframes`
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
 export const Page = styled.section`
   ${token.flexColumn}
   align-items: flex-start;
@@ -28,6 +33,10 @@ export const Content = styled.div`
   ${token.flexColumn}
   gap: 28px;
   width: 100%;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: ${communityPageEnter} 420ms ease-out;
+  }
 
   @container community-page (max-width: 760px) {
     gap: 24px;

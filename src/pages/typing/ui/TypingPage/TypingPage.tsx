@@ -23,6 +23,7 @@ import {
   type TypingProblemType,
 } from "@/entities/typing";
 import { useUserStore } from '@/entities/profile'
+import { TypingRankingSkeleton, TypingSummarySkeleton } from './TypingPageSkeleton'
 
 const MEDALS: Partial<Record<Ranking['rank'], string>> = {
   1: firstMedal,
@@ -45,7 +46,7 @@ export function TypingPage() {
   const [selectedMode, setSelectedMode] = useState<string>("DAILY");
   const [sentenceModal, setSentenceModal] = useState<TypingSentenceModalType>(null);
   const [editingSentence, setEditingSentence] = useState<TypingProblem | null>(null);
-  const { data: rankings } = useQuery({
+  const { data: rankings, isPending: isRankingPending } = useQuery({
     ...typingRankingOptions(userId, selectedMode as TypingProblemType),
     enabled: userId !== null,
   })
@@ -57,7 +58,7 @@ export function TypingPage() {
     problemType: 'DAILY' as const,
     rank: 0,
     totalPracticeCount: 0,
-  } } = useQuery({
+  }, isPending: isPreviousResultPending } = useQuery({
     ...typingPreviousResultOptions(userId),
     enabled: userId !== null,
   })
@@ -100,72 +101,84 @@ export function TypingPage() {
               <IoSettingsOutline color={tokens.colors.gray.gray50} size={30}/>
             </S.SettingsButton>
           </S.TitleContainer>
-          <S.SummaryContainer>
-            <SummaryCard
-              icon={<FaTrophy color={tokens.colors.primary.primary50} size={36} />}
-              label="이전 타수"
-              value={previousResult.averageSpeed}
-              unit="타"
-            />
-            <SummaryCard
-              icon={<FaBullseye color="#F0310B" size={36} />}
-              label="이전 정확도"
-              value={previousResult.accuracy}
-              unit="%"
-            />
-            <SummaryCard
-              icon={<LuClock3 color="#0E90F2" size={38} />}
-              label="이전 소요 시간"
-              value={formatElapsedTime(previousResult.elapsedTime)}
-              unit=""
-            />
-            <SummaryCard
-              icon={<FaRankingStar color="#29C54B" size={38} />}
-              label="내 랭킹"
-              value={previousResult.rank || '-'}
-              unit="등"
-            />
-            <SummaryCard
-              icon={<LuTimer color="#898989" size={40} />}
-              label="총 훈련 횟수"
-              value={previousResult.totalPracticeCount}
-              unit="회"
-            />
+          <S.SummaryContainer aria-busy={isPreviousResultPending} aria-label={isPreviousResultPending ? '타자연습 기록을 불러오는 중입니다.' : '타자연습 기록'}>
+            {isPreviousResultPending ? (
+              <TypingSummarySkeleton />
+            ) : (
+              <>
+                <SummaryCard
+                  icon={<FaTrophy color={tokens.colors.primary.primary50} size={36} />}
+                  label="이전 타수"
+                  value={previousResult.averageSpeed}
+                  unit="타"
+                />
+                <SummaryCard
+                  icon={<FaBullseye color="#F0310B" size={36} />}
+                  label="이전 정확도"
+                  value={previousResult.accuracy}
+                  unit="%"
+                />
+                <SummaryCard
+                  icon={<LuClock3 color="#0E90F2" size={38} />}
+                  label="이전 소요 시간"
+                  value={formatElapsedTime(previousResult.elapsedTime)}
+                  unit=""
+                />
+                <SummaryCard
+                  icon={<FaRankingStar color="#29C54B" size={38} />}
+                  label="내 랭킹"
+                  value={previousResult.rank || '-'}
+                  unit="등"
+                />
+                <SummaryCard
+                  icon={<LuTimer color="#898989" size={40} />}
+                  label="총 훈련 횟수"
+                  value={previousResult.totalPracticeCount}
+                  unit="회"
+                />
+              </>
+            )}
           </S.SummaryContainer>
-          <S.RankingContainer>
+          <S.RankingContainer aria-busy={isRankingPending} aria-label={isRankingPending ? '타자연습 순위를 불러오는 중입니다.' : '타자연습 순위'}>
             <S.RankingTitle>{selectedModeName} 현재 순위</S.RankingTitle>
-            <S.Top>
-              {PODIUM_RANKS.map((rank) => {
-                const ranking = getRanking(rank);
+            {isRankingPending ? (
+              <TypingRankingSkeleton />
+            ) : (
+              <>
+                <S.Top>
+                  {PODIUM_RANKS.map((rank) => {
+                    const ranking = getRanking(rank);
 
-                return (
-                  <TopItem
-                    key={rank}
-                    medal={MEDALS[rank]!}
-                    name={ranking?.userName ?? '-'}
-                    value={ranking?.averageSpeed.toString() ?? '-'}
-                  />
-                );
-              })}
-            </S.Top>
-            <S.RankingList>
-              {LIST_RANKS.map((rank) => {
-                const ranking = getRanking(rank);
+                    return (
+                      <TopItem
+                        key={rank}
+                        medal={MEDALS[rank]!}
+                        name={ranking?.userName ?? '-'}
+                        value={ranking?.averageSpeed.toString() ?? '-'}
+                      />
+                    );
+                  })}
+                </S.Top>
+                <S.RankingList>
+                  {LIST_RANKS.map((rank) => {
+                    const ranking = getRanking(rank);
 
-                return (
-                  <S.RankingItem key={rank}>
-                    <S.Rank>{rank}</S.Rank>
-                    <S.RankName>{ranking?.userName ?? '-'}</S.RankName>
-                    <S.RankValue>{ranking ? `${ranking.averageSpeed}타` : '-'}</S.RankValue>
+                    return (
+                      <S.RankingItem key={rank}>
+                        <S.Rank>{rank}</S.Rank>
+                        <S.RankName>{ranking?.userName ?? '-'}</S.RankName>
+                        <S.RankValue>{ranking ? `${ranking.averageSpeed}타` : '-'}</S.RankValue>
+                      </S.RankingItem>
+                    );
+                  })}
+                  <S.RankingItem style={{ borderColor: tokens.colors.primary.primary50}}>
+                    <S.Rank>{rankings?.myRanking?.rank ?? '-'}</S.Rank>
+                    <S.RankName>{rankings?.myRanking?.userName ?? '-'}</S.RankName>
+                    <S.RankValue>{rankings?.myRanking ? `${rankings.myRanking.averageSpeed}타` : '-'}</S.RankValue>
                   </S.RankingItem>
-                );
-              })}
-              <S.RankingItem style={{ borderColor: tokens.colors.primary.primary50}}>
-                <S.Rank>{rankings?.myRanking?.rank ?? '-'}</S.Rank>
-                <S.RankName>{rankings?.myRanking?.userName ?? '-'}</S.RankName>
-                <S.RankValue>{rankings?.myRanking ? `${rankings.myRanking.averageSpeed}타` : '-'}</S.RankValue>
-              </S.RankingItem>
-            </S.RankingList>
+                </S.RankingList>
+              </>
+            )}
           </S.RankingContainer>
           <S.ModeContainer>
             {TYPING_MODES.map((mode) => {

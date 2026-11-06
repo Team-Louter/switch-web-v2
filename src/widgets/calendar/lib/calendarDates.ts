@@ -1,9 +1,13 @@
 import type { EventInput } from "@fullcalendar/core";
+import { parseDateInput } from '@/shared/utils/date';
 
 export function asCalendarDate(value: NonNullable<EventInput['start']>): Date {
   if (Array.isArray(value)) {
     const [year, month = 0, day = 1, hour = 0, minute = 0, second = 0] = value;
     return new Date(year, month, day, hour, minute, second);
+  }
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return parseDateInput(value);
   }
   return new Date(value);
 }

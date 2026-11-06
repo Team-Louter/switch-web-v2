@@ -1,6 +1,20 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 
 import * as token from '@/shared/styles/values/token'
+
+const typingPageEnter = keyframes`
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+`
+
+export const PageEntrance = styled.div`
+  width: 100%;
+  min-width: 0;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: ${typingPageEnter} 420ms ease-out;
+  }
+`
 
 export const TypingContainer = styled.section`
   ${token.flexCenter}
