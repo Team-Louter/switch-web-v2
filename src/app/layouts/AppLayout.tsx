@@ -233,7 +233,7 @@ export function AppLayout() {
           </Side>
         </>
       )}
-      <Body $withMobileNav={shouldShowSidebar}>
+      <Body $withSidebar={shouldShowSidebar}>
         <Outlet context={{ setNotificationCount: updateNotificationCount }} />
       </Body>
     </Layout>
@@ -286,16 +286,21 @@ const SidebarContainer = styled.div`
   }
 `
 
-const Body = styled.section<{ $withMobileNav: boolean }>`
+const Body = styled.section<{ $withSidebar: boolean }>`
   flex: 1 1 0;
   min-width: 0;
+  max-width: ${({ $withSidebar }) =>
+    $withSidebar ? 'calc(100% - clamp(260px, 21.5vw, 309px))' : '100%'};
+  margin-inline: auto;
   box-sizing: border-box;
   min-height: 100dvh;
   background: ${token.colors.white};
 
   @media (max-width: 768px) {
     width: 100%;
-    padding-top: ${({ $withMobileNav }) => ($withMobileNav ? '60px' : '0')};
+    max-width: none;
+    margin-inline: 0;
+    padding-top: ${({ $withSidebar }) => ($withSidebar ? '60px' : '0')};
   }
 `
 

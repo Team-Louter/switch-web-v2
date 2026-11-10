@@ -521,7 +521,6 @@ export function MentorLearningPage() {
   return (
     <S.PageContainer>
       <S.ScrollArea
-        $loaded={!isLoading}
         ref={scrollAreaRef}
         aria-busy={isLoading}
         onScroll={handleHistoryScroll}

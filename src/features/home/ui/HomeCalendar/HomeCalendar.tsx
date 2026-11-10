@@ -6,7 +6,8 @@ import koLocale from '@fullcalendar/core/locales/ko'
 import { FaFlag } from 'react-icons/fa6'
 
 import type { Schedule, ScheduleColor } from '@/entities/schedule'
-import { toDateKey, toDateKeyFromServer } from '@/shared/lib/calendar'
+import { toDateKey } from '@/shared/lib/calendar'
+import { toScheduleDateKey } from '@/shared/utils/schedule'
 
 import * as S from './HomeCalendar.style'
 import { ScheduleDetailPopover } from './ScheduleDetailPopover'
@@ -36,8 +37,10 @@ export function HomeCalendar({
   onScheduleDetailClose,
 }: HomeCalendarProps) {
   const calendarContainerRef = useRef<HTMLDivElement>(null)
+  const calendarRef = useRef<FullCalendar>(null)
   const eventElementsRef = useRef<Map<string, HTMLElement>>(new Map())
   const autoOpenedScheduleIdRef = useRef<number | null>(null)
+  const isNavigatingToScheduleRef = useRef(false)
   const calendarStartDateRef = useRef<string | null>(null)
   const [selected, setSelected] = useState<SelectedSchedule | null>(null)
   const [visibleDate, setVisibleDate] = useState(() => new Date())
@@ -45,11 +48,11 @@ export function HomeCalendar({
     ? getLoadingEvents(visibleDate)
     : schedules.map((schedule) => {
       // FullCalendar의 종료일은 exclusive이며 API 종료일은 inclusive이다.
-      const end = new Date(`${toDateKeyFromServer(schedule.endDate)}T00:00:00Z`)
+      const end = new Date(`${toScheduleDateKey(schedule.endDate)}T00:00:00Z`)
       end.setUTCDate(end.getUTCDate() + 1)
       return {
         id: String(schedule.scheduleId), title: schedule.title,
-        start: toDateKeyFromServer(schedule.startDate),
+        start: toScheduleDateKey(schedule.startDate),
         end: toDateKey(end.getUTCFullYear(), end.getUTCMonth() + 1, end.getUTCDate()),
         allDay: true, color: COLORS[schedule.color] ?? 'gold',
       }
@@ -109,20 +112,9 @@ export function HomeCalendar({
     }
   }, [])
 
-  const handleEventDidMount = useCallback(
-    ({ event, el }: EventMountArg) => {
-      eventElementsRef.current.set(event.id, el)
-
-      if (
-        !loading &&
-        selectedScheduleId !== null &&
-        event.id === String(selectedScheduleId)
-      ) {
-        openRequestedSchedule(selectedScheduleId, el)
-      }
-    },
-    [loading, openRequestedSchedule, selectedScheduleId],
-  )
+  const handleEventDidMount = useCallback(({ event, el }: EventMountArg) => {
+    eventElementsRef.current.set(event.id, el)
+  }, [])
 
   const handleEventWillUnmount = useCallback(({ event }: EventMountArg) => {
     eventElementsRef.current.delete(event.id)
@@ -143,6 +135,25 @@ export function HomeCalendar({
       return
     }
 
+    const calendarApi = calendarRef.current?.getApi()
+    if (!calendarApi) return
+
+    const scheduleDateKey = toScheduleDateKey(schedule.startDate)
+    const currentDate = calendarApi.getDate()
+    const currentMonthKey = toDateKey(
+      currentDate.getFullYear(), currentDate.getMonth() + 1, 1,
+    ).slice(0, 7)
+
+    if (currentMonthKey !== scheduleDateKey.slice(0, 7)) {
+      // 알림으로 이동하는 동안에는 datesSet이 상세 선택을 해제하지 않게 한다.
+      isNavigatingToScheduleRef.current = true
+      try {
+        calendarApi.gotoDate(scheduleDateKey)
+      } finally {
+        isNavigatingToScheduleRef.current = false
+      }
+    }
+
     const frame = window.requestAnimationFrame(() => {
       const eventElement = eventElementsRef.current.get(String(selectedScheduleId))
 
@@ -151,8 +162,7 @@ export function HomeCalendar({
         return
       }
 
-      // 현재 월에 없거나 더보기 영역에 숨겨진 일정도 알림에서 바로 확인할 수 있도록
-      // 홈 캘린더를 기준으로 상세 팝오버를 엽니다.
+      // 더보기 영역에 숨겨진 일정도 이동한 달력에서 상세를 확인할 수 있게 한다.
       autoOpenedScheduleIdRef.current = selectedScheduleId
       const position = getFallbackPopoverPosition()
 
@@ -174,7 +184,7 @@ export function HomeCalendar({
       calendarStartDateRef.current !== null &&
       calendarStartDateRef.current !== calendarStartDate
 
-    if (hasChangedCalendarMonth) {
+    if (hasChangedCalendarMonth && !isNavigatingToScheduleRef.current) {
       handleSelectedClose()
     }
 
@@ -190,6 +200,7 @@ export function HomeCalendar({
       aria-busy={loading}
     >
       <FullCalendar
+        ref={calendarRef}
         plugins={[dayGridPlugin]}
         locale={koLocale}
         initialView="dayGridMonth"
