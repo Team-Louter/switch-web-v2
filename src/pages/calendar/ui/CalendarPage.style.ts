@@ -1,6 +1,11 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
+
+const calendarPageEnter = keyframes`
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+`
 
 export const CalendarContainer = styled.div`
   box-sizing: border-box;
@@ -23,6 +28,10 @@ export const CalendarContent = styled.div`
   width: 100%;
   height: 100%;
   min-width: 0;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: ${calendarPageEnter} 420ms ease-out;
+  }
 
   @media (max-width: 768px) {
     height: 100%;

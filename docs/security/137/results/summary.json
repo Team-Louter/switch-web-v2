@@ -1,0 +1,107 @@
+{
+  "before": {
+    "npm": {
+      "packages": {
+        "info": 0,
+        "low": 0,
+        "moderate": 10,
+        "high": 6,
+        "critical": 0,
+        "total": 16
+      },
+      "uniqueAdvisories": 26
+    },
+    "npmProduction": {
+      "packages": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 2,
+        "critical": 0,
+        "total": 2
+      },
+      "uniqueAdvisories": 15
+    },
+    "zap": {
+      "counts": {
+        "informational": 1,
+        "low": 1,
+        "medium": 2,
+        "high": 0
+      },
+      "actionableTypes": 3,
+      "alerts": [
+        {
+          "id": "10038-1",
+          "name": "Content Security Policy (CSP) Header Not Set",
+          "risk": "Medium (High)"
+        },
+        {
+          "id": "10020-1",
+          "name": "Missing Anti-clickjacking Header",
+          "risk": "Medium (Medium)"
+        },
+        {
+          "id": "10021",
+          "name": "X-Content-Type-Options Header Missing",
+          "risk": "Low (Medium)"
+        },
+        {
+          "id": "10109",
+          "name": "Modern Web Application",
+          "risk": "Informational (Medium)"
+        }
+      ]
+    }
+  },
+  "after": {
+    "npm": {
+      "packages": {
+        "info": 0,
+        "low": 0,
+        "moderate": 10,
+        "high": 0,
+        "critical": 0,
+        "total": 10
+      },
+      "uniqueAdvisories": 1
+    },
+    "npmProduction": {
+      "packages": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      },
+      "uniqueAdvisories": 0
+    },
+    "zap": {
+      "counts": {
+        "informational": 1,
+        "low": 0,
+        "medium": 2,
+        "high": 0
+      },
+      "actionableTypes": 2,
+      "alerts": [
+        {
+          "id": "10055-4",
+          "name": "CSP: Wildcard Directive",
+          "risk": "Medium (High)"
+        },
+        {
+          "id": "10055-6",
+          "name": "CSP: style-src unsafe-inline",
+          "risk": "Medium (High)"
+        },
+        {
+          "id": "10109",
+          "name": "Modern Web Application",
+          "risk": "Informational (Medium)"
+        }
+      ]
+    }
+  }
+}

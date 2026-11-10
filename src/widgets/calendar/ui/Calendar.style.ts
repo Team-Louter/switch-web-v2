@@ -33,7 +33,9 @@ export const CalendarWrapper = styled.div`
 
   .fc-header-toolbar.fc-toolbar {
     position: relative;
-    ${token.flexCenter}
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
     padding: clamp(10px, 2cqw, 24px);
     flex-shrink: 0;
     margin: 0;
@@ -57,6 +59,7 @@ export const CalendarWrapper = styled.div`
 
   .fc-header-toolbar .fc-toolbar-chunk:last-child {
     position: static;
+    justify-content: flex-end;
   }
 
   .fc-header-toolbar .fc-prev-button {
@@ -99,7 +102,6 @@ export const CalendarWrapper = styled.div`
     position: relative;
     align-items: center;
     gap: 6px;
-    margin-left: 16px;
     padding: 8px 12px;
     border-radius: ${token.shapes.xsmall};
     background: ${token.colors.main.normal};

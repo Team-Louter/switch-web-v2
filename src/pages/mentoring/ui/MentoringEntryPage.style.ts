@@ -2,6 +2,11 @@ import styled, { css, keyframes } from 'styled-components'
 
 import * as token from '@/shared/styles/values/token'
 
+const mentoringPageEnter = keyframes`
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+`
+
 export const Page = styled.section`
   box-sizing: border-box;
   width: 100%;
@@ -19,6 +24,10 @@ export const Container = styled.div`
   height: calc(100dvh - clamp(40px, 4vw, 60px));
   min-height: 640px;
   margin: 0 auto;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: ${mentoringPageEnter} 420ms ease-out;
+  }
 
   @media (max-width: 900px) {
     grid-template-columns: 1fr;

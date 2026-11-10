@@ -17,7 +17,7 @@ export const PageContainer = styled.section`
 const learningContentReveal = keyframes`
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px);
   }
 
   to {
@@ -26,7 +26,16 @@ const learningContentReveal = keyframes`
   }
 `
 
-export const ScrollArea = styled.div<{ $loaded: boolean }>`
+export const PageEntrance = styled.div`
+  width: 100%;
+  min-width: 0;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: ${learningContentReveal} 420ms ease-out;
+  }
+`
+
+export const ScrollArea = styled.div`
   display: flex;
   flex-direction: column;
   gap: 28px;
@@ -40,9 +49,6 @@ export const ScrollArea = styled.div<{ $loaded: boolean }>`
   scrollbar-color: ${token.colors.gray.gray30} transparent;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  animation: ${({ $loaded }) =>
-    $loaded &&
-    css`${learningContentReveal} 420ms cubic-bezier(0.22, 1, 0.36, 1) both`};
 
   &::-webkit-scrollbar {
     width: 14px;
@@ -64,9 +70,6 @@ export const ScrollArea = styled.div<{ $loaded: boolean }>`
     background-clip: padding-box;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
   @media (max-width: 768px) { height: auto; padding-right: 0; overflow: visible; scrollbar-gutter: auto; }
 `
 

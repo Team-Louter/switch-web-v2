@@ -27,7 +27,7 @@ function LearningRouteSkeleton({
 }: LearningRouteSkeletonProps) {
   return (
     <S.PageContainer>
-      <S.ScrollArea $loaded={false} aria-busy="true">
+      <S.ScrollArea aria-busy="true">
         <LearningSkeleton
           count={4}
           variant={isMentor ? 'mentor' : 'mentee'}
@@ -42,22 +42,24 @@ export function LearningPage() {
   const role = useUserStore((state) => state.user?.role)
   const isMentor = role === 'MENTOR' || role === 'LEADER'
 
-  if (!role) {
-    return <LearningRouteSkeleton isMentor={false} isLeader={false} />
-  }
-
-  if (!isMentor && role !== 'MENTEE') return null
+  if (role && !isMentor && role !== 'MENTEE') return null
 
   return (
-    <Suspense
-      fallback={
-        <LearningRouteSkeleton
-          isMentor={isMentor}
-          isLeader={role === 'LEADER'}
-        />
-      }
-    >
-      {isMentor ? <MentorLearningPage /> : <MenteeLearningPage />}
-    </Suspense>
+    <S.PageEntrance>
+      {!role ? (
+        <LearningRouteSkeleton isMentor={false} isLeader={false} />
+      ) : (
+        <Suspense
+          fallback={
+            <LearningRouteSkeleton
+              isMentor={isMentor}
+              isLeader={role === 'LEADER'}
+            />
+          }
+        >
+          {isMentor ? <MentorLearningPage /> : <MenteeLearningPage />}
+        </Suspense>
+      )}
+    </S.PageEntrance>
   )
 }

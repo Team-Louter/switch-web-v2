@@ -308,7 +308,6 @@ export function MenteeLearningPage() {
   return (
     <S.PageContainer>
       <S.ScrollArea
-        $loaded={!isInitialStatusLoading}
         ref={scrollAreaRef}
         aria-busy={isInitialStatusLoading}
         onScroll={handleHistoryScroll}

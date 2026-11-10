@@ -8,6 +8,11 @@ const shimmer = keyframes`
   100% { background-position: -100% 0; }
 `
 
+const myPageEnter = keyframes`
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+`
+
 export const Page = styled.section`
   --my-content-inset: clamp(12px, calc(2.69vw - 8.6px), 32px);
   ${token.flexColumn}
@@ -29,6 +34,10 @@ export const Content = styled.div`
   flex: 1 1 0;
   width: 100%;
   min-height: 0;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: ${myPageEnter} 420ms ease-out;
+  }
 `
 
 export const Card = styled.div`
@@ -618,6 +627,7 @@ export const SkeletonBlock = styled.span<{
   display: block;
   flex: 0 0 auto;
   width: ${({ $width }) => $width};
+  max-width: 100%;
   height: ${({ $height }) => $height};
   border-radius: ${token.shapes.xsmall};
   background: linear-gradient(
@@ -628,6 +638,10 @@ export const SkeletonBlock = styled.span<{
   );
   background-size: 200% 100%;
   animation: ${shimmer} 1.2s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 export const SkeletonCircle = styled.span`
@@ -644,6 +658,10 @@ export const SkeletonCircle = styled.span`
   );
   background-size: 200% 100%;
   animation: ${shimmer} 1.2s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 `
 
 export const SkeletonPostItem = styled.div`

@@ -2,7 +2,7 @@ import type { EventApi, EventInput } from '@fullcalendar/core'
 import type { Member } from '@/shared/types/member'
 import type { ScheduleResponse, ScheduleTarget } from '@/shared/types/schedule'
 import { addDays, formatDateInput, parseDateInput } from '@/shared/utils/date'
-import { toDateKeyFromServer } from '@/shared/lib/calendar'
+import { toScheduleDateKey } from '@/shared/utils/schedule'
 
 export const calendarHighlight = ['LIGHTGREY', 'PINK', 'GOLD', 'LIGHTGREEN', 'LIGHTBLUE']
 
@@ -49,13 +49,14 @@ export function formatEvents(events: ScheduleResponse[]): EventInput[] {
   return events.map((event) => {
     // API 종료일은 inclusive, FullCalendar 종료일은 exclusive이므로 다음 날 자정으로 변환합니다.
     const endDate = addDays(
-      parseDateInput(toDateKeyFromServer(event.endDate)),
+      parseDateInput(toScheduleDateKey(event.endDate)),
       1,
     )
 
     return {
       id: String(event.scheduleId), title: event.title,
-      start: event.startDate, end: formatDateInput(endDate), color: event.color,
+      start: toScheduleDateKey(event.startDate), end: formatDateInput(endDate),
+      allDay: true, color: event.color,
       scheduleId: event.scheduleId,
       extendedProps: { scheduleId: event.scheduleId, description: event.content, assignees: event.users },
     }
@@ -65,7 +66,9 @@ export function formatEvents(events: ScheduleResponse[]): EventInput[] {
 export function formatApiEvents(event: EventApi): EventInput {
   return {
     id: event.id, scheduleId: Number(event.extendedProps.scheduleId ?? event.id),
-    title: event.title, start: event.start?.toISOString(), end: event.end?.toISOString(),
+    title: event.title, allDay: event.allDay,
+    start: event.allDay ? event.startStr || undefined : event.start?.toISOString(),
+    end: event.allDay ? event.endStr || undefined : event.end?.toISOString(),
     color: event.backgroundColor, extendedProps: event.extendedProps,
   }
 }

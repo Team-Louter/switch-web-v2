@@ -662,7 +662,6 @@ export function NotificationPage() {
         </Header>
 
         <NotificationList
-          $loaded={!isLoading && !loadError}
           aria-busy={isLoading}
           aria-live="polite"
         >

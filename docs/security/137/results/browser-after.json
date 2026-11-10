@@ -1,0 +1,83 @@
+{
+  "pages": [
+    {
+      "path": "/home",
+      "status": 200,
+      "violations": [],
+      "bodyLength": 457,
+      "errors": []
+    },
+    {
+      "path": "/calendar",
+      "status": 200,
+      "violations": [],
+      "bodyLength": 287,
+      "errors": []
+    },
+    {
+      "path": "/community",
+      "status": 200,
+      "violations": [],
+      "bodyLength": 90,
+      "errors": []
+    },
+    {
+      "path": "/community/write",
+      "status": 200,
+      "violations": [],
+      "bodyLength": 105,
+      "errors": []
+    },
+    {
+      "path": "/typing",
+      "status": 200,
+      "violations": [],
+      "bodyLength": 259,
+      "errors": []
+    },
+    {
+      "path": "/typing/code/javascript",
+      "status": 200,
+      "violations": [],
+      "bodyLength": 87,
+      "errors": []
+    },
+    {
+      "path": "/store",
+      "status": 200,
+      "violations": [],
+      "bodyLength": 110,
+      "errors": []
+    },
+    {
+      "path": "/my",
+      "status": 200,
+      "violations": [],
+      "bodyLength": 199,
+      "errors": []
+    }
+  ],
+  "unexpectedRequests": [],
+  "protection": {
+    "inlineExecuted": false,
+    "handlerExecuted": false,
+    "violations": [
+      {
+        "directive": "script-src-elem",
+        "blocked": "inline"
+      },
+      {
+        "directive": "script-src-elem",
+        "blocked": "https://untrusted.invalid/script.js"
+      },
+      {
+        "directive": "script-src-attr",
+        "blocked": "inline"
+      }
+    ]
+  },
+  "iframe": {
+    "blocked": true,
+    "failure": "net::ERR_BLOCKED_BY_RESPONSE"
+  }
+}
