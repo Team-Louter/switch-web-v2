@@ -3,6 +3,8 @@ import { lazy, Suspense, type MouseEvent, useEffect, useState } from 'react';
 
 import {
   getCommunityFileDownloadUrl,
+  getLinkPreview,
+  type LinkPreviewResponse,
   type PostFileResponse,
 } from '@/entities/community';
 import {
@@ -90,9 +92,26 @@ function getLinkFromBlock(block: Block): string | null {
 function LinkPreview({ href }: { href: string }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoTitle, setVideoTitle] = useState<string | null>(null);
+  const [preview, setPreview] = useState<LinkPreviewResponse | null>(null);
+  const [failedImage, setFailedImage] = useState<string | null>(null);
   const embedUrl = getYouTubeEmbedUrl(href);
   const videoId = embedUrl ? new URL(embedUrl).pathname.split('/').pop() : null;
   const hostname = new URL(href).hostname;
+  const imageUrl = preview?.imageUrl && preview.imageUrl !== failedImage
+    ? preview.imageUrl : null;
+
+  useEffect(() => {
+    if (embedUrl) return;
+    const controller = new AbortController();
+    getLinkPreview({ url: href, signal: controller.signal })
+      .then((data) => {
+        if (!controller.signal.aborted) setPreview(data);
+      })
+      .catch(() => {
+        // 메타데이터 조회 실패는 게시글 열람과 원본 링크 이동을 막지 않습니다.
+      });
+    return () => controller.abort();
+  }, [href, embedUrl]);
 
   useEffect(() => {
     if (!videoId) return;
@@ -114,10 +133,23 @@ function LinkPreview({ href }: { href: string }) {
 
   return (
     <S.LinkCard>
-      <S.LinkDetails href={href} target="_blank" rel="noopener noreferrer">
-        <S.LinkProvider>{embedUrl ? 'YouTube' : hostname}</S.LinkProvider>
-        <S.LinkTitle>{embedUrl ? videoTitle ?? 'YouTube 동영상' : hostname}</S.LinkTitle>
-        <S.LinkAddress>{href}</S.LinkAddress>
+      <S.LinkDetails href={href} target="_blank" rel="noopener noreferrer" $layout={preview?.layout}>
+        <S.LinkText>
+          <S.LinkProvider>{embedUrl ? 'YouTube' : preview?.siteName ?? hostname}</S.LinkProvider>
+          <S.LinkTitle>{embedUrl ? videoTitle ?? 'YouTube 동영상' : preview?.title ?? hostname}</S.LinkTitle>
+          {preview?.description && <S.LinkDescription>{preview.description}</S.LinkDescription>}
+          <S.LinkAddress>{href}</S.LinkAddress>
+        </S.LinkText>
+        {!embedUrl && imageUrl && (
+          <S.LinkImage
+            src={imageUrl}
+            alt={preview?.imageAlt || `${preview?.title ?? hostname} 미리보기`}
+            $layout={preview?.layout ?? 'thumbnail'}
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            onError={() => setFailedImage(imageUrl)}
+          />
+        )}
       </S.LinkDetails>
       {embedUrl && (
         <S.VideoEmbed>

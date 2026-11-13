@@ -3,6 +3,9 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "functions": {
+    "api/link-preview.ts": { "maxDuration": 10 }
+  },
   "headers": [
     {
       "source": "/(.*)",
@@ -26,6 +29,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/link-preview",
+      "destination": "/api/link-preview"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"

@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test:community": "tsc -p tsconfig.test.json && playwright test tests/community",
+    "test:link-preview": "node --experimental-strip-types --test tests/server/link-preview.node.ts",
     "preview": "vite preview",
     "test:performance": "tsc -p tsconfig.test.json && playwright test --config playwright.performance.config.ts"
   },
@@ -25,6 +26,8 @@
     "@monaco-editor/react": "^4.7.0",
     "@tanstack/react-query": "^5.104.0",
     "axios": "^1.21.0",
+    "htmlparser2": "^12.0.0",
+    "ipaddr.js": "^2.5.0",
     "monaco-editor": "0.53.0",
     "react": "latest",
     "react-dom": "latest",
