@@ -1,5 +1,5 @@
 import type { Block } from '@blocknote/core';
-import { lazy, Suspense, type MouseEvent, useEffect, useState } from 'react';
+import { lazy, memo, Suspense, type MouseEvent, useEffect, useState } from 'react';
 
 import {
   getCommunityFileDownloadUrl,
@@ -315,7 +315,7 @@ function PostImage({
   );
 }
 
-export function CommunityPostBlockContent({
+function CommunityPostBlockContentView({
   blocks,
   files,
   onFileOpen,
@@ -450,3 +450,5 @@ export function CommunityPostBlockContent({
     </S.Content>
   );
 }
+
+export const CommunityPostBlockContent = memo(CommunityPostBlockContentView);

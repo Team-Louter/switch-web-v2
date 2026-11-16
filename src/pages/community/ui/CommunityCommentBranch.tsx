@@ -1,6 +1,7 @@
 import {
   type ChangeEvent,
   type KeyboardEvent,
+  memo,
   useCallback,
   useEffect,
   useRef,
@@ -90,7 +91,7 @@ function hasTargetDescendant(
   );
 }
 
-export function CommunityCommentBranch({
+function CommunityCommentBranchView({
   node,
   targetCommentId,
   onReplySubmit,
@@ -681,3 +682,5 @@ export function CommunityCommentBranch({
     </S.CommentTreeNode>
   );
 }
+
+export const CommunityCommentBranch = memo(CommunityCommentBranchView);
