@@ -1,0 +1,47 @@
+import type { CommentResponse } from '../../src/entities/community/model/types'
+import { expect, test } from '../community/fixtures'
+
+function comment(commentId: number, replyCount = 0): CommentResponse {
+  return {
+    commentId, userId: 42, userName: '테스트 작성자', userProfileImageUrl: '',
+    content: `측정 댓글 ${commentId}`, depth: 0, createdAt: '2026-09-30T01:00:00Z',
+    isAnonymous: false, deleted: false, replyCount,
+  }
+}
+
+test('답글 없는 댓글 50개는 전체 답글 수를 중복 조회하지 않는다', async ({ page, api }) => {
+  api.comments.push(...Array.from({ length: 50 }, (_, index) => comment(index + 1)))
+  await page.goto('/community/101')
+  await expect(page.locator('#comment-50')).toContainText('측정 댓글 50')
+  expect(api.commentRequests).toBe(1)
+  expect(api.replyCountRequests).toEqual([])
+})
+
+test('직접 답글이 있으면 삭제 표시된 댓글도 전체 하위 개수를 조회한다', async ({ page, api }) => {
+  api.comments.push(comment(1), { ...comment(2, 1), deleted: true, content: '삭제된 댓글입니다.' })
+  await page.route('**/api/posts/101/comments/2/total-reply-count', (route) =>
+    route.fulfill({ json: { commentId: 2, count: 3 } }))
+  const requests: string[] = []
+  page.on('request', (request) => {
+    if (request.url().endsWith('/total-reply-count')) requests.push(request.url())
+  })
+  await page.goto('/community/101')
+  await expect(page.getByRole('button', { name: '답글 더보기', exact: true })).toHaveCount(1)
+  expect(requests).toHaveLength(1)
+  expect(requests[0]).toContain('/comments/2/')
+})
+
+test('답글 수가 누락되었거나 전체 개수 조회가 실패하면 기존 처리를 유지한다', async ({ page, api }) => {
+  void api
+  await page.route('**/api/posts/101/comments', (route) => route.fulfill({ json: [
+    { ...comment(1), replyCount: undefined }, comment(2, 2),
+  ] }))
+  await page.route('**/api/posts/101/comments/1/total-reply-count', (route) =>
+    route.fulfill({ json: { commentId: 1, count: 4 } }))
+  await page.route('**/api/posts/101/comments/2/total-reply-count', (route) =>
+    route.fulfill({ status: 503, json: {} }))
+  await page.goto('/community/101')
+  await expect(page.getByRole('button', { name: '답글 더보기', exact: true })).toHaveCount(2, { timeout: 15_000 })
+  await expect(page.locator('#comment-1')).toContainText('측정 댓글 1')
+  await expect(page.locator('#comment-2')).toContainText('측정 댓글 2')
+})

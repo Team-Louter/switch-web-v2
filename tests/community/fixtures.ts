@@ -231,7 +231,11 @@ async function mockCommunityApi(page: Page) {
       await route.fulfill({ status: 204 })
     } else if (suffix === '/comments' && method === 'GET') {
       api.commentRequests += 1
-      await route.fulfill({ json: structuredClone(comments) })
+      // 실제 API와 같이 직접 자식 수를 댓글 목록 응답에 포함합니다.
+      await route.fulfill({ json: structuredClone(comments.map((comment) => ({
+        ...comment,
+        replyCount: api.replies.get(comment.commentId)?.length ?? comment.replyCount,
+      }))) })
     } else if (suffix === '/comments' && method === 'POST') {
       const body = request.postDataJSON()
       const comment: CommentResponse = {

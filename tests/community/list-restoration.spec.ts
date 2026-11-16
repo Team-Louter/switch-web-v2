@@ -310,7 +310,7 @@ test('알림 해시로 새 답글에 이동하면 댓글과 답글 캐시를 갱
   await page.goto('/community/1')
   await expect(page.locator('#comment-501')).toBeVisible()
   await expect.poll(() => api.commentRequests).toBe(1)
-  await expect.poll(() => api.replyCountRequests.length).toBeGreaterThan(0)
+  expect(api.replyCountRequests).toEqual([])
 
   api.replies.set(501, [createComment(502, '새 알림 답글', 1)])
   await page.evaluate(() => {
@@ -324,7 +324,7 @@ test('알림 해시로 새 답글에 이동하면 댓글과 답글 캐시를 갱
 
   await expect(page.locator('#comment-502')).toContainText('새 알림 답글')
   await expect.poll(() => api.commentRequests).toBe(2)
-  expect(api.replyCountRequests.filter((commentId) => commentId === 501)).toHaveLength(2)
+  expect(api.replyCountRequests.filter((commentId) => commentId === 501)).toHaveLength(1)
   expect(api.replyRequests).toContain(501)
 })
 
