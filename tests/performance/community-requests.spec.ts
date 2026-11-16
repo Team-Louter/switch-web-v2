@@ -45,3 +45,14 @@ test('답글 수가 누락되었거나 전체 개수 조회가 실패하면 기�
   await expect(page.locator('#comment-1')).toContainText('측정 댓글 1')
   await expect(page.locator('#comment-2')).toContainText('측정 댓글 2')
 })
+
+test('댓글을 재사용해도 입력 시 상대 시간과 답글 표시가 갱신된다', async ({ page, api }) => {
+  const now = new Date('2026-11-16T03:00:10Z')
+  await page.clock.setFixedTime(now)
+  api.comments.push({ ...comment(1), createdAt: '2026-11-16T03:00:00Z' })
+  await page.goto('/community/101')
+  await expect(page.locator('#comment-1 time')).toHaveText('10초 전')
+  await page.clock.setFixedTime(new Date(now.getTime() + 5_000))
+  await page.getByRole('textbox', { name: '댓글 내용' }).fill('시간 갱신 확인')
+  await expect(page.locator('#comment-1 time')).toHaveText('15초 전')
+})
