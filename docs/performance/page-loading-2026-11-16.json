@@ -1,0 +1,1873 @@
+{
+  "date": "2026-11-16",
+  "browser": "Chromium 157.0.8103.52",
+  "playwrightCli": "0.1.24",
+  "conditions": {
+    "viewport": [
+      1440,
+      900
+    ],
+    "cpuSlowdown": 4,
+    "latencyMs": 150,
+    "downloadBytesPerSecond": 200000,
+    "uploadBytesPerSecond": 93750,
+    "apiFixtureDelayMs": 50,
+    "samplesPerScenario": 5,
+    "http": "HTTP/1.1 + gzip",
+    "externalHttps": "blocked only during measurement",
+    "readiness": "DOM predicate followed by two requestAnimationFrame callbacks",
+    "navigationHoverMs": 500,
+    "typing": "20 characters, 80ms intervals"
+  },
+  "buildManifests": {
+    "baseline": "09b075bf12e4a183a32f3a6a568920ffc9a456a4d145edfa81a6f88b7e173669",
+    "round1": "2fef4f75013f4f137519217b18167161fcd4e8f4b900476f06909086f30cf9f8",
+    "round2": "40baa02a80bb859901dacd163c1d533def2a7f6adeac95d9ec86345bd34c080a",
+    "round3": "d5af2efc65ebd654015de0e77f0fd478ea5a577bee2661c3ceed758f8a150fe7",
+    "round4": "79eb972a48ace0fc1e6fdbf719ec56f05fafdfec35d22d1f8b441fe0941ab9b7",
+    "final": "a3cfed6ee8010f9cd0602af630306106a19030ab2da023bdff5ddede4e7e7793"
+  },
+  "measurements": [
+    {
+      "stage": "baseline",
+      "scenario": "home",
+      "samples": [
+        {
+          "readyMs": 2608.1,
+          "lcpMs": 2160,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 236641,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2603.7,
+          "lcpMs": 2144,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 236641,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2621,
+          "lcpMs": 2148,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 236641,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2671.6,
+          "lcpMs": 2184,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 236641,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2660.6,
+          "lcpMs": 2200,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 236641,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "baseline",
+      "scenario": "input",
+      "samples": [
+        {
+          "readyMs": 4368,
+          "lcpMs": 2848,
+          "cls": 0,
+          "apiCountBeforeReady": 54,
+          "replyCountRequests": 50,
+          "javascriptEncodedBytes": 297719,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 516.17,
+            "taskMs": 657.06,
+            "maxRecordedEventMs": 48,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 4344.9,
+          "lcpMs": 2852,
+          "cls": 0,
+          "apiCountBeforeReady": 54,
+          "replyCountRequests": 50,
+          "javascriptEncodedBytes": 297719,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 556.88,
+            "taskMs": 729.84,
+            "maxRecordedEventMs": 48,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 4197.8,
+          "lcpMs": 2848,
+          "cls": 0,
+          "apiCountBeforeReady": 54,
+          "replyCountRequests": 50,
+          "javascriptEncodedBytes": 297719,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 516.51,
+            "taskMs": 674.35,
+            "maxRecordedEventMs": 48,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 4208.5,
+          "lcpMs": 2848,
+          "cls": 0,
+          "apiCountBeforeReady": 54,
+          "replyCountRequests": 50,
+          "javascriptEncodedBytes": 297719,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 571.62,
+            "taskMs": 746.44,
+            "maxRecordedEventMs": 56,
+            "longTasks": 1
+          }
+        },
+        {
+          "readyMs": 4361.1,
+          "lcpMs": 2860,
+          "cls": 0,
+          "apiCountBeforeReady": 54,
+          "replyCountRequests": 50,
+          "javascriptEncodedBytes": 297719,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 534.36,
+            "taskMs": 695.98,
+            "maxRecordedEventMs": 40,
+            "longTasks": 0
+          }
+        }
+      ]
+    },
+    {
+      "stage": "baseline",
+      "scenario": "list",
+      "samples": [
+        {
+          "readyMs": 2018.2,
+          "lcpMs": 1608,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168056,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2014.3,
+          "lcpMs": 1604,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168056,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2023.3,
+          "lcpMs": 1600,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168056,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2045.2,
+          "lcpMs": 1628,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168056,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2012.9,
+          "lcpMs": 1600,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168056,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "baseline",
+      "scenario": "nav-detail",
+      "samples": [
+        {
+          "readyMs": 2723.1,
+          "lcpMs": 1652,
+          "cls": 0,
+          "apiCountBeforeReady": 55,
+          "replyCountRequests": 50,
+          "javascriptEncodedBytes": 307379,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2722.4,
+          "lcpMs": 1656,
+          "cls": 0,
+          "apiCountBeforeReady": 55,
+          "replyCountRequests": 50,
+          "javascriptEncodedBytes": 307379,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2615.2,
+          "lcpMs": 1672,
+          "cls": 0,
+          "apiCountBeforeReady": 55,
+          "replyCountRequests": 50,
+          "javascriptEncodedBytes": 307379,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2720,
+          "lcpMs": 1636,
+          "cls": 0,
+          "apiCountBeforeReady": 55,
+          "replyCountRequests": 50,
+          "javascriptEncodedBytes": 307379,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2713.2,
+          "lcpMs": 1620,
+          "cls": 0,
+          "apiCountBeforeReady": 55,
+          "replyCountRequests": 50,
+          "javascriptEncodedBytes": 307379,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "baseline",
+      "scenario": "nav-write",
+      "samples": [
+        {
+          "readyMs": 2122.7,
+          "lcpMs": 1668,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 476453,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2126.1,
+          "lcpMs": 1628,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 476453,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2129.4,
+          "lcpMs": 1636,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 476453,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2114.4,
+          "lcpMs": 1616,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 476453,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2117.5,
+          "lcpMs": 1624,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 476453,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "baseline",
+      "scenario": "write",
+      "samples": [
+        {
+          "readyMs": 3538.9,
+          "lcpMs": 3528,
+          "cls": 0,
+          "apiCountBeforeReady": 0,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 462928,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 3584.2,
+          "lcpMs": 3584,
+          "cls": 0,
+          "apiCountBeforeReady": 0,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 462928,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 3584.4,
+          "lcpMs": 3584,
+          "cls": 0,
+          "apiCountBeforeReady": 0,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 462928,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 3541.4,
+          "lcpMs": 3540,
+          "cls": 0,
+          "apiCountBeforeReady": 0,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 462928,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 3538.7,
+          "lcpMs": 3532,
+          "cls": 0,
+          "apiCountBeforeReady": 0,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 462928,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "final",
+      "scenario": "home",
+      "samples": [
+        {
+          "readyMs": 2394.6,
+          "lcpMs": 1292,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 237060,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2387.6,
+          "lcpMs": 1296,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 237060,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2496.9,
+          "lcpMs": 1312,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 237060,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2389.5,
+          "lcpMs": 1280,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 237060,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2368.3,
+          "lcpMs": 1288,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 237060,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "final",
+      "scenario": "input",
+      "samples": [
+        {
+          "readyMs": 2653.1,
+          "lcpMs": 2648,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 298448,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 43.5,
+            "taskMs": 115.41,
+            "maxRecordedEventMs": 16,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 2662.9,
+          "lcpMs": 2616,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 298448,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 40.48,
+            "taskMs": 110.82,
+            "maxRecordedEventMs": null,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 2658.8,
+          "lcpMs": 2612,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 298448,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 47.4,
+            "taskMs": 133.03,
+            "maxRecordedEventMs": 16,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 2647.8,
+          "lcpMs": 2604,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 298448,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 42.68,
+            "taskMs": 115.83,
+            "maxRecordedEventMs": null,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 2624.6,
+          "lcpMs": 2616,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 298448,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 44.54,
+            "taskMs": 111.1,
+            "maxRecordedEventMs": null,
+            "longTasks": 0
+          }
+        }
+      ]
+    },
+    {
+      "stage": "final",
+      "scenario": "list",
+      "samples": [
+        {
+          "readyMs": 1849.3,
+          "lcpMs": 1280,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168974,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1850.5,
+          "lcpMs": 1272,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168974,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1848,
+          "lcpMs": 1288,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168974,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1858.6,
+          "lcpMs": 1280,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168974,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1903.8,
+          "lcpMs": 1300,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168974,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "final",
+      "scenario": "nav-detail",
+      "samples": [
+        {
+          "readyMs": 670.6,
+          "lcpMs": 1304,
+          "cls": 0,
+          "apiCountBeforeReady": 5,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 308592,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 675.3,
+          "lcpMs": 1304,
+          "cls": 0,
+          "apiCountBeforeReady": 5,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 308592,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 709.6,
+          "lcpMs": 1292,
+          "cls": 0,
+          "apiCountBeforeReady": 5,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 308592,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 693.5,
+          "lcpMs": 1308,
+          "cls": 0,
+          "apiCountBeforeReady": 5,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 308592,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 694.9,
+          "lcpMs": 1312,
+          "cls": 0,
+          "apiCountBeforeReady": 5,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 308592,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "final",
+      "scenario": "nav-write",
+      "samples": [
+        {
+          "readyMs": 1605.3,
+          "lcpMs": 1296,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 477359,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1551.7,
+          "lcpMs": 1324,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 477359,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1563.8,
+          "lcpMs": 1284,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 477359,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1569.1,
+          "lcpMs": 1292,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 477359,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1554,
+          "lcpMs": 1300,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 477359,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "final",
+      "scenario": "write",
+      "samples": [
+        {
+          "readyMs": 3456,
+          "lcpMs": 3456,
+          "cls": 0,
+          "apiCountBeforeReady": 2,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 463350,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 3465.2,
+          "lcpMs": 3464,
+          "cls": 0,
+          "apiCountBeforeReady": 2,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 463350,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 3531.2,
+          "lcpMs": 3528,
+          "cls": 0,
+          "apiCountBeforeReady": 2,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 463350,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 3481.2,
+          "lcpMs": 3480,
+          "cls": 0,
+          "apiCountBeforeReady": 2,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 463350,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 3470.3,
+          "lcpMs": 3468,
+          "cls": 0,
+          "apiCountBeforeReady": 2,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 463350,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "round1",
+      "scenario": "home",
+      "samples": [
+        {
+          "readyMs": 2444.1,
+          "lcpMs": 1324,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 236639,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2397,
+          "lcpMs": 1288,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 236639,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2483.6,
+          "lcpMs": 1304,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 236639,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2435.8,
+          "lcpMs": 1300,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 236639,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2502.7,
+          "lcpMs": 1336,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 236639,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "round1",
+      "scenario": "input",
+      "samples": [
+        {
+          "readyMs": 4166.1,
+          "lcpMs": 2648,
+          "cls": 0,
+          "apiCountBeforeReady": 54,
+          "replyCountRequests": 50,
+          "javascriptEncodedBytes": 297738,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 542.48,
+            "taskMs": 703.97,
+            "maxRecordedEventMs": 40,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 4179.4,
+          "lcpMs": 2644,
+          "cls": 0,
+          "apiCountBeforeReady": 54,
+          "replyCountRequests": 50,
+          "javascriptEncodedBytes": 297738,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 572.1,
+            "taskMs": 745.77,
+            "maxRecordedEventMs": 40,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 4216.7,
+          "lcpMs": 2680,
+          "cls": 0,
+          "apiCountBeforeReady": 54,
+          "replyCountRequests": 50,
+          "javascriptEncodedBytes": 297738,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 529.5,
+            "taskMs": 684.8,
+            "maxRecordedEventMs": 40,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 4185.5,
+          "lcpMs": 2644,
+          "cls": 0,
+          "apiCountBeforeReady": 54,
+          "replyCountRequests": 50,
+          "javascriptEncodedBytes": 297738,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 559.61,
+            "taskMs": 717.3,
+            "maxRecordedEventMs": 40,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 4193.1,
+          "lcpMs": 2672,
+          "cls": 0,
+          "apiCountBeforeReady": 54,
+          "replyCountRequests": 50,
+          "javascriptEncodedBytes": 297738,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 522.18,
+            "taskMs": 684.8,
+            "maxRecordedEventMs": 40,
+            "longTasks": 0
+          }
+        }
+      ]
+    },
+    {
+      "stage": "round1",
+      "scenario": "list",
+      "samples": [
+        {
+          "readyMs": 1958.1,
+          "lcpMs": 1376,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168062,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1904,
+          "lcpMs": 1308,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168062,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1874.8,
+          "lcpMs": 1308,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168062,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1911.1,
+          "lcpMs": 1308,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168062,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1866.5,
+          "lcpMs": 1308,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168062,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "round2",
+      "scenario": "input",
+      "samples": [
+        {
+          "readyMs": 2685.5,
+          "lcpMs": 2676,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 297741,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 557.88,
+            "taskMs": 723.18,
+            "maxRecordedEventMs": 48,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 2703.6,
+          "lcpMs": 2620,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 297741,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 558.46,
+            "taskMs": 720.7,
+            "maxRecordedEventMs": 48,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 2714,
+          "lcpMs": 2708,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 297741,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 544.59,
+            "taskMs": 701.62,
+            "maxRecordedEventMs": 48,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 2691.4,
+          "lcpMs": 2620,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 297741,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 493.43,
+            "taskMs": 628.59,
+            "maxRecordedEventMs": 40,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 2695.9,
+          "lcpMs": 2624,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 297741,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 499.14,
+            "taskMs": 641.03,
+            "maxRecordedEventMs": 40,
+            "longTasks": 0
+          }
+        }
+      ]
+    },
+    {
+      "stage": "round3",
+      "scenario": "input",
+      "samples": [
+        {
+          "readyMs": 2660.4,
+          "lcpMs": 2616,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 297842,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 59.53,
+            "taskMs": 159.41,
+            "maxRecordedEventMs": 16,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 2673.5,
+          "lcpMs": 2620,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 297842,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 53.87,
+            "taskMs": 158.49,
+            "maxRecordedEventMs": 16,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 2665.1,
+          "lcpMs": 2616,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 297842,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 54.13,
+            "taskMs": 154.33,
+            "maxRecordedEventMs": 16,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 2656.4,
+          "lcpMs": 2648,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 297842,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 53.4,
+            "taskMs": 158.48,
+            "maxRecordedEventMs": 16,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 2663.6,
+          "lcpMs": 2616,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 297842,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 56.4,
+            "taskMs": 158.66,
+            "maxRecordedEventMs": 16,
+            "longTasks": 0
+          }
+        }
+      ]
+    },
+    {
+      "stage": "round3",
+      "scenario": "nav-detail",
+      "samples": [
+        {
+          "readyMs": 1236.1,
+          "lcpMs": 1288,
+          "cls": 0,
+          "apiCountBeforeReady": 5,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 307503,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1248.9,
+          "lcpMs": 1284,
+          "cls": 0,
+          "apiCountBeforeReady": 5,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 307503,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1232.2,
+          "lcpMs": 1292,
+          "cls": 0,
+          "apiCountBeforeReady": 5,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 307503,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1251.8,
+          "lcpMs": 1288,
+          "cls": 0,
+          "apiCountBeforeReady": 5,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 307503,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1221,
+          "lcpMs": 1284,
+          "cls": 0,
+          "apiCountBeforeReady": 5,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 307503,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "round3",
+      "scenario": "nav-write",
+      "samples": [
+        {
+          "readyMs": 2098.5,
+          "lcpMs": 1348,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 476457,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2115.3,
+          "lcpMs": 1292,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 476457,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2191.8,
+          "lcpMs": 1308,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 476457,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2166.7,
+          "lcpMs": 1308,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 476457,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2096.7,
+          "lcpMs": 1304,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 476457,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "round4",
+      "scenario": "home",
+      "samples": [
+        {
+          "readyMs": 2448.3,
+          "lcpMs": 1336,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 237061,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2433.9,
+          "lcpMs": 1304,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 237061,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2420.3,
+          "lcpMs": 1288,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 237061,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2380.6,
+          "lcpMs": 1304,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 237061,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 2473.3,
+          "lcpMs": 1304,
+          "cls": 0,
+          "apiCountBeforeReady": 7,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 237061,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "round4",
+      "scenario": "input",
+      "samples": [
+        {
+          "readyMs": 2701,
+          "lcpMs": 2644,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 298372,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 54.42,
+            "taskMs": 159.77,
+            "maxRecordedEventMs": 16,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 2693.9,
+          "lcpMs": 2688,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 298372,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 58.09,
+            "taskMs": 170.37,
+            "maxRecordedEventMs": 16,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 2699.7,
+          "lcpMs": 2652,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 298372,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 56.42,
+            "taskMs": 162.16,
+            "maxRecordedEventMs": 16,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 2692.2,
+          "lcpMs": 2644,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 298372,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 55.82,
+            "taskMs": 158.31,
+            "maxRecordedEventMs": 16,
+            "longTasks": 0
+          }
+        },
+        {
+          "readyMs": 2675.1,
+          "lcpMs": 2624,
+          "cls": 0,
+          "apiCountBeforeReady": 4,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 298372,
+          "pageErrors": [],
+          "input": {
+            "scriptMs": 62.79,
+            "taskMs": 177.79,
+            "maxRecordedEventMs": 16,
+            "longTasks": 0
+          }
+        }
+      ]
+    },
+    {
+      "stage": "round4",
+      "scenario": "list",
+      "samples": [
+        {
+          "readyMs": 1921.3,
+          "lcpMs": 1352,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168978,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1917.9,
+          "lcpMs": 1312,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168978,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1910.3,
+          "lcpMs": 1320,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168978,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1891.7,
+          "lcpMs": 1320,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168978,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1925.6,
+          "lcpMs": 1288,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 168978,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "round4",
+      "scenario": "nav-detail",
+      "samples": [
+        {
+          "readyMs": 691.7,
+          "lcpMs": 1308,
+          "cls": 0,
+          "apiCountBeforeReady": 5,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 308518,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 702.7,
+          "lcpMs": 1304,
+          "cls": 0,
+          "apiCountBeforeReady": 5,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 308518,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 690.9,
+          "lcpMs": 1304,
+          "cls": 0,
+          "apiCountBeforeReady": 5,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 308518,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 671.9,
+          "lcpMs": 1292,
+          "cls": 0,
+          "apiCountBeforeReady": 5,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 308518,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 675.7,
+          "lcpMs": 1288,
+          "cls": 0,
+          "apiCountBeforeReady": 5,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 308518,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "round4",
+      "scenario": "nav-write",
+      "samples": [
+        {
+          "readyMs": 1548.7,
+          "lcpMs": 1288,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 477367,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1545.3,
+          "lcpMs": 1292,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 477367,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1542.9,
+          "lcpMs": 1284,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 477367,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1545,
+          "lcpMs": 1288,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 477367,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1535.4,
+          "lcpMs": 1288,
+          "cls": 0,
+          "apiCountBeforeReady": 3,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 477367,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "stage": "round4",
+      "scenario": "write",
+      "samples": [
+        {
+          "readyMs": 3490,
+          "lcpMs": 3488,
+          "cls": 0,
+          "apiCountBeforeReady": 2,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 463356,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 3488.2,
+          "lcpMs": 3488,
+          "cls": 0,
+          "apiCountBeforeReady": 2,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 463356,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 3552.5,
+          "lcpMs": 3548,
+          "cls": 0,
+          "apiCountBeforeReady": 2,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 463356,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 3504.6,
+          "lcpMs": 3500,
+          "cls": 0,
+          "apiCountBeforeReady": 2,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 463356,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 3512,
+          "lcpMs": 3508,
+          "cls": 0,
+          "apiCountBeforeReady": 2,
+          "replyCountRequests": 0,
+          "javascriptEncodedBytes": 463356,
+          "pageErrors": []
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "React Fiber flags 기반 renders는 실제 함수 호출 수로 해석하지 않습니다.",
+    "LCP/CLS는 실험실 측정치이며 현장 p75 Core Web Vitals가 아닙니다.",
+    "nav 시나리오의 LCP는 최초 목록 문서 기준입니다."
+  ],
+  "additionalMeasurements": [
+    {
+      "mode": "unthrottled",
+      "stage": "baseline",
+      "scenario": "input",
+      "cpuSlowdown": 1,
+      "latencyMs": 0,
+      "networkThroughput": "unlimited",
+      "apiFixtureDelayMs": 50,
+      "samples": [
+        {
+          "readyMs": 1058.2,
+          "lcpMs": 540,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1049,
+          "lcpMs": 524,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1030.1,
+          "lcpMs": 508,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1007.6,
+          "lcpMs": 512,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 1053.1,
+          "lcpMs": 520,
+          "cls": 0,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "mode": "unthrottled",
+      "stage": "baseline",
+      "scenario": "list",
+      "cpuSlowdown": 1,
+      "latencyMs": 0,
+      "networkThroughput": "unlimited",
+      "apiFixtureDelayMs": 50,
+      "samples": [
+        {
+          "readyMs": 508.1,
+          "lcpMs": 372,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 523.2,
+          "lcpMs": 376,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 504.1,
+          "lcpMs": 368,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 513.2,
+          "lcpMs": 372,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 512.7,
+          "lcpMs": 368,
+          "cls": 0,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "mode": "unthrottled",
+      "stage": "baseline",
+      "scenario": "nav-detail",
+      "cpuSlowdown": 1,
+      "latencyMs": 0,
+      "networkThroughput": "unlimited",
+      "apiFixtureDelayMs": 50,
+      "samples": [
+        {
+          "readyMs": 671,
+          "lcpMs": 376,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 673.6,
+          "lcpMs": 380,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 686,
+          "lcpMs": 380,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 614.2,
+          "lcpMs": 360,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 662.3,
+          "lcpMs": 360,
+          "cls": 0,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "mode": "unthrottled",
+      "stage": "baseline",
+      "scenario": "nav-write",
+      "cpuSlowdown": 1,
+      "latencyMs": 0,
+      "networkThroughput": "unlimited",
+      "apiFixtureDelayMs": 50,
+      "samples": [
+        {
+          "readyMs": 114.4,
+          "lcpMs": 360,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 106.5,
+          "lcpMs": 360,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 101.8,
+          "lcpMs": 376,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 113.7,
+          "lcpMs": 368,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 113.4,
+          "lcpMs": 376,
+          "cls": 0,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "mode": "unthrottled",
+      "stage": "final",
+      "scenario": "input",
+      "cpuSlowdown": 1,
+      "latencyMs": 0,
+      "networkThroughput": "unlimited",
+      "apiFixtureDelayMs": 50,
+      "samples": [
+        {
+          "readyMs": 216.3,
+          "lcpMs": 228,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 227.1,
+          "lcpMs": 224,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 220.5,
+          "lcpMs": 220,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 221.9,
+          "lcpMs": 232,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 228.8,
+          "lcpMs": 248,
+          "cls": 0,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "mode": "unthrottled",
+      "stage": "final",
+      "scenario": "list",
+      "cpuSlowdown": 1,
+      "latencyMs": 0,
+      "networkThroughput": "unlimited",
+      "apiFixtureDelayMs": 50,
+      "samples": [
+        {
+          "readyMs": 193.5,
+          "lcpMs": 64,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 199.6,
+          "lcpMs": 56,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 200.8,
+          "lcpMs": 68,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 208.3,
+          "lcpMs": 64,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 194,
+          "lcpMs": 60,
+          "cls": 0,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "mode": "unthrottled",
+      "stage": "final",
+      "scenario": "nav-detail",
+      "cpuSlowdown": 1,
+      "latencyMs": 0,
+      "networkThroughput": "unlimited",
+      "apiFixtureDelayMs": 50,
+      "samples": [
+        {
+          "readyMs": 145.8,
+          "lcpMs": 64,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 131,
+          "lcpMs": 68,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 126,
+          "lcpMs": 76,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 122.1,
+          "lcpMs": 56,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 143,
+          "lcpMs": 64,
+          "cls": 0,
+          "pageErrors": []
+        }
+      ]
+    },
+    {
+      "mode": "unthrottled",
+      "stage": "final",
+      "scenario": "nav-write",
+      "cpuSlowdown": 1,
+      "latencyMs": 0,
+      "networkThroughput": "unlimited",
+      "apiFixtureDelayMs": 50,
+      "samples": [
+        {
+          "readyMs": 66.2,
+          "lcpMs": 60,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 67.3,
+          "lcpMs": 64,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 66.9,
+          "lcpMs": 68,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 71.7,
+          "lcpMs": 56,
+          "cls": 0,
+          "pageErrors": []
+        },
+        {
+          "readyMs": 76.7,
+          "lcpMs": 64,
+          "cls": 0,
+          "pageErrors": []
+        }
+      ]
+    }
+  ],
+  "editorInput": {
+    "body": "60 BlockNote paragraphs pasted, then 20 characters typed",
+    "samples": [
+      {
+        "scriptMs": 178.26,
+        "maxRecordedEventMs": 48,
+        "longTasks": 0,
+        "pageErrors": []
+      },
+      {
+        "scriptMs": 158.54,
+        "maxRecordedEventMs": 24,
+        "longTasks": 0,
+        "pageErrors": []
+      },
+      {
+        "scriptMs": 146.4,
+        "maxRecordedEventMs": 24,
+        "longTasks": 0,
+        "pageErrors": []
+      },
+      {
+        "scriptMs": 160.91,
+        "maxRecordedEventMs": 24,
+        "longTasks": 0,
+        "pageErrors": []
+      },
+      {
+        "scriptMs": 159.0,
+        "maxRecordedEventMs": 24,
+        "longTasks": 0,
+        "pageErrors": []
+      }
+    ]
+  },
+  "commentRenderDiagnostic": {
+    "method": "function-entry counter injected into isolated build, excluded from timing measurements",
+    "characters": 20,
+    "rootComments": 50,
+    "baselineCalls": [
+      1000,
+      1000,
+      1000
+    ],
+    "finalCalls": [
+      0,
+      0,
+      0
+    ],
+    "samples": 3
+  }
+}
