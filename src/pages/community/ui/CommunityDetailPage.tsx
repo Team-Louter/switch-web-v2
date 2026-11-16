@@ -381,6 +381,10 @@ export function CommunityDetailPage() {
     () => buildCommentTree(optimisticCommentState.comments),
     [optimisticCommentState.comments],
   );
+  // 기존 부모 렌더에서 갱신되던 상대 시간은 유지하되, 같은 표시값이면 댓글을 재사용합니다.
+  const commentRelativeTimeVersion = optimisticCommentState.comments
+    .map((comment) => formatCommunityRelativeDate(comment.createdAt))
+    .join('\n');
   const pendingReplyAncestorIds = useMemo(
     () => getPendingReplyAncestorIds(optimisticCommentState.comments),
     [optimisticCommentState.comments],
@@ -1703,6 +1707,7 @@ export function CommunityDetailPage() {
                   <CommunityCommentBranch
                     key={node.comment.optimisticId ?? node.comment.commentId}
                     node={node}
+                    relativeTimeVersion={commentRelativeTimeVersion}
                     targetCommentId={targetCommentId}
                     onReplySubmit={handleReplySubmit}
                     onRepliesLoad={handleRepliesLoad}

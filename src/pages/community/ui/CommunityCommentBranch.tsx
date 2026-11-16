@@ -47,6 +47,7 @@ interface ReplyLoadingSkeletonProps {
 
 interface CommunityCommentBranchProps {
   node: CommentTreeNode;
+  relativeTimeVersion: string;
   targetCommentId: number | null;
   onReplySubmit: CommunityReplySubmitHandler;
   onRepliesLoad: CommunityReplyLoadHandler;
@@ -93,6 +94,7 @@ function hasTargetDescendant(
 
 function CommunityCommentBranchView({
   node,
+  relativeTimeVersion,
   targetCommentId,
   onReplySubmit,
   onRepliesLoad,
@@ -615,6 +617,7 @@ function CommunityCommentBranchView({
                     <CommunityCommentBranch
                       key={child.comment.optimisticId ?? child.comment.commentId}
                       node={child}
+                      relativeTimeVersion={relativeTimeVersion}
                       targetCommentId={targetCommentId}
                       onReplySubmit={onReplySubmit}
                       onRepliesLoad={onRepliesLoad}
