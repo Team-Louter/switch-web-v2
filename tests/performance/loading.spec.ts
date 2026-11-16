@@ -226,7 +226,7 @@ test('멤버 이미지가 지연·실패해도 홈 목록과 다음 배치가 �
   await page.route('**/api/schedules', (route) => route.fulfill({ json: [] }))
   await page.route('**/api/posts/hot', (route) => route.fulfill({ json: [] }))
   await page.route('**/api/me/posts?*', (route) => route.fulfill({ json: { content: [] } }))
-  await page.goto('/home')
+  await page.goto('/home', { waitUntil: 'domcontentloaded' })
   const section = page.getByRole('region', { name: 'Louter Member' })
   await section.scrollIntoViewIfNeeded()
   await expect(section.getByText('멤버 1', { exact: false })).toBeVisible()
@@ -328,7 +328,7 @@ test('멘토링 아바타가 지연되어도 방 이름과 멤버를 먼저 표�
   }))
   await page.route('**/slow-mentor.svg', async (route) => { await gate; await route.fulfill({ status: 503, body: '' }) })
   try {
-    await page.goto('/mentoring')
+    await page.goto('/mentoring', { waitUntil: 'domcontentloaded' })
     await expect(page.getByText('느린 이미지 방', { exact: true }).first()).toBeVisible()
     await expect(page.locator('[aria-busy="true"] img[alt="느린 멤버"]').first()).toBeAttached()
   } finally {
