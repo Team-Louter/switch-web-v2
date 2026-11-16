@@ -1,5 +1,6 @@
-import { lazy, Suspense } from 'react'
+import { lazy } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { AsyncBoundary } from '@/shared/ui/AsyncBoundary'
 
 import { AppLayout } from './layouts'
 import { AppProvider } from './providers'
@@ -92,7 +93,7 @@ const CodeTypingPage = lazy(() =>
 export function App() {
   return (
     <AppProvider>
-      <Suspense fallback={null}>
+      <AsyncBoundary>
         <Routes>
           <Route element={<PendingAuthRoute />}>
             <Route path="/" element={<RootRoute />} />
@@ -141,7 +142,7 @@ export function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </Suspense>
+      </AsyncBoundary>
     </AppProvider>
   )
 }

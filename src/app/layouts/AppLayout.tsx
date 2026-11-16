@@ -28,6 +28,7 @@ import {
 } from '@/shared/lib/profileSync'
 import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
+import { AsyncBoundary } from '@/shared/ui/AsyncBoundary'
 
 import type { ProfileEquippedItems } from '@/entities/profile'
 import type { SidebarItemId } from '@/shared/constants/sidebar'
@@ -234,7 +235,10 @@ export function AppLayout() {
         </>
       )}
       <Body $withSidebar={shouldShowSidebar}>
-        <Outlet context={{ setNotificationCount: updateNotificationCount }} />
+        {/* 페이지 청크를 기다리는 동안에도 레이아웃의 프로필 조회를 시작합니다. */}
+        <AsyncBoundary key={location.pathname}>
+          <Outlet context={{ setNotificationCount: updateNotificationCount }} />
+        </AsyncBoundary>
       </Body>
     </Layout>
   )
