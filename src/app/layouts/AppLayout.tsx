@@ -30,6 +30,8 @@ import * as token from '@/shared/styles/values/token'
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar'
 import { AsyncBoundary } from '@/shared/ui/AsyncBoundary'
 
+import { preloadSidebarPage } from '../router/preloadSidebarPage'
+
 import type { ProfileEquippedItems } from '@/entities/profile'
 import type { SidebarItemId } from '@/shared/constants/sidebar'
 
@@ -229,6 +231,7 @@ export function AppLayout() {
               isProfileLoading={isSidebarProfileLoading}
               profile={sidebarProfile}
               onItemSelect={handleSidebarItemSelect}
+              onItemIntent={preloadSidebarPage}
             />
             </SidebarContainer>
           </Side>

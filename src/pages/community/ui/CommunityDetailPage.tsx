@@ -106,6 +106,10 @@ const COMMENT_SKELETON_ITEMS = [0, 1, 2];
 const FLOATING_CONFIRM_ANIMATION_MS = 180;
 const TARGET_COMMENT_SEARCH_CONCURRENCY = 4;
 
+function preloadWritePage() {
+  void import('./CommunityWritePage').catch(() => {});
+}
+
 function getTargetCommentId(hash: string): number | null {
   const match = /^#comment-(\d+)$/.exec(hash);
 
@@ -1481,6 +1485,8 @@ export function CommunityDetailPage() {
                                     type="button"
                                     role="menuitem"
                                     disabled={isPostActionMutating}
+                                    onPointerEnter={preloadWritePage}
+                                    onFocus={preloadWritePage}
                                     onClick={handlePostEdit}
                                   >
                                     수정하기
