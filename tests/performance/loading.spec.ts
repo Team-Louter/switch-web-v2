@@ -367,3 +367,33 @@ test('토큰 재발급 중 화면을 이동해도 진행 중인 프로필 조회
   }
   await expect(page.getByRole('button', { name: '재발급 사용자 2학년 1반 1번' })).toBeVisible()
 })
+
+test('페이지 청크를 기다리는 동안 사이드바와 프로필 조회를 유지한다', async ({ page, api }) => {
+  let release = () => {}
+  const gate = new Promise<void>((resolve) => { release = resolve })
+  await page.route(/\/assets\/CommunityPage-[^/]+\.js$/, async (route) => {
+    await gate
+    await route.continue()
+  })
+  try {
+    await page.goto('/community', { waitUntil: 'domcontentloaded' })
+    await expect(page.getByRole('complementary', { name: '주요 메뉴' })).toBeVisible()
+    await expect.poll(() => api.profileRequests).toBe(1)
+    await expect(page.getByRole('button', { name: '테스트 작성자 2학년 1반 1번' })).toBeVisible()
+    await expect(page.getByRole('status')).toContainText('화면을 불러오는 중입니다.')
+  } finally {
+    release()
+  }
+  await expect(page.getByText('게시글 1', { exact: true })).toBeVisible()
+  expect(api.profileRequests).toBe(1)
+})
+
+test('페이지 청크 실패 후에도 다른 메뉴로 이동할 수 있다', async ({ page, api }) => {
+  void api
+  await page.route(/\/assets\/CommunityPage-[^/]+\.js$/, (route) => route.abort('failed'))
+  await page.goto('/community')
+  await expect(page.getByRole('alert')).toContainText('화면을 불러오지 못했습니다')
+  await page.getByRole('button', { name: '타자연습', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '타자 연습' })).toBeVisible()
+  await expect(page.getByRole('alert')).toHaveCount(0)
+})
