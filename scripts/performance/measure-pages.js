@@ -11,7 +11,7 @@ async (page) => {
         p.on('pageerror', e => errors.push(e.message));
         await p.addInitScript((scenario) => {
             localStorage.setItem('accessToken', 'e30.eyJleHAiOjIwMDAwMDAwMDB9.fixture');
-            window.__perf = { lcp: 0, cls: 0, longTasks: [], events: [], commits: 0, renders: {}, marks: {}, readyAt: null };
+            window.__perf = { lcp: 0, cls: 0, longTasks: [], events: [], marks: {}, readyAt: null };
             let readyScheduled = false;
             const isReady = () => {
                 if (scenario === 'list')
@@ -34,15 +34,6 @@ async (page) => {
             };
             new MutationObserver(checkReady).observe(document, { childList: true, subtree: true, attributes: true });
             new PerformanceObserver(checkReady).observe({ type: 'resource', buffered: true });
-            window.__REACT_DEVTOOLS_GLOBAL_HOOK__ = { supportsFiber: true, inject: () => 1, onCommitFiberRoot: (id, root) => {
-                    window.__perf.commits++;
-                    function walk(f) { if (!f)
-                        return; if (f.flags & 1 && typeof f.type === 'function') {
-                        const n = f.type.name;
-                        window.__perf.renders[n] = (window.__perf.renders[n] || 0) + 1;
-                    } walk(f.child); walk(f.sibling); }
-                    walk(root.current);
-                }, onCommitFiberUnmount: () => { } };
             new PerformanceObserver(l => l.getEntries().forEach(e => window.__perf.lcp = e.startTime)).observe({ type: 'largest-contentful-paint', buffered: true });
             new PerformanceObserver(l => l.getEntries().forEach(e => { if (!e.hadRecentInput)
                 window.__perf.cls += e.value; })).observe({ type: 'layout-shift', buffered: true });
@@ -86,13 +77,27 @@ async (page) => {
             await textbox.scrollIntoViewIfNeeded();
             await textbox.click();
             await p.waitForTimeout(200);
-            const before = await p.evaluate(() => ({ now: performance.now(), commits: window.__perf.commits, renders: { ...window.__perf.renders } }));
+            if (await p.evaluate(() => Boolean(window.__REACT_DEVTOOLS_GLOBAL_HOOK__))) {
+                throw new Error('React 진단 훅이 활성화되어 입력 시간을 측정할 수 없습니다.');
+            }
+            const inputStart = await p.evaluate(() => performance.now());
             const beforeMetrics = await cdp.send('Performance.getMetrics');
-            await textbox.pressSequentially('abcdefghijklmnopqrst', { delay: 80 });
+            const draft = 'abcdefghijklmnopqrst';
+            await textbox.pressSequentially(draft, { delay: 80 });
             await p.waitForTimeout(100);
-            const after = await p.evaluate(() => ({ now: performance.now(), commits: window.__perf.commits, renders: { ...window.__perf.renders } }));
+            const inputEnd = await p.evaluate(() => performance.now());
             const afterMetrics = await cdp.send('Performance.getMetrics');
-            input = { start: before.now, end: after.now, commits: after.commits - before.commits, renders: Object.fromEntries(Object.entries(after.renders).map(([k, v]) => [k, v - (before.renders[k] || 0)]).filter(([, v]) => v)), metrics: Object.fromEntries(afterMetrics.metrics.map(m => [m.name, m.value - (beforeMetrics.metrics.find(b => b.name === m.name)?.value || 0)])) };
+            if (await textbox.inputValue() !== draft) {
+                throw new Error('댓글 초안에 20자가 모두 입력되지 않았습니다.');
+            }
+            const initialMetrics = new Map(beforeMetrics.metrics.map(({ name, value }) => [name, value]));
+            input = {
+                start: inputStart,
+                end: inputEnd,
+                metrics: Object.fromEntries(afterMetrics.metrics
+                    .filter(({ name }) => initialMetrics.has(name))
+                    .map(({ name, value }) => [name, value - initialMetrics.get(name)])),
+            };
         }
         const data = await p.evaluate(() => ({ ...window.__perf, resources: performance.getEntriesByType('resource').map(r => ({ name: r.name, start: r.startTime, duration: r.duration, ttfb: r.responseStart - r.requestStart, transfer: r.transferSize, encoded: r.encodedBodySize })), navigation: performance.getEntriesByType('navigation').map(n => ({ ttfb: n.responseStart, dom: n.domContentLoadedEventEnd })) }));
         results.push({ sample, scenario, ready: ready - start, start, input, errors, ...data });
