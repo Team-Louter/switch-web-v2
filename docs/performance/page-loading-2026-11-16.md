@@ -2,7 +2,7 @@
 
 관련 이슈: [#148](https://github.com/Team-Louter/switch-web-v2/issues/148)
 
-프론트에서 확인한 병목을 네 단계로 개선했다. 제한된 CPU·네트워크 조건에서 상세 전환은 **2,720 → 694ms**, 댓글 20자 입력의 JavaScript 실행 누적 시간은 **534 → 44ms**로 감소했다. 운영 API와 CDN의 응답 시간 자체를 개선한 결과는 아니다.
+프론트에서 확인한 병목을 네 단계로 개선했다. 제한된 CPU·네트워크 조건에서 상세 전환은 **2,720 → 694ms**로 단축됐다. 당시 댓글 입력 측정값 **534 → 44ms**에는 커밋마다 React Fiber 트리를 순회한 비용이 포함된다. 11월 18일에 진단 훅을 끄고 다시 측정한 결과는 [댓글 입력 재측정](#댓글-입력-재측정)에 기록했다.
 
 ## 측정 조건과 지표
 
@@ -140,6 +140,20 @@ sed 's/SCENARIO/nav-detail/g' scripts/performance/measure-pages.js > /tmp/switch
 npx --yes --package @playwright/cli@0.1.24 playwright-cli --session switch-perf run-code --filename /tmp/switch-perf-measure.js
 ```
 
-`SCENARIO`: `list`, `home`, `input`, `write`, `nav-detail`, `nav-write`. 반환 JSON의 `ready`, `lcp`, `cls`, `resources`, `input.metrics`를 사용한다. `ScriptDuration`은 초이므로 1,000을 곱한다. 단독 렌더링 시간은 별도 분리하지 않았으며 ScriptDuration에는 입력 관련 앱 로직도 포함된다. `renders`는 탐색용이므로 성과 산정에서 제외한다.
+`SCENARIO`에는 `list`, `home`, `input`, `write`, `nav-detail`, `nav-write`를 지정할 수 있다. 입력 시간은 `input.metrics.ScriptDuration × 1,000`으로 밀리초로 환산한다. 여기에는 입력 관련 앱 로직과 렌더링이 함께 포함된다. 현재 스크립트는 댓글 20자가 모두 입력됐는지 확인하며, React 진단 훅이 활성화된 입력 표본은 오류로 처리한다.
 
 보조 실험은 CPU rate를 1, network latency를 0, download/upload throughput을 -1로 바꾼다. baseline과 최종 빌드를 각각 같은 서버 설정으로 실행하고 브라우저·다른 측정 작업을 동시에 실행하지 않는다. 운영 API 지연 재현이 필요하면 별도의 실험으로 기록하며 fixture 결과와 혼합하지 않는다.
+
+## 댓글 입력 재측정
+
+2026년 11월 18일에 측정 도구 `6eec882`로 React 진단 훅을 끄고 비교했다. 표의 값은 20자를 80ms 간격으로 입력하는 구간의 CDP `ScriptDuration` 증가량이다. 댓글은 두 실험 모두 50개이며 본문은 60문단이다.
+
+| 비교 대상 | 댓글 구성 | 변경 전 표본(ms) | 변경 후 표본(ms) | 중앙값 변화 |
+| --- | --- | --- | --- | --- |
+| #149 도입 전 `be3cabd` → 도입 후 `c956337` | 오래된 댓글 50개 | 568.1, 555.0, 529.2, 529.3, 504.8 | 49.7, 52.1, 54.1, 56.8, 52.0 | 529.3 → 52.1ms (90.2% 감소) |
+| 상대 시간 갱신 개선 전 `c956337` → 개선 후 `82f8966` | 오래된 댓글 49개와 최신 댓글 1개 | 89.6, 69.4, 76.4, 80.2, 83.2 | 51.8, 44.7, 48.9, 57.0, 52.3 | 80.2 → 51.8ms (35.4% 감소) |
+
+- macOS arm64, Chromium `157.0.8103.80`, Playwright CLI `0.1.24`. CPU 4배 감속, 네트워크 지연 150ms, fixture 응답 대기 50ms. 다운로드·업로드 제한, 화면 크기, 입력 간격은 위 측정 조건과 같다.
+- 각 비교에서 두 프로덕션 빌드를 한 쌍으로 5회 측정했다. 홀수 회에는 변경 전, 짝수 회에는 변경 후를 먼저 실행했다. 각 표본은 빈 브라우저 컨텍스트에서 시작했고 20개 표본 모두 페이지 오류 없이 입력을 마쳤다.
+- 재현하려면 위 절차에서 `SCENARIO`를 `input`으로 설정하고 두 소스의 빌드를 같은 서버에서 번갈아 제공한다. 두 번째 행은 fixture 서버에 `PERF_RECENT_COMMENT=1`을 설정한다. 댓글 목록에 응답할 때 마지막 댓글의 시각을 10초 전으로 지정해 입력 중 상대 시간이 바뀐다.
+- 기존 91.9%는 당시 Chromium과 React 진단 훅이 켜진 표본에서 얻은 값이다. 이번 재측정은 브라우저 버전과 실행 시점도 달라 두 감소율의 차이만으로 훅의 비용을 산출할 수 없다.
