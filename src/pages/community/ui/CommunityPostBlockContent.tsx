@@ -11,6 +11,7 @@ import {
   resolveCommunityAttachment,
   type CommunityAttachmentFile,
 } from '../model/communityAttachment';
+import { loadCommunityEditorStyles } from './loadCommunityEditorStyles';
 import { CommunityAttachmentCard } from './CommunityAttachmentCard';
 
 import { getYouTubeTitle, isKlipyMediaUrl } from '@/shared/api';
@@ -22,13 +23,13 @@ import {
   type CommunityPostImagePreview,
 } from './CommunityPostImageViewer';
 
-const BlockFallback = lazy(() =>
-  import('./CommunityPostBlockFallback').then(
-    ({ CommunityPostBlockFallback }) => ({
-      default: CommunityPostBlockFallback,
-    }),
-  ),
-);
+const BlockFallback = lazy(async () => {
+  const [page] = await Promise.all([
+    import('./CommunityPostBlockFallback'),
+    loadCommunityEditorStyles(),
+  ]);
+  return { default: page.CommunityPostBlockFallback };
+});
 
 interface CommunityPostBlockContentProps {
   blocks: readonly Block[];
