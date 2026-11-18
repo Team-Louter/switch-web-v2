@@ -56,3 +56,26 @@ test('댓글을 재사용해도 입력 시 상대 시간과 답글 표시가 갱
   await page.getByRole('textbox', { name: '댓글 내용' }).fill('시간 갱신 확인')
   await expect(page.locator('#comment-1 time')).toHaveText('15초 전')
 })
+
+test('최근 댓글의 시간이 입력 없이 초에서 분으로 바뀌고 작성 중 초안을 유지한다', async ({ page, api }) => {
+  await page.clock.install({ time: '2026-11-16T02:55:00Z' })
+  api.comments.push(...Array.from({ length: 49 }, (_, index) => comment(index + 1)))
+  api.comments.push({ ...comment(50), createdAt: '2026-11-16T02:59:01.250Z' })
+
+  await page.goto('/community/101')
+  const recentDate = page.locator('#comment-50 time')
+  const oldDate = page.locator('#comment-1 time')
+  await expect(recentDate).toHaveText('0초 전')
+  await page.clock.pauseAt('2026-11-16T03:00:00Z')
+  await expect(recentDate).toHaveText('58초 전')
+  await expect(oldDate).toHaveText('1개월 전')
+  await page.clock.runFor(250)
+  await expect(recentDate).toHaveText('59초 전')
+
+  const draft = page.getByRole('textbox', { name: '댓글 내용' })
+  await draft.fill('작성 중인 댓글')
+  await page.clock.runFor(1_000)
+  await expect(recentDate).toHaveText('1분 전')
+  await expect(oldDate).toHaveText('1개월 전')
+  await expect(draft).toHaveValue('작성 중인 댓글')
+})
