@@ -6,6 +6,8 @@ npm run test:performance
 
 고정 API 응답과 **프로덕션 빌드**를 사용한다. 4173 포트가 비어 있어야 하며 운영 서버에는 요청하지 않는다. 기존 community fixture를 공유한다.
 
+`npm run test:e2e`는 개발 서버에서 기능 테스트를 실행한 뒤 같은 포트에서 프로덕션 성능 테스트를 실행한다. `npx playwright test`는 개발 서버 테스트만 실행한다.
+
 검증 대상:
 
 - 390/900/901/1440px 로그인 hero 요청 및 화면 확대 시 정상 로드
