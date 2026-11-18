@@ -80,7 +80,7 @@ import {
 import { resizeCommunityTextarea } from '../model/commentInput';
 import { buildCommunityGifCommentContent } from '../model/klipyGifLink';
 import { getCommunityListReturnTo } from '../model/useCommunityListNavigation';
-import { CommunityCommentBranch } from './CommunityCommentBranch';
+import { CommunityCommentBranches } from './CommunityCommentBranch';
 import { CommunityAttachmentCard } from './CommunityAttachmentCard';
 import { CommunityDownloadWarningModal } from './CommunityDownloadWarningModal';
 import type { CommunityAttachmentFile } from '../model/communityAttachment';
@@ -385,16 +385,15 @@ export function CommunityDetailPage() {
     () => buildCommentTree(optimisticCommentState.comments),
     [optimisticCommentState.comments],
   );
-  // 기존 부모 렌더에서 갱신되던 상대 시간은 유지하되, 같은 표시값이면 댓글을 재사용합니다.
-  const commentRelativeTimeVersion = optimisticCommentState.comments
-    .map((comment) => formatCommunityRelativeDate(comment.createdAt))
-    .join('\n');
   const pendingReplyAncestorIds = useMemo(
     () => getPendingReplyAncestorIds(optimisticCommentState.comments),
     [optimisticCommentState.comments],
   );
-  const displayedCommentCount = (post?.commentCount ?? 0) +
-    optimisticCommentState.comments.filter((comment) => comment.commentId < 0).length;
+  const pendingCommentCount = useMemo(
+    () => optimisticCommentState.comments.filter((comment) => comment.commentId < 0).length,
+    [optimisticCommentState.comments],
+  );
+  const displayedCommentCount = (post?.commentCount ?? 0) + pendingCommentCount;
   const commentSubmitContent = buildCommunityGifCommentContent(
     commentContent,
     commentGif?.slug,
@@ -1709,23 +1708,19 @@ export function CommunityDetailPage() {
                     </Button>
                   </S.CommentStatus>
                 )}
-                {commentTree.map((node) => (
-                  <CommunityCommentBranch
-                    key={node.comment.optimisticId ?? node.comment.commentId}
-                    node={node}
-                    relativeTimeVersion={commentRelativeTimeVersion}
-                    targetCommentId={targetCommentId}
-                    onReplySubmit={handleReplySubmit}
-                    onRepliesLoad={handleRepliesLoad}
-                    pendingReplyAncestorIds={pendingReplyAncestorIds}
-                    loadedReplyCommentIds={loadedReplyCommentIds}
-                    onCommentUpdate={handleCommentUpdate}
-                    onCommentDeleteRequest={handleCommentDeleteRequest}
-                    onCommentEditStart={closeCommentDeleteConfirm}
-                    currentMemberId={currentMemberId}
-                    replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
-                  />
-                ))}
+                <CommunityCommentBranches
+                  nodes={commentTree}
+                  targetCommentId={targetCommentId}
+                  onReplySubmit={handleReplySubmit}
+                  onRepliesLoad={handleRepliesLoad}
+                  pendingReplyAncestorIds={pendingReplyAncestorIds}
+                  loadedReplyCommentIds={loadedReplyCommentIds}
+                  onCommentUpdate={handleCommentUpdate}
+                  onCommentDeleteRequest={handleCommentDeleteRequest}
+                  onCommentEditStart={closeCommentDeleteConfirm}
+                  currentMemberId={currentMemberId}
+                  replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
+                />
               </S.CommentList>
             </S.Comments>
           </>
