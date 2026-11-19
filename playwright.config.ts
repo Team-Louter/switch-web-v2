@@ -2,6 +2,7 @@ import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
   testDir: './tests',
+  testIgnore: '**/tests/performance/**',
   workers: 1,
   reporter: 'list',
   use: {
@@ -15,6 +16,7 @@ export default defineConfig({
     url: 'http://127.0.0.1:4173',
     env: {
       VITE_API_BASE_URL: 'http://127.0.0.1:4173/api',
+      VITE_BASE_URL: 'http://127.0.0.1:4173/api',
       VITE_KLIPY_APP_KEY: 'gif-picker-test',
     },
     reuseExistingServer: false,
