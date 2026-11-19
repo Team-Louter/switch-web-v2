@@ -82,6 +82,7 @@ import {
   TabActionRow,
   WriteButton,
 } from './CommunityPage.style';
+import { preloadCommunityWritePage } from '../loadCommunityWritePage';
 import { PixelHammerIcon } from './PixelHammerIcon';
 
 interface CategoryTabItem {
@@ -101,10 +102,6 @@ const RELATIVE_TIME_REFRESH_INTERVAL_MS = 30_000;
 function preloadDetailPage() {
   // 상세 API는 조회수를 증가시키므로 화면 코드만 사전 로딩합니다.
   void import('./CommunityDetailPage').catch(() => {});
-}
-
-function preloadWritePage() {
-  void import('./CommunityWritePage').catch(() => {});
 }
 
 export function CommunityPage() {
@@ -284,8 +281,8 @@ export function CommunityPage() {
             <WriteButton
               size="sm"
               onClick={handleWritePost}
-              onPointerEnter={preloadWritePage}
-              onFocus={preloadWritePage}
+              onPointerEnter={preloadCommunityWritePage}
+              onFocus={preloadCommunityWritePage}
             >
               <PiPencilSimpleLineBold size={16} aria-hidden="true" />
               글쓰기

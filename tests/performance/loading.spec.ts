@@ -127,7 +127,7 @@ test('기본 서식과 목록은 에디터 없이 보존하고 위험한 링크�
   await expect(body.getByRole('link', { name: '안전 링크' })).toHaveAttribute('href', 'https://example.com/')
   await expect(body.getByRole('link', { name: '위험 링크' })).toHaveCount(0)
   await expect(body).toContainText('위험 링크')
-  expect(requests.filter((url) => /CommunityPostBlockFallback-|communityBlockNoteSchema-/.test(url))).toEqual([])
+  expect(requests.filter((url) => /CommunityPostBlockFallback-|communityBlockNoteSchema-|communityEditor-/.test(url))).toEqual([])
 })
 
 test('미지원 서식은 기존 fallback으로 표시한다', async ({ page, api }) => {
@@ -138,6 +138,7 @@ test('미지원 서식은 기존 fallback으로 표시한다', async ({ page, ap
   const requests = recordRequests(page)
   await page.goto('/community/101')
   await expect(page.getByRole('region', { name: '게시글 본문' })).toContainText('빨간 본문')
+  await expect(page.locator('.bn-block').first()).toHaveCSS('display', 'flex')
   expect(requests.some((url) => /CommunityPostBlockFallback-/.test(url))).toBe(true)
 })
 

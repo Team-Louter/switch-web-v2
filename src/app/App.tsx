@@ -1,5 +1,6 @@
 import { lazy } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { loadCommunityWritePage } from '@/pages/community/loadCommunityWritePage'
 import { AsyncBoundary } from '@/shared/ui/AsyncBoundary'
 
 import { AppLayout } from './layouts'
@@ -39,11 +40,7 @@ const CommunityDetailPage = lazy(() =>
     default: Page,
   })),
 )
-const CommunityWritePage = lazy(() =>
-  import('@/pages/community/ui/CommunityWritePage').then(({ CommunityWritePage: Page }) => ({
-    default: Page,
-  })),
-)
+const CommunityWritePage = lazy(loadCommunityWritePage)
 const HomePage = lazy(() =>
   import('@/pages/home').then(({ HomePage: Page }) => ({ default: Page })),
 )
