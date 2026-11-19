@@ -1,5 +1,5 @@
 import type { Block } from '@blocknote/core';
-import { lazy, Suspense, type MouseEvent, useEffect, useState } from 'react';
+import { lazy, memo, Suspense, type MouseEvent, useEffect, useState } from 'react';
 
 import {
   getCommunityFileDownloadUrl,
@@ -11,6 +11,7 @@ import {
   resolveCommunityAttachment,
   type CommunityAttachmentFile,
 } from '../model/communityAttachment';
+import { loadCommunityEditorStyles } from './loadCommunityEditorStyles';
 import { CommunityAttachmentCard } from './CommunityAttachmentCard';
 
 import { getYouTubeTitle, isKlipyMediaUrl } from '@/shared/api';
@@ -22,13 +23,13 @@ import {
   type CommunityPostImagePreview,
 } from './CommunityPostImageViewer';
 
-const BlockFallback = lazy(() =>
-  import('./CommunityPostBlockFallback').then(
-    ({ CommunityPostBlockFallback }) => ({
-      default: CommunityPostBlockFallback,
-    }),
-  ),
-);
+const BlockFallback = lazy(async () => {
+  const [page] = await Promise.all([
+    import('./CommunityPostBlockFallback'),
+    loadCommunityEditorStyles(),
+  ]);
+  return { default: page.CommunityPostBlockFallback };
+});
 
 interface CommunityPostBlockContentProps {
   blocks: readonly Block[];
@@ -315,7 +316,7 @@ function PostImage({
   );
 }
 
-export function CommunityPostBlockContent({
+function CommunityPostBlockContentView({
   blocks,
   files,
   onFileOpen,
@@ -450,3 +451,5 @@ export function CommunityPostBlockContent({
     </S.Content>
   );
 }
+
+export const CommunityPostBlockContent = memo(CommunityPostBlockContentView);

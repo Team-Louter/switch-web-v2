@@ -1,5 +1,7 @@
-import { lazy, Suspense } from 'react'
+import { lazy } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { loadCommunityWritePage } from '@/pages/community/loadCommunityWritePage'
+import { AsyncBoundary } from '@/shared/ui/AsyncBoundary'
 
 import { AppLayout } from './layouts'
 import { AppProvider } from './providers'
@@ -38,11 +40,7 @@ const CommunityDetailPage = lazy(() =>
     default: Page,
   })),
 )
-const CommunityWritePage = lazy(() =>
-  import('@/pages/community/ui/CommunityWritePage').then(({ CommunityWritePage: Page }) => ({
-    default: Page,
-  })),
-)
+const CommunityWritePage = lazy(loadCommunityWritePage)
 const HomePage = lazy(() =>
   import('@/pages/home').then(({ HomePage: Page }) => ({ default: Page })),
 )
@@ -92,7 +90,7 @@ const CodeTypingPage = lazy(() =>
 export function App() {
   return (
     <AppProvider>
-      <Suspense fallback={null}>
+      <AsyncBoundary>
         <Routes>
           <Route element={<PendingAuthRoute />}>
             <Route path="/" element={<RootRoute />} />
@@ -141,7 +139,7 @@ export function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </Suspense>
+      </AsyncBoundary>
     </AppProvider>
   )
 }

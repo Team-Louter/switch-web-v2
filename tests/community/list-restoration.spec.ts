@@ -288,7 +288,8 @@ test('댓글 등록과 삭제 후 목록의 댓글 수를 갱신한다', async (
   await openPost(page, '게시글 1')
   await page.getByRole('textbox', { name: '댓글 내용' }).fill('댓글 수 갱신 확인')
   await page.getByRole('button', { name: '댓글 등록' }).click()
-  await expect(page.getByText('댓글 수 갱신 확인', { exact: true })).toBeVisible()
+  await expect(page.getByRole('region', { name: '댓글 목록' }).getByText('댓글 수 갱신 확인', { exact: true })).toBeVisible()
+  await expect(page.getByRole('textbox', { name: '댓글 내용' })).toHaveValue('')
   await page.getByRole('button', { name: '목록 보기' }).click()
   await expect(postRow(page, '게시글 1').getByLabel('좋아요 0, 댓글 1, 조회 10')).toBeVisible()
 
@@ -310,7 +311,7 @@ test('알림 해시로 새 답글에 이동하면 댓글과 답글 캐시를 갱
   await page.goto('/community/1')
   await expect(page.locator('#comment-501')).toBeVisible()
   await expect.poll(() => api.commentRequests).toBe(1)
-  await expect.poll(() => api.replyCountRequests.length).toBeGreaterThan(0)
+  expect(api.replyCountRequests).toEqual([])
 
   api.replies.set(501, [createComment(502, '새 알림 답글', 1)])
   await page.evaluate(() => {
@@ -324,7 +325,7 @@ test('알림 해시로 새 답글에 이동하면 댓글과 답글 캐시를 갱
 
   await expect(page.locator('#comment-502')).toContainText('새 알림 답글')
   await expect.poll(() => api.commentRequests).toBe(2)
-  expect(api.replyCountRequests.filter((commentId) => commentId === 501)).toHaveLength(2)
+  expect(api.replyCountRequests.filter((commentId) => commentId === 501)).toHaveLength(1)
   expect(api.replyRequests).toContain(501)
 })
 

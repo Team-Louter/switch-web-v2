@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test:e2e": "tsc -p tsconfig.test.json && playwright test && playwright test --config playwright.performance.config.ts",
     "test:community": "tsc -p tsconfig.test.json && playwright test tests/community",
     "test:link-preview": "node --experimental-strip-types --test tests/server/link-preview.node.ts",
     "preview": "vite preview",
