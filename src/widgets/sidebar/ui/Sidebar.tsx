@@ -44,6 +44,7 @@ interface SidebarProps {
   activeItemId?: SidebarItemId
   isProfileLoading?: boolean
   notificationCount?: number
+  onItemIntent?: (itemId: SidebarItemId) => void
   onItemSelect?: (itemId: SidebarItemId) => void
   profile?: {
     classInfo: string
@@ -58,6 +59,7 @@ export function Sidebar({
   isProfileLoading = false,
   notificationCount = 0,
   onItemSelect,
+  onItemIntent,
   profile,
 }: SidebarProps) {
   const previousNotificationCountRef = useRef(notificationCount)
@@ -104,6 +106,8 @@ export function Sidebar({
           type="button"
           aria-label="홈으로 이동"
           onClick={() => onItemSelect?.('home')}
+          onPointerEnter={() => onItemIntent?.('home')}
+          onFocus={() => onItemIntent?.('home')}
         >
           <Logo src={switchLogo} alt="Switch" />
         </LogoButton>
@@ -117,6 +121,8 @@ export function Sidebar({
             aria-current={activeItemId === item.id ? 'page' : undefined}
             $active={activeItemId === item.id}
             onClick={() => onItemSelect?.(item.id)}
+            onPointerEnter={() => onItemIntent?.(item.id)}
+            onFocus={() => onItemIntent?.(item.id)}
           >
             <SidebarIcon item={item} active={activeItemId === item.id} />
             <MenuLabel $active={activeItemId === item.id}>{item.label}</MenuLabel>
@@ -134,6 +140,8 @@ export function Sidebar({
             aria-current={activeItemId === item.id ? 'page' : undefined}
             $active={activeItemId === item.id}
             onClick={() => onItemSelect?.(item.id)}
+            onPointerEnter={() => onItemIntent?.(item.id)}
+            onFocus={() => onItemIntent?.(item.id)}
           >
             <SidebarIcon item={item} active={activeItemId === item.id} />
             <MenuLabel $active={activeItemId === item.id}>{item.label}</MenuLabel>
@@ -163,6 +171,8 @@ export function Sidebar({
         }
         aria-busy={isProfileLoading}
         onClick={() => onItemSelect?.(MY_SIDEBAR_ITEM.id)}
+        onPointerEnter={() => onItemIntent?.(MY_SIDEBAR_ITEM.id)}
+        onFocus={() => onItemIntent?.(MY_SIDEBAR_ITEM.id)}
       >
         {isProfileLoading ? (
           <ProfileSkeleton aria-hidden="true">

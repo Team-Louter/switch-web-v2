@@ -107,6 +107,10 @@ export function communityCommentsOptions(
 
       return Promise.all(
         comments.map(async (comment) => {
+          // 서버의 직접 자식 수에는 삭제 표시된 답글도 포함됩니다.
+          // 자식이 없으면 하위 답글도 없지만, 양수인 경우에는 전체 개수를 조회해야 합니다.
+          if (comment.replyCount === 0) return comment
+
           try {
             const { count } = await queryClient.fetchQuery(
               communityCommentReplyCountOptions(

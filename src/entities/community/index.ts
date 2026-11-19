@@ -45,3 +45,5 @@ export type {
   PostTag,
   SortResponse,
 } from './model/types'
+export { getLinkPreview } from './api/getLinkPreview'
+export type { LinkPreviewResponse } from './model/linkPreview'

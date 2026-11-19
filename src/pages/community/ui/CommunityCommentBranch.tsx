@@ -1,17 +1,14 @@
 import {
   type ChangeEvent,
   type KeyboardEvent,
+  memo,
   useCallback,
   useEffect,
   useRef,
   useState,
 } from 'react';
 
-import {
-  formatCommunityDate,
-  formatCommunityRelativeDate,
-  resolveCommunityAssetUrl,
-} from '@/entities/community';
+import { resolveCommunityAssetUrl } from '@/entities/community';
 import type { KlipyGif } from '@/shared/api';
 import { getNameStyleKey } from '@/shared/styles';
 
@@ -31,6 +28,7 @@ import { resizeCommunityTextarea } from '../model/commentInput';
 import kebabIcon from '../assets/svg/kebab.svg';
 import * as S from './CommunityCommentBranch.style';
 import { CommunityKlipyGifPreview } from './CommunityKlipyGifPreview';
+import { CommunityCommentDate } from './CommunityCommentDate';
 import { CommunityCommentAvatar } from './CommunityCommentAvatar';
 import { PixelHammerIcon } from './PixelHammerIcon';
 import {
@@ -90,7 +88,7 @@ function hasTargetDescendant(
   );
 }
 
-export function CommunityCommentBranch({
+function CommunityCommentBranchView({
   node,
   targetCommentId,
   onReplySubmit,
@@ -397,12 +395,7 @@ export function CommunityCommentBranch({
                 {isPending ? (
                   <S.CommentPending role="status">전송 중</S.CommentPending>
                 ) : (
-                  <S.CommentDate
-                    dateTime={comment.createdAt}
-                    title={formatCommunityDate(comment.createdAt)}
-                  >
-                    {formatCommunityRelativeDate(comment.createdAt)}
-                  </S.CommentDate>
+                  <CommunityCommentDate createdAt={comment.createdAt} />
                 )}
               </S.CommentMeta>
               {canManageComment && (
@@ -681,3 +674,21 @@ export function CommunityCommentBranch({
     </S.CommentTreeNode>
   );
 }
+
+const CommunityCommentBranch = memo(CommunityCommentBranchView);
+
+interface CommunityCommentBranchesProps extends Omit<CommunityCommentBranchProps, 'node'> {
+  nodes: CommentTreeNode[];
+}
+
+function CommunityCommentBranchesView({ nodes, ...props }: CommunityCommentBranchesProps) {
+  return nodes.map((node) => (
+    <CommunityCommentBranch
+      key={node.comment.optimisticId ?? node.comment.commentId}
+      node={node}
+      {...props}
+    />
+  ));
+}
+
+export const CommunityCommentBranches = memo(CommunityCommentBranchesView);

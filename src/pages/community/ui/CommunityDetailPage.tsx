@@ -80,13 +80,14 @@ import {
 import { resizeCommunityTextarea } from '../model/commentInput';
 import { buildCommunityGifCommentContent } from '../model/klipyGifLink';
 import { getCommunityListReturnTo } from '../model/useCommunityListNavigation';
-import { CommunityCommentBranch } from './CommunityCommentBranch';
+import { CommunityCommentBranches } from './CommunityCommentBranch';
 import { CommunityAttachmentCard } from './CommunityAttachmentCard';
 import { CommunityDownloadWarningModal } from './CommunityDownloadWarningModal';
 import type { CommunityAttachmentFile } from '../model/communityAttachment';
 import { CommunityPostBlockContent } from './CommunityPostBlockContent';
 import { CommunityRollingNumber } from './CommunityRollingNumber';
 import * as S from './CommunityDetailPage.style';
+import { preloadCommunityWritePage } from '../loadCommunityWritePage';
 import { PixelHammerIcon } from './PixelHammerIcon';
 import {
   CommunityCommentGifAttachment,
@@ -345,17 +346,6 @@ export function CommunityDetailPage() {
   const attachmentFiles =
     post?.files?.filter((file) => !file.fileType.startsWith('image/')) ?? [];
   const firstAttachment = attachmentFiles[0];
-  const resolvePostMediaUrl = (mediaUrl: string | undefined): string => {
-    const matchingFile = post?.files?.find(
-      (file) => file.fileName === mediaUrl,
-    );
-
-    return (
-      getCommunityFileDownloadUrl(matchingFile?.fileUrl ?? mediaUrl) ??
-      mediaUrl ??
-      ''
-    );
-  };
   const serializedPostContent = post?.postContent;
   const postBlocks = useMemo(
     () =>
@@ -364,15 +354,43 @@ export function CommunityDetailPage() {
         : null,
     [serializedPostContent],
   );
+  const postFiles = post?.files;
+  // 댓글 초안과 조회수 변경은 본문 Markdown 재파싱을 필요로 하지 않습니다.
+  const markdownContent = useMemo(() => {
+    if (postBlocks || !serializedPostContent) return null;
+
+    const resolveMediaUrl = (mediaUrl: string | undefined): string => {
+      const matchingFile = postFiles?.find((file) => file.fileName === mediaUrl);
+      return getCommunityFileDownloadUrl(matchingFile?.fileUrl ?? mediaUrl) ?? mediaUrl ?? '';
+    };
+
+    return (
+      <ReactMarkdown
+        components={{
+          img: ({ src, alt, ...imageProps }) => (
+            <img {...imageProps} src={resolveMediaUrl(src)} alt={alt ?? ''} />
+          ),
+        }}
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw, [rehypeSanitize, markdownSanitizeSchema]]}
+      >
+        {renderCustomUnderlineMarkdown(serializedPostContent)}
+      </ReactMarkdown>
+    );
+  }, [postBlocks, postFiles, serializedPostContent]);
   const commentTree = useMemo(
     () => buildCommentTree(optimisticCommentState.comments),
     [optimisticCommentState.comments],
   );
-  const pendingReplyAncestorIds = getPendingReplyAncestorIds(
-    optimisticCommentState.comments,
+  const pendingReplyAncestorIds = useMemo(
+    () => getPendingReplyAncestorIds(optimisticCommentState.comments),
+    [optimisticCommentState.comments],
   );
-  const displayedCommentCount = (post?.commentCount ?? 0) +
-    optimisticCommentState.comments.filter((comment) => comment.commentId < 0).length;
+  const pendingCommentCount = useMemo(
+    () => optimisticCommentState.comments.filter((comment) => comment.commentId < 0).length,
+    [optimisticCommentState.comments],
+  );
+  const displayedCommentCount = (post?.commentCount ?? 0) + pendingCommentCount;
   const commentSubmitContent = buildCommunityGifCommentContent(
     commentContent,
     commentGif?.slug,
@@ -486,7 +504,7 @@ export function CommunityDetailPage() {
     }
   };
 
-  const createPendingComment = (
+  const createPendingComment = useCallback((
     content: string,
     anonymous: boolean,
   ): CommunityComment => {
@@ -505,7 +523,7 @@ export function CommunityDetailPage() {
       replyCount: 0,
       equippedItems: anonymous ? undefined : currentUser?.equippedItems,
     };
-  };
+  }, [currentMemberId, currentMemberProfileImageUrl, currentUser]);
 
   const handleCommentSubmit = () => {
     const content = commentSubmitContent;
@@ -561,7 +579,7 @@ export function CommunityDetailPage() {
     });
   };
 
-  const handleReplySubmit: CommunityReplySubmitHandler = (
+  const handleReplySubmit: CommunityReplySubmitHandler = useCallback((
     parentCommentId,
     content,
     replyIsAnonymous,
@@ -637,9 +655,9 @@ export function CommunityDetailPage() {
         }
       });
     });
-  };
+  }, [comments, createPendingComment, post, updateOptimisticComments]);
 
-  const handleRepliesLoad: CommunityReplyLoadHandler = async (
+  const handleRepliesLoad: CommunityReplyLoadHandler = useCallback(async (
     parentCommentId,
   ) => {
     const parentComment = comments.find(
@@ -714,9 +732,9 @@ export function CommunityDetailPage() {
     } catch {
       return '답글을 불러오지 못했습니다.';
     }
-  };
+  }, [comments, post, userId]);
 
-  const handleCommentUpdate: CommunityCommentUpdateHandler = async (
+  const handleCommentUpdate: CommunityCommentUpdateHandler = useCallback(async (
     commentId,
     content,
   ) => {
@@ -741,7 +759,7 @@ export function CommunityDetailPage() {
     } catch {
       return '댓글을 수정하지 못했습니다. 잠시 후 다시 시도해주세요.';
     }
-  };
+  }, [post]);
 
   const handleCommentDelete: CommunityCommentDeleteHandler = async (
     commentId,
@@ -807,14 +825,14 @@ export function CommunityDetailPage() {
     }
   };
 
-  const clearCommentDeleteCloseTimer = () => {
+  const clearCommentDeleteCloseTimer = useCallback(() => {
     if (commentDeleteCloseTimerRef.current !== null) {
       window.clearTimeout(commentDeleteCloseTimerRef.current);
       commentDeleteCloseTimerRef.current = null;
     }
-  };
+  }, []);
 
-  const closeCommentDeleteConfirm = (force = false) => {
+  const closeCommentDeleteConfirm = useCallback((force = false) => {
     if (pendingCommentDeleteId === null || (isCommentDeleting && !force)) {
       return;
     }
@@ -826,9 +844,9 @@ export function CommunityDetailPage() {
       setIsCommentDeleteConfirmClosing(false);
       commentDeleteCloseTimerRef.current = null;
     }, FLOATING_CONFIRM_ANIMATION_MS);
-  };
+  }, [clearCommentDeleteCloseTimer, isCommentDeleting, pendingCommentDeleteId]);
 
-  const handleCommentDeleteRequest = (commentId: number) => {
+  const handleCommentDeleteRequest = useCallback((commentId: number) => {
     if (commentId <= 0 || pendingReplyAncestorIds.has(commentId)) return;
     if (isCommentDeleting || pendingCommentDeleteId === commentId) {
       return;
@@ -847,7 +865,7 @@ export function CommunityDetailPage() {
       setIsCommentDeleteConfirmClosing(false);
       commentDeleteCloseTimerRef.current = null;
     }, FLOATING_CONFIRM_ANIMATION_MS);
-  };
+  }, [clearCommentDeleteCloseTimer, isCommentDeleting, pendingCommentDeleteId, pendingReplyAncestorIds]);
 
   const handleCommentDeleteConfirm = async () => {
     if (pendingCommentDeleteId === null || isCommentDeleting) {
@@ -932,7 +950,7 @@ export function CommunityDetailPage() {
     }
   };
 
-  const handleFileOpen = (file: CommunityAttachmentFile) => {
+  const handleFileOpen = useCallback((file: CommunityAttachmentFile) => {
     const url = getCommunityFileDownloadUrl(file.fileUrl);
     if (!url) {
       setAttachmentOpenError({ postId, message: '첨부파일 주소를 확인할 수 없습니다.' });
@@ -940,9 +958,9 @@ export function CommunityDetailPage() {
     }
 
     window.open(url, '_blank', 'noopener,noreferrer');
-  };
+  }, [postId]);
 
-  const handleAttachmentOpen = (file: CommunityAttachmentFile) => {
+  const handleAttachmentOpen = useCallback((file: CommunityAttachmentFile) => {
     const risk = getCommunityDownloadRisk(file.fileName, file.fileType);
     setPendingDownload(null);
     setAttachmentOpenError(null);
@@ -954,7 +972,7 @@ export function CommunityDetailPage() {
       return;
     }
     handleFileOpen(file);
-  };
+  }, [closeCommentDeleteConfirm, handleFileOpen, postId]);
 
   const handleDownloadCancel = useCallback(() => setPendingDownload(null), []);
 
@@ -1463,6 +1481,8 @@ export function CommunityDetailPage() {
                                     type="button"
                                     role="menuitem"
                                     disabled={isPostActionMutating}
+                                    onPointerEnter={preloadCommunityWritePage}
+                                    onFocus={preloadCommunityWritePage}
                                     onClick={handlePostEdit}
                                   >
                                     수정하기
@@ -1507,24 +1527,7 @@ export function CommunityDetailPage() {
                     onFileOpen={handleAttachmentOpen}
                   />
                 ) : (
-                  <ReactMarkdown
-                    components={{
-                      img: ({ src, alt, ...imageProps }) => (
-                        <img
-                          {...imageProps}
-                          src={resolvePostMediaUrl(src)}
-                          alt={alt ?? ''}
-                        />
-                      ),
-                    }}
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[
-                      rehypeRaw,
-                      [rehypeSanitize, markdownSanitizeSchema],
-                    ]}
-                  >
-                    {renderCustomUnderlineMarkdown(post.postContent)}
-                  </ReactMarkdown>
+                  markdownContent
                 )}
               </S.BodyText>
             </S.Article>
@@ -1702,22 +1705,19 @@ export function CommunityDetailPage() {
                     </Button>
                   </S.CommentStatus>
                 )}
-                {commentTree.map((node) => (
-                  <CommunityCommentBranch
-                    key={node.comment.optimisticId ?? node.comment.commentId}
-                    node={node}
-                    targetCommentId={targetCommentId}
-                    onReplySubmit={handleReplySubmit}
-                    onRepliesLoad={handleRepliesLoad}
-                    pendingReplyAncestorIds={pendingReplyAncestorIds}
-                    loadedReplyCommentIds={loadedReplyCommentIds}
-                    onCommentUpdate={handleCommentUpdate}
-                    onCommentDeleteRequest={handleCommentDeleteRequest}
-                    onCommentEditStart={closeCommentDeleteConfirm}
-                    currentMemberId={currentMemberId}
-                    replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
-                  />
-                ))}
+                <CommunityCommentBranches
+                  nodes={commentTree}
+                  targetCommentId={targetCommentId}
+                  onReplySubmit={handleReplySubmit}
+                  onRepliesLoad={handleRepliesLoad}
+                  pendingReplyAncestorIds={pendingReplyAncestorIds}
+                  loadedReplyCommentIds={loadedReplyCommentIds}
+                  onCommentUpdate={handleCommentUpdate}
+                  onCommentDeleteRequest={handleCommentDeleteRequest}
+                  onCommentEditStart={closeCommentDeleteConfirm}
+                  currentMemberId={currentMemberId}
+                  replyAuthorProfileImageUrl={replyAuthorProfileImageUrl}
+                />
               </S.CommentList>
             </S.Comments>
           </>

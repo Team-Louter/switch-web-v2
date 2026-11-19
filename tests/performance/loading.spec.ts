@@ -127,7 +127,7 @@ test('기본 서식과 목록은 에디터 없이 보존하고 위험한 링크�
   await expect(body.getByRole('link', { name: '안전 링크' })).toHaveAttribute('href', 'https://example.com/')
   await expect(body.getByRole('link', { name: '위험 링크' })).toHaveCount(0)
   await expect(body).toContainText('위험 링크')
-  expect(requests.filter((url) => /CommunityPostBlockFallback-|communityBlockNoteSchema-/.test(url))).toEqual([])
+  expect(requests.filter((url) => /CommunityPostBlockFallback-|communityBlockNoteSchema-|communityEditor-/.test(url))).toEqual([])
 })
 
 test('미지원 서식은 기존 fallback으로 표시한다', async ({ page, api }) => {
@@ -138,6 +138,7 @@ test('미지원 서식은 기존 fallback으로 표시한다', async ({ page, ap
   const requests = recordRequests(page)
   await page.goto('/community/101')
   await expect(page.getByRole('region', { name: '게시글 본문' })).toContainText('빨간 본문')
+  await expect(page.locator('.bn-block').first()).toHaveCSS('display', 'flex')
   expect(requests.some((url) => /CommunityPostBlockFallback-/.test(url))).toBe(true)
 })
 
@@ -226,7 +227,7 @@ test('멤버 이미지가 지연·실패해도 홈 목록과 다음 배치가 �
   await page.route('**/api/schedules', (route) => route.fulfill({ json: [] }))
   await page.route('**/api/posts/hot', (route) => route.fulfill({ json: [] }))
   await page.route('**/api/me/posts?*', (route) => route.fulfill({ json: { content: [] } }))
-  await page.goto('/home')
+  await page.goto('/home', { waitUntil: 'domcontentloaded' })
   const section = page.getByRole('region', { name: 'Louter Member' })
   await section.scrollIntoViewIfNeeded()
   await expect(section.getByText('멤버 1', { exact: false })).toBeVisible()
@@ -328,7 +329,7 @@ test('멘토링 아바타가 지연되어도 방 이름과 멤버를 먼저 표�
   }))
   await page.route('**/slow-mentor.svg', async (route) => { await gate; await route.fulfill({ status: 503, body: '' }) })
   try {
-    await page.goto('/mentoring')
+    await page.goto('/mentoring', { waitUntil: 'domcontentloaded' })
     await expect(page.getByText('느린 이미지 방', { exact: true }).first()).toBeVisible()
     await expect(page.locator('[aria-busy="true"] img[alt="느린 멤버"]').first()).toBeAttached()
   } finally {
@@ -366,4 +367,34 @@ test('토큰 재발급 중 화면을 이동해도 진행 중인 프로필 조회
     release()
   }
   await expect(page.getByRole('button', { name: '재발급 사용자 2학년 1반 1번' })).toBeVisible()
+})
+
+test('페이지 청크를 기다리는 동안 사이드바와 프로필 조회를 유지한다', async ({ page, api }) => {
+  let release = () => {}
+  const gate = new Promise<void>((resolve) => { release = resolve })
+  await page.route(/\/assets\/CommunityPage-[^/]+\.js$/, async (route) => {
+    await gate
+    await route.continue()
+  })
+  try {
+    await page.goto('/community', { waitUntil: 'domcontentloaded' })
+    await expect(page.getByRole('complementary', { name: '주요 메뉴' })).toBeVisible()
+    await expect.poll(() => api.profileRequests).toBe(1)
+    await expect(page.getByRole('button', { name: '테스트 작성자 2학년 1반 1번' })).toBeVisible()
+    await expect(page.getByRole('status')).toContainText('화면을 불러오는 중입니다.')
+  } finally {
+    release()
+  }
+  await expect(page.getByText('게시글 1', { exact: true })).toBeVisible()
+  expect(api.profileRequests).toBe(1)
+})
+
+test('페이지 청크 실패 후에도 다른 메뉴로 이동할 수 있다', async ({ page, api }) => {
+  void api
+  await page.route(/\/assets\/CommunityPage-[^/]+\.js$/, (route) => route.abort('failed'))
+  await page.goto('/community')
+  await expect(page.getByRole('alert')).toContainText('화면을 불러오지 못했습니다')
+  await page.getByRole('button', { name: '타자연습', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '타자 연습' })).toBeVisible()
+  await expect(page.getByRole('alert')).toHaveCount(0)
 })

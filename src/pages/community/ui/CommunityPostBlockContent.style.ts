@@ -147,13 +147,17 @@ export const LinkCard = styled.div`
   background: ${token.colors.gray.gray0};
 `;
 
-export const LinkDetails = styled.a`
+export const LinkDetails = styled.a<{ $layout?: 'large' | 'thumbnail' }>`
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: ${({ $layout }) => $layout === 'thumbnail' ? 'row' : 'column'};
+  align-items: ${({ $layout }) => $layout === 'thumbnail' ? 'flex-start' : 'stretch'};
+  gap: 16px;
   padding: 18px 20px;
-  text-decoration: none;
   overflow-wrap: anywhere;
+
+  && {
+    text-decoration: none;
+  }
 
   &:hover {
     background: ${token.colors.gray.gray10};
@@ -161,6 +165,40 @@ export const LinkDetails = styled.a`
   &:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: -3px;
+  }
+`;
+
+export const LinkText = styled.div`
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+export const LinkDescription = styled.span`
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  color: ${token.colors.gray.gray80};
+  font-size: 14px;
+  line-height: 1.5;
+`;
+
+export const LinkImage = styled.img<{ $layout: 'large' | 'thumbnail' }>`
+  display: block;
+  flex-shrink: 0;
+  width: ${({ $layout }) => $layout === 'large' ? '100%' : '96px'};
+  height: ${({ $layout }) => $layout === 'large' ? 'auto' : '96px'};
+  max-height: ${({ $layout }) => $layout === 'large' ? '360px' : '96px'};
+  object-fit: contain;
+  border-radius: 6px;
+  background: ${token.colors.gray.gray10};
+
+  @media (max-width: 480px) {
+    width: ${({ $layout }) => $layout === 'large' ? '100%' : '64px'};
+    height: ${({ $layout }) => $layout === 'large' ? 'auto' : '64px'};
   }
 `;
 

@@ -82,6 +82,7 @@ import {
   TabActionRow,
   WriteButton,
 } from './CommunityPage.style';
+import { preloadCommunityWritePage } from '../loadCommunityWritePage';
 import { PixelHammerIcon } from './PixelHammerIcon';
 
 interface CategoryTabItem {
@@ -97,6 +98,11 @@ const CATEGORY_TABS: readonly CategoryTabItem[] = [
 const MAX_VISIBLE_PAGE_COUNT = 5;
 const SKELETON_ROW_COUNT = 16;
 const RELATIVE_TIME_REFRESH_INTERVAL_MS = 30_000;
+
+function preloadDetailPage() {
+  // 상세 API는 조회수를 증가시키므로 화면 코드만 사전 로딩합니다.
+  void import('./CommunityDetailPage').catch(() => {});
+}
 
 export function CommunityPage() {
   const navigate = useNavigate();
@@ -272,7 +278,12 @@ export function CommunityPage() {
                 ))}
               </MobileCategoryPanel>
             </MobileCategoryMenu>
-            <WriteButton size="sm" onClick={handleWritePost}>
+            <WriteButton
+              size="sm"
+              onClick={handleWritePost}
+              onPointerEnter={preloadCommunityWritePage}
+              onFocus={preloadCommunityWritePage}
+            >
               <PiPencilSimpleLineBold size={16} aria-hidden="true" />
               글쓰기
             </WriteButton>
@@ -358,6 +369,8 @@ export function CommunityPage() {
                   key={post.postId}
                   role="link"
                   tabIndex={0}
+                  onPointerEnter={preloadDetailPage}
+                  onFocus={preloadDetailPage}
                   onClick={() => handlePostSelect(post.postId)}
                   onKeyDown={(event) => handlePostKeyDown(event, post.postId)}
                 >

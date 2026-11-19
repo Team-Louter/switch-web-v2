@@ -15,13 +15,12 @@ const scheduleDateFormatter = new Intl.DateTimeFormat('en-US', {
 })
 
 export function toScheduleDateKey(value: string) {
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return value
+  // 배포 API의 시간대 없는 값은 한국 현지 날짜이므로 UTC 변환을 적용하지 않는다.
+  if (!/(?:Z|[+-]\d{2}:?\d{2})$/i.test(value)) {
+    return toDateKeyFromServer(value)
   }
 
-  // 일정 API는 시간대 표기 없이 UTC 시각을 반환한다.
-  const timestamp = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(value) ? value : `${value}Z`
-  const date = new Date(timestamp)
+  const date = new Date(value)
 
   if (Number.isNaN(date.getTime())) {
     return toDateKeyFromServer(value)

@@ -51,7 +51,7 @@ test('꾸미기 옵션은 로컬 축소 WebP를 표시하고 백엔드에 에셋
   expect(unexpectedRequests).toEqual([])
   for (const { name, asset } of decorations) {
     const image = dialog.getByRole('button', { name, exact: true }).locator('img')
-    await expect(image).toHaveAttribute('src', new RegExp(`/${asset}-small\\.webp(?:\\?|$)`))
+    await expect(image).toHaveAttribute('src', new RegExp(`/${asset}-small(?:-[\\w-]+)?\\.webp(?:\\?|$)`))
     expect(await image.evaluate((node: HTMLImageElement) => [node.naturalWidth, node.naturalHeight])).toEqual([128, 128])
   }
 })
