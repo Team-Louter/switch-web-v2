@@ -1,10 +1,12 @@
 # 읽기 전용 성능 측정 서버: 운영 데이터와 연결하지 않습니다.
 # PERF_DIST에 프로덕션 빌드 디렉터리를 지정합니다. API 지연은 50ms로 고정합니다.
 import gzip, json, mimetypes, os, time, re
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 ROOT = Path(os.environ['PERF_DIST'])
+INCLUDE_RECENT_COMMENT = os.environ.get('PERF_RECENT_COMMENT') == '1'
 PROFILE = dict(userId=42, userName='테스트 작성자', role='LEADER', grade=2, classRoom=1, number=1, majors=[], profileImageUrl='')
 
 def post(i, pinned=False):
@@ -48,6 +50,10 @@ class Handler(BaseHTTPRequestHandler):
                 data = next((x for x in POSTS if x['postId'] == int(p.split('/')[-1])))
             elif p.endswith('/comments'):
                 data = COMMENTS
+                if INCLUDE_RECENT_COMMENT:
+                    # 입력 중 초 단위 표시가 바뀌도록 매 조회마다 마지막 댓글의 시각을 정합니다.
+                    recent = datetime.now(timezone.utc) - timedelta(seconds=10)
+                    data = [*COMMENTS[:-1], dict(COMMENTS[-1], createdAt=recent.isoformat(timespec='milliseconds'))]
             elif p.endswith('/total-reply-count'):
                 data = {'commentId': int(p.split('/')[-2]), 'count': 0}
             elif p.endswith('/stats'):
