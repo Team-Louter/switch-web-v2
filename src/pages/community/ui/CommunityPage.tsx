@@ -36,6 +36,8 @@ import {
   useCommunityListScroll,
 } from '../model/useCommunityListNavigation';
 import { useCommunityPosts } from '../model/useCommunityPosts';
+import { Content, Header, Page, PostList, TabActionRow } from './CommunityList.style';
+import { CommunityListSkeleton } from './CommunityPageSkeleton';
 import {
   Author,
   AuthorImage,
@@ -45,41 +47,30 @@ import {
   CategoryCell,
   CategoryTab,
   CategoryTabs,
-  Content,
   Date,
   EmptyDescription,
   EmptyIcon,
   EmptyState,
   EmptyTitle,
-  Header,
   ImageAttachmentIcon,
   MobileCategoryButton,
   MobileCategoryButtonLabel,
   MobileCategoryMenu,
   MobileCategoryOption,
   MobileCategoryPanel,
-  Page,
   PageButton,
   Pagination,
   PinnedIcon,
   PostCategory as PostCategoryBadge,
-  PostList,
   PostRow,
   PostTitle,
   PostTitleText,
-  SkeletonAuthor,
-  SkeletonCategory,
-  SkeletonDate,
-  SkeletonRow,
-  SkeletonStats,
-  SkeletonTitle,
   Stat,
   StatIcon,
   StatValue,
   Stats,
   StatusMessage,
   StatusState,
-  TabActionRow,
   WriteButton,
 } from './CommunityPage.style';
 import { preloadCommunityWritePage } from '../loadCommunityWritePage';
@@ -96,7 +87,6 @@ const CATEGORY_TABS: readonly CategoryTabItem[] = [
 ];
 
 const MAX_VISIBLE_PAGE_COUNT = 5;
-const SKELETON_ROW_COUNT = 16;
 const RELATIVE_TIME_REFRESH_INTERVAL_MS = 30_000;
 
 function preloadDetailPage() {
@@ -291,19 +281,7 @@ export function CommunityPage() {
         </Header>
 
         <PostList aria-label="게시글 목록" aria-busy={isFetching}>
-          {isLoading && (
-            <div role="status" aria-label="게시글을 불러오는 중입니다.">
-              {Array.from({ length: SKELETON_ROW_COUNT }, (_, index) => (
-                <SkeletonRow key={index} aria-hidden="true">
-                  <SkeletonCategory />
-                  <SkeletonTitle />
-                  <SkeletonAuthor />
-                  <SkeletonDate />
-                  <SkeletonStats />
-                </SkeletonRow>
-              ))}
-            </div>
-          )}
+          {isLoading && <CommunityListSkeleton />}
 
           {!isLoading && loadError && (
             <StatusState role="alert">

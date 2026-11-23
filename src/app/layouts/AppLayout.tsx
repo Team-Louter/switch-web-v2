@@ -5,10 +5,12 @@ import {
   useState,
   type SetStateAction,
 } from 'react'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { matchPath, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useIsMutating, useQuery } from '@tanstack/react-query'
 import styled from 'styled-components'
 
+import { CommunityPageSkeleton } from '@/pages/community/loading'
+import { HomePageSkeleton } from '@/pages/home/loading'
 import {
   formatProfileClassInfo,
   profileMeOptions,
@@ -94,6 +96,11 @@ export function AppLayout() {
     !location.pathname.startsWith('/my/withdraw-complete') &&
     location.pathname !== '/typing/daily' &&
     !location.pathname.startsWith('/typing/code/')
+  const pageLoadingFallback = matchPath('/home', location.pathname)
+    ? <HomePageSkeleton />
+    : matchPath('/community', location.pathname)
+      ? <CommunityPageSkeleton />
+      : undefined
 
   const activeSidebarItemId = useMemo(() => {
     return (
@@ -239,7 +246,7 @@ export function AppLayout() {
       )}
       <Body $withSidebar={shouldShowSidebar}>
         {/* 페이지 청크를 기다리는 동안에도 레이아웃의 프로필 조회를 시작합니다. */}
-        <AsyncBoundary key={location.pathname}>
+        <AsyncBoundary key={location.pathname} fallback={pageLoadingFallback}>
           <Outlet context={{ setNotificationCount: updateNotificationCount }} />
         </AsyncBoundary>
       </Body>
