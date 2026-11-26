@@ -369,44 +369,60 @@ test('토큰 재발급 중 화면을 이동해도 진행 중인 프로필 조회
   await expect(page.getByRole('button', { name: '재발급 사용자 2학년 1반 1번' })).toBeVisible()
 })
 
-test('커뮤니티 페이지 청크 대기부터 목록 응답까지 스켈레톤을 표시한다', async ({ page, api }) => {
-  let release = () => {}
-  const gate = new Promise<void>((resolve) => { release = resolve })
-  await page.route(/\/assets\/CommunityPage-[^/]+\.js$/, async (route) => {
-    await gate
-    await route.continue()
+for (const width of [390, 1600]) {
+  test(`커뮤니티 ${width}px에서 페이지 청크 대기부터 목록 응답까지 헤더와 스켈레톤을 표시한다`, async ({ page, api }) => {
+    let release = () => {}
+    const gate = new Promise<void>((resolve) => { release = resolve })
+    await page.route(/\/assets\/CommunityPage-[^/]+\.js$/, async (route) => {
+      await gate
+      await route.continue()
+    })
+    await page.setViewportSize({ width, height: 900 })
+    api.pauseLists()
+    const skeleton = page.getByRole('status', { name: '게시글을 불러오는 중입니다.' })
+    const loadingText = page.getByText('화면을 불러오는 중입니다.', { exact: true })
+    const pendingHeader = page.locator('header[inert]')
+    const writeButton = page.getByRole('button', { name: '글쓰기', exact: true })
+
+    try {
+      await page.goto('/community', { waitUntil: 'domcontentloaded' })
+      if (width > 768) {
+        await expect(page.getByRole('complementary', { name: '주요 메뉴' })).toBeVisible()
+        await expect(page.getByRole('button', { name: '테스트 작성자 2학년 1반 1번' })).toBeVisible()
+      } else {
+        await expect(page.getByRole('button', { name: '메뉴 열기', exact: true })).toBeVisible()
+      }
+      await expect.poll(() => api.profileRequests).toBe(1)
+      await expect(skeleton).toBeVisible()
+      await expect(loadingText).toHaveCount(0)
+      await expect(pendingHeader.getByText('전체글', { exact: true }).filter({ visible: true })).toBeVisible()
+      if (width > 768) {
+        await expect(pendingHeader.getByText('자유게시판', { exact: true }).filter({ visible: true })).toBeVisible()
+      }
+      const pendingWriteButton = pendingHeader.getByText('글쓰기', { exact: true })
+      await expect(pendingWriteButton).toBeVisible()
+      await expect(pendingHeader).toHaveJSProperty('inert', true)
+      await pendingWriteButton.evaluate((button: HTMLButtonElement) => button.focus())
+      await expect(pendingWriteButton).not.toBeFocused()
+      expect(api.listRequests).toHaveLength(0)
+
+      const skeletonBounds = await skeleton.boundingBox()
+      release()
+      await expect(pendingHeader).toHaveCount(0)
+      await expect(writeButton).toBeEnabled()
+      await expect.poll(() => api.listRequests.length).toBe(1)
+      await expect(skeleton).toBeVisible()
+      await expect(loadingText).toHaveCount(0)
+      expect(await skeleton.boundingBox()).toEqual(skeletonBounds)
+    } finally {
+      release()
+      api.resumeLists()
+    }
+    await expect(page.getByText('게시글 1', { exact: true })).toBeVisible()
+    await expect(skeleton).toHaveCount(0)
+    expect(api.profileRequests).toBe(1)
   })
-  await page.emulateMedia({ reducedMotion: 'reduce' })
-  api.pauseLists()
-  const skeleton = page.getByRole('status', { name: '게시글을 불러오는 중입니다.' })
-  const loadingText = page.getByText('화면을 불러오는 중입니다.', { exact: true })
-  const writeButton = page.getByRole('button', { name: '글쓰기', exact: true })
-
-  try {
-    await page.goto('/community', { waitUntil: 'domcontentloaded' })
-    await expect(page.getByRole('complementary', { name: '주요 메뉴' })).toBeVisible()
-    await expect.poll(() => api.profileRequests).toBe(1)
-    await expect(page.getByRole('button', { name: '테스트 작성자 2학년 1반 1번' })).toBeVisible()
-    await expect(skeleton).toBeVisible()
-    await expect(loadingText).toHaveCount(0)
-    await expect(writeButton).toHaveCount(0)
-    expect(api.listRequests).toHaveLength(0)
-
-    const skeletonBounds = await skeleton.boundingBox()
-    release()
-    await expect(writeButton).toBeVisible()
-    await expect.poll(() => api.listRequests.length).toBe(1)
-    await expect(skeleton).toBeVisible()
-    await expect(loadingText).toHaveCount(0)
-    expect(await skeleton.boundingBox()).toEqual(skeletonBounds)
-  } finally {
-    release()
-    api.resumeLists()
-  }
-  await expect(page.getByText('게시글 1', { exact: true })).toBeVisible()
-  await expect(skeleton).toHaveCount(0)
-  expect(api.profileRequests).toBe(1)
-})
+}
 
 for (const entry of ['직접 진입', '사이드바 이동']) {
   test(`홈 ${entry}에서 페이지 청크를 기다리는 동안 스켈레톤을 표시한다`, async ({ page, api }) => {
@@ -441,6 +457,41 @@ for (const entry of ['직접 진입', '사이드바 이동']) {
     }
 
     await expect(page.getByRole('heading', { name: '내가 최근에 쓴 글' })).toBeVisible()
+    await expect(skeleton).toHaveCount(0)
+  })
+}
+
+for (const { path, chunk, content, guest } of [
+  { path: '/login', chunk: /\/assets\/auth-[^/]+\.js$/, content: 'Louter (라우터)', guest: true },
+  { path: '/notification', chunk: /\/assets\/notification-[^/]+\.js$/, content: '내 알림', guest: false },
+  { path: '/typing/daily', chunk: /\/assets\/DailyTypingPage-[^/]+\.js$/, content: 'Hello world.', guest: false },
+]) {
+  test(`${path}에서 페이지 코드 대기 중 공통 문구 없이 스켈레톤을 표시한다`, async ({ page, api }) => {
+    void api
+    if (guest) {
+      await page.addInitScript(() => localStorage.clear())
+    }
+
+    let release = () => {}
+    const gate = new Promise<void>((resolve) => { release = resolve })
+    await page.route(chunk, async (route) => {
+      await gate
+      await route.continue()
+    })
+
+    const skeleton = page.getByRole('status', { name: '페이지 로딩 중' })
+    try {
+      await page.goto(path, { waitUntil: 'domcontentloaded' })
+      await expect(skeleton).toBeVisible()
+      await expect(page.getByText('화면을 불러오는 중입니다.', { exact: true })).toHaveCount(0)
+      if (path === '/notification') {
+        await expect(page.getByRole('complementary', { name: '주요 메뉴' })).toBeVisible()
+      }
+    } finally {
+      release()
+    }
+
+    await expect(page.getByText(content, { exact: true })).toBeVisible()
     await expect(skeleton).toHaveCount(0)
   })
 }
