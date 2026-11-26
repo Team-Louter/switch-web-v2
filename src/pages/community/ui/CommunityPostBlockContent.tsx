@@ -3,8 +3,6 @@ import { lazy, memo, Suspense, type MouseEvent, useEffect, useState } from 'reac
 
 import {
   getCommunityFileDownloadUrl,
-  getLinkPreview,
-  type LinkPreviewResponse,
   type PostFileResponse,
 } from '@/entities/community';
 import {
@@ -18,6 +16,8 @@ import { getYouTubeTitle, isKlipyMediaUrl } from '@/shared/api';
 
 import * as S from './CommunityPostBlockContent.style';
 import { CommunityInlineContent } from './CommunityInlineContent';
+import { CommunityLinkPreview, CommunityLinkSource } from './CommunityLinkPreview';
+import * as Link from './CommunityLinkPreview.style';
 import {
   CommunityPostImageViewer,
   type CommunityPostImagePreview,
@@ -37,7 +37,7 @@ interface CommunityPostBlockContentProps {
   onFileOpen: (file: CommunityAttachmentFile) => void;
 }
 
-function getYouTubeEmbedUrl(value: string): string | null {
+function getYouTubeVideoId(value: string): string | null {
   try {
     const url = new URL(value);
     const hostname = url.hostname.toLowerCase();
@@ -61,9 +61,7 @@ function getYouTubeEmbedUrl(value: string): string | null {
       }
     }
 
-    return videoId && /^[A-Za-z0-9_-]{11}$/.test(videoId)
-      ? `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`
-      : null;
+    return videoId && /^[A-Za-z0-9_-]{11}$/.test(videoId) ? videoId : null;
   } catch {
     return null;
   }
@@ -90,32 +88,12 @@ function getLinkFromBlock(block: Block): string | null {
   }
 }
 
-function LinkPreview({ href }: { href: string }) {
+function YouTubePreview({ href, videoId }: { href: string; videoId: string }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoTitle, setVideoTitle] = useState<string | null>(null);
-  const [preview, setPreview] = useState<LinkPreviewResponse | null>(null);
-  const [failedImage, setFailedImage] = useState<string | null>(null);
-  const embedUrl = getYouTubeEmbedUrl(href);
-  const videoId = embedUrl ? new URL(embedUrl).pathname.split('/').pop() : null;
-  const hostname = new URL(href).hostname;
-  const imageUrl = preview?.imageUrl && preview.imageUrl !== failedImage
-    ? preview.imageUrl : null;
+  const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`;
 
   useEffect(() => {
-    if (embedUrl) return;
-    const controller = new AbortController();
-    getLinkPreview({ url: href, signal: controller.signal })
-      .then((data) => {
-        if (!controller.signal.aborted) setPreview(data);
-      })
-      .catch(() => {
-        // 메타데이터 조회 실패는 게시글 열람과 원본 링크 이동을 막지 않습니다.
-      });
-    return () => controller.abort();
-  }, [href, embedUrl]);
-
-  useEffect(() => {
-    if (!videoId) return;
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 8000);
     getYouTubeTitle({ videoId, signal: controller.signal })
@@ -133,26 +111,15 @@ function LinkPreview({ href }: { href: string }) {
   }, [videoId]);
 
   return (
-    <S.LinkCard>
-      <S.LinkDetails href={href} target="_blank" rel="noopener noreferrer" $layout={preview?.layout}>
-        <S.LinkText>
-          <S.LinkProvider>{embedUrl ? 'YouTube' : preview?.siteName ?? hostname}</S.LinkProvider>
-          <S.LinkTitle>{embedUrl ? videoTitle ?? 'YouTube 동영상' : preview?.title ?? hostname}</S.LinkTitle>
-          {preview?.description && <S.LinkDescription>{preview.description}</S.LinkDescription>}
-          <S.LinkAddress>{href}</S.LinkAddress>
-        </S.LinkText>
-        {!embedUrl && imageUrl && (
-          <S.LinkImage
-            src={imageUrl}
-            alt={preview?.imageAlt || `${preview?.title ?? hostname} 미리보기`}
-            $layout={preview?.layout ?? 'thumbnail'}
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            onError={() => setFailedImage(imageUrl)}
-          />
-        )}
-      </S.LinkDetails>
-      {embedUrl && (
+    <div>
+      <CommunityLinkSource href={href}>{href}</CommunityLinkSource>
+      <Link.LinkCard>
+        <Link.LinkDetails href={href} target="_blank" rel="noopener noreferrer">
+          <Link.LinkText>
+            <Link.LinkProvider>YouTube</Link.LinkProvider>
+            <Link.LinkTitle>{videoTitle ?? 'YouTube 동영상'}</Link.LinkTitle>
+          </Link.LinkText>
+        </Link.LinkDetails>
         <S.VideoEmbed>
           {isPlaying ? (
             <iframe
@@ -178,8 +145,8 @@ function LinkPreview({ href }: { href: string }) {
             </S.PlayButton>
           )}
         </S.VideoEmbed>
-      )}
-    </S.LinkCard>
+      </Link.LinkCard>
+    </div>
   );
 }
 
@@ -383,8 +350,13 @@ function CommunityPostBlockContentView({
           );
         }
         const href = getLinkFromBlock(block);
-        if (href)
-          return <LinkPreview key={`${block.id}:${href}`} href={href} />;
+        if (href) {
+          const key = `${block.id}:${href}`;
+          const videoId = getYouTubeVideoId(href);
+          return videoId
+            ? <YouTubePreview key={key} href={href} videoId={videoId} />
+            : <CommunityLinkPreview key={key} href={href} showSourceLink />;
+        }
 
         if (block.type === 'image') {
           const src = imageUrl(block, files);
