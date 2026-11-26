@@ -2,23 +2,16 @@ import {
   type KeyboardEvent,
   type SyntheticEvent,
   useEffect,
-  useRef,
   useState,
 } from 'react';
-import {
-  PiCaretDown,
-  PiNoteBlank,
-  PiPencilSimpleLineBold,
-} from 'react-icons/pi';
+import { PiNoteBlank } from 'react-icons/pi';
 import { useNavigate } from 'react-router-dom';
 
 import {
   formatCommunityCount,
   formatCommunityListRecentDate,
   getPostCategoryLabel,
-  POST_CATEGORY_OPTIONS,
   resolveCommunityAssetUrl,
-  type PostCategory,
 } from '@/entities/community';
 import { profileFallbackImage as fallbackProfileImage } from '@/shared/assets/profileFallback';
 import eyeIcon from '@/shared/assets/my/eye-icon.svg';
@@ -36,7 +29,8 @@ import {
   useCommunityListScroll,
 } from '../model/useCommunityListNavigation';
 import { useCommunityPosts } from '../model/useCommunityPosts';
-import { Content, Header, Page, PostList, TabActionRow } from './CommunityList.style';
+import { Content, Page, PostList } from './CommunityList.style';
+import { CommunityListHeader } from './CommunityListHeader';
 import { CommunityListSkeleton } from './CommunityPageSkeleton';
 import {
   Author,
@@ -45,19 +39,12 @@ import {
   AuthorName,
   AuthorTitle,
   CategoryCell,
-  CategoryTab,
-  CategoryTabs,
   Date,
   EmptyDescription,
   EmptyIcon,
   EmptyState,
   EmptyTitle,
   ImageAttachmentIcon,
-  MobileCategoryButton,
-  MobileCategoryButtonLabel,
-  MobileCategoryMenu,
-  MobileCategoryOption,
-  MobileCategoryPanel,
   PageButton,
   Pagination,
   PinnedIcon,
@@ -71,20 +58,8 @@ import {
   Stats,
   StatusMessage,
   StatusState,
-  WriteButton,
 } from './CommunityPage.style';
-import { preloadCommunityWritePage } from '../loadCommunityWritePage';
 import { PixelHammerIcon } from './PixelHammerIcon';
-
-interface CategoryTabItem {
-  value: PostCategory | null;
-  label: string;
-}
-
-const CATEGORY_TABS: readonly CategoryTabItem[] = [
-  { value: null, label: '전체글' },
-  ...POST_CATEGORY_OPTIONS,
-];
 
 const MAX_VISIBLE_PAGE_COUNT = 5;
 const RELATIVE_TIME_REFRESH_INTERVAL_MS = 30_000;
@@ -107,9 +82,6 @@ export function CommunityPage() {
     useCommunityPosts(selectedCategory, currentPage);
   useCommunityListScroll(hasData);
   const [currentTime, setCurrentTime] = useState(globalThis.Date.now);
-  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
-  const categoryMenuRef = useRef<HTMLDivElement>(null);
-  const categoryMenuButtonRef = useRef<HTMLButtonElement>(null);
 
   const firstVisiblePage = Math.min(
     Math.max(currentPage - Math.floor(MAX_VISIBLE_PAGE_COUNT / 2), 0),
@@ -119,19 +91,6 @@ export function CommunityPage() {
     { length: Math.min(totalPages, MAX_VISIBLE_PAGE_COUNT) },
     (_, index) => firstVisiblePage + index,
   );
-  const selectedCategoryLabel =
-    CATEGORY_TABS.find((category) => category.value === selectedCategory)
-      ?.label ?? CATEGORY_TABS[0].label;
-
-  const handleCategorySelect = (category: PostCategory | null) => {
-    selectCategory(category);
-    setIsCategoryMenuOpen(false);
-  };
-
-  const handleMobileCategorySelect = (category: PostCategory | null) => {
-    handleCategorySelect(category);
-    categoryMenuButtonRef.current?.focus();
-  };
 
   const handleWritePost = () => {
     navigate('/community/write', { state: getNavigationState() });
@@ -186,99 +145,16 @@ export function CommunityPage() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!isCategoryMenuOpen) {
-      return;
-    }
-
-    const handlePointerDown = (event: globalThis.PointerEvent) => {
-      const target = event.target;
-
-      if (target instanceof Node && !categoryMenuRef.current?.contains(target)) {
-        setIsCategoryMenuOpen(false);
-      }
-    };
-    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsCategoryMenuOpen(false);
-      }
-    };
-
-    document.addEventListener('pointerdown', handlePointerDown);
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('pointerdown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isCategoryMenuOpen]);
-
   return (
     <Page>
       <Content>
-        <Header>
-          <TabActionRow>
-            <CategoryTabs role="tablist" aria-label="게시글 카테고리">
-              {CATEGORY_TABS.map((category) => (
-                <CategoryTab
-                  key={category.label}
-                  type="button"
-                  role="tab"
-                  aria-selected={selectedCategory === category.value}
-                  $active={selectedCategory === category.value}
-                  onClick={() => handleCategorySelect(category.value)}
-                >
-                  {category.label}
-                </CategoryTab>
-              ))}
-            </CategoryTabs>
-            <MobileCategoryMenu ref={categoryMenuRef}>
-              <MobileCategoryButton
-                ref={categoryMenuButtonRef}
-                type="button"
-                aria-controls="community-category-menu"
-                aria-expanded={isCategoryMenuOpen}
-                aria-haspopup="menu"
-                onClick={() =>
-                  setIsCategoryMenuOpen((isOpen) => !isOpen)
-                }
-              >
-                <MobileCategoryButtonLabel>
-                  <span>{selectedCategoryLabel}</span>
-                  <PiCaretDown size={18} aria-hidden="true" />
-                </MobileCategoryButtonLabel>
-              </MobileCategoryButton>
-              <MobileCategoryPanel
-                id="community-category-menu"
-                aria-hidden={!isCategoryMenuOpen}
-                role="menu"
-                $open={isCategoryMenuOpen}
-              >
-                {CATEGORY_TABS.map((category) => (
-                  <MobileCategoryOption
-                    key={category.label}
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked={selectedCategory === category.value}
-                    $active={selectedCategory === category.value}
-                    onClick={() => handleMobileCategorySelect(category.value)}
-                  >
-                    {category.label}
-                  </MobileCategoryOption>
-                ))}
-              </MobileCategoryPanel>
-            </MobileCategoryMenu>
-            <WriteButton
-              size="sm"
-              onClick={handleWritePost}
-              onPointerEnter={preloadCommunityWritePage}
-              onFocus={preloadCommunityWritePage}
-            >
-              <PiPencilSimpleLineBold size={16} aria-hidden="true" />
-              글쓰기
-            </WriteButton>
-          </TabActionRow>
-        </Header>
+        <CommunityListHeader
+          selectedCategory={selectedCategory}
+          actions={{
+            onCategorySelect: selectCategory,
+            onWritePost: handleWritePost,
+          }}
+        />
 
         <PostList aria-label="게시글 목록" aria-busy={isFetching}>
           {isLoading && <CommunityListSkeleton />}

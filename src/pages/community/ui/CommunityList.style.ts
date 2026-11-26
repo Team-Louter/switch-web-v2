@@ -2,11 +2,6 @@ import styled, { css, keyframes } from 'styled-components';
 
 import * as token from '@/shared/styles/values/token';
 
-const communityPageEnter = keyframes`
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
-
 export const Page = styled.section`
   ${token.flexColumn}
   align-items: flex-start;
@@ -23,16 +18,10 @@ export const Page = styled.section`
   }
 `;
 
-export const Content = styled.div<{ $animate?: boolean }>`
+export const Content = styled.div`
   ${token.flexColumn}
   gap: 28px;
   width: 100%;
-
-  ${({ $animate = true }) => $animate && css`
-    @media (prefers-reduced-motion: no-preference) {
-      animation: ${communityPageEnter} 420ms ease-out;
-    }
-  `}
 
   @container community-page (max-width: 760px) {
     gap: 24px;
@@ -221,39 +210,4 @@ export const SkeletonStats = styled.span`
   @container community-page (max-width: 300px) {
     display: none;
   }
-`;
-
-export const SkeletonTabs = styled.div`
-  display: flex;
-  flex: 1 1 0;
-  align-items: center;
-  justify-content: space-around;
-  box-sizing: content-box;
-  min-width: 0;
-  height: 44px;
-  border-bottom: 1px solid ${token.colors.gray.gray10};
-
-  @container community-page (max-width: 1020px) {
-    box-sizing: border-box;
-    justify-content: flex-start;
-    padding-inline: 8px;
-  }
-`;
-
-export const SkeletonTab = styled.span`
-  ${skeletonSurface}
-  width: 60px;
-  height: 16px;
-
-  @container community-page (max-width: 1020px) {
-    &:not(:first-child) {
-      display: none;
-    }
-  }
-`;
-
-export const SkeletonWriteButton = styled.span`
-  ${skeletonSurface}
-  flex: 0 0 94px;
-  height: 38px;
 `;

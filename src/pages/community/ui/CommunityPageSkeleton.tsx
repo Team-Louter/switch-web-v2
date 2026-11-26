@@ -1,7 +1,10 @@
+import { useSearchParams } from 'react-router-dom';
+
+import { getCommunityListFilters } from '../model/useCommunityListNavigation';
+import { CommunityListHeader } from './CommunityListHeader';
 import * as S from './CommunityList.style';
 
 const SKELETON_ROW_COUNT = 16;
-const SKELETON_TAB_COUNT = 8;
 
 export function CommunityListSkeleton() {
   return (
@@ -20,19 +23,13 @@ export function CommunityListSkeleton() {
 }
 
 export function CommunityPageSkeleton() {
+  const [searchParams] = useSearchParams();
+  const { selectedCategory } = getCommunityListFilters(searchParams);
+
   return (
     <S.Page>
-      <S.Content $animate={false}>
-        <S.Header aria-hidden="true">
-          <S.TabActionRow>
-            <S.SkeletonTabs>
-              {Array.from({ length: SKELETON_TAB_COUNT }, (_, index) => (
-                <S.SkeletonTab key={index} />
-              ))}
-            </S.SkeletonTabs>
-            <S.SkeletonWriteButton />
-          </S.TabActionRow>
-        </S.Header>
+      <S.Content>
+        <CommunityListHeader selectedCategory={selectedCategory} />
         <S.PostList aria-label="게시글 목록" aria-busy="true">
           <CommunityListSkeleton />
         </S.PostList>

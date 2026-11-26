@@ -11,6 +11,19 @@ interface AsyncBoundaryProps {
   fallback?: ReactNode
 }
 
+function LoadingSkeleton() {
+  return (
+    <S.Loading role="status" aria-label="페이지 로딩 중" aria-busy="true">
+      <S.LoadingTitle aria-hidden="true" />
+      <S.LoadingContent aria-hidden="true">
+        {Array.from({ length: 5 }, (_, index) => (
+          <S.LoadingRow key={index} />
+        ))}
+      </S.LoadingContent>
+    </S.Loading>
+  )
+}
+
 export class AsyncBoundary extends Component<PropsWithChildren<AsyncBoundaryProps>, AsyncBoundaryState> {
   state: AsyncBoundaryState = { hasError: false }
 
@@ -28,10 +41,7 @@ export class AsyncBoundary extends Component<PropsWithChildren<AsyncBoundaryProp
       )
     }
 
-    const {
-      children,
-      fallback = <S.Status role="status">화면을 불러오는 중입니다.</S.Status>,
-    } = this.props
+    const { children, fallback = <LoadingSkeleton /> } = this.props
 
     return <Suspense fallback={fallback}>{children}</Suspense>
   }
