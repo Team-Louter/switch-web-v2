@@ -20,14 +20,11 @@ import {
   type CommunityReplyLoadHandler,
   type CommunityReplySubmitHandler,
 } from '../model/commentTree';
-import {
-  buildCommunityGifCommentContent,
-  extractCommunityKlipyGifLinks,
-} from '../model/klipyGifLink';
+import { buildCommunityGifCommentContent } from '../model/klipyGifLink';
 import { resizeCommunityTextarea } from '../model/commentInput';
 import kebabIcon from '../assets/svg/kebab.svg';
 import * as S from './CommunityCommentBranch.style';
-import { CommunityKlipyGifPreview } from './CommunityKlipyGifPreview';
+import { CommunityCommentBody } from './CommunityCommentBody';
 import { CommunityCommentDate } from './CommunityCommentDate';
 import { CommunityCommentAvatar } from './CommunityCommentAvatar';
 import { PixelHammerIcon } from './PixelHammerIcon';
@@ -106,9 +103,6 @@ function CommunityCommentBranchView({
 }: CommunityCommentBranchProps) {
   const { comment } = node;
   const isPending = comment.commentId < 0;
-  const commentContent = comment.deleted
-    ? { text: comment.content, klipyGifLinks: [] }
-    : extractCommunityKlipyGifLinks(comment.content);
   const [isRepliesOpen, setIsRepliesOpen] = useState(false);
   const [isReplyComposerOpen, setIsReplyComposerOpen] = useState(false);
   const [replyContent, setReplyContent] = useState('');
@@ -470,21 +464,11 @@ function CommunityCommentBranchView({
               </S.CommentEditForm>
             ) : (
               <>
-                {(commentContent.text || replyToUserName) && (
-                  <S.CommentText $isDeleted={comment.deleted}>
-                    {replyToUserName && (
-                      <S.CommentMention>@{replyToUserName}</S.CommentMention>
-                    )}
-                    {commentContent.text}
-                  </S.CommentText>
-                )}
-                {commentContent.klipyGifLinks.map((gifLink, index) => (
-                  <CommunityKlipyGifPreview
-                    key={`${gifLink.slug}-${index}`}
-                    href={gifLink.href}
-                    slug={gifLink.slug}
-                  />
-                ))}
+                <CommunityCommentBody
+                  content={comment.content}
+                  isDeleted={comment.deleted}
+                  replyToUserName={replyToUserName}
+                />
                 <S.ReplyActionButton
                   type="button"
                   disabled={isPending}

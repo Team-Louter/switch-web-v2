@@ -1,14 +1,15 @@
 # 커뮤니티 사이트 링크 미리보기
 
-게시글 본문에서 URL만 있는 문단은 사이트 제목·설명·이미지 카드로 표시합니다.
-YouTube 링크는 기존 제목 조회와 클릭 재생을 그대로 사용합니다.
+게시글 본문에서 URL만 있는 문단에는 원본 링크와 사이트 미리보기를 표시합니다.
+댓글과 답글에서는 HTTP(S) 주소를 클릭할 수 있고, 같은 문장에 반복된 URL의 미리보기는 한 번만 표시합니다.
+게시글의 YouTube 링크는 기존 제목 조회와 클릭 재생을 그대로 사용합니다.
 
 ## 조회 흐름
 
 `CommunityPostBlockContent` → 동일 출처 `GET /api/link-preview?url=...` → 공개 사이트 HTML 조회
 
 - Vercel은 `api/link-preview.ts`를 Node.js Function으로 배포합니다. Java 백엔드나 외부 미리보기 서비스 설정은 필요하지 않습니다.
-- `npm run dev`에서도 Vite middleware가 같은 핸들러를 실행합니다.
+- `npm run dev`에서도 Vite middleware가 같은 핸들러를 실행합니다. `api/tsconfig.json`은 Vercel 빌드에서 서버 모듈의 `.ts` import를 생성된 `.js` 경로로 바꿉니다.
 - 서버 구현과 HTML 파서·IP 검사 라이브러리는 브라우저 번들에 포함되지 않습니다.
 - Vercel의 SPA rewrite보다 `/api/link-preview` 경로를 먼저 처리합니다.
 
@@ -17,7 +18,7 @@ YouTube 링크는 기존 제목 조회와 클릭 재생을 그대로 사용합�
 - Open Graph → Twitter 메타태그 → HTML 제목·설명 → 도메인 순서로 사용합니다.
 - `twitter:card`가 `summary_large_image` 또는 `photo`이면 이미지가 텍스트 아래에 표시됩니다. 그 외에는 우측 썸네일로 표시합니다.
 - 상대 이미지 주소는 최종 페이지 URL을 기준으로 해석합니다. 이미지는 HTTPS 주소만 사용합니다.
-- 사이트 조회 실패 시 도메인과 원본 링크를 유지합니다. 이미지 로딩 실패 시 이미지 영역만 제거합니다.
+- 메타데이터가 없거나 조회에 실패하면 원본 링크만 표시합니다. 이미지 로딩 실패 시 이미지 영역만 제거합니다.
 
 ## 요청 제한과 캐시
 
