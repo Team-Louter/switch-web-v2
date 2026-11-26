@@ -1,4 +1,4 @@
-import { Component, Suspense, type PropsWithChildren } from 'react'
+import { Component, Suspense, type PropsWithChildren, type ReactNode } from 'react'
 
 import { Button } from '../Button'
 import * as S from './AsyncBoundary.style'
@@ -7,7 +7,24 @@ interface AsyncBoundaryState {
   hasError: boolean
 }
 
-export class AsyncBoundary extends Component<PropsWithChildren, AsyncBoundaryState> {
+interface AsyncBoundaryProps {
+  fallback?: ReactNode
+}
+
+function LoadingSkeleton() {
+  return (
+    <S.Loading role="status" aria-label="페이지 로딩 중" aria-busy="true">
+      <S.LoadingTitle aria-hidden="true" />
+      <S.LoadingContent aria-hidden="true">
+        {Array.from({ length: 5 }, (_, index) => (
+          <S.LoadingRow key={index} />
+        ))}
+      </S.LoadingContent>
+    </S.Loading>
+  )
+}
+
+export class AsyncBoundary extends Component<PropsWithChildren<AsyncBoundaryProps>, AsyncBoundaryState> {
   state: AsyncBoundaryState = { hasError: false }
 
   static getDerivedStateFromError(): AsyncBoundaryState {
@@ -24,10 +41,8 @@ export class AsyncBoundary extends Component<PropsWithChildren, AsyncBoundarySta
       )
     }
 
-    return (
-      <Suspense fallback={<S.Status role="status">화면을 불러오는 중입니다.</S.Status>}>
-        {this.props.children}
-      </Suspense>
-    )
+    const { children, fallback = <LoadingSkeleton /> } = this.props
+
+    return <Suspense fallback={fallback}>{children}</Suspense>
   }
 }
